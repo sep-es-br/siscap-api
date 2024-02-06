@@ -63,5 +63,16 @@ public class ProjetoController {
         }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ProjetoDto> atualizar(@PathVariable Integer id, @RequestBody ProjetoForm form) {
+        try {
+            ProjetoDto dto = service.atualizar(id, form);
+            return ResponseEntity.ok().body(dto);
+        } catch (ProjetoNaoEncontradoException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
 
 }

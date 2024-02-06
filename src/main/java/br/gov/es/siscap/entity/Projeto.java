@@ -17,14 +17,19 @@ public class Projeto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @Column(name = "acronym")
+    @Setter
     private String sigla;
     @Column(name = "title")
+    @Setter
     private String titulo;
     @Column(name = "estimated_value")
+    @Setter
     private BigInteger valorEstimado;
     @Column(name = "goal")
+    @Setter
     private String objetivo;
     @Column(name = "specific_goal")
+    @Setter
     private String objetivoEspecifico;
     @Column(name = "created_at")
     private LocalDateTime criadoEm;

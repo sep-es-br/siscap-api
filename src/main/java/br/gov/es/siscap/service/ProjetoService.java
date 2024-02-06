@@ -32,7 +32,23 @@ public class ProjetoService {
 
     @Transactional
     public void excluir(Integer id) {
-        Projeto projeto = repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
+        Projeto projeto = buscarPorId(id);
         projeto.setApagadoEm(LocalDateTime.now());
+    }
+
+    @Transactional
+    public ProjetoDto atualizar(Integer id, ProjetoForm form) {
+        Projeto projeto = buscarPorId(id);
+        projeto.setSigla(form.sigla());
+        projeto.setTitulo(form.titulo());
+        projeto.setValorEstimado(form.valorEstimado());
+        projeto.setObjetivo(form.objetivo());
+        projeto.setObjetivoEspecifico(form.objetivoEspecifico());
+        projeto.setAtualizadoEm(LocalDateTime.now());
+        return new ProjetoDto(projeto);
+    }
+
+    private Projeto buscarPorId(Integer id) {
+        return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
     }
 }
