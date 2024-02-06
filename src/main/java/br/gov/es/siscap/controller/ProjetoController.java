@@ -1,10 +1,10 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.exception.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.service.ProjetoService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -46,5 +46,22 @@ public class ProjetoController {
 
         return ResponseEntity.created(uri).body(projeto);
     }
+
+    /**
+     * Exclui logicamente a partir do campo deleted_at no registro.
+     *
+     * @param id id do projeto que deseja excluir.
+     * @return A confirmação de exclusão ou erro ao exlcuir.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> excluir(@PathVariable Integer id) {
+        try {
+            service.excluir(id);
+            return ResponseEntity.ok().body("Projeto excluído com sucesso!");
+        } catch (ProjetoNaoEncontradoException e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
 
 }

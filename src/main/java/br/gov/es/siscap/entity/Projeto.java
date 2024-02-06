@@ -2,8 +2,8 @@ package br.gov.es.siscap.entity;
 
 import br.gov.es.siscap.form.ProjetoForm;
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -29,8 +29,10 @@ public class Projeto {
     @Column(name = "created_at")
     private LocalDateTime criadoEm;
     @Column(name = "updated_at")
+    @Setter
     private LocalDateTime atualizadoEm;
     @Column(name = "deleted_at")
+    @Setter
     private LocalDateTime apagadoEm;
 
     public Projeto() {
