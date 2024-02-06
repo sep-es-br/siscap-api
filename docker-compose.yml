@@ -1,0 +1,19 @@
+services:
+  postgres_siscap:
+    image: postgres:12.17
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "dev@siscap"
+    networks:
+      - siscap-docker-net
+    volumes:
+      - ./dataset/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - siscap-docker-vol:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+networks:
+  siscap-docker-net:
+
+volumes:
+  siscap-docker-vol:
