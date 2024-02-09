@@ -1,6 +1,6 @@
 package br.gov.es.siscap.dto;
 
-import br.gov.es.siscap.models.Microregiao;
+import br.gov.es.siscap.models.Microrregiao;
 import br.gov.es.siscap.models.Projeto;
 
 import java.math.BigInteger;
@@ -27,7 +27,7 @@ public record ProjetoDto(
                 projeto.getObjetivo(), projeto.getObjetivoEspecifico(), projeto.getStatus().getId(),
                 projeto.getEntidade().getId(), projeto.getSituacaoProblema(), projeto.getSolucoesPropostas(),
                 projeto.getImpactos(), projeto.getArranjosInstitucionais(),
-                projeto.getMicroregioes().stream().map(Microregiao::getId).collect(Collectors.toList()));
+                projeto.getMicroregioes().stream().map(Microrregiao::getId).collect(Collectors.toList()));
     }
 
 }

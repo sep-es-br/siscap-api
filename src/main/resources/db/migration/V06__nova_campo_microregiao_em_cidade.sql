@@ -1,7 +1,7 @@
 alter table cidade
-    add column id_microregiao integer;
+    add column id_microrregiao integer;
 alter table cidade
-    add constraint fk_cidade_id_microregiao_microregiao foreign key (id_microregiao) references microregiao (id);
+    add constraint fk_cidade_id_microrregiao_microrregiao foreign key (id_microrregiao) references microrregiao (id);
 
-update cidade set id_microregiao = 1 where cidade.id_microregiao is null;
-alter table cidade alter column id_microregiao set not null;
+update cidade set id_microrregiao = 1 where cidade.id_microrregiao is null;
+alter table cidade alter column id_microrregiao set not null;

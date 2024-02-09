@@ -11,17 +11,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "microregiao")
+@Table(name = "microrregiao")
 @Getter
-@SQLDelete(sql = "update microregiao set apagado = true where id=?")
+@SQLDelete(sql = "update microrregiao set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class Microregiao {
+public class Microrregiao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nome;
-    @OneToMany(mappedBy = "microregiao")
+    @OneToMany(mappedBy = "microrregiao")
     private List<Cidade> cidades;
     @DateTimeFormat
     private LocalDateTime criadoEm;
@@ -31,10 +31,10 @@ public class Microregiao {
     @Setter
     private boolean apagado = Boolean.FALSE;
 
-    public Microregiao() {
+    public Microrregiao() {
     }
 
-    public Microregiao(Long id) {
+    public Microrregiao(Long id) {
         this.id = id;
     }
 }

@@ -6,7 +6,7 @@ import br.gov.es.siscap.exception.SisCapServiceException;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.form.ProjetoUpdateForm;
 import br.gov.es.siscap.models.Entidade;
-import br.gov.es.siscap.models.Microregiao;
+import br.gov.es.siscap.models.Microrregiao;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class ProjetoService {
 
     private final ProjetoRepository repository;
     private final EntidadeService entidadeService;
-    private final MicroregiaoService microregiaoService;
+    private final MicrorregiaoService microrregiaoService;
 
     @Transactional
     public ProjetoDto salvar(ProjetoForm form) {
@@ -35,8 +35,8 @@ public class ProjetoService {
         if (!entidadeService.existePorId(form.idEntidade())) {
             erros.add("Erro ao encontrar entidade com id " + form.idEntidade());
         }
-        for (Long id : form.idMicroregioes()) {
-            if (!microregiaoService.existePorId(id))
+        for (Long id : form.idMicrorregioes()) {
+            if (!microrregiaoService.existePorId(id))
                 erros.add("Erro ao encontrar microregião com id " + id);
         }
         if (!erros.isEmpty())
@@ -76,9 +76,9 @@ public class ProjetoService {
             projeto.setEntidade(new Entidade(form.idEntidade()));
         if (form.valorEstimado() != null)
             projeto.setValorEstimado(form.valorEstimado());
-        if (form.idMicroregioes() != null && !form.idMicroregioes().isEmpty())
-            projeto.setMicroregioes(form.idMicroregioes()
-                    .stream().map(Microregiao::new).collect(Collectors.toList()));
+        if (form.idMicrorregioes() != null && !form.idMicrorregioes().isEmpty())
+            projeto.setMicroregioes(form.idMicrorregioes()
+                    .stream().map(Microrregiao::new).collect(Collectors.toList()));
         if (form.objetivo() != null)
             projeto.setObjetivo(form.objetivo());
         if (form.objetivoEspecifico() != null)

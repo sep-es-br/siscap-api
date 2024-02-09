@@ -1,7 +1,7 @@
 package br.gov.es.siscap.controller;
 
-import br.gov.es.siscap.dto.MicroregiaoSelectDto;
-import br.gov.es.siscap.service.MicroregiaoService;
+import br.gov.es.siscap.dto.MicrorregiaoSelectDto;
+import br.gov.es.siscap.service.MicrorregiaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,13 +11,13 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/microregiao")
-public class MicroregiaoController {
+@RequestMapping("/microrregiao")
+public class MicrorregiaoController {
 
-    private final MicroregiaoService service;
+    private final MicrorregiaoService service;
 
     @GetMapping("/select")
-    public List<MicroregiaoSelectDto> listarSelect() {
+    public List<MicrorregiaoSelectDto> listarSelect() {
         return service.buscarSelect();
     }
 

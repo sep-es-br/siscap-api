@@ -12,7 +12,7 @@ import java.util.List;
  * @param titulo
  * @param idEntidade
  * @param valorEstimado
- * @param idMicroregioes
+ * @param idMicrorregioes
  * @param objetivo
  * @param objetivoEspecifico
  * @param situacaoProblema
@@ -29,7 +29,7 @@ public record ProjetoUpdateForm(
         Long idEntidade,
         @Positive
         BigInteger valorEstimado,
-        List<Long> idMicroregioes,
+        List<Long> idMicrorregioes,
         @Size(max = 2000)
         String objetivo,
         @Size(max = 2000)

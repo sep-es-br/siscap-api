@@ -53,11 +53,11 @@ public class Projeto {
     @Setter
     private String arranjosInstitucionais;
     @ManyToMany
-    @JoinTable(name = "projeto_microregiao",
+    @JoinTable(name = "projeto_microrregiao",
             joinColumns = {@JoinColumn(name = "id_projeto"),},
-            inverseJoinColumns = @JoinColumn(name = "id_microregiao"))
+            inverseJoinColumns = @JoinColumn(name = "id_microrregiao"))
     @Setter
-    private List<Microregiao> microregioes;
+    private List<Microrregiao> microregioes;
     @DateTimeFormat
     private LocalDateTime criadoEm;
     @Setter
@@ -81,7 +81,7 @@ public class Projeto {
         this.solucoesPropostas = form.solucoesPropostas();
         this.impactos = form.impactos();
         this.arranjosInstitucionais = form.arranjosInstitucionais();
-        this.microregioes = form.idMicroregioes().stream().map(Microregiao::new).collect(Collectors.toList());
+        this.microregioes = form.idMicrorregioes().stream().map(Microrregiao::new).collect(Collectors.toList());
         this.criadoEm = LocalDateTime.now();
     }
 

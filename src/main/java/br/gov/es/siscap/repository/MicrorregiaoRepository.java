@@ -1,9 +1,9 @@
 package br.gov.es.siscap.repository;
 
-import br.gov.es.siscap.models.Microregiao;
+import br.gov.es.siscap.models.Microrregiao;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface MicroregiaoRepository extends JpaRepository<Microregiao, Long> {
+public interface MicrorregiaoRepository extends JpaRepository<Microrregiao, Long> {
 }

@@ -28,9 +28,9 @@ public class Cidade {
     private String codigoIBGE;
     private String nome;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_microregiao")
+    @JoinColumn(name = "id_microrregiao")
     @SQLJoinTableRestriction("apagado = FALSE")
-    private Microregiao microregiao;
+    private Microrregiao microrregiao;
     @DateTimeFormat
     private LocalDateTime criadoEm;
     @Setter

@@ -1,7 +1,7 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.MicroregiaoSelectDto;
-import br.gov.es.siscap.repository.MicroregiaoRepository;
+import br.gov.es.siscap.dto.MicrorregiaoSelectDto;
+import br.gov.es.siscap.repository.MicrorregiaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,15 +12,15 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class MicroregiaoService {
+public class MicrorregiaoService {
 
-    private final MicroregiaoRepository repository;
+    private final MicrorregiaoRepository repository;
 
     public boolean existePorId(Long id) {
         return repository.existsById(id);
     }
 
-    public List<MicroregiaoSelectDto> buscarSelect() {
-        return repository.findAll().stream().map(MicroregiaoSelectDto::new).collect(Collectors.toList());
+    public List<MicrorregiaoSelectDto> buscarSelect() {
+        return repository.findAll().stream().map(MicrorregiaoSelectDto::new).collect(Collectors.toList());
     }
 }
