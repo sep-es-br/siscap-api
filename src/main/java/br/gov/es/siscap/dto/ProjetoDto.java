@@ -1,25 +1,33 @@
 package br.gov.es.siscap.dto;
 
-import br.gov.es.siscap.entity.Projeto;
+import br.gov.es.siscap.models.Microregiao;
+import br.gov.es.siscap.models.Projeto;
 
 import java.math.BigInteger;
-import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public record ProjetoDto(
-        Integer id,
+        Long id,
         String sigla,
         String titulo,
         BigInteger valorEstimado,
         String objetivo,
         String objetivoEspecifico,
-        LocalDateTime criadoEm,
-        LocalDateTime atualizadoEm,
-        LocalDateTime apagadoEm) {
+        Long idStatus,
+        Long idEntidade,
+        String situacaoProblema,
+        String solucoesPropostas,
+        String impactos,
+        String arranjosInstitucionais,
+        List<Long> idMicroregioes) {
 
     public ProjetoDto(Projeto projeto) {
         this(projeto.getId(), projeto.getSigla(), projeto.getTitulo(), projeto.getValorEstimado(),
-                projeto.getObjetivo(), projeto.getObjetivoEspecifico(), projeto.getCriadoEm(),
-                projeto.getAtualizadoEm(), projeto.getApagadoEm());
+                projeto.getObjetivo(), projeto.getObjetivoEspecifico(), projeto.getStatus().getId(),
+                projeto.getEntidade().getId(), projeto.getSituacaoProblema(), projeto.getSolucoesPropostas(),
+                projeto.getImpactos(), projeto.getArranjosInstitucionais(),
+                projeto.getMicroregioes().stream().map(Microregiao::getId).collect(Collectors.toList()));
     }
 
 }

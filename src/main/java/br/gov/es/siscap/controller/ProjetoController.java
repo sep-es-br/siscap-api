@@ -2,8 +2,12 @@ package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.exception.ProjetoNaoEncontradoException;
+import br.gov.es.siscap.exception.SisCapServiceException;
 import br.gov.es.siscap.form.ProjetoForm;
+import br.gov.es.siscap.form.ProjetoUpdateForm;
 import br.gov.es.siscap.service.ProjetoService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +26,7 @@ public class ProjetoController {
     private final ProjetoService service;
 
     /**
-     * Método para listar todos os projetos não apagados no banco.
+     * Método para listar todos os projetos no banco.
      *
      * @param pageable Atributo padrão do spring para definir quantidade de registros e paginação da listagem.
      * @return Retorna um objeto page que contem a listagem dos registro e mais detalhamento da paginação.
@@ -40,31 +44,31 @@ public class ProjetoController {
      * o projeto criado contendo outros campos de controle da aplicação.
      */
     @PostMapping
-    public ResponseEntity<ProjetoDto> cadastrar(@RequestBody ProjetoForm form, UriComponentsBuilder uriBuilder) {
-        ProjetoDto projeto = service.salvar(form);
-        URI uri = uriBuilder.path("/projetos/{id}").buildAndExpand(projeto.id()).toUri();
-
-        return ResponseEntity.created(uri).body(projeto);
-    }
-
-    /**
-     * Exclui logicamente a partir do campo deleted_at no registro.
-     *
-     * @param id id do projeto que deseja excluir.
-     * @return A confirmação de exclusão ou erro ao exlcuir.
-     */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> excluir(@PathVariable Integer id) {
+    public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form,
+                                                UriComponentsBuilder uriBuilder) {
         try {
-            service.excluir(id);
-            return ResponseEntity.ok().body("Projeto excluído com sucesso!");
-        } catch (ProjetoNaoEncontradoException e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
+            ProjetoDto projeto = service.salvar(form);
+            URI uri = uriBuilder.path("/projetos/{id}").buildAndExpand(projeto.id()).toUri();
+
+            return ResponseEntity.created(uri).body(projeto);
+        } catch (SisCapServiceException e) {
+            // Aqui entra o sistema de exception handling e logging q vai ser criado.
+            System.out.println(e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 
+    /**
+     * Atualiza um projeto já existente no banco de dados.
+     *
+     * @param id   O id do projeto que vai ser alterado.
+     * @param form Formulário com os campos que serão modificados.
+     *             Campos não modificados, deverão ser nulos no formulário
+     * @return O projeto alterado com todos os campos.
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<ProjetoDto> atualizar(@PathVariable Integer id, @RequestBody ProjetoForm form) {
+    public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id,
+                                                @Valid @RequestBody ProjetoUpdateForm form) {
         try {
             ProjetoDto dto = service.atualizar(id, form);
             return ResponseEntity.ok().body(dto);
@@ -73,6 +77,20 @@ public class ProjetoController {
         }
     }
 
-
+    /**
+     * Exclui logicamente o registro.
+     *
+     * @param id id do projeto que deseja excluir.
+     * @return A confirmação de exclusão ou erro ao exlcuir.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> excluir(@PathVariable @NotNull Long id) {
+        try {
+            service.excluir(id);
+            return ResponseEntity.ok().body("Projeto excluído com sucesso!");
+        } catch (ProjetoNaoEncontradoException e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
 
 }

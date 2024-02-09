@@ -1,0 +1,1 @@
+alter table projeto rename column arranjos_instituicionais to arranjos_institucionais;
