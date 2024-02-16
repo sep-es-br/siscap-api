@@ -20,14 +20,14 @@ public record ProjetoDto(
         String solucoesPropostas,
         String impactos,
         String arranjosInstitucionais,
-        List<Long> idMicroregioes) {
+        List<Long> idMicrorregioes) {
 
     public ProjetoDto(Projeto projeto) {
         this(projeto.getId(), projeto.getSigla(), projeto.getTitulo(), projeto.getValorEstimado(),
                 projeto.getObjetivo(), projeto.getObjetivoEspecifico(), projeto.getStatus().getId(),
                 projeto.getEntidade().getId(), projeto.getSituacaoProblema(), projeto.getSolucoesPropostas(),
                 projeto.getImpactos(), projeto.getArranjosInstitucionais(),
-                projeto.getMicroregioes().stream().map(Microrregiao::getId).collect(Collectors.toList()));
+                projeto.getMicrorregioes().stream().map(Microrregiao::getId).collect(Collectors.toList()));
     }
 
 }

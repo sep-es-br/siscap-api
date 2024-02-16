@@ -37,7 +37,7 @@ public class ProjetoService {
         }
         for (Long id : form.idMicrorregioes()) {
             if (!microrregiaoService.existePorId(id))
-                erros.add("Erro ao encontrar microregião com id " + id);
+                erros.add("Erro ao encontrar microrregião com id " + id);
         }
         if (!erros.isEmpty())
             throw new SisCapServiceException(erros);
@@ -77,7 +77,7 @@ public class ProjetoService {
         if (form.valorEstimado() != null)
             projeto.setValorEstimado(form.valorEstimado());
         if (form.idMicrorregioes() != null && !form.idMicrorregioes().isEmpty())
-            projeto.setMicroregioes(form.idMicrorregioes()
+            projeto.setMicrorregioes(form.idMicrorregioes()
                     .stream().map(Microrregiao::new).collect(Collectors.toList()));
         if (form.objetivo() != null)
             projeto.setObjetivo(form.objetivo());

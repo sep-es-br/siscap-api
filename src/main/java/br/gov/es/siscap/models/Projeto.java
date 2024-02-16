@@ -57,7 +57,7 @@ public class Projeto {
             joinColumns = {@JoinColumn(name = "id_projeto"),},
             inverseJoinColumns = @JoinColumn(name = "id_microrregiao"))
     @Setter
-    private List<Microrregiao> microregioes;
+    private List<Microrregiao> microrregioes;
     @DateTimeFormat
     private LocalDateTime criadoEm;
     @Setter
@@ -81,7 +81,7 @@ public class Projeto {
         this.solucoesPropostas = form.solucoesPropostas();
         this.impactos = form.impactos();
         this.arranjosInstitucionais = form.arranjosInstitucionais();
-        this.microregioes = form.idMicrorregioes().stream().map(Microrregiao::new).collect(Collectors.toList());
+        this.microrregioes = form.idMicrorregioes().stream().map(Microrregiao::new).collect(Collectors.toList());
         this.criadoEm = LocalDateTime.now();
     }
 
