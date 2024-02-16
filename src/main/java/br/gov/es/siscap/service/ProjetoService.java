@@ -63,6 +63,10 @@ public class ProjetoService {
         projeto.setAtualizadoEm(LocalDateTime.now());
     }
 
+    public ProjetoDto buscar(Long id) {
+        return new ProjetoDto(buscarPorId(id));
+    }
+
     private Projeto buscarPorId(Long id) {
         return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
     }

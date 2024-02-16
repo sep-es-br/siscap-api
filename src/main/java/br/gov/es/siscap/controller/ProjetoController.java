@@ -93,4 +93,15 @@ public class ProjetoController {
         }
     }
 
+    /**
+     * Detalhar o Projeto com todos os dados.
+     *
+     * @param id "Id" do projeto que deseja detalhar.
+     * @return O DTO completo do Projeto.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ProjetoDto> detalhar(@PathVariable @NotNull Long id) {
+        return ResponseEntity.ok(service.buscar(id));
+    }
+
 }
