@@ -1,8 +1,6 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.ProjetoDto;
-import br.gov.es.siscap.exception.ProjetoNaoEncontradoException;
-import br.gov.es.siscap.exception.SisCapServiceException;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.form.ProjetoUpdateForm;
 import br.gov.es.siscap.service.ProjetoService;
@@ -46,16 +44,9 @@ public class ProjetoController {
     @PostMapping
     public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form,
                                                 UriComponentsBuilder uriBuilder) {
-        try {
-            ProjetoDto projeto = service.salvar(form);
-            URI uri = uriBuilder.path("/projetos/{id}").buildAndExpand(projeto.id()).toUri();
-
-            return ResponseEntity.created(uri).body(projeto);
-        } catch (SisCapServiceException e) {
-            // Aqui entra o sistema de exception handling e logging q vai ser criado.
-            System.out.println(e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
+        ProjetoDto projeto = service.salvar(form);
+        URI uri = uriBuilder.path("/projetos/{id}").buildAndExpand(projeto.id()).toUri();
+        return ResponseEntity.created(uri).body(projeto);
     }
 
     /**
@@ -69,12 +60,8 @@ public class ProjetoController {
     @PutMapping("/{id}")
     public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id,
                                                 @Valid @RequestBody ProjetoUpdateForm form) {
-        try {
-            ProjetoDto dto = service.atualizar(id, form);
-            return ResponseEntity.ok().body(dto);
-        } catch (ProjetoNaoEncontradoException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        ProjetoDto dto = service.atualizar(id, form);
+        return ResponseEntity.ok().body(dto);
     }
 
     /**
@@ -85,12 +72,8 @@ public class ProjetoController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<String> excluir(@PathVariable @NotNull Long id) {
-        try {
-            service.excluir(id);
-            return ResponseEntity.ok().body("Projeto excluído com sucesso!");
-        } catch (ProjetoNaoEncontradoException e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
+        service.excluir(id);
+        return ResponseEntity.ok().body("Projeto excluído com sucesso!");
     }
 
     /**
