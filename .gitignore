@@ -34,4 +34,4 @@ build/
 
 ### Application ###
 src/main/resources/application-prd.properties
-src/main/resources/application-hml.properties
+src/main/resources/application-dev.properties
