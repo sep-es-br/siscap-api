@@ -1,5 +1,6 @@
 package br.gov.es.siscap.controller;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,16 +17,25 @@ public class AcessoCidadaoController {
     private String frontEndHost;
 
     /**
+     * Endpoint apenas para redirecionar para o login do acesso cidadão.
+     */
+    @GetMapping
+    public void signin(){ //serve apenas para redirecionar ao acesso cidadao.
+    }
+
+
+    /**
      * Endpoint necessário para fazer o redirecionamento do token de acesso para o front end.
      * Este endpoint recebe o redirecionamento a partir do arquivo acesso-cidadao-response.html que se fez necessário
      *
      * @param accessToken O access token do acesso cidadão.
      * @return Um redirect para o frontend passando o token codigicado.
      */
+    @Hidden
     @GetMapping("/acesso-cidadao-response")
     public RedirectView acessoCidadaoResponse(String accessToken) {
         String token = Base64.getEncoder().encodeToString(accessToken.getBytes());
-        return new RedirectView(String.format("%s/siscap/token?token=%s", frontEndHost, token));
+        return new RedirectView(String.format("%s/token?token=%s", frontEndHost, token));
     }
 
 }
