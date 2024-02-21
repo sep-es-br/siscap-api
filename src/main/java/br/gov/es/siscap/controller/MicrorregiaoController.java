@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/microrregiao")
+@RequestMapping("/microrregioes")
 public class MicrorregiaoController {
 
     private final MicrorregiaoService service;
