@@ -17,14 +17,6 @@ public class AcessoCidadaoController {
     private String frontEndHost;
 
     /**
-     * Endpoint apenas para redirecionar para o login do acesso cidadão.
-     */
-    @GetMapping
-    public void signin(){ //serve apenas para redirecionar ao acesso cidadao.
-    }
-
-
-    /**
      * Endpoint necessário para fazer o redirecionamento do token de acesso para o front end.
      * Este endpoint recebe o redirecionamento a partir do arquivo acesso-cidadao-response.html que se fez necessário
      *
