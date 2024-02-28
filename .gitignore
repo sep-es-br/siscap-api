@@ -33,5 +33,5 @@ build/
 .vscode/
 
 ### Application ###
-src/main/resources/application-prd.yml
+src/main/resources/application-prod.yml
 src/main/resources/application-dev.yml
