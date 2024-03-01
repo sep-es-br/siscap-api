@@ -1,6 +1,7 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.dto.ProjetoListaDto;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.form.ProjetoUpdateForm;
 import br.gov.es.siscap.service.ProjetoService;
@@ -30,8 +31,8 @@ public class ProjetoController {
      * @return Retorna um objeto page que contem a listagem dos registro e mais detalhamento da paginação.
      */
     @GetMapping
-    public Page<ProjetoDto> listar(@PageableDefault(size = 15) Pageable pageable) {
-        return service.buscarTodos(pageable);
+    public Page<ProjetoListaDto> listar(@PageableDefault(size = 15) Pageable pageable) {
+        return service.listarTodos(pageable);
     }
 
     /**

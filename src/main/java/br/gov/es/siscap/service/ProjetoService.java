@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.dto.ProjetoListaDto;
 import br.gov.es.siscap.exception.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.exception.SisCapServiceException;
 import br.gov.es.siscap.form.ProjetoForm;
@@ -18,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,8 +45,8 @@ public class ProjetoService {
         return new ProjetoDto(projeto);
     }
 
-    public Page<ProjetoDto> buscarTodos(Pageable pageable) {
-        return repository.findAll(pageable).map(ProjetoDto::new);
+    public Page<ProjetoListaDto> listarTodos(Pageable pageable) {
+        return repository.findAll(pageable).map(ProjetoListaDto::new);
     }
 
     @Transactional
@@ -82,7 +82,7 @@ public class ProjetoService {
             projeto.setValorEstimado(form.valorEstimado());
         if (form.idMicrorregioes() != null && !form.idMicrorregioes().isEmpty())
             projeto.setMicrorregioes(form.idMicrorregioes()
-                    .stream().map(Microrregiao::new).collect(Collectors.toList()));
+                    .stream().map(Microrregiao::new).toList());
         if (form.objetivo() != null)
             projeto.setObjetivo(form.objetivo());
         if (form.objetivoEspecifico() != null)
