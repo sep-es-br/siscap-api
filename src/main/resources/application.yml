@@ -8,3 +8,6 @@ server:
   port: 8080
   servlet:
     context-path: /siscap
+
+log4j:
+  skipJansi: false
