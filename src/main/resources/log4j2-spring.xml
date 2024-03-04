@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="DEBUG">
+    <Appenders>
+        <Console name="LogToConsole" target="SYSTEM_OUT">
+            <PatternLayout>
+                <Pattern>%style{%d{ISO8601}{GMT-3}}{magenta} %highlight{%-5level} %style{%-36logger{1.}}{cyan} - %msg%n</Pattern>
+            </PatternLayout>
+        </Console>
+        <File name="LogToFile" fileName="logs/siscap-api.log">
+            <PatternLayout>
+                <Pattern>%d{ISO8601}{GMT-3} %-5level %logger{36} - %msg%n</Pattern>
+            </PatternLayout>
+        </File>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="LogToFile"/>
+            <AppenderRef ref="LogToConsole"/>
+        </Root>
+    </Loggers>
+</Configuration>
