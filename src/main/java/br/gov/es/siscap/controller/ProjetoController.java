@@ -84,7 +84,7 @@ public class ProjetoController {
      * @return O DTO completo do Projeto.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ProjetoDto> detalhar(@PathVariable @NotNull Long id) {
+    public ResponseEntity<ProjetoDto> buscar(@PathVariable @NotNull Long id) {
         return ResponseEntity.ok(service.buscar(id));
     }
 
