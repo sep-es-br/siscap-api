@@ -69,7 +69,7 @@ class PessoaServiceTest {
         Pessoa pessoa = getEntidade();
         when(repository.findById(1L)).thenReturn(Optional.of(pessoa));
         service.buscarImagemPerfil(1L);
-        verify(imagemPerfilService, times(1)).buscar(pessoa.getCaminhoImagem());
+        verify(imagemPerfilService, times(1)).buscar(pessoa.getNomeImagem());
     }
 
     @Test
@@ -92,7 +92,7 @@ class PessoaServiceTest {
 
         service.excluir(1L);
         verify(repository, times(1)).deleteById(1L);
-        verify(imagemPerfilService, times(1)).apagar(pessoa.getCaminhoImagem());
+        verify(imagemPerfilService, times(1)).apagar(pessoa.getNomeImagem());
     }
 
     private EnderecoForm getEnderecoForm() {
@@ -102,13 +102,13 @@ class PessoaServiceTest {
 
     private PessoaForm getForm() {
         return new PessoaForm("Batata com Cheddar e Bacon", "Batatinha", "Brasileiro",
-                "Masculino", "12312312312", getEnderecoForm(),
+                "Masculino", "12312312312", "batata@mail.com",  getEnderecoForm(),
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 
     private PessoaUpdateForm getUpdateForm() {
         return new PessoaUpdateForm("Batata com Cheddar e Bacon", "Batatinha", "Brasileiro",
-                "Masculino", "12312312312", getEnderecoForm(),
+                "Masculino", "12312312312", "batata@mail.com", getEnderecoForm(),
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 

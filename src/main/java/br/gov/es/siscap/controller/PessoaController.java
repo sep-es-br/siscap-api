@@ -1,6 +1,7 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.PessoaDto;
+import br.gov.es.siscap.dto.PessoaListaDto;
 import br.gov.es.siscap.exception.service.ImagemSisCapException;
 import br.gov.es.siscap.form.PessoaForm;
 import br.gov.es.siscap.form.PessoaUpdateForm;
@@ -31,7 +32,7 @@ public class PessoaController {
     private final PessoaService service;
 
     @GetMapping
-    public Page<PessoaDto> listar(@PageableDefault(size = 15) Pageable pageable) {
+    public Page<PessoaListaDto> listar(@PageableDefault(size = 15) Pageable pageable) {
         return service.listarTodos(pageable);
     }
 

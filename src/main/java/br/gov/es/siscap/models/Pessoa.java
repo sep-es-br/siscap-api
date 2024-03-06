@@ -29,11 +29,12 @@ public class Pessoa {
     private String nacionalidade;
     private String genero;
     private String cpf;
+    private String email;
     @OneToOne(cascade = {CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.REMOVE})
     @SQLJoinTableRestriction("apagado = FALSE")
     @JoinColumn(name = "id_endereco")
     private Endereco endereco;
-    private String caminhoImagem;
+    private String nomeImagem;
     @DateTimeFormat
     private LocalDateTime criadoEm;
     @Setter
@@ -42,14 +43,15 @@ public class Pessoa {
     @Setter
     private boolean apagado = Boolean.FALSE;
 
-    public Pessoa(PessoaForm form, String caminhoImagem) {
+    public Pessoa(PessoaForm form, String nomeImagem) {
         this.nome = form.nome();
         this.nomeSocial = form.nomeSocial();
         this.nacionalidade = form.nacionalidade();
         this.genero = form.genero();
         this.cpf = form.cpf();
+        this.email = form.email();
         this.endereco = form.endereco() != null ? new Endereco(form.endereco()) : null;
-        this.caminhoImagem = caminhoImagem;
+        this.nomeImagem = nomeImagem;
         this.criadoEm = LocalDateTime.now();
     }
 
@@ -64,6 +66,8 @@ public class Pessoa {
             this.genero = form.genero();
         if (form.cpf() != null)
             this.cpf = form.cpf();
+        if (form.email() != null)
+            this.email = form.email();
         if (form.endereco() != null) {
             if (this.endereco != null)
                 this.endereco.atualizarEndereco(form.endereco());
@@ -73,7 +77,7 @@ public class Pessoa {
         this.setAtualizadoEm(LocalDateTime.now());
     }
 
-    public void atualizarImagemPerfil(String caminhoImagem) {
-        this.caminhoImagem = caminhoImagem;
+    public void atualizarImagemPerfil(String nomeImagem) {
+        this.nomeImagem = nomeImagem;
     }
 }
