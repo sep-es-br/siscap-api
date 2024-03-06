@@ -2,8 +2,8 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.ProjetoListaDto;
-import br.gov.es.siscap.exception.ProjetoNaoEncontradoException;
-import br.gov.es.siscap.exception.SisCapServiceException;
+import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
+import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.form.ProjetoUpdateForm;
 import br.gov.es.siscap.models.Entidade;
@@ -45,7 +45,7 @@ public class ProjetoService {
         }
         if (!erros.isEmpty()) {
             erros.forEach(logger::warn);
-            throw new SisCapServiceException(erros);
+            throw new ServiceSisCapException(erros);
         }
         Projeto projeto = repository.save(new Projeto(form));
         logger.info("Cadastro de projeto finalizado!");

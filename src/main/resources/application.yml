@@ -11,3 +11,6 @@ server:
 
 log4j:
   skipJansi: false
+
+raiz:
+  imagens: C:/projetos/siscap/img

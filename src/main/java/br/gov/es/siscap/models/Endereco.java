@@ -1,5 +1,6 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.form.EnderecoForm;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,7 +38,32 @@ public class Endereco {
     @Setter
     private boolean apagado = Boolean.FALSE;
 
-
     public Endereco() {
+    }
+
+    public Endereco(EnderecoForm endereco) {
+        this.rua = endereco.rua();
+        this.numero = endereco.numero();
+        this.bairro = endereco.bairro();
+        this.complemento = endereco.complemento();
+        this.codigoPostal = endereco.codigoPostal();
+        this.cidade = endereco.idCidade() != null ? new Cidade(endereco.idCidade()) : null;
+        this.criadoEm = LocalDateTime.now();
+    }
+
+    public void atualizarEndereco(EnderecoForm form) {
+        if (form.rua() != null)
+            this.rua = form.rua();
+        if (form.numero() != null)
+            this.numero = form.numero();
+        if (form.bairro() != null)
+            this.bairro = form.bairro();
+        if (form.complemento() != null)
+            this.complemento = form.complemento();
+        if (form.codigoPostal() != null)
+            this.codigoPostal = form.codigoPostal();
+        if (form.idCidade() != null)
+            this.cidade = new Cidade(form.idCidade());
+        this.setAtualizadoEm(LocalDateTime.now());
     }
 }
