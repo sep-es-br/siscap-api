@@ -1,5 +1,6 @@
 package br.gov.es.siscap.form;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -10,6 +11,8 @@ public record PessoaUpdateForm(
         String genero,
         @Size(max = 11, min = 11)
         String cpf,
+        @Email
+        String email,
         EnderecoForm endereco,
         MultipartFile imagemPerfil
 ) {

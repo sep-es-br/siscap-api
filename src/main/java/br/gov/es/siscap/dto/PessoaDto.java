@@ -9,13 +9,14 @@ public record PessoaDto(
         String nacionalidade,
         String genero,
         String cpf,
+        String email,
         EnderecoDto endereco,
         String imagemPerfil) {
 
     public PessoaDto(Pessoa pessoa) {
         this(pessoa.getId(), pessoa.getNome(), pessoa.getNomeSocial(), pessoa.getNacionalidade(),
-                pessoa.getGenero(), pessoa.getCpf(),
-                pessoa.getEndereco() != null ? new EnderecoDto(pessoa.getEndereco()) : null, pessoa.getCaminhoImagem());
+                pessoa.getGenero(), pessoa.getCpf(), pessoa.getEmail(),
+                pessoa.getEndereco() != null ? new EnderecoDto(pessoa.getEndereco()) : null, pessoa.getNomeImagem());
     }
 
 }

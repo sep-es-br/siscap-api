@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.PessoaDto;
+import br.gov.es.siscap.dto.PessoaListaDto;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
 import br.gov.es.siscap.form.PessoaForm;
 import br.gov.es.siscap.form.PessoaUpdateForm;
@@ -29,9 +30,9 @@ public class PessoaService {
     @Transactional
     public PessoaDto salvar(PessoaForm form) {
         logger.info("Cadatrar nova pessoa: {}.", form);
-        String caminhoImagem = imagemPerfilService.salvar(form.imagemPerfil());
+        String nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
         logger.info("Imagem de perfil para nova pessoa salva: {}.", form.imagemPerfil());
-        Pessoa pessoa = repository.save(new Pessoa(form, caminhoImagem));
+        Pessoa pessoa = repository.save(new Pessoa(form, nomeImagem));
         logger.info("Cadastro de nova pessoa finalizado com sucesso!");
         return new PessoaDto(pessoa);
     }
@@ -42,27 +43,27 @@ public class PessoaService {
         return new PessoaDto(pessoa);
     }
 
-    public Page<PessoaDto> listarTodos(Pageable pageable) {
+    public Page<PessoaListaDto> listarTodos(Pageable pageable) {
         logger.info("Listar todas pessoas");
-        return repository.findAll(pageable).map(PessoaDto::new);
+        return repository.findAll(pageable).map(PessoaListaDto::new);
     }
 
     public Resource buscarImagemPerfil(Long id) {
         logger.info("Buscar imagem de perfil da pessoa com id [{}]", id);
         Pessoa pessoa = buscarPorId(id);
-        return imagemPerfilService.buscar(pessoa.getCaminhoImagem());
+        return imagemPerfilService.buscar(pessoa.getNomeImagem());
     }
 
     @Transactional
     public PessoaDto atualizar(Long id, PessoaUpdateForm form) {
         logger.info("Atualizar pessoa de id {}: {}.", id, form);
-        String caminhoImagem;
+        String nomeImagem;
         Pessoa pessoa = buscarPorId(id);
         pessoa.atualizarPessoa(form);
         if (form.imagemPerfil() != null) {
-            imagemPerfilService.apagar(pessoa.getCaminhoImagem());
-            caminhoImagem = imagemPerfilService.salvar(form.imagemPerfil());
-            pessoa.atualizarImagemPerfil(caminhoImagem);
+            imagemPerfilService.apagar(pessoa.getNomeImagem());
+            nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
+            pessoa.atualizarImagemPerfil(nomeImagem);
         }
         logger.info("Atualização de pessoa finalizado com sucesso!");
         return new PessoaDto(pessoa);
@@ -73,7 +74,7 @@ public class PessoaService {
         logger.info("Excluir pessoa {}.", id);
         Pessoa pessoa = buscarPorId(id);
         repository.deleteById(id);
-        imagemPerfilService.apagar(pessoa.getCaminhoImagem());
+        imagemPerfilService.apagar(pessoa.getNomeImagem());
         pessoa.setAtualizadoEm(LocalDateTime.now());
         logger.info("Exclusão de pessoa com id {} finalizada com sucesso!", id);
     }
