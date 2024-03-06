@@ -53,10 +53,6 @@ public class ImagemPerfilService {
         }
     }
 
-    private Path load(String filename) {
-        return diretorioPadrao.resolve(filename).normalize();
-    }
-
     public Resource buscar(String nomeImagem) {
         try {
             logger.info("Buscar imagem {}.", nomeImagem);
@@ -85,4 +81,9 @@ public class ImagemPerfilService {
             logger.info("Imagem não excluída pois não foi encontrado arquivo com a referência {}", nomeImagem);
         }
     }
+
+    private Path load(String filename) {
+        return diretorioPadrao.resolve(filename).normalize();
+    }
+
 }
