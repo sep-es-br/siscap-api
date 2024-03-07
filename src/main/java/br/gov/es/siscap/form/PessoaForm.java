@@ -19,6 +19,8 @@ public record PessoaForm(
         @Email
         @NotBlank
         String email,
+        String telefoneComercial,
+        String telefonePessoal,
         @Valid
         EnderecoForm endereco,
         MultipartFile imagemPerfil) {

@@ -102,13 +102,15 @@ class PessoaServiceTest {
 
     private PessoaForm getForm() {
         return new PessoaForm("Batata com Cheddar e Bacon", "Batatinha", "Brasileiro",
-                "Masculino", "12312312312", "batata@mail.com",  getEnderecoForm(),
+                "Masculino", "12312312312", "batata@mail.com",
+                "", "", getEnderecoForm(),
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 
     private PessoaUpdateForm getUpdateForm() {
         return new PessoaUpdateForm("Batata com Cheddar e Bacon", "Batatinha", "Brasileiro",
-                "Masculino", "12312312312", "batata@mail.com", getEnderecoForm(),
+                "Masculino", "12312312312", "batata@mail.com",
+                "", "", getEnderecoForm(),
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 
