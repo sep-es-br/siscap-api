@@ -30,6 +30,8 @@ public class Pessoa {
     private String genero;
     private String cpf;
     private String email;
+    private String telefoneComercial;
+    private String telefonePessoal;
     @OneToOne(cascade = {CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.REMOVE})
     @SQLJoinTableRestriction("apagado = FALSE")
     @JoinColumn(name = "id_endereco")
@@ -50,6 +52,8 @@ public class Pessoa {
         this.genero = form.genero();
         this.cpf = form.cpf();
         this.email = form.email();
+        this.telefoneComercial = form.telefoneComercial();
+        this.telefonePessoal = form.telefonePessoal();
         this.endereco = form.endereco() != null ? new Endereco(form.endereco()) : null;
         this.nomeImagem = nomeImagem;
         this.criadoEm = LocalDateTime.now();
@@ -68,6 +72,10 @@ public class Pessoa {
             this.cpf = form.cpf();
         if (form.email() != null)
             this.email = form.email();
+        if (form.telefoneComercial() != null)
+            this.telefoneComercial = form.telefoneComercial();
+        if (form.telefonePessoal() != null)
+            this.telefonePessoal = form.telefonePessoal();
         if (form.endereco() != null) {
             if (this.endereco != null)
                 this.endereco.atualizarEndereco(form.endereco());

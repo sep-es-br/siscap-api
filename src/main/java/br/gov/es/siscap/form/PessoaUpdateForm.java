@@ -13,6 +13,8 @@ public record PessoaUpdateForm(
         String cpf,
         @Email
         String email,
+        String telefoneComercial,
+        String telefonePessoal,
         EnderecoForm endereco,
         MultipartFile imagemPerfil
 ) {
