@@ -59,7 +59,11 @@ public class Pessoa {
         this.criadoEm = LocalDateTime.now();
     }
 
-    public void atualizarPessoa(PessoaUpdateForm form) {
+    public Pessoa(Long id) {
+        this.id = id;
+    }
+
+    public void atualizar(PessoaUpdateForm form) {
         if (form.nome() != null)
             this.nome = form.nome();
         if (form.nomeSocial() != null)
@@ -87,5 +91,10 @@ public class Pessoa {
 
     public void atualizarImagemPerfil(String nomeImagem) {
         this.nomeImagem = nomeImagem;
+    }
+
+    public void apagar() {
+        this.cpf = null;
+        this.atualizadoEm = LocalDateTime.now();
     }
 }

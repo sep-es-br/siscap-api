@@ -36,4 +36,8 @@ public class Pais {
     public Pais() {
     }
 
+    public Pais(Long id) {
+        this.id = id;
+    }
+
 }

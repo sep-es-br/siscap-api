@@ -55,6 +55,8 @@ public class ImagemPerfilService {
 
     public Resource buscar(String nomeImagem) {
         try {
+            if (nomeImagem == null)
+                return null;
             logger.info("Buscar imagem {}.", nomeImagem);
             Path caminhoImagem = load(nomeImagem);
             Resource resource = new UrlResource(caminhoImagem.toUri());
@@ -73,6 +75,8 @@ public class ImagemPerfilService {
 
     public void apagar(String nomeImagem) {
         try {
+            if (nomeImagem == null)
+                return;
             logger.info("Remover imagem {}.", nomeImagem);
             Path caminhoImagem = load(nomeImagem);
             Files.delete(caminhoImagem);
@@ -80,6 +84,12 @@ public class ImagemPerfilService {
         } catch (IOException e) {
             logger.info("Imagem não excluída pois não foi encontrado arquivo com a referência {}", nomeImagem);
         }
+    }
+
+    public String atualizar(String imagemAntiga, MultipartFile imagemNova) {
+        if (imagemAntiga != null)
+            apagar(imagemAntiga);
+        return salvar(imagemNova);
     }
 
     private Path load(String filename) {

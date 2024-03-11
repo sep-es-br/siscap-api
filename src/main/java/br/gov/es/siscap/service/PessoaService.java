@@ -16,8 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -57,14 +55,11 @@ public class PessoaService {
     @Transactional
     public PessoaDto atualizar(Long id, PessoaUpdateForm form) {
         logger.info("Atualizar pessoa de id {}: {}.", id, form);
-        String nomeImagem;
         Pessoa pessoa = buscarPorId(id);
-        pessoa.atualizarPessoa(form);
-        if (form.imagemPerfil() != null) {
-            imagemPerfilService.apagar(pessoa.getNomeImagem());
-            nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
-            pessoa.atualizarImagemPerfil(nomeImagem);
-        }
+        pessoa.atualizar(form);
+        if (form.imagemPerfil() != null)
+            pessoa.atualizarImagemPerfil(imagemPerfilService.atualizar(pessoa.getNomeImagem(), form.imagemPerfil()));
+        repository.save(pessoa);
         logger.info("Atualização de pessoa finalizado com sucesso!");
         return new PessoaDto(pessoa);
     }
@@ -73,10 +68,15 @@ public class PessoaService {
     public void excluir(Long id) {
         logger.info("Excluir pessoa {}.", id);
         Pessoa pessoa = buscarPorId(id);
+        pessoa.apagar();
+        repository.saveAndFlush(pessoa);
         repository.deleteById(id);
         imagemPerfilService.apagar(pessoa.getNomeImagem());
-        pessoa.setAtualizadoEm(LocalDateTime.now());
         logger.info("Exclusão de pessoa com id {} finalizada com sucesso!", id);
+    }
+
+    public boolean existePorId(Long id) {
+        return repository.existsById(id);
     }
 
     private Pessoa buscarPorId(Long id) {

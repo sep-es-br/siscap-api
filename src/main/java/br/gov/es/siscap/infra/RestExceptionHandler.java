@@ -2,15 +2,22 @@ package br.gov.es.siscap.infra;
 
 import br.gov.es.siscap.exception.naoencontrado.NaoEncontradoException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestControllerAdvice
 public class RestExceptionHandler {
+
+    private final Logger logger = LogManager.getLogger(RestExceptionHandler.class);
 
     @ExceptionHandler(NaoEncontradoException.class)
     private ResponseEntity<MensagemErroRest> projetoNaoEncontradoHandler(NaoEncontradoException e) {
@@ -26,8 +33,25 @@ public class RestExceptionHandler {
         return montarRetorno(mensagem);
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    private ResponseEntity<MensagemErroRest> dataIntegrityViolationHandler(DataIntegrityViolationException e) {
+        var mensagem = new MensagemErroRest(HttpStatus.BAD_REQUEST,
+                "O SisCap API identificou violação de integridade na base de dados",
+                Collections.singletonList("Por favor, contate o suporte."));
+        return montarRetorno(mensagem);
+    }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    private ResponseEntity<MensagemErroRest> methodArgumentNotValidHandler(MethodArgumentNotValidException exception) {
+        List<String> errorMessage = exception.getFieldErrors().stream()
+                .map(e -> e.getField() + " " + e.getDefaultMessage()).toList();
+        var mensagem = new MensagemErroRest(HttpStatus.BAD_REQUEST,
+                "Erro ", errorMessage);
+        return montarRetorno(mensagem);
+    }
+
     private ResponseEntity<MensagemErroRest> montarRetorno(MensagemErroRest mensagem) {
-        return ResponseEntity.status(mensagem.getStatus()).body(mensagem);
+        logger.error(mensagem);
+        return ResponseEntity.status(mensagem.status()).body(mensagem);
     }
 
 }

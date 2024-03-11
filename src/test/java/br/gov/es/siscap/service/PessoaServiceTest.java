@@ -76,12 +76,14 @@ class PessoaServiceTest {
     @DisplayName("Deve atualizar uma pessoa corretamente")
     void atualizar() {
         PessoaUpdateForm form = getUpdateForm();
-        when(repository.findById(1L)).thenReturn(Optional.of(getEntidade()));
-        when(imagemPerfilService.salvar(form.imagemPerfil())).thenReturn(form.imagemPerfil().getName());
+        Pessoa pessoa = getEntidade();
+        pessoa.atualizarImagemPerfil("batata.jpg");
 
-        assertThat(service.atualizar(1L, form)).isEqualTo(new PessoaDto(getEntidade()));
-        verify(imagemPerfilService, times(1)).apagar(any(String.class));
-        verify(imagemPerfilService, times(1)).salvar(any(MultipartFile.class));
+        when(repository.findById(1L)).thenReturn(Optional.of(pessoa));
+        when(imagemPerfilService.atualizar(pessoa.getNomeImagem(), form.imagemPerfil())).thenReturn(form.imagemPerfil().getName());
+
+        assertThat(service.atualizar(1L, form)).isEqualTo(new PessoaDto(pessoa));
+        verify(imagemPerfilService, times(1)).atualizar(pessoa.getNomeImagem(), form.imagemPerfil());
     }
 
     @Test
@@ -96,7 +98,7 @@ class PessoaServiceTest {
     }
 
     private EnderecoForm getEnderecoForm() {
-        return new EnderecoForm("Rua Da Frente", 182, "Centro", "Casa",
+        return new EnderecoForm("Rua Da Frente", "182", "Centro", "Casa",
                 "00000000", 1L);
     }
 

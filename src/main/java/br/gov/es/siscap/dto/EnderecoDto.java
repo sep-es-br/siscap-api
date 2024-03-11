@@ -5,7 +5,7 @@ import br.gov.es.siscap.models.Endereco;
 public record EnderecoDto(
         Long id,
         String rua,
-        Integer numero,
+        String numero,
         String bairro,
         String complemento,
         String codigoPostal,
