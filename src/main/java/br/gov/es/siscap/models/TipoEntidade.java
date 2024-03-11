@@ -30,4 +30,8 @@ public class TipoEntidade {
 
     public TipoEntidade() {
     }
+
+    public TipoEntidade(Long id) {
+        this.id = id;
+    }
 }

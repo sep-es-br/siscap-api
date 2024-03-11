@@ -11,11 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.net.URI;
 
 @RestController
 @RequestMapping("/projetos")
@@ -31,7 +29,8 @@ public class ProjetoController {
      * @return Retorna um objeto page que contem a listagem dos registro e mais detalhamento da paginação.
      */
     @GetMapping
-    public Page<ProjetoListaDto> listar(@PageableDefault(size = 15) Pageable pageable) {
+    public Page<ProjetoListaDto>
+    listar(@PageableDefault(size = 15) Pageable pageable) {
         return service.listarTodos(pageable);
     }
 
@@ -43,11 +42,9 @@ public class ProjetoController {
      * o projeto criado contendo outros campos de controle da aplicação.
      */
     @PostMapping
-    public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form,
-                                                UriComponentsBuilder uriBuilder) {
+    public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form) {
         ProjetoDto projeto = service.salvar(form);
-        URI uri = uriBuilder.path("/projetos/{id}").buildAndExpand(projeto.id()).toUri();
-        return ResponseEntity.created(uri).body(projeto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(projeto);
     }
 
     /**

@@ -1,22 +1,17 @@
 package br.gov.es.siscap.infra;
 
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
-@Getter
-public class MensagemErroRest {
+public record MensagemErroRest (
 
-    private final HttpStatus status;
-    private final Integer codigo;
-    private final String mensagem;
-    private final List<String> erros;
+    HttpStatus status,
+    Integer codigo,
+    String mensagem,
+    List<String> erros) {
 
     public MensagemErroRest(HttpStatus status, String mensagem, List<String> erros) {
-        this.status = status;
-        this.codigo = status.value();
-        this.mensagem = mensagem;
-        this.erros = erros;
+        this(status, status.value(), mensagem, erros);
     }
 }

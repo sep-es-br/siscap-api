@@ -22,7 +22,7 @@ public class Endereco {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String rua;
-    private Integer numero;
+    private String numero;
     private String bairro;
     private String complemento;
     private String codigoPostal;
