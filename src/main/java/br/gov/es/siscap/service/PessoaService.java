@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.PessoaListaDto;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
+import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.PessoaForm;
 import br.gov.es.siscap.form.PessoaUpdateForm;
 import br.gov.es.siscap.models.Pessoa;
@@ -16,6 +17,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.util.Collections;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -26,34 +30,34 @@ public class PessoaService {
     private final Logger logger = LogManager.getLogger(PessoaService.class);
 
     @Transactional
-    public PessoaDto salvar(PessoaForm form) {
+    public PessoaDto salvar(PessoaForm form) throws IOException {
         logger.info("Cadatrar nova pessoa: {}.", form);
         String nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
         logger.info("Imagem de perfil para nova pessoa salva: {}.", form.imagemPerfil());
         Pessoa pessoa = repository.save(new Pessoa(form, nomeImagem));
         logger.info("Cadastro de nova pessoa finalizado com sucesso!");
-        return new PessoaDto(pessoa);
+        return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()));
     }
 
-    public PessoaDto buscar(Long id) {
+    public PessoaDto buscar(Long id) throws IOException {
         logger.info("Buscar pessoa com id [{}]", id);
         Pessoa pessoa = buscarPorId(id);
-        return new PessoaDto(pessoa);
+        return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()));
     }
 
     public Page<PessoaListaDto> listarTodos(Pageable pageable) {
         logger.info("Listar todas pessoas");
-        return repository.findAll(pageable).map(PessoaListaDto::new);
-    }
-
-    public Resource buscarImagemPerfil(Long id) {
-        logger.info("Buscar imagem de perfil da pessoa com id [{}]", id);
-        Pessoa pessoa = buscarPorId(id);
-        return imagemPerfilService.buscar(pessoa.getNomeImagem());
+        return repository.findAll(pageable).map(pessoa -> {
+            try {
+                return new PessoaListaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()));
+            } catch (IOException e) {
+                throw new ServiceSisCapException(Collections.singletonList(e.getMessage()));
+            }
+        });
     }
 
     @Transactional
-    public PessoaDto atualizar(Long id, PessoaUpdateForm form) {
+    public PessoaDto atualizar(Long id, PessoaUpdateForm form) throws IOException {
         logger.info("Atualizar pessoa de id {}: {}.", id, form);
         Pessoa pessoa = buscarPorId(id);
         pessoa.atualizar(form);
@@ -61,7 +65,7 @@ public class PessoaService {
             pessoa.atualizarImagemPerfil(imagemPerfilService.atualizar(pessoa.getNomeImagem(), form.imagemPerfil()));
         repository.save(pessoa);
         logger.info("Atualização de pessoa finalizado com sucesso!");
-        return new PessoaDto(pessoa);
+        return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()));
     }
 
     @Transactional
@@ -81,5 +85,15 @@ public class PessoaService {
 
     private Pessoa buscarPorId(Long id) {
         return repository.findById(id).orElseThrow(() -> new PessoaNaoEncontradoException(id));
+    }
+
+    private byte[] getImagemNotNull(String nomeImagem) throws IOException {
+        if (nomeImagem == null)
+            return null;
+        Resource imagemPerfil = imagemPerfilService.buscar(nomeImagem);
+        byte[] conteudoImagem = null;
+        if (imagemPerfil != null)
+            conteudoImagem = imagemPerfil.getContentAsByteArray();
+        return conteudoImagem;
     }
 }

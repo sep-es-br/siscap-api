@@ -13,12 +13,12 @@ public record PessoaDto(
         String telefoneComercial,
         String telefonePessoal,
         EnderecoDto endereco,
-        String imagemPerfil) {
+        byte[] imagemPerfil) {
 
-    public PessoaDto(Pessoa pessoa) {
+    public PessoaDto(Pessoa pessoa, byte[] imagemPerfil) {
         this(pessoa.getId(), pessoa.getNome(), pessoa.getNomeSocial(), pessoa.getNacionalidade(), pessoa.getGenero(),
                 pessoa.getCpf(), pessoa.getEmail(), pessoa.getTelefoneComercial(), pessoa.getTelefonePessoal(),
-                pessoa.getEndereco() != null ? new EnderecoDto(pessoa.getEndereco()) : null, pessoa.getNomeImagem());
+                pessoa.getEndereco() != null ? new EnderecoDto(pessoa.getEndereco()) : null, imagemPerfil);
     }
 
 }

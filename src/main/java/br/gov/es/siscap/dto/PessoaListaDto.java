@@ -6,9 +6,9 @@ public record PessoaListaDto(
         Long id,
         String nome,
         String email,
-        String nomeImagem) {
+        byte[] imagemPerfil) {
 
-    public PessoaListaDto(Pessoa pessoa) {
-        this(pessoa.getId(), pessoa.getNome(), pessoa.getEmail(), pessoa.getNomeImagem());
+    public PessoaListaDto(Pessoa pessoa, byte[] imagemPerfil) {
+        this(pessoa.getId(), pessoa.getNome(), pessoa.getEmail(), imagemPerfil);
     }
 }

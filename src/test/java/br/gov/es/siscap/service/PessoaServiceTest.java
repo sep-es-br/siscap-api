@@ -16,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,37 +45,28 @@ class PessoaServiceTest {
 
     @Test
     @DisplayName("Deve salvar uma pessoa corretamente")
-    void salvar() {
+    void salvar() throws IOException {
         PessoaForm pessoaForm = getForm();
         Pessoa pessoa = getEntidade();
 
         when(repository.save(any(Pessoa.class))).thenReturn(pessoa);
 
-        assertThat(service.salvar(pessoaForm)).isEqualTo(new PessoaDto(pessoa));
+        assertThat(service.salvar(pessoaForm)).isEqualTo(new PessoaDto(pessoa, null));
         verify(imagemPerfilService, times(1)).salvar(any(MultipartFile.class));
     }
 
     @Test
     @DisplayName("Deve buscar uma pessoa corretamente")
-    void buscar() {
+    void buscar() throws IOException {
         Pessoa pessoa = getEntidade();
         when(repository.findById(1L)).thenReturn(Optional.of(pessoa));
 
-        assertThat(service.buscar(1L)).isEqualTo(new PessoaDto(pessoa));
-    }
-
-    @Test
-    @DisplayName("Deve chamar a busca para imagem de perfil")
-    void buscarImagemPerfil() {
-        Pessoa pessoa = getEntidade();
-        when(repository.findById(1L)).thenReturn(Optional.of(pessoa));
-        service.buscarImagemPerfil(1L);
-        verify(imagemPerfilService, times(1)).buscar(pessoa.getNomeImagem());
+        assertThat(service.buscar(1L)).isEqualTo(new PessoaDto(pessoa, null));
     }
 
     @Test
     @DisplayName("Deve atualizar uma pessoa corretamente")
-    void atualizar() {
+    void atualizar() throws IOException {
         PessoaUpdateForm form = getUpdateForm();
         Pessoa pessoa = getEntidade();
         pessoa.atualizarImagemPerfil("batata.jpg");
@@ -82,7 +74,7 @@ class PessoaServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(pessoa));
         when(imagemPerfilService.atualizar(pessoa.getNomeImagem(), form.imagemPerfil())).thenReturn(form.imagemPerfil().getName());
 
-        assertThat(service.atualizar(1L, form)).isEqualTo(new PessoaDto(pessoa));
+        assertThat(service.atualizar(1L, form)).isEqualTo(new PessoaDto(pessoa, null));
         verify(imagemPerfilService, times(1)).atualizar(pessoa.getNomeImagem(), form.imagemPerfil());
     }
 
