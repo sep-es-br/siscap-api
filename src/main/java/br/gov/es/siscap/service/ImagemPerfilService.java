@@ -32,6 +32,8 @@ public class ImagemPerfilService {
 
     public String salvar(MultipartFile imagem) {
         try {
+            if (imagem == null)
+                return null;
             if (imagem.isEmpty())
                 throw new ImagemSisCapException("O arquivo de imagemPerfil está vazio");
 

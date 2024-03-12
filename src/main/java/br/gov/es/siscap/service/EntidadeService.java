@@ -62,7 +62,7 @@ public class EntidadeService {
 
         validarForm(form);
 
-        String nomeImagem = form.imagemPerfil() != null ? imagemPerfilService.salvar(form.imagemPerfil()) : null;
+        String nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
         Entidade entidade = repository.save(new Entidade(form, nomeImagem));
         logger.info("Cadastro de entidade finalizado!");
         return new EntidadeDto(entidade, getImagemNotNull(entidade.getNomeImagem()));
