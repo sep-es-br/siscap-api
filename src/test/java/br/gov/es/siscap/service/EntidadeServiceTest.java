@@ -26,10 +26,6 @@ class EntidadeServiceTest {
     @Mock
     private EntidadeRepository repository;
     @Mock
-    private CidadeService cidadeService;
-    @Mock
-    private PessoaService pessoaService;
-    @Mock
     private PaisService paisService;
     @Mock
     private TipoEntidadeService tipoEntidadeService;
@@ -51,7 +47,7 @@ class EntidadeServiceTest {
     }
 
     @Test
-    @DisplayName("Deve salvar uma entidade corretamente sem imagem de perfil")
+    @DisplayName("Deve salvar uma entidade corretamente")
     void salvar() throws IOException {
         EntidadeForm form = getForm();
         Entidade entidade = getEntidade();
@@ -62,7 +58,7 @@ class EntidadeServiceTest {
 
         assertThat(service.salvar(form)).isEqualTo(new EntidadeDto(entidade, null));
         verify(repository, times(1)).save(any(Entidade.class));
-        verify(imagemPerfilService, times(0)).salvar(any());
+        verify(imagemPerfilService, times(1)).salvar(any());
     }
 
     @Test
@@ -106,21 +102,9 @@ class EntidadeServiceTest {
         return new Entidade(getForm(), null);
     }
 
-    private Entidade getEntidadeComImagem() {
-        EntidadeForm formComImagem = getFormComImagem();
-        return new Entidade(formComImagem, formComImagem.imagemPerfil().getName());
-    }
-
     private EntidadeForm getForm() {
         return new EntidadeForm("Secretaria de Economia e Planejamento", "SEP", "27779999999",
                 "12341234000112", "27779999999", "123@email.com", null, null, null,
-                null, null, 1L, 1L);
-    }
-
-    private EntidadeForm getFormComImagem() {
-        return new EntidadeForm("Secretaria de Economia e Planejamento", "SEP", "27779999999",
-                "12341234000112", "27779999999", "123@email.com", null,
-                getMockMultipartFile(), null,
                 null, null, 1L, 1L);
     }
 

@@ -3,7 +3,7 @@ package br.gov.es.siscap.form;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -28,7 +28,7 @@ public record ProjetoUpdateForm(
         @Positive
         Long idEntidade,
         @Positive
-        BigInteger valorEstimado,
+        BigDecimal valorEstimado,
         List<Long> idMicrorregioes,
         @Size(max = 2000)
         String objetivo,

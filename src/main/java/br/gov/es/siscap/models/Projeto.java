@@ -9,10 +9,9 @@ import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "projeto")
@@ -29,7 +28,7 @@ public class Projeto {
     @Setter
     private String titulo;
     @Setter
-    private BigInteger valorEstimado;
+    private BigDecimal valorEstimado;
     @Setter
     private String objetivo;
     @Setter
@@ -81,7 +80,7 @@ public class Projeto {
         this.solucoesPropostas = form.solucoesPropostas();
         this.impactos = form.impactos();
         this.arranjosInstitucionais = form.arranjosInstitucionais();
-        this.microrregioes = form.idMicrorregioes().stream().map(Microrregiao::new).collect(Collectors.toList());
+        this.microrregioes = form.idMicrorregioes().stream().map(Microrregiao::new).toList();
         this.criadoEm = LocalDateTime.now();
     }
 
