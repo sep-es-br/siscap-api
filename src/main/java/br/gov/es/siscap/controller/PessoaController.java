@@ -2,6 +2,7 @@ package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.PessoaListaDto;
+import br.gov.es.siscap.dto.PessoaSelectDto;
 import br.gov.es.siscap.form.PessoaForm;
 import br.gov.es.siscap.form.PessoaUpdateForm;
 import br.gov.es.siscap.service.PessoaService;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/pessoas")
@@ -53,5 +55,9 @@ public class PessoaController {
         return ResponseEntity.ok("Pessoa excluída com sucesso.");
     }
 
+    @GetMapping("/select")
+    public List<PessoaSelectDto> listarSelect() {
+        return service.buscarSelect();
+    }
 
 }
