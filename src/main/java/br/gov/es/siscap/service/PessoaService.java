@@ -2,6 +2,7 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.PessoaListaDto;
+import br.gov.es.siscap.dto.PessoaSelectDto;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.PessoaForm;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -95,5 +97,9 @@ public class PessoaService {
         if (imagemPerfil != null)
             conteudoImagem = imagemPerfil.getContentAsByteArray();
         return conteudoImagem;
+    }
+
+    public List<PessoaSelectDto> buscarSelect() {
+        return repository.findAll().stream().map(PessoaSelectDto::new).toList();
     }
 }
