@@ -26,12 +26,8 @@ public class Estado {
     private Pais pais;
     @Column(name = "id_ibge")
     private String codigoIBGE;
-    @Column(name = "id_regiao_ibge")
-    private String codigoRegiaoIBGE;
     private String nome;
     private String sigla;
-    private String nomeRegiao;
-    private String siglaRegiao;
     @DateTimeFormat
     private LocalDateTime criadoEm;
     @Setter
@@ -41,5 +37,9 @@ public class Estado {
      private boolean apagado = Boolean.FALSE;
 
     public Estado() {
+    }
+
+    public Estado(Long id) {
+        this.id = id;
     }
 }
