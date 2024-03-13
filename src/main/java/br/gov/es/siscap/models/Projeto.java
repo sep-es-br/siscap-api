@@ -51,6 +51,10 @@ public class Projeto {
             joinColumns = {@JoinColumn(name = "id_projeto")},
             inverseJoinColumns = @JoinColumn(name = "id_pessoa"))
     private List<Pessoa> equipeElaboracao;
+    @ManyToOne
+    @JoinColumn(name = "id_plano")
+    @SQLJoinTableRestriction("apagado = FALSE")
+    private Plano plano;
     @DateTimeFormat
     private LocalDateTime criadoEm;
     @DateTimeFormat
@@ -74,6 +78,7 @@ public class Projeto {
         this.arranjosInstitucionais = form.arranjosInstitucionais();
         this.microrregioes = form.idMicrorregioes().stream().map(Microrregiao::new).toList();
         this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).toList();
+        this.plano = new Plano(form.idPlano());
         this.criadoEm = LocalDateTime.now();
         this.apagado = Boolean.FALSE;
     }
@@ -104,10 +109,13 @@ public class Projeto {
             this.arranjosInstitucionais = form.arranjosInstitucionais();
         if (form.idPessoasEquipeElab() != null && !form.idPessoasEquipeElab().isEmpty())
             this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).collect(Collectors.toList());
+        if (form.idPlano() != null)
+            this.plano = new Plano(form.idPlano());
         this.atualizadoEm = LocalDateTime.now();
     }
 
     public void apagar() {
+        this.sigla = null;
         this.atualizadoEm = LocalDateTime.now();
     }
 }

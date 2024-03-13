@@ -36,10 +36,10 @@ public class ProjetoService {
         if (!entidadeService.existePorId(form.idEntidade())) {
             erros.add("Erro ao encontrar entidade com id " + form.idEntidade());
         }
-        for (Long id : form.idMicrorregioes()) {
+        form.idMicrorregioes().forEach(id -> {
             if (!microrregiaoService.existePorId(id))
                 erros.add("Erro ao encontrar microrregião com id " + id);
-        }
+        });
         if (!erros.isEmpty()) {
             erros.forEach(logger::warn);
             throw new ServiceSisCapException(erros);
