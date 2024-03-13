@@ -6,8 +6,6 @@ import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.form.ProjetoUpdateForm;
-import br.gov.es.siscap.models.Entidade;
-import br.gov.es.siscap.models.Microrregiao;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,7 +57,8 @@ public class ProjetoService {
     public ProjetoDto atualizar(Long id, ProjetoUpdateForm form) {
         logger.info("Atualizar projeto de id {}: {}.", id, form);
         Projeto projeto = buscarPorId(id);
-        atualizarProjeto(projeto, form);
+        projeto.atualizarProjeto(form);
+        repository.save(projeto);
         return new ProjetoDto(projeto);
     }
 
@@ -68,8 +66,9 @@ public class ProjetoService {
     public void excluir(Long id) {
         logger.info("Excluir projeto {}.", id);
         Projeto projeto = buscarPorId(id);
+        projeto.apagar();
+        repository.saveAndFlush(projeto);
         repository.deleteById(id);
-        projeto.setAtualizadoEm(LocalDateTime.now());
         logger.info("Exclusão do projeto com id {} finalizada!", id);
     }
 
@@ -79,33 +78,6 @@ public class ProjetoService {
 
     private Projeto buscarPorId(Long id) {
         return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
-    }
-
-    private void atualizarProjeto(Projeto projeto, ProjetoUpdateForm form) {
-        if (form.sigla() != null)
-            projeto.setSigla(form.sigla());
-        if (form.titulo() != null)
-            projeto.setTitulo(form.titulo());
-        if (form.idEntidade() != null)
-            projeto.setEntidade(new Entidade(form.idEntidade()));
-        if (form.valorEstimado() != null)
-            projeto.setValorEstimado(form.valorEstimado());
-        if (form.idMicrorregioes() != null && !form.idMicrorregioes().isEmpty())
-            projeto.setMicrorregioes(form.idMicrorregioes()
-                    .stream().map(Microrregiao::new).toList());
-        if (form.objetivo() != null)
-            projeto.setObjetivo(form.objetivo());
-        if (form.objetivoEspecifico() != null)
-            projeto.setObjetivoEspecifico(form.objetivoEspecifico());
-        if (form.situacaoProblema() != null)
-            projeto.setSituacaoProblema(form.situacaoProblema());
-        if (form.solucoesPropostas() != null)
-            projeto.setSolucoesPropostas(form.solucoesPropostas());
-        if (form.impactos() != null)
-            projeto.setImpactos(form.impactos());
-        if (form.arranjosInstitucionais() != null)
-            projeto.setArranjosInstitucionais(form.arranjosInstitucionais());
-        projeto.setAtualizadoEm(LocalDateTime.now());
     }
 
 }

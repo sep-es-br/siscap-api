@@ -41,5 +41,6 @@ public record ProjetoUpdateForm(
         @Size(max = 2000)
         String impactos,
         @Size(max = 2000)
-        String arranjosInstitucionais) {
+        String arranjosInstitucionais,
+        List<Long> idPessoasEquipeElab) {
 }

@@ -1,9 +1,9 @@
 package br.gov.es.siscap.models;
 
 import br.gov.es.siscap.form.ProjetoForm;
+import br.gov.es.siscap.form.ProjetoUpdateForm;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
@@ -12,6 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "projeto")
@@ -23,47 +24,38 @@ public class Projeto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Setter
     private String sigla;
-    @Setter
     private String titulo;
-    @Setter
     private BigDecimal valorEstimado;
-    @Setter
     private String objetivo;
-    @Setter
     private String objetivoEspecifico;
     @ManyToOne
-    @Setter
     @SQLJoinTableRestriction("apagado = FALSE")
     @JoinColumn(name = "status")
     private Status status;
     @ManyToOne
     @JoinColumn(name = "id_entidade")
-    @Setter
     @SQLJoinTableRestriction("apagado = FALSE")
     private Entidade entidade;
-    @Setter
     private String situacaoProblema;
-    @Setter
     private String solucoesPropostas;
-    @Setter
     private String impactos;
-    @Setter
     private String arranjosInstitucionais;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "projeto_microrregiao",
-            joinColumns = {@JoinColumn(name = "id_projeto"),},
+            joinColumns = {@JoinColumn(name = "id_projeto")},
             inverseJoinColumns = @JoinColumn(name = "id_microrregiao"))
-    @Setter
     private List<Microrregiao> microrregioes;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "projeto_pessoa",
+            joinColumns = {@JoinColumn(name = "id_projeto")},
+            inverseJoinColumns = @JoinColumn(name = "id_pessoa"))
+    private List<Pessoa> equipeElaboracao;
     @DateTimeFormat
     private LocalDateTime criadoEm;
-    @Setter
     @DateTimeFormat
     private LocalDateTime atualizadoEm;
-    @Setter
-    private boolean apagado = Boolean.FALSE;
+    private boolean apagado;
 
     public Projeto() {
     }
@@ -81,7 +73,41 @@ public class Projeto {
         this.impactos = form.impactos();
         this.arranjosInstitucionais = form.arranjosInstitucionais();
         this.microrregioes = form.idMicrorregioes().stream().map(Microrregiao::new).toList();
+        this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).toList();
         this.criadoEm = LocalDateTime.now();
+        this.apagado = Boolean.FALSE;
     }
 
+    public void atualizarProjeto(ProjetoUpdateForm form) {
+        if (form.sigla() != null)
+            this.sigla = form.sigla();
+        if (form.titulo() != null)
+            this.titulo = form.titulo();
+        if (form.idEntidade() != null)
+            this.entidade = new Entidade(form.idEntidade());
+        if (form.valorEstimado() != null)
+            this.valorEstimado = form.valorEstimado();
+        if (form.idMicrorregioes() != null && !form.idMicrorregioes().isEmpty())
+            this.microrregioes = form.idMicrorregioes()
+                    .stream().map(Microrregiao::new).collect(Collectors.toList());
+        if (form.objetivo() != null)
+            this.objetivo = form.objetivo();
+        if (form.objetivoEspecifico() != null)
+            this.objetivoEspecifico = form.objetivoEspecifico();
+        if (form.situacaoProblema() != null)
+            this.situacaoProblema = form.situacaoProblema();
+        if (form.solucoesPropostas() != null)
+            this.solucoesPropostas = form.solucoesPropostas();
+        if (form.impactos() != null)
+            this.impactos = form.impactos();
+        if (form.arranjosInstitucionais() != null)
+            this.arranjosInstitucionais = form.arranjosInstitucionais();
+        if (form.idPessoasEquipeElab() != null && !form.idPessoasEquipeElab().isEmpty())
+            this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).collect(Collectors.toList());
+        this.atualizadoEm = LocalDateTime.now();
+    }
+
+    public void apagar() {
+        this.atualizadoEm = LocalDateTime.now();
+    }
 }
