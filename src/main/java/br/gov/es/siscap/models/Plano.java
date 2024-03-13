@@ -26,7 +26,9 @@ public class Plano {
     private boolean apagado;
 
     public Plano() {
-        apagado = Boolean.FALSE;
     }
 
+    public Plano(Long id) {
+        this.id = id;
+    }
 }
