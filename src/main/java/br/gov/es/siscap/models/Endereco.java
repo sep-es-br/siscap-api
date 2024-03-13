@@ -66,4 +66,21 @@ public class Endereco {
             this.cidade = new Cidade(form.idCidade());
         this.setAtualizadoEm(LocalDateTime.now());
     }
+
+    public Long getIdCidade() {
+        return this.cidade != null ? this.cidade.getId() : null;
+    }
+
+    public Long getIdEstado() {
+        if (getIdCidade() == null)
+            return null;
+        return this.cidade.getEstado() != null ? this.cidade.getEstado().getId() : null;
+    }
+
+    public Long getIdPais() {
+        if (getIdEstado() == null)
+            return null;
+        return this.cidade.getEstado().getPais() != null ? this.cidade.getEstado().getPais().getId() : null;
+    }
+
 }

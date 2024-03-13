@@ -9,11 +9,13 @@ public record EnderecoDto(
         String bairro,
         String complemento,
         String codigoPostal,
-        Long idCidade) {
+        Long idCidade,
+        Long idEstado,
+        Long idPais) {
 
     public EnderecoDto(Endereco endereco) {
         this(endereco.getId(), endereco.getRua(), endereco.getNumero(), endereco.getBairro(), endereco.getComplemento(),
-                endereco.getCodigoPostal(), endereco.getCidade().getId());
+                endereco.getCodigoPostal(), endereco.getIdCidade(), endereco.getIdEstado(), endereco.getIdPais());
     }
 
 }
