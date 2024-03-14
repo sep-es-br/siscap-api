@@ -43,5 +43,6 @@ public record ProjetoUpdateForm(
         @Size(max = 2000)
         String arranjosInstitucionais,
         List<Long> idPessoasEquipeElab,
-        Long idPlano) {
+        Long idPlano,
+        Long idEixo) {
 }

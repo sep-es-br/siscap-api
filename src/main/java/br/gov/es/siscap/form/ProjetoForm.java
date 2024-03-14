@@ -55,5 +55,7 @@ public record ProjetoForm(
         @NotEmpty
         List<Long> idPessoasEquipeElab,
         @NotNull
-        Long idPlano) {
+        Long idPlano,
+        @NotNull
+        Long idEixo) {
 }
