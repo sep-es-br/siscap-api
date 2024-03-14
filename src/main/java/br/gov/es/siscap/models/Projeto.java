@@ -55,6 +55,10 @@ public class Projeto {
     @JoinColumn(name = "id_plano")
     @SQLJoinTableRestriction("apagado = FALSE")
     private Plano plano;
+    @ManyToOne
+    @JoinColumn(name = "id_eixo")
+    @SQLJoinTableRestriction("apagado = FALSE")
+    private Eixo eixo;
     @DateTimeFormat
     private LocalDateTime criadoEm;
     @DateTimeFormat
@@ -79,6 +83,7 @@ public class Projeto {
         this.microrregioes = form.idMicrorregioes().stream().map(Microrregiao::new).toList();
         this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).toList();
         this.plano = new Plano(form.idPlano());
+        this.eixo = new Eixo(form.idEixo());
         this.criadoEm = LocalDateTime.now();
         this.apagado = Boolean.FALSE;
     }
@@ -111,6 +116,8 @@ public class Projeto {
             this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).collect(Collectors.toList());
         if (form.idPlano() != null)
             this.plano = new Plano(form.idPlano());
+        if (form.idEixo() != null)
+            this.eixo = new Eixo(form.idEixo());
         this.atualizadoEm = LocalDateTime.now();
     }
 
