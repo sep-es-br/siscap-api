@@ -52,13 +52,9 @@ public class Projeto {
             inverseJoinColumns = @JoinColumn(name = "id_pessoa"))
     private List<Pessoa> equipeElaboracao;
     @ManyToOne
-    @JoinColumn(name = "id_plano")
+    @JoinColumn(name = "id_area")
     @SQLJoinTableRestriction("apagado = FALSE")
-    private Plano plano;
-    @ManyToOne
-    @JoinColumn(name = "id_eixo")
-    @SQLJoinTableRestriction("apagado = FALSE")
-    private Eixo eixo;
+    private Area area;
     @DateTimeFormat
     private LocalDateTime criadoEm;
     @DateTimeFormat
@@ -82,8 +78,7 @@ public class Projeto {
         this.arranjosInstitucionais = form.arranjosInstitucionais();
         this.microrregioes = form.idMicrorregioes().stream().map(Microrregiao::new).toList();
         this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).toList();
-        this.plano = new Plano(form.idPlano());
-        this.eixo = new Eixo(form.idEixo());
+        this.area = new Area(form.idArea());
         this.criadoEm = LocalDateTime.now();
         this.apagado = Boolean.FALSE;
     }
@@ -114,10 +109,8 @@ public class Projeto {
             this.arranjosInstitucionais = form.arranjosInstitucionais();
         if (form.idPessoasEquipeElab() != null && !form.idPessoasEquipeElab().isEmpty())
             this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).collect(Collectors.toList());
-        if (form.idPlano() != null)
-            this.plano = new Plano(form.idPlano());
-        if (form.idEixo() != null)
-            this.eixo = new Eixo(form.idEixo());
+        if (form.idArea() != null)
+            this.area = new Area(form.idArea());
         this.atualizadoEm = LocalDateTime.now();
     }
 
@@ -125,4 +118,15 @@ public class Projeto {
         this.sigla = null;
         this.atualizadoEm = LocalDateTime.now();
     }
+
+    public Long getIdEixo() {
+        return this.area.getEixo() != null ? this.area.getEixo().getId() : null;
+    }
+
+    public Long getIdPlano() {
+        if (getIdEixo() == null)
+            return null;
+        return this.area.getEixo().getPlano() != null ? this.area.getEixo().getPlano().getId() : null;
+    }
+
 }

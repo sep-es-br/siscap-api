@@ -23,7 +23,8 @@ public record ProjetoDto(
         List<Long> idMicrorregioes,
         List<Long> idPessoasEquipeElab,
         Long idPlano,
-        Long idEixo) {
+        Long idEixo,
+        Long idArea) {
 
     public ProjetoDto(Projeto projeto) {
         this(projeto.getId(), projeto.getSigla(), projeto.getTitulo(), projeto.getValorEstimado(),
@@ -32,7 +33,7 @@ public record ProjetoDto(
                 projeto.getImpactos(), projeto.getArranjosInstitucionais(),
                 projeto.getMicrorregioes().stream().map(Microrregiao::getId).toList(),
                 projeto.getEquipeElaboracao().stream().map(Pessoa::getId).toList(),
-                projeto.getPlano().getId(), projeto.getEixo().getId());
+                projeto.getIdPlano(), projeto.getIdEixo(), projeto.getArea().getId());
     }
 
 }

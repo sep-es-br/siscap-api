@@ -6,7 +6,7 @@ public record EntidadeListaDto(
         Long id,
         String abreviatura,
         String nome,
-        String tipo,
+        String nomeTipoEntidade,
         String telefone,
         String site,
         byte[] imagemPerfil) {

@@ -14,7 +14,7 @@ public record EntidadeDto(
         byte[] imagemPerfil,
         Long idEntidadePai,
         Long idStatus,
-        Long idPessoa,
+        Long idPessoaResponsavel,
         Long idCidade,
         Long idPais,
         Long idTipoEntidade) {
