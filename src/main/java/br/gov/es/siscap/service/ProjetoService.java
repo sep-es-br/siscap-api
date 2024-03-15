@@ -27,6 +27,7 @@ public class ProjetoService {
     private final ProjetoRepository repository;
     private final EntidadeService entidadeService;
     private final MicrorregiaoService microrregiaoService;
+    private final AreaService areaService;
     private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
     @Transactional
@@ -34,12 +35,15 @@ public class ProjetoService {
         logger.info("Cadatrar novo projeto: {}.", form);
         List<String> erros = new ArrayList<>();
         if (!entidadeService.existePorId(form.idEntidade())) {
-            erros.add("Erro ao encontrar entidade com id " + form.idEntidade());
+            erros.add("Erro ao encontrar Entidade com id " + form.idEntidade());
         }
         form.idMicrorregioes().forEach(id -> {
             if (!microrregiaoService.existePorId(id))
-                erros.add("Erro ao encontrar microrregião com id " + id);
+                erros.add("Erro ao encontrar Microrregião com id " + id);
         });
+        if (!areaService.existePorId(form.idArea()))
+            erros.add("Erro ao encontrar uma Área com id " + form.idArea());
+
         if (!erros.isEmpty()) {
             erros.forEach(logger::warn);
             throw new ServiceSisCapException(erros);

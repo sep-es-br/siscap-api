@@ -11,28 +11,28 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "eixo")
+@Table(name = "area")
 @Getter
-@SQLDelete(sql = "update eixo set apagado = true where id=?")
+@SQLDelete(sql = "update area set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
 @NoArgsConstructor
-public class Eixo {
+public class Area {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nome;
     @ManyToOne
-    @JoinColumn(name = "id_plano")
+    @JoinColumn(name = "id_eixo")
     @SQLJoinTableRestriction("apagado = FALSE")
-    private Plano plano;
+    private Eixo eixo;
     @DateTimeFormat
     private LocalDateTime criadoEm;
     @DateTimeFormat
     private LocalDateTime atualizadoEm;
     private boolean apagado;
 
-    public Eixo(Long id) {
+    public Area(Long id) {
         this.id = id;
     }
 }
