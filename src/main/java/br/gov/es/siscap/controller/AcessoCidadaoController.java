@@ -1,6 +1,10 @@
 package br.gov.es.siscap.controller;
 
+import br.gov.es.siscap.dto.UsuarioDto;
+import br.gov.es.siscap.service.AcessoCidadaoService;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,10 +15,13 @@ import java.util.Base64;
 
 @RestController
 @RequestMapping("/signin")
+@RequiredArgsConstructor
 public class AcessoCidadaoController {
 
     @Value("${frontend.host}")
     private String frontEndHost;
+
+    private final AcessoCidadaoService service;
 
     /**
      * Endpoint necessário para fazer o redirecionamento do token de acesso para o front end.
@@ -26,8 +33,18 @@ public class AcessoCidadaoController {
     @Hidden
     @GetMapping("/acesso-cidadao-response")
     public RedirectView acessoCidadaoResponse(String accessToken) {
-        String token = Base64.getEncoder().encodeToString(accessToken.getBytes());
-        return new RedirectView(String.format("%s/token?token=%s", frontEndHost, token));
+        String tokenEmBase64 = Base64.getEncoder().encodeToString(accessToken.getBytes());
+        return new RedirectView(String.format("%s/token?token=%s", frontEndHost, tokenEmBase64));
+    }
+
+    @GetMapping("/user-info")
+    public UsuarioDto montarUsuarioDto(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if (token == null)
+            return null;
+
+        token = token.replace("Bearer ", "");
+        return service.montarUsuarioDto(token);
     }
 
 }
