@@ -85,6 +85,14 @@ public class PessoaService {
         return repository.existsById(id);
     }
 
+    public List<PessoaSelectDto> buscarSelect() {
+        return repository.findAll().stream().map(PessoaSelectDto::new).toList();
+    }
+
+    public Pessoa buscarPorEmail(String email) {
+        return repository.findByEmail(email).orElseThrow(() -> new PessoaNaoEncontradoException(email));
+    }
+
     private Pessoa buscarPorId(Long id) {
         return repository.findById(id).orElseThrow(() -> new PessoaNaoEncontradoException(id));
     }
@@ -97,9 +105,5 @@ public class PessoaService {
         if (imagemPerfil != null)
             conteudoImagem = imagemPerfil.getContentAsByteArray();
         return conteudoImagem;
-    }
-
-    public List<PessoaSelectDto> buscarSelect() {
-        return repository.findAll().stream().map(PessoaSelectDto::new).toList();
     }
 }
