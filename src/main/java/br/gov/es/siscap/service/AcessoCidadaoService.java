@@ -32,7 +32,8 @@ public class AcessoCidadaoService {
             user = new UsuarioDto(userInfoDto.apelido(), userInfoDto.email(), null);
             Pessoa pessoa = pessoaService.buscarPorEmail(userInfoDto.email());
             Resource imagemPerfil = imagemPerfilService.buscar(pessoa.getNomeImagem());
-            user = new UsuarioDto(userInfoDto.apelido(), userInfoDto.email(), imagemPerfil.getContentAsByteArray());
+            if (imagemPerfil != null)
+                user = new UsuarioDto(userInfoDto.apelido(), userInfoDto.email(), imagemPerfil.getContentAsByteArray());
         } catch (IOException | InterruptedException e) {
             logger.error(e.getMessage());
         } catch (PessoaNaoEncontradoException ex) {
