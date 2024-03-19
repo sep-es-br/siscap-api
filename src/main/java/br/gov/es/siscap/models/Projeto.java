@@ -78,7 +78,6 @@ public class Projeto {
         this.arranjosInstitucionais = form.arranjosInstitucionais();
         this.microrregioes = form.idMicrorregioes().stream().map(Microrregiao::new).toList();
         this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).toList();
-        this.area = new Area(form.idArea());
         this.criadoEm = LocalDateTime.now();
         this.apagado = Boolean.FALSE;
     }
@@ -109,8 +108,6 @@ public class Projeto {
             this.arranjosInstitucionais = form.arranjosInstitucionais();
         if (form.idPessoasEquipeElab() != null && !form.idPessoasEquipeElab().isEmpty())
             this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).collect(Collectors.toList());
-        if (form.idArea() != null)
-            this.area = new Area(form.idArea());
         this.atualizadoEm = LocalDateTime.now();
     }
 

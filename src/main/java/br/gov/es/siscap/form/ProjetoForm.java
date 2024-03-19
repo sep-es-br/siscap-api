@@ -53,6 +53,5 @@ public record ProjetoForm(
         @Size(max = 2000)
         String arranjosInstitucionais,
         @NotEmpty
-        List<Long> idPessoasEquipeElab,
-        Long idArea) {
+        List<Long> idPessoasEquipeElab) {
 }

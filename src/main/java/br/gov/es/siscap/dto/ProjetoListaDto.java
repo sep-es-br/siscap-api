@@ -11,12 +11,11 @@ public record ProjetoListaDto(
         String sigla,
         String titulo,
         BigDecimal valorEstimado,
-        List<String> nomesMicrorregioes,
-        String nomeArea) {
+        List<String> nomesMicrorregioes) {
 
     public ProjetoListaDto(Projeto projeto) {
         this(projeto.getId(), projeto.getSigla(), projeto.getTitulo(), projeto.getValorEstimado(),
-                projeto.getMicrorregioes().stream().map(Microrregiao::getNome).toList(), projeto.getArea().getNome());
+                projeto.getMicrorregioes().stream().map(Microrregiao::getNome).toList());
     }
 
 }
