@@ -54,6 +54,5 @@ public record ProjetoForm(
         String arranjosInstitucionais,
         @NotEmpty
         List<Long> idPessoasEquipeElab,
-        @NotNull
         Long idArea) {
 }
