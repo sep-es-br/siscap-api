@@ -85,8 +85,7 @@ class ProjetoServiceTest {
             fail("É preciso lançar todas exceptions de validação de projetos.");
         } catch (ServiceSisCapException e) {
             assertThat(e.getErros()).contains("Erro ao encontrar Entidade com id " + 1L,
-                    "Erro ao encontrar Microrregião com id " + 1L,
-                    "Erro ao encontrar uma Área com id " + 1L);
+                    "Erro ao encontrar Microrregião com id " + 1L);
         }
         verify(repository, times(0)).save(any());
     }
@@ -192,14 +191,14 @@ class ProjetoServiceTest {
     private ProjetoForm getProjetoForm() {
         return new ProjetoForm("SISCAP", "Sis Cap", 1L, new BigDecimal(182),
                 List.of(1L), "siscap", "siscap", "siscap", "siscap",
-                "siscap", "siscap", List.of(1L), 1L);
+                "siscap", "siscap", List.of(1L));
     }
 
     private ProjetoUpdateForm getProjetoUpdateForm() {
         return new ProjetoUpdateForm("SISCAPA", "Sis Cap ATUALIZADO", 2L, new BigDecimal(182),
                 List.of(1L), "siscap ATUALIZADO", "siscap ATUALIZADO",
                 "siscap ATUALIZADO", "siscap ATUALIZADO",
-                "siscap ATUALIZADO", "siscap ATUALIZADO", List.of(2L), 2L);
+                "siscap ATUALIZADO", "siscap ATUALIZADO", List.of(2L));
     }
 
     private List<Projeto> getProjetoList() {
