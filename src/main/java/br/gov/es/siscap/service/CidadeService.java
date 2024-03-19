@@ -24,8 +24,8 @@ public class CidadeService {
 
     public List<CidadeSelectDto> buscarSelect(FiltroCidadeEnum filtrarPor, Long id) {
         return switch (filtrarPor) {
-            case PAIS -> repository.findAllByEstadoPais(new Pais(id)).stream().map(CidadeSelectDto::new).toList();
-            case ESTADO -> repository.findAllByEstado(new Estado(id)).stream().map(CidadeSelectDto::new).toList();
+            case PAIS -> repository.findAllByEstadoPaisOrderByNome(new Pais(id)).stream().map(CidadeSelectDto::new).toList();
+            case ESTADO -> repository.findAllByEstadoOrderByNome(new Estado(id)).stream().map(CidadeSelectDto::new).toList();
         };
     }
 }

@@ -10,6 +10,6 @@ import java.util.List;
 @Repository
 public interface EixoRepository extends JpaRepository<Eixo, Long> {
 
-    List<Eixo> findAllByPlano(Plano plano);
+    List<Eixo> findAllByPlanoOrderByNome(Plano plano);
 
 }

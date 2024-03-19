@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.PlanoSelectDto;
 import br.gov.es.siscap.repository.PlanoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +17,7 @@ public class PlanoService {
     public final PlanoRepository repository;
 
     public List<PlanoSelectDto> buscarSelect() {
-        return repository.findAll().stream().map(PlanoSelectDto::new).toList();
+        return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(PlanoSelectDto::new).toList();
     }
 
 }

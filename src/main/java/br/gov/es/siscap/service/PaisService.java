@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.PaisSelectDto;
 import br.gov.es.siscap.repository.PaisRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,6 @@ public class PaisService {
     }
 
     public List<PaisSelectDto> buscarSelect() {
-        return repository.findAll().stream().map(PaisSelectDto::new).toList();
+        return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(PaisSelectDto::new).toList();
     }
 }

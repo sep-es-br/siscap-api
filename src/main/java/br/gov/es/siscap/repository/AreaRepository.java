@@ -10,6 +10,6 @@ import java.util.List;
 @Repository
 public interface AreaRepository extends JpaRepository<Area, Long> {
 
-    List<Area> findAllByEixo(Eixo eixo);
+    List<Area> findAllByEixoOrderByNome(Eixo eixo);
 
 }

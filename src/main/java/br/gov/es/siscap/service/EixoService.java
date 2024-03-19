@@ -17,7 +17,7 @@ public class EixoService {
     private final EixoRepository repository;
 
     public List<EixoSelectDto> buscarSelectPorPlano(Long idPlano) {
-        return repository.findAllByPlano(new Plano(idPlano)).stream().map(EixoSelectDto::new).toList();
+        return repository.findAllByPlanoOrderByNome(new Plano(idPlano)).stream().map(EixoSelectDto::new).toList();
     }
 
 }

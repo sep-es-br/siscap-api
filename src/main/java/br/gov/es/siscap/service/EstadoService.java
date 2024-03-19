@@ -15,6 +15,6 @@ public class EstadoService {
     private final EstadoRepository repository;
 
     public List<EstadoSelectDto> buscarSelect(Long idPais) {
-        return repository.findAllByPais(new Pais(idPais)).stream().map(EstadoSelectDto::new).toList();
+        return repository.findAllByPaisOrderByNome(new Pais(idPais)).stream().map(EstadoSelectDto::new).toList();
     }
 }

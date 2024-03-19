@@ -11,8 +11,8 @@ import java.util.List;
 @Repository
 public interface CidadeRepository extends JpaRepository<Cidade, Long> {
 
-    List<Cidade> findAllByEstado(Estado estado);
+    List<Cidade> findAllByEstadoOrderByNome(Estado estado);
 
-    List<Cidade> findAllByEstadoPais(Pais pais);
+    List<Cidade> findAllByEstadoPaisOrderByNome(Pais pais);
 
 }

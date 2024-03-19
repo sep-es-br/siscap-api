@@ -21,6 +21,6 @@ public class AreaService {
     }
 
     public List<AreaSelectDto> buscarSelect(Long idEixo) {
-        return repository.findAllByEixo(new Eixo(idEixo)).stream().map(AreaSelectDto::new).toList();
+        return repository.findAllByEixoOrderByNome(new Eixo(idEixo)).stream().map(AreaSelectDto::new).toList();
     }
 }

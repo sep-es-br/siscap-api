@@ -10,6 +10,6 @@ import java.util.List;
 @Repository
 public interface EstadoRepository extends JpaRepository<Estado, Long> {
 
-    List<Estado> findAllByPais(Pais pais);
+    List<Estado> findAllByPaisOrderByNome(Pais pais);
 
 }

@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +43,7 @@ public class EntidadeService {
     }
 
     public List<EntidadeSelectDto> buscarSelect() {
-        return repository.findAll().stream().map(EntidadeSelectDto::new).toList();
+        return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(EntidadeSelectDto::new).toList();
     }
 
     public Page<EntidadeListaDto> listarTodos(Pageable pageable) {
