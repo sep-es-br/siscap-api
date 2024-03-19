@@ -45,7 +45,7 @@ public class ProjetoService {
             erros.add("Erro ao encontrar uma Área com id " + form.idArea());
 
         if (!erros.isEmpty()) {
-            erros.forEach(logger::warn);
+            erros.forEach(logger::error);
             throw new ServiceSisCapException(erros);
         }
         Projeto projeto = repository.save(new Projeto(form));
