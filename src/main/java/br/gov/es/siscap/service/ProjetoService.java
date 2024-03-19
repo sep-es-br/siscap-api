@@ -42,7 +42,7 @@ public class ProjetoService {
         });
 
         if (!erros.isEmpty()) {
-            erros.forEach(logger::warn);
+            erros.forEach(logger::error);
             throw new ServiceSisCapException(erros);
         }
         Projeto projeto = repository.save(new Projeto(form));
