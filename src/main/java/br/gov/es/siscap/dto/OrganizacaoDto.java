@@ -15,6 +15,7 @@ public record OrganizacaoDto(
         Long idStatus,
         Long idPessoaResponsavel,
         Long idCidade,
+        Long idEstado,
         Long idPais,
         Long idTipoOrganizacao) {
 
@@ -25,6 +26,7 @@ public record OrganizacaoDto(
                 organizacao.getStatus() != null ? organizacao.getStatus().getId() : null,
                 organizacao.getPessoa() != null ? organizacao.getPessoa().getId() : null,
                 organizacao.getCidade() != null ? organizacao.getCidade().getId() : null,
+                organizacao.getEstado() != null ? organizacao.getEstado().getId() : null,
                 organizacao.getPais() != null ? organizacao.getPais().getId(): null,
                 organizacao.getTipoOrganizacao() != null ? organizacao.getTipoOrganizacao().getId() : null);
     }
