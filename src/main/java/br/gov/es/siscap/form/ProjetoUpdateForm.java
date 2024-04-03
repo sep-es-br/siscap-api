@@ -10,7 +10,7 @@ import java.util.List;
  * Formulário para atualizar um projeto. Não deve ser usado fora desse contexto.
  * @param sigla
  * @param titulo
- * @param idEntidade
+ * @param idOrganizacao
  * @param valorEstimado
  * @param idMicrorregioes
  * @param objetivo
@@ -26,7 +26,7 @@ public record ProjetoUpdateForm(
         @Size(max = 150)
         String titulo,
         @Positive
-        Long idEntidade,
+        Long idOrganizacao,
         @Positive
         BigDecimal valorEstimado,
         List<Long> idMicrorregioes,

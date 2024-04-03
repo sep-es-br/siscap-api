@@ -34,9 +34,9 @@ public class Projeto {
     @JoinColumn(name = "status")
     private Status status;
     @ManyToOne
-    @JoinColumn(name = "id_entidade")
+    @JoinColumn(name = "id_organizacao")
     @SQLJoinTableRestriction("apagado = FALSE")
-    private Entidade entidade;
+    private Organizacao organizacao;
     private String situacaoProblema;
     private String solucoesPropostas;
     private String impactos;
@@ -71,7 +71,7 @@ public class Projeto {
         this.objetivo = form.objetivo();
         this.objetivoEspecifico = form.objetivoEspecifico();
         this.status = new Status(1L);
-        this.entidade = new Entidade(form.idEntidade());
+        this.organizacao = new Organizacao(form.idOrganizacao());
         this.situacaoProblema = form.situacaoProblema();
         this.solucoesPropostas = form.solucoesPropostas();
         this.impactos = form.impactos();
@@ -87,8 +87,8 @@ public class Projeto {
             this.sigla = form.sigla();
         if (form.titulo() != null)
             this.titulo = form.titulo();
-        if (form.idEntidade() != null)
-            this.entidade = new Entidade(form.idEntidade());
+        if (form.idOrganizacao() != null)
+            this.organizacao = new Organizacao(form.idOrganizacao());
         if (form.valorEstimado() != null)
             this.valorEstimado = form.valorEstimado();
         if (form.idMicrorregioes() != null && !form.idMicrorregioes().isEmpty())

@@ -2,18 +2,18 @@ package br.gov.es.siscap.form;
 
 import org.springframework.web.multipart.MultipartFile;
 
-public record EntidadeUpdateForm(
+public record OrganizacaoUpdateForm(
         String nome,
         String abreviatura,
         String telefone,
         String cnpj,
-        String fax,
         String email,
         String site,
         MultipartFile imagemPerfil,
-        Long idEntidadePai,
+        Long idOrganizacaoPai,
         Long idPessoaResponsavel,
         Long idCidade,
+        Long idEstado,
         Long idPais,
-        Long idTipoEntidade) {
+        Long idTipoOrganizacao) {
 }

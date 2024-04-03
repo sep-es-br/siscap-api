@@ -1,7 +1,7 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.TipoEntidadeSelectDto;
-import br.gov.es.siscap.repository.TipoEntidadeRepository;
+import br.gov.es.siscap.dto.TipoOrganizacaoSelectDto;
+import br.gov.es.siscap.repository.TipoOrganizacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -12,12 +12,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class TipoEntidadeService {
+public class TipoOrganizacaoService {
 
-    private final TipoEntidadeRepository repository;
+    private final TipoOrganizacaoRepository repository;
 
-    public List<TipoEntidadeSelectDto> buscarSelect() {
-        return repository.findAll(Sort.by(Sort.Direction.ASC, "tipo")).stream().map(TipoEntidadeSelectDto::new).toList();
+    public List<TipoOrganizacaoSelectDto> buscarSelect() {
+        return repository.findAll(Sort.by(Sort.Direction.ASC, "tipo")).stream().map(TipoOrganizacaoSelectDto::new).toList();
     }
 
     public boolean existePorId(Long id) {

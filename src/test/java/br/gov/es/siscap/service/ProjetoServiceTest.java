@@ -36,7 +36,7 @@ class ProjetoServiceTest {
     @Mock
     private ProjetoRepository repository;
     @Mock
-    private EntidadeService entidadeService;
+    private OrganizacaoService organizacaoService;
     @Mock
     private MicrorregiaoService microrregiaoService;
     @Mock
@@ -61,7 +61,7 @@ class ProjetoServiceTest {
         ProjetoForm form = getProjetoForm();
         var projeto = new Projeto(form);
 
-        when(entidadeService.existePorId(1L)).thenReturn(true);
+        when(organizacaoService.existePorId(1L)).thenReturn(true);
         when(microrregiaoService.existePorId(1L)).thenReturn(true);
         when(areaService.existePorId(1L)).thenReturn(true);
 
@@ -76,7 +76,7 @@ class ProjetoServiceTest {
     void salvarComErrosDeValidacao() {
         ProjetoForm form = getProjetoForm();
 
-        when(entidadeService.existePorId(1L)).thenReturn(false);
+        when(organizacaoService.existePorId(1L)).thenReturn(false);
         when(microrregiaoService.existePorId(1L)).thenReturn(false);
         when(areaService.existePorId(1L)).thenReturn(false);
 
@@ -84,7 +84,7 @@ class ProjetoServiceTest {
             service.salvar(form);
             fail("É preciso lançar todas exceptions de validação de projetos.");
         } catch (ServiceSisCapException e) {
-            assertThat(e.getErros()).contains("Erro ao encontrar Entidade com id " + 1L,
+            assertThat(e.getErros()).contains("Erro ao encontrar Organização com id " + 1L,
                     "Erro ao encontrar Microrregião com id " + 1L);
         }
         verify(repository, times(0)).save(any());
@@ -95,7 +95,7 @@ class ProjetoServiceTest {
     void salvarComErro() {
         ProjetoForm form = getProjetoForm();
 
-        when(entidadeService.existePorId(1L)).thenReturn(false);
+        when(organizacaoService.existePorId(1L)).thenReturn(false);
         when(microrregiaoService.existePorId(1L)).thenReturn(false);
         when(areaService.existePorId(1L)).thenReturn(false);
 

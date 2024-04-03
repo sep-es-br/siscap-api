@@ -25,7 +25,7 @@ import java.util.List;
 public class ProjetoService {
 
     private final ProjetoRepository repository;
-    private final EntidadeService entidadeService;
+    private final OrganizacaoService organizacaoService;
     private final MicrorregiaoService microrregiaoService;
     private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
@@ -33,8 +33,8 @@ public class ProjetoService {
     public ProjetoDto salvar(ProjetoForm form) {
         logger.info("Cadatrar novo projeto: {}.", form);
         List<String> erros = new ArrayList<>();
-        if (!entidadeService.existePorId(form.idEntidade())) {
-            erros.add("Erro ao encontrar Entidade com id " + form.idEntidade());
+        if (!organizacaoService.existePorId(form.idOrganizacao())) {
+            erros.add("Erro ao encontrar Organização com id " + form.idOrganizacao());
         }
         form.idMicrorregioes().forEach(id -> {
             if (!microrregiaoService.existePorId(id))
