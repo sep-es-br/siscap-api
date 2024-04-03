@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Collections;
 import java.util.List;
@@ -40,12 +41,20 @@ public class RestExceptionHandler {
                 Collections.singletonList("Por favor, contate o suporte."));
         return montarRetorno(mensagem);
     }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     private ResponseEntity<MensagemErroRest> methodArgumentNotValidHandler(MethodArgumentNotValidException exception) {
         List<String> errorMessage = exception.getFieldErrors().stream()
                 .map(e -> e.getField() + " " + e.getDefaultMessage()).toList();
         var mensagem = new MensagemErroRest(HttpStatus.BAD_REQUEST,
                 "Erro ", errorMessage);
+        return montarRetorno(mensagem);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    private ResponseEntity<MensagemErroRest> noResourceFounddHandler(NoResourceFoundException exception) {
+        var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND,
+                "Recurso não encontrado", Collections.singletonList("/" + exception.getResourcePath() + " não existe."));
         return montarRetorno(mensagem);
     }
 

@@ -9,7 +9,7 @@ import java.util.List;
  * Formulário para cadastrar um novo projeto. Não deve ser usado fora desse contexto.
  * @param sigla
  * @param titulo
- * @param idEntidade
+ * @param idOrganizacao
  * @param valorEstimado
  * @param idMicrorregioes
  * @param objetivo
@@ -28,7 +28,7 @@ public record ProjetoForm(
         String titulo,
         @NotNull
         @Positive
-        Long idEntidade,
+        Long idOrganizacao,
         @Positive
         @NotNull
         BigDecimal valorEstimado,

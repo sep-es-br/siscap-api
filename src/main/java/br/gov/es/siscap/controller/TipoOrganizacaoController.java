@@ -1,7 +1,7 @@
 package br.gov.es.siscap.controller;
 
-import br.gov.es.siscap.dto.TipoEntidadeSelectDto;
-import br.gov.es.siscap.service.TipoEntidadeService;
+import br.gov.es.siscap.dto.TipoOrganizacaoSelectDto;
+import br.gov.es.siscap.service.TipoOrganizacaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/tipos-entidades")
+@RequestMapping("/tipos-organizacoes")
 @RequiredArgsConstructor
-public class TipoEntidadeController {
+public class TipoOrganizacaoController {
 
-    private final TipoEntidadeService service;
+    private final TipoOrganizacaoService service;
 
     @GetMapping("/select")
-    public List<TipoEntidadeSelectDto> listarSelect() {
+    public List<TipoOrganizacaoSelectDto> listarSelect() {
         return service.buscarSelect();
     }
 

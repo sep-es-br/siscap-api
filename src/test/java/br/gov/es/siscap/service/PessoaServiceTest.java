@@ -47,7 +47,7 @@ class PessoaServiceTest {
     @DisplayName("Deve salvar uma pessoa corretamente")
     void salvar() throws IOException {
         PessoaForm pessoaForm = getForm();
-        Pessoa pessoa = getEntidade();
+        Pessoa pessoa = getOrganizacao();
 
         when(repository.save(any(Pessoa.class))).thenReturn(pessoa);
 
@@ -58,7 +58,7 @@ class PessoaServiceTest {
     @Test
     @DisplayName("Deve buscar uma pessoa corretamente")
     void buscar() throws IOException {
-        Pessoa pessoa = getEntidade();
+        Pessoa pessoa = getOrganizacao();
         when(repository.findById(1L)).thenReturn(Optional.of(pessoa));
 
         assertThat(service.buscar(1L)).isEqualTo(new PessoaDto(pessoa, null));
@@ -68,7 +68,7 @@ class PessoaServiceTest {
     @DisplayName("Deve atualizar uma pessoa corretamente")
     void atualizar() throws IOException {
         PessoaUpdateForm form = getUpdateForm();
-        Pessoa pessoa = getEntidade();
+        Pessoa pessoa = getOrganizacao();
         pessoa.atualizarImagemPerfil("batata.jpg");
 
         when(repository.findById(1L)).thenReturn(Optional.of(pessoa));
@@ -81,7 +81,7 @@ class PessoaServiceTest {
     @Test
     @DisplayName("Deve excluir uma pessoa corretamente")
     void excluir() {
-        Pessoa pessoa = getEntidade();
+        Pessoa pessoa = getOrganizacao();
         when(repository.findById(1L)).thenReturn(Optional.of(pessoa));
 
         service.excluir(1L);
@@ -108,7 +108,7 @@ class PessoaServiceTest {
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 
-    private Pessoa getEntidade() {
+    private Pessoa getOrganizacao() {
         return new Pessoa(getForm(), "batata.jpg");
     }
 

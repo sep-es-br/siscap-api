@@ -10,11 +10,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tipo_entidade")
+@Table(name = "tipo_organizacao")
 @Getter
-@SQLDelete(sql = "update tipo_entidade set apagado = true where id=?")
+@SQLDelete(sql = "update tipo_organizacao set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class TipoEntidade {
+public class TipoOrganizacao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,10 +28,10 @@ public class TipoEntidade {
     @Setter
     private boolean apagado = Boolean.FALSE;
 
-    public TipoEntidade() {
+    public TipoOrganizacao() {
     }
 
-    public TipoEntidade(Long id) {
+    public TipoOrganizacao(Long id) {
         this.id = id;
     }
 }
