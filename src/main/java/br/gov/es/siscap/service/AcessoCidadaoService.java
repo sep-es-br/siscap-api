@@ -72,10 +72,10 @@ public class AcessoCidadaoService {
             pessoa.setEmail(userInfo.email());
             pessoa.setApagado(false);
         }
+        pessoa = pessoaService.salvarNovaPessoaAcessoCidadao(pessoa);
 
         usuario = new Usuario(userInfo.email(), null, userInfo.role(), pessoa, userInfo.subNovo(), accessToken);
 
-        pessoaService.salvarNovaPessoa(pessoa);
         usuarioRepository.save(usuario);
 
         return usuario;

@@ -5,10 +5,13 @@ import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.form.PessoaForm;
 import br.gov.es.siscap.form.PessoaUpdateForm;
+import br.gov.es.siscap.models.Pessoa;
+import br.gov.es.siscap.service.ImagemPerfilService;
 import br.gov.es.siscap.service.PessoaService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -25,6 +28,7 @@ import java.util.List;
 public class PessoaController {
 
     private final PessoaService service;
+    private final ImagemPerfilService imagemPerfilService;
 
     @GetMapping
     public Page<PessoaListaDto> listar(@PageableDefault(size = 15) Pageable pageable) {
@@ -41,6 +45,14 @@ public class PessoaController {
     @GetMapping("/{id}")
     public ResponseEntity<PessoaDto> buscar(@NotNull @PathVariable Long id) throws IOException {
         return ResponseEntity.ok(service.buscar(id));
+    }
+
+    @GetMapping("/email")
+    public ResponseEntity<PessoaDto> buscarPorEmail(@NotNull String email) throws IOException {
+        Pessoa pessoa = service.buscarPorEmail(email);
+        Resource imagem = imagemPerfilService.buscar(pessoa.getNomeImagem());
+         byte[] conteudo = imagem != null ? imagem.getContentAsByteArray() : null;
+        return ResponseEntity.ok(new PessoaDto(pessoa, conteudo));
     }
 
     @PutMapping("/{id}")

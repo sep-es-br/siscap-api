@@ -94,7 +94,7 @@ public class PessoaService {
         return repository.findByEmail(email).orElseThrow(() -> new PessoaNaoEncontradoException(email));
     }
 
-    public Pessoa salvarNovaPessoa(Pessoa pessoa){
+    public Pessoa salvarNovaPessoaAcessoCidadao(Pessoa pessoa){
         return repository.save(pessoa);
     }
 
