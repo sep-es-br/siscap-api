@@ -1,8 +1,8 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.PessoaDto;
-import br.gov.es.siscap.dto.PessoaListaDto;
-import br.gov.es.siscap.dto.PessoaSelectDto;
+import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.PessoaForm;
@@ -86,12 +86,16 @@ public class PessoaService {
         return repository.existsById(id);
     }
 
-    public List<PessoaSelectDto> buscarSelect() {
-        return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(PessoaSelectDto::new).toList();
+    public List<SelectDto> buscarSelect() {
+        return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(SelectDto::new).toList();
     }
 
     public Pessoa buscarPorEmail(String email) {
         return repository.findByEmail(email).orElseThrow(() -> new PessoaNaoEncontradoException(email));
+    }
+
+    public Pessoa salvarNovaPessoaAcessoCidadao(Pessoa pessoa){
+        return repository.save(pessoa);
     }
 
     private Pessoa buscarPorId(Long id) {

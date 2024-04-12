@@ -1,6 +1,6 @@
 package br.gov.es.siscap.enums;
 
-public enum FiltroCidadeEnum {
+public enum FiltroCidade {
 
     PAIS,
     ESTADO

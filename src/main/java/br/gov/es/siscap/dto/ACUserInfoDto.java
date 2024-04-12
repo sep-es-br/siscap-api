@@ -1,12 +1,22 @@
 package br.gov.es.siscap.dto;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public record ACUserInfoDto(
         String apelido,
-        String cpfValidado,
-        String verificada,
+        Boolean cpfValidado,
+        Boolean verificada,
         String verificacaoTipo,
         String subNovo,
-        String agentepublico,
+        Boolean agentepublico,
         String email,
-        String sub) {
+        String sub,
+        Set<String> role) {
+
+    public ACUserInfoDto(ACUserInfoDtoStringRole userInfo) {
+        this(userInfo.apelido(), userInfo.cpfValidado(), userInfo.verificada(), userInfo.verificacaoTipo(), userInfo.subNovo(),
+                userInfo.agentepublico(), userInfo.email(), userInfo.sub(), new HashSet<>(List.of(userInfo.role())));
+    }
 }

@@ -1,7 +1,7 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.ProjetoDto;
-import br.gov.es.siscap.dto.ProjetoListaDto;
+import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.form.ProjetoUpdateForm;
 import br.gov.es.siscap.service.ProjetoService;

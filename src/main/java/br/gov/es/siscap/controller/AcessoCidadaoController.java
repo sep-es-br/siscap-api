@@ -39,12 +39,8 @@ public class AcessoCidadaoController {
 
     @GetMapping("/user-info")
     public UsuarioDto montarUsuarioDto(HttpServletRequest request) {
-        String token = request.getHeader("Authorization");
-        if (token == null)
-            return null;
-
-        token = token.replace("Bearer ", "");
-        return service.montarUsuarioDto(token);
+        String authorization = request.getHeader("Authorization");
+        return service.autenticar( authorization.replace("Bearer ", ""));
     }
 
 }

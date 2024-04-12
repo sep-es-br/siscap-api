@@ -1,4 +1,4 @@
-package br.gov.es.siscap.dto;
+package br.gov.es.siscap.dto.listagem;
 
 import br.gov.es.siscap.models.Organizacao;
 

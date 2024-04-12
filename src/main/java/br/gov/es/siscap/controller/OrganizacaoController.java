@@ -1,8 +1,8 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.OrganizacaoDto;
-import br.gov.es.siscap.dto.OrganizacaoListaDto;
-import br.gov.es.siscap.dto.OrganizacaoSelectDto;
+import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.listagem.OrganizacaoListaDto;
 import br.gov.es.siscap.form.OrganizacaoForm;
 import br.gov.es.siscap.form.OrganizacaoUpdateForm;
 import br.gov.es.siscap.service.OrganizacaoService;
@@ -52,7 +52,7 @@ public class OrganizacaoController {
     }
 
     @GetMapping("/select")
-    public List<OrganizacaoSelectDto> listarSelect() {
+    public List<SelectDto> listarSelect() {
         return service.buscarSelect();
     }
 

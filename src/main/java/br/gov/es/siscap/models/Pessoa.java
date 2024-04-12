@@ -24,11 +24,13 @@ public class Pessoa {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Setter
     private String nome;
     private String nomeSocial;
     private String nacionalidade;
     private String genero;
     private String cpf;
+    @Setter
     private String email;
     private String telefoneComercial;
     private String telefonePessoal;
