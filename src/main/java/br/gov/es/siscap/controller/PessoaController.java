@@ -1,8 +1,8 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.PessoaDto;
-import br.gov.es.siscap.dto.PessoaListaDto;
-import br.gov.es.siscap.dto.PessoaSelectDto;
+import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.form.PessoaForm;
 import br.gov.es.siscap.form.PessoaUpdateForm;
 import br.gov.es.siscap.service.PessoaService;
@@ -56,7 +56,7 @@ public class PessoaController {
     }
 
     @GetMapping("/select")
-    public List<PessoaSelectDto> listarSelect() {
+    public List<SelectDto> listarSelect() {
         return service.buscarSelect();
     }
 

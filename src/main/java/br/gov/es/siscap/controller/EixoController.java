@@ -1,6 +1,6 @@
 package br.gov.es.siscap.controller;
 
-import br.gov.es.siscap.dto.EixoSelectDto;
+import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.service.EixoService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class EixoController {
     private final EixoService service;
 
     @GetMapping("/select")
-    public List<EixoSelectDto> listarSelect(@NotNull Long idPlano) {
+    public List<SelectDto> listarSelect(@NotNull Long idPlano) {
         return service.buscarSelectPorPlano(idPlano);
     }
 

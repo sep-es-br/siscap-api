@@ -1,6 +1,6 @@
 package br.gov.es.siscap.controller;
 
-import br.gov.es.siscap.dto.EstadoSelectDto;
+import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.service.EstadoService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ public class EstadoController {
     private final EstadoService service;
 
     @GetMapping("/select")
-    public List<EstadoSelectDto> listarSelect(@NotNull @RequestParam Long idPais) {
+    public List<SelectDto> listarSelect(@NotNull @RequestParam Long idPais) {
         return service.buscarSelect(idPais);
     }
 

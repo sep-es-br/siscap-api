@@ -1,8 +1,8 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.OrganizacaoDto;
-import br.gov.es.siscap.dto.OrganizacaoListaDto;
-import br.gov.es.siscap.dto.OrganizacaoSelectDto;
+import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.listagem.OrganizacaoListaDto;
 import br.gov.es.siscap.exception.naoencontrado.OrganizacaoNaoEncontradaException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.OrganizacaoForm;
@@ -42,8 +42,8 @@ public class OrganizacaoService {
         return repository.existsById(id);
     }
 
-    public List<OrganizacaoSelectDto> buscarSelect() {
-        return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(OrganizacaoSelectDto::new).toList();
+    public List<SelectDto> buscarSelect() {
+        return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(SelectDto::new).toList();
     }
 
     public Page<OrganizacaoListaDto> listarTodos(Pageable pageable) {

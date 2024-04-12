@@ -1,6 +1,6 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.AreaSelectDto;
+import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.models.Eixo;
 import br.gov.es.siscap.repository.AreaRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class AreaService {
         return repository.existsById(id);
     }
 
-    public List<AreaSelectDto> buscarSelect(Long idEixo) {
-        return repository.findAllByEixoOrderByNome(new Eixo(idEixo)).stream().map(AreaSelectDto::new).toList();
+    public List<SelectDto> buscarSelect(Long idEixo) {
+        return repository.findAllByEixoOrderByNome(new Eixo(idEixo)).stream().map(SelectDto::new).toList();
     }
 }

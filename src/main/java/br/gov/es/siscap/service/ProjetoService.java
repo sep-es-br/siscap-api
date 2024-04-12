@@ -1,7 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoDto;
-import br.gov.es.siscap.dto.ProjetoListaDto;
+import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.ProjetoForm;

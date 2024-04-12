@@ -1,6 +1,6 @@
 package br.gov.es.siscap.controller;
 
-import br.gov.es.siscap.dto.AreaSelectDto;
+import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.service.AreaService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class AreaController {
     private final AreaService service;
 
     @GetMapping("/select")
-    public List<AreaSelectDto> listarSelect(@NotNull Long idEixo) {
+    public List<SelectDto> listarSelect(@NotNull Long idEixo) {
         return service.buscarSelect(idEixo);
     }
 
