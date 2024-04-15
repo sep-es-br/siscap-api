@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.ACUserInfoDto;
 import br.gov.es.siscap.dto.ACUserInfoDtoStringRole;
 import br.gov.es.siscap.dto.UsuarioDto;
+import br.gov.es.siscap.enums.Permissoes;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.infra.Roles;
@@ -23,6 +24,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,9 +51,15 @@ public class AcessoCidadaoService {
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
+
+        Set<Permissoes> permissoes = null;
+        if (usuario.getPapeis() != null && !usuario.getPapeis().isEmpty())
+            permissoes = usuario.getPapeis().stream().map(r -> roles.getRoles().get(r)).toList()
+                .stream().flatMap(List::stream).collect(Collectors.toSet());
+
+
         return new UsuarioDto(token, usuario.getPessoa().getNome(), usuario.getEmail(), usuario.getSubNovo(),
-                imagemPerfil, usuario.getPapeis().stream().map(r -> roles.getRoles().get(r)).toList()
-                .stream().flatMap(List::stream).collect(Collectors.toSet()));
+                imagemPerfil, permissoes);
     }
 
     private Usuario buscarOuCriarUsuario(ACUserInfoDto userInfo, String accessToken) {
