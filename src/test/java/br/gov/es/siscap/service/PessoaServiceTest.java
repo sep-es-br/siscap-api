@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -97,14 +98,14 @@ class PessoaServiceTest {
     private PessoaForm getForm() {
         return new PessoaForm("Batata com Cheddar e Bacon", "Batatinha", "Brasileiro",
                 "Masculino", "12312312312", "batata@mail.com",
-                "", "", getEnderecoForm(),
+                "", "", getEnderecoForm(), Set.of("123", "333"),
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 
     private PessoaUpdateForm getUpdateForm() {
         return new PessoaUpdateForm("Batata com Cheddar e Bacon", "Batatinha", "Brasileiro",
                 "Masculino", "12312312312", "batata@mail.com",
-                "", "", getEnderecoForm(),
+                "", "", getEnderecoForm(), Set.of("123", "333"),
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 
