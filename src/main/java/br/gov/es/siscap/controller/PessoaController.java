@@ -51,7 +51,7 @@ public class PessoaController {
     public ResponseEntity<PessoaDto> buscarPorEmail(@NotNull String email) throws IOException {
         Pessoa pessoa = service.buscarPorEmail(email);
         Resource imagem = imagemPerfilService.buscar(pessoa.getNomeImagem());
-         byte[] conteudo = imagem != null ? imagem.getContentAsByteArray() : null;
+        byte[] conteudo = imagem != null ? imagem.getContentAsByteArray() : null;
         return ResponseEntity.ok(new PessoaDto(pessoa, conteudo));
     }
 

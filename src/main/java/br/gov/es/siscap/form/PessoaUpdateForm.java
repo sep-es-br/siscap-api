@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Set;
+
 public record PessoaUpdateForm(
         String nome,
         String nomeSocial,
@@ -16,6 +18,7 @@ public record PessoaUpdateForm(
         String telefoneComercial,
         String telefonePessoal,
         EnderecoForm endereco,
+        Set<String> idAreasAtuacao,
         MultipartFile imagemPerfil
 ) {
 }

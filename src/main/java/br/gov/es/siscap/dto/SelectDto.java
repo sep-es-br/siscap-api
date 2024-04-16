@@ -2,7 +2,11 @@ package br.gov.es.siscap.dto;
 
 import br.gov.es.siscap.models.*;
 
-public record SelectDto(Long id, String nome) {
+public record SelectDto(String id, String nome) {
+
+    public SelectDto(Long id, String nome) {
+        this(String.valueOf(id), nome);
+    }
 
     public SelectDto(TipoOrganizacao tipoOrganizacao) {
         this(tipoOrganizacao.getId(), tipoOrganizacao.getTipo());
@@ -42,5 +46,9 @@ public record SelectDto(Long id, String nome) {
 
     public SelectDto(Area area) {
         this(area.getId(), area.getNome());
+    }
+
+    public SelectDto(AreaAtuacao areaAtuacao) {
+        this(areaAtuacao.getId(), areaAtuacao.getNome());
     }
 }

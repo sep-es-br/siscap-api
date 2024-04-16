@@ -12,6 +12,8 @@ import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "pessoa")
@@ -39,6 +41,11 @@ public class Pessoa {
     @JoinColumn(name = "id_endereco")
     private Endereco endereco;
     private String nomeImagem;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "pessoa_area_atuacao",
+            joinColumns = {@JoinColumn(name = "id_pessoa")},
+            inverseJoinColumns = @JoinColumn(name = "id_area_atuacao"))
+    private Set<AreaAtuacao> areasAtuacao;
     @DateTimeFormat
     private LocalDateTime criadoEm;
     @Setter
@@ -57,6 +64,8 @@ public class Pessoa {
         this.telefoneComercial = form.telefoneComercial();
         this.telefonePessoal = form.telefonePessoal();
         this.endereco = form.endereco() != null ? new Endereco(form.endereco()) : null;
+        this.areasAtuacao = form.idAreasAtuacao() != null ?
+                form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet()) : null;
         this.nomeImagem = nomeImagem;
         this.criadoEm = LocalDateTime.now();
     }
@@ -88,6 +97,8 @@ public class Pessoa {
             else
                 this.endereco = new Endereco(form.endereco());
         }
+        if (form.idAreasAtuacao() != null && !form.idAreasAtuacao().isEmpty())
+            this.areasAtuacao = form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet());
         this.setAtualizadoEm(LocalDateTime.now());
     }
 
