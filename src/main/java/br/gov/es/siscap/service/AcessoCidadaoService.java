@@ -79,8 +79,8 @@ public class AcessoCidadaoService {
             pessoa.setNome(userInfo.apelido());
             pessoa.setEmail(userInfo.email());
             pessoa.setApagado(false);
+            pessoa = pessoaService.salvarNovaPessoaAcessoCidadao(pessoa);
         }
-        pessoa = pessoaService.salvarNovaPessoaAcessoCidadao(pessoa);
 
         usuario = new Usuario(userInfo.email(), null, userInfo.role(), pessoa, userInfo.subNovo(), accessToken);
 
