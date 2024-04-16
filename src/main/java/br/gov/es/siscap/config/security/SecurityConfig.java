@@ -20,9 +20,9 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    public static final String PATH_PESSOAS = "/pessoas";
-    private static final String PATH_PROJETO = "/projetos";
-    public static final String PATH_ORGANIZACOES = "/organizacoes";
+    public static final String PATH_PESSOAS = "/pessoas/**";
+    private static final String PATH_PROJETO = "/projetos/**";
+    public static final String PATH_ORGANIZACOES = "/organizacoes/**";
 
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final SecurityFilter securityFilter;
