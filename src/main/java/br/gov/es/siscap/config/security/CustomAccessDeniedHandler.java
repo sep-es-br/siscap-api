@@ -18,6 +18,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
         response.setHeader("Content-Type", "application/json");
+        response.setStatus(HttpStatus.FORBIDDEN.value());
         response.getWriter().write(ToStringBuilder
                 .reflectionToString(new MensagemErroRest(HttpStatus.FORBIDDEN,
                         "Usuário sem permissão.",

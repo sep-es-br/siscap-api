@@ -50,6 +50,8 @@ public class SecurityFilter extends OncePerRequestFilter {
                         .reflectionToString(new MensagemErroRest(HttpStatus.UNAUTHORIZED,
                                         "Token Invalido", List.of(e.getMessage())),
                         ToStringStyle.JSON_STYLE);
+                response.setHeader("Content-Type", "application/json");
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 response.getWriter().write(mensagem);
                 return;
             }
