@@ -7,7 +7,6 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.OrganizacaoNaoEncontradaException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.OrganizacaoForm;
-import br.gov.es.siscap.form.OrganizacaoUpdateForm;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.repository.OrganizacaoRepository;
 import lombok.RequiredArgsConstructor;
@@ -82,7 +81,7 @@ public class OrganizacaoService {
     }
 
     @Transactional
-    public OrganizacaoDto atualizar(Long id, OrganizacaoUpdateForm form) throws IOException {
+    public OrganizacaoDto atualizar(Long id, OrganizacaoForm form) throws IOException {
         logger.info("Atualizar organização de id {}: {}", id, form);
         Organizacao organizacao = buscarPorId(id);
         organizacao.atualizar(form);

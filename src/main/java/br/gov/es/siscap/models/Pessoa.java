@@ -1,7 +1,6 @@
 package br.gov.es.siscap.models;
 
 import br.gov.es.siscap.form.PessoaForm;
-import br.gov.es.siscap.form.PessoaUpdateForm;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -74,31 +73,20 @@ public class Pessoa {
         this.id = id;
     }
 
-    public void atualizar(PessoaUpdateForm form) {
-        if (form.nome() != null)
-            this.nome = form.nome();
-        if (form.nomeSocial() != null)
-            this.nomeSocial = form.nomeSocial();
-        if (form.nacionalidade() != null)
-            this.nacionalidade = form.nacionalidade();
-        if (form.genero() != null)
-            this.genero = form.genero();
-        if (form.cpf() != null)
-            this.cpf = form.cpf();
-        if (form.email() != null)
-            this.email = form.email();
-        if (form.telefoneComercial() != null)
-            this.telefoneComercial = form.telefoneComercial();
-        if (form.telefonePessoal() != null)
-            this.telefonePessoal = form.telefonePessoal();
-        if (form.endereco() != null) {
-            if (this.endereco != null)
-                this.endereco.atualizarEndereco(form.endereco());
-            else
-                this.endereco = new Endereco(form.endereco());
-        }
-        if (form.idAreasAtuacao() != null && !form.idAreasAtuacao().isEmpty())
-            this.areasAtuacao = form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet());
+    public void atualizar(PessoaForm form) {
+        this.nome = form.nome();
+        this.nomeSocial = form.nomeSocial();
+        this.nacionalidade = form.nacionalidade();
+        this.genero = form.genero();
+        this.cpf = form.cpf();
+        this.email = form.email();
+        this.telefoneComercial = form.telefoneComercial();
+        this.telefonePessoal = form.telefonePessoal();
+        if (this.endereco != null)
+            this.endereco.atualizarEndereco(form.endereco());
+        else
+            this.endereco = new Endereco(form.endereco());
+        this.areasAtuacao = form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet());
         this.setAtualizadoEm(LocalDateTime.now());
     }
 

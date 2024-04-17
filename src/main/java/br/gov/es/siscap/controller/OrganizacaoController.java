@@ -4,7 +4,6 @@ import br.gov.es.siscap.dto.OrganizacaoDto;
 import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.dto.listagem.OrganizacaoListaDto;
 import br.gov.es.siscap.form.OrganizacaoForm;
-import br.gov.es.siscap.form.OrganizacaoUpdateForm;
 import br.gov.es.siscap.service.OrganizacaoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +41,7 @@ public class OrganizacaoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<OrganizacaoDto> atualizar(@PathVariable Long id, OrganizacaoUpdateForm form) throws IOException {
+    public ResponseEntity<OrganizacaoDto> atualizar(@PathVariable Long id, OrganizacaoForm form) throws IOException {
         return ResponseEntity.ok(service.atualizar(id, form));
     }
 

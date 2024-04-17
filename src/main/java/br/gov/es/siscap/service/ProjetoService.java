@@ -5,7 +5,6 @@ import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.form.ProjetoForm;
-import br.gov.es.siscap.form.ProjetoUpdateForm;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +42,9 @@ public class ProjetoService {
     }
 
     @Transactional
-    public ProjetoDto atualizar(Long id, ProjetoUpdateForm form) {
+    public ProjetoDto atualizar(Long id, ProjetoForm form) {
         logger.info("Atualizar projeto de id {}: {}.", id, form);
+        validarProjeto(form);
         Projeto projeto = buscarPorId(id);
         projeto.atualizarProjeto(form);
         repository.save(projeto);
