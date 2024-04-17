@@ -1,7 +1,6 @@
 package br.gov.es.siscap.models;
 
 import br.gov.es.siscap.form.ProjetoForm;
-import br.gov.es.siscap.form.ProjetoUpdateForm;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.SQLDelete;
@@ -82,32 +81,20 @@ public class Projeto {
         this.apagado = Boolean.FALSE;
     }
 
-    public void atualizarProjeto(ProjetoUpdateForm form) {
-        if (form.sigla() != null)
-            this.sigla = form.sigla();
-        if (form.titulo() != null)
-            this.titulo = form.titulo();
-        if (form.idOrganizacao() != null)
-            this.organizacao = new Organizacao(form.idOrganizacao());
-        if (form.valorEstimado() != null)
-            this.valorEstimado = form.valorEstimado();
-        if (form.idMicrorregioes() != null && !form.idMicrorregioes().isEmpty())
-            this.microrregioes = form.idMicrorregioes()
-                    .stream().map(Microrregiao::new).collect(Collectors.toList());
-        if (form.objetivo() != null)
-            this.objetivo = form.objetivo();
-        if (form.objetivoEspecifico() != null)
-            this.objetivoEspecifico = form.objetivoEspecifico();
-        if (form.situacaoProblema() != null)
-            this.situacaoProblema = form.situacaoProblema();
-        if (form.solucoesPropostas() != null)
-            this.solucoesPropostas = form.solucoesPropostas();
-        if (form.impactos() != null)
-            this.impactos = form.impactos();
-        if (form.arranjosInstitucionais() != null)
-            this.arranjosInstitucionais = form.arranjosInstitucionais();
-        if (form.idPessoasEquipeElab() != null && !form.idPessoasEquipeElab().isEmpty())
-            this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).collect(Collectors.toList());
+    public void atualizarProjeto(ProjetoForm form) {
+        this.sigla = form.sigla();
+        this.titulo = form.titulo();
+        this.organizacao = new Organizacao(form.idOrganizacao());
+        this.valorEstimado = form.valorEstimado();
+        this.microrregioes = form.idMicrorregioes()
+                .stream().map(Microrregiao::new).collect(Collectors.toList());
+        this.objetivo = form.objetivo();
+        this.objetivoEspecifico = form.objetivoEspecifico();
+        this.situacaoProblema = form.situacaoProblema();
+        this.solucoesPropostas = form.solucoesPropostas();
+        this.impactos = form.impactos();
+        this.arranjosInstitucionais = form.arranjosInstitucionais();
+        this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).collect(Collectors.toList());
         this.atualizadoEm = LocalDateTime.now();
     }
 

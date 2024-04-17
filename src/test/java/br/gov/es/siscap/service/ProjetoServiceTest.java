@@ -5,7 +5,6 @@ import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.form.ProjetoForm;
-import br.gov.es.siscap.form.ProjetoUpdateForm;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -169,8 +168,11 @@ class ProjetoServiceTest {
         var projeto = new Projeto(getProjetoForm());
 
         when(repository.findById(1L)).thenReturn(Optional.of(projeto));
+        when(organizacaoService.existePorId(any())).thenReturn(true);
+        when(microrregiaoService.existePorId(any())).thenReturn(true);
+        when(repository.existsBySigla(any())).thenReturn(false);
 
-        ProjetoDto dto = service.atualizar(1L, getProjetoUpdateForm());
+        ProjetoDto dto = service.atualizar(1L, getProjetoFormParaUpdate());
 
         verify(repository, times(1)).save(projeto);
         assertThat(dto.sigla()).isEqualTo("SISCAPA");
@@ -181,8 +183,12 @@ class ProjetoServiceTest {
     void atualizarNaoEncontrarProjeto() {
         when(repository.findById(1L)).thenReturn(Optional.empty());
 
+        when(organizacaoService.existePorId(any())).thenReturn(true);
+        when(microrregiaoService.existePorId(any())).thenReturn(true);
+        when(repository.existsBySigla(any())).thenReturn(false);
+
         try{
-            service.atualizar(1L, getProjetoUpdateForm());
+            service.atualizar(1L, getProjetoFormParaUpdate());
         } catch (RuntimeException e) {
             assertThat(e).isInstanceOf(ProjetoNaoEncontradoException.class);
         }
@@ -195,8 +201,8 @@ class ProjetoServiceTest {
                 "siscap", "siscap", List.of(1L));
     }
 
-    private ProjetoUpdateForm getProjetoUpdateForm() {
-        return new ProjetoUpdateForm("SISCAPA", "Sis Cap ATUALIZADO", 2L, new BigDecimal(182),
+    private ProjetoForm getProjetoFormParaUpdate() {
+        return new ProjetoForm("SISCAPA", "Sis Cap ATUALIZADO", 2L, new BigDecimal(182),
                 List.of(1L), "siscap ATUALIZADO", "siscap ATUALIZADO",
                 "siscap ATUALIZADO", "siscap ATUALIZADO",
                 "siscap ATUALIZADO", "siscap ATUALIZADO", List.of(2L));

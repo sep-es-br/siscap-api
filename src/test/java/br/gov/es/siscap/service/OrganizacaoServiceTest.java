@@ -2,7 +2,6 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.OrganizacaoDto;
 import br.gov.es.siscap.form.OrganizacaoForm;
-import br.gov.es.siscap.form.OrganizacaoUpdateForm;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.repository.OrganizacaoRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -88,7 +87,7 @@ class OrganizacaoServiceTest {
     @Test
     @DisplayName("Deve atualizar uma organização corretamente")
     void atualizar() throws IOException {
-        OrganizacaoUpdateForm form = getUpdateForm();
+        OrganizacaoForm form = getUpdateForm();
         Organizacao organizacao = getOrganizacao();
 
         when(repository.findById(1L)).thenReturn(Optional.of(organizacao));
@@ -108,8 +107,8 @@ class OrganizacaoServiceTest {
                 null, null, 1L, 1L);
     }
 
-    private OrganizacaoUpdateForm getUpdateForm() {
-        return new OrganizacaoUpdateForm("Secretaria de Economia e Planejamento", "SEP", "27779999999",
+    private OrganizacaoForm getUpdateForm() {
+        return new OrganizacaoForm("Secretaria de Economia e Planejamento", "SEP", "27779999999",
                 "12341234000112", "27779999999", "123@email.com",
                 getMockMultipartFile(), null,
                 null, null, null, 1L, 1L);

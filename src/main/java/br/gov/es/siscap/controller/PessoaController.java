@@ -4,7 +4,6 @@ import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.form.PessoaForm;
-import br.gov.es.siscap.form.PessoaUpdateForm;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.service.ImagemPerfilService;
 import br.gov.es.siscap.service.PessoaService;
@@ -56,7 +55,7 @@ public class PessoaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PessoaDto> atualizar(@NotNull @PathVariable Long id, PessoaUpdateForm form)
+    public ResponseEntity<PessoaDto> atualizar(@NotNull @PathVariable Long id, PessoaForm form)
             throws IOException {
         return ResponseEntity.ok(service.atualizar(id, form));
     }

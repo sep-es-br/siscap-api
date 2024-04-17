@@ -1,7 +1,6 @@
 package br.gov.es.siscap.models;
 
 import br.gov.es.siscap.form.OrganizacaoForm;
-import br.gov.es.siscap.form.OrganizacaoUpdateForm;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -95,31 +94,19 @@ public class Organizacao {
         this.cnpj = null;
     }
 
-    public void atualizar(OrganizacaoUpdateForm form) {
-        if (form.nome() != null)
-            this.nome = form.nome();
-        if (form.abreviatura() != null)
-            this.nomeFantasia = form.abreviatura();
-        if (form.cnpj() != null)
-            this.cnpj = form.cnpj();
-        if (form.telefone() != null)
-            this.telefone = form.telefone();
-        if (form.email() != null)
-            this.email = form.email();
-        if (form.site() != null)
-            this.site = form.site();
-        if (form.idOrganizacaoPai() != null)
-            this.organizacaoPai = new Organizacao(form.idOrganizacaoPai());
-        if (form.idPessoaResponsavel() != null)
-            this.pessoa = new Pessoa(form.idPessoaResponsavel());
-        if (form.idCidade() != null)
-            this.cidade = new Cidade(form.idCidade());
-        if (form.idEstado() != null)
-            this.estado = new Estado(form.idEstado());
-        if (form.idPais() != null)
-            this.pais = new Pais(form.idPais());
-        if (form.idTipoOrganizacao() != null)
-            this.tipoOrganizacao = new TipoOrganizacao(form.idTipoOrganizacao());
+    public void atualizar(OrganizacaoForm form) {
+        this.nome = form.nome();
+        this.nomeFantasia = form.abreviatura();
+        this.cnpj = form.cnpj();
+        this.telefone = form.telefone();
+        this.email = form.email();
+        this.site = form.site();
+        this.organizacaoPai = new Organizacao(form.idOrganizacaoPai());
+        this.pessoa = new Pessoa(form.idPessoaResponsavel());
+        this.cidade = new Cidade(form.idCidade());
+        this.estado = new Estado(form.idEstado());
+        this.pais = new Pais(form.idPais());
+        this.tipoOrganizacao = new TipoOrganizacao(form.idTipoOrganizacao());
         this.setAtualizadoEm(LocalDateTime.now());
     }
 

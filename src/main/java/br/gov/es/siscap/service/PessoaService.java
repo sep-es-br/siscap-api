@@ -7,7 +7,6 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.PessoaForm;
-import br.gov.es.siscap.form.PessoaUpdateForm;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.repository.PessoaRepository;
 import lombok.RequiredArgsConstructor;
@@ -64,8 +63,9 @@ public class PessoaService {
     }
 
     @Transactional
-    public PessoaDto atualizar(Long id, PessoaUpdateForm form) throws IOException {
+    public PessoaDto atualizar(Long id, PessoaForm form) throws IOException {
         logger.info("Atualizar pessoa de id {}: {}.", id, form);
+        validarPessoa(form);
         Pessoa pessoa = buscarPorId(id);
         pessoa.atualizar(form);
         if (form.imagemPerfil() != null)
