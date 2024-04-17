@@ -5,6 +5,7 @@ import br.gov.es.siscap.infra.Roles;
 import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.UsuarioRepository;
 import br.gov.es.siscap.service.TokenService;
+import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,6 +22,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,9 +50,14 @@ public class SecurityFilter extends OncePerRequestFilter {
                 String email = tokenService.validarToken(token);
                 usuario = (Usuario) usuarioRepository.findByEmail(email);
             } catch (JWTVerificationException e) {
+                var expiresAt = LocalDateTime.ofInstant(JWT.decode(token).getExpiresAt().toInstant(), ZoneOffset.of("-03:00"));
+                List<String> erros = new ArrayList<>();
+                erros.add("Por favor, faça o login novamente.");
+                if (LocalDateTime.now().isAfter(expiresAt))
+                    erros.add("Token expirado em " + expiresAt);
                 String mensagem = ToStringBuilder
                         .reflectionToString(new MensagemErroRest(HttpStatus.UNAUTHORIZED,
-                                        "Token Invalido", List.of(e.getMessage())),
+                                        "Token Invalido", erros),
                         ToStringStyle.JSON_STYLE);
                 response.setHeader("Content-Type", "application/json");
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
