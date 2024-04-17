@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.PessoaForm;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,6 +38,7 @@ public class PessoaService {
     @Transactional
     public PessoaDto salvar(PessoaForm form) throws IOException {
         logger.info("Cadatrar nova pessoa: {}.", form);
+        validarPessoa(form);
         String nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
         logger.info("Imagem de perfil para nova pessoa salva: {}.", form.imagemPerfil());
         Pessoa pessoa = repository.save(new Pessoa(form, nomeImagem));
@@ -113,4 +116,19 @@ public class PessoaService {
             conteudoImagem = imagemPerfil.getContentAsByteArray();
         return conteudoImagem;
     }
+
+    private void validarPessoa(PessoaForm form) {
+        List<String> erros = new ArrayList<>();
+        if (repository.existsByEmail(form.email()))
+            erros.add("Já existe uma pessoa cadastrada com esse email.");
+
+        if (repository.existsByCpf(form.cpf()))
+            erros.add("Já existe uma pessoa cadastrada com esse cpf.");
+
+        if (!erros.isEmpty()) {
+            erros.forEach(logger::error);
+            throw new ValidacaoSiscapException(erros);
+        }
+    }
+
 }

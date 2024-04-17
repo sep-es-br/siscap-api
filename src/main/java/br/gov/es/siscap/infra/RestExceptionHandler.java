@@ -1,5 +1,6 @@
 package br.gov.es.siscap.infra;
 
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.NaoEncontradoException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import org.apache.logging.log4j.LogManager;
@@ -55,6 +56,13 @@ public class RestExceptionHandler {
     private ResponseEntity<MensagemErroRest> noResourceFounddHandler(NoResourceFoundException exception) {
         var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND,
                 "Recurso não encontrado", Collections.singletonList("/" + exception.getResourcePath() + " não existe."));
+        return montarRetorno(mensagem);
+    }
+
+    @ExceptionHandler(ValidacaoSiscapException.class)
+    private ResponseEntity<MensagemErroRest> validacaoSiscapHandler(ValidacaoSiscapException exception) {
+        var mensagem = new MensagemErroRest(HttpStatus.BAD_REQUEST, "Existem alguns problemas com o cadastro.",
+                exception.getErros());
         return montarRetorno(mensagem);
     }
 

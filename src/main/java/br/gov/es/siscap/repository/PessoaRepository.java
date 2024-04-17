@@ -10,5 +10,7 @@ import java.util.Optional;
 public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 
     Optional<Pessoa> findByEmail(String email);
+    boolean existsByEmail(String email);
+    boolean existsByCpf(String cpf);
 
 }
