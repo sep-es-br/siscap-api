@@ -16,7 +16,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.net.URI;
@@ -29,7 +28,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class AcessoCidadaoService {
 
     private final Logger logger = LogManager.getLogger(AcessoCidadaoService.class);
@@ -39,7 +37,6 @@ public class AcessoCidadaoService {
     private final UsuarioRepository usuarioRepository;
     private final Roles roles;
 
-    @Transactional
     public UsuarioDto autenticar(String accessToken) {
         ACUserInfoDto userInfo = getUserInfo(accessToken);
         Usuario usuario = buscarOuCriarUsuario(userInfo, accessToken);

@@ -17,7 +17,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -98,9 +97,9 @@ public class PessoaService {
         return repository.findByEmail(email).orElseThrow(() -> new PessoaNaoEncontradoException(email));
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public Pessoa salvarNovaPessoaAcessoCidadao(Pessoa pessoa){
-        return repository.saveAndFlush(pessoa);
+        return repository.save(pessoa);
     }
 
     private Pessoa buscarPorId(Long id) {
