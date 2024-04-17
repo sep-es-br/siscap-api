@@ -2,8 +2,8 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
-import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.form.ProjetoUpdateForm;
 import br.gov.es.siscap.models.Projeto;
@@ -78,14 +78,15 @@ class ProjetoServiceTest {
 
         when(organizacaoService.existePorId(1L)).thenReturn(false);
         when(microrregiaoService.existePorId(1L)).thenReturn(false);
-        when(areaService.existePorId(1L)).thenReturn(false);
+        when(repository.existsBySigla("SISCAP")).thenReturn(true);
 
         try {
             service.salvar(form);
             fail("É preciso lançar todas exceptions de validação de projetos.");
-        } catch (ServiceSisCapException e) {
+        } catch (ValidacaoSiscapException e) {
             assertThat(e.getErros()).contains("Erro ao encontrar Organização com id " + 1L,
-                    "Erro ao encontrar Microrregião com id " + 1L);
+                    "Erro ao encontrar Microrregião com id " + 1L,
+                    "Já existe um projeto cadastrado com essa sigla.");
         }
         verify(repository, times(0)).save(any());
     }
@@ -101,7 +102,7 @@ class ProjetoServiceTest {
 
         doThrow(new RuntimeException("Erro ao salvar no repositório")).when(repository).save(any());
 
-        assertThrows(ServiceSisCapException.class, () -> service.salvar(form));
+        assertThrows(ValidacaoSiscapException.class, () -> service.salvar(form));
     }
 
     @Test

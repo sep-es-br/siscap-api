@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.OrganizacaoDto;
 import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.dto.listagem.OrganizacaoListaDto;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.OrganizacaoNaoEncontradaException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.OrganizacaoForm;
@@ -61,7 +62,7 @@ public class OrganizacaoService {
     public OrganizacaoDto salvar(OrganizacaoForm form) throws IOException {
         logger.info("Cadastrar nova organização: {}", form);
 
-        validarForm(form);
+        validarOrganizacao(form);
 
         String nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
         Organizacao organizacao = repository.save(new Organizacao(form, nomeImagem));
@@ -112,7 +113,7 @@ public class OrganizacaoService {
         return repository.findById(id).orElseThrow(() -> new OrganizacaoNaoEncontradaException(id));
     }
 
-    private void validarForm(OrganizacaoForm form) {
+    private void validarOrganizacao(OrganizacaoForm form) {
         List<String> erros = new ArrayList<>();
         if (form.idCidade() != null && !cidadeService.existePorId(form.idCidade()))
             erros.add("Erro ao encontrar cidade com id " + form.idCidade());
@@ -129,9 +130,12 @@ public class OrganizacaoService {
         if (!tipoOrganizacaoService.existePorId(form.idTipoOrganizacao()))
             erros.add("Erro ao encontrar tipo de organização com id " + form.idTipoOrganizacao());
 
+        if(repository.existsByCnpj(form.cnpj()))
+            erros.add("Já existe uma organização cadastrada com esse CNPJ.");
+
         if (!erros.isEmpty()) {
             erros.forEach(logger::warn);
-            throw new ServiceSisCapException(erros);
+            throw new ValidacaoSiscapException(erros);
         }
     }
 

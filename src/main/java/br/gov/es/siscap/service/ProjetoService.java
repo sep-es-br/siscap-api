@@ -2,8 +2,8 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
-import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.form.ProjetoUpdateForm;
 import br.gov.es.siscap.models.Projeto;
@@ -32,19 +32,7 @@ public class ProjetoService {
     @Transactional
     public ProjetoDto salvar(ProjetoForm form) {
         logger.info("Cadatrar novo projeto: {}.", form);
-        List<String> erros = new ArrayList<>();
-        if (!organizacaoService.existePorId(form.idOrganizacao())) {
-            erros.add("Erro ao encontrar Organização com id " + form.idOrganizacao());
-        }
-        form.idMicrorregioes().forEach(id -> {
-            if (!microrregiaoService.existePorId(id))
-                erros.add("Erro ao encontrar Microrregião com id " + id);
-        });
-
-        if (!erros.isEmpty()) {
-            erros.forEach(logger::error);
-            throw new ServiceSisCapException(erros);
-        }
+        validarProjeto(form);
         Projeto projeto = repository.save(new Projeto(form));
         logger.info("Cadastro de projeto finalizado!");
         return new ProjetoDto(projeto);
@@ -79,6 +67,26 @@ public class ProjetoService {
 
     private Projeto buscarPorId(Long id) {
         return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
+    }
+
+    private void validarProjeto(ProjetoForm form) {
+        List<String> erros = new ArrayList<>();
+
+        if (!organizacaoService.existePorId(form.idOrganizacao())) {
+            erros.add("Erro ao encontrar Organização com id " + form.idOrganizacao());
+        }
+        form.idMicrorregioes().forEach(id -> {
+            if (!microrregiaoService.existePorId(id))
+                erros.add("Erro ao encontrar Microrregião com id " + id);
+        });
+
+        if (repository.existsBySigla(form.sigla()))
+            erros.add("Já existe um projeto cadastrado com essa sigla.");
+
+        if (!erros.isEmpty()) {
+            erros.forEach(logger::error);
+            throw new ValidacaoSiscapException(erros);
+        }
     }
 
 }
