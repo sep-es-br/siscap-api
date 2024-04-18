@@ -82,7 +82,9 @@ public class Pessoa {
         this.email = form.email();
         this.telefoneComercial = form.telefoneComercial();
         this.telefonePessoal = form.telefonePessoal();
-        if (this.endereco != null)
+        if (form.endereco() == null)
+            this.endereco = null;
+        else if (this.endereco != null)
             this.endereco.atualizarEndereco(form.endereco());
         else
             this.endereco = new Endereco(form.endereco());
