@@ -38,9 +38,11 @@ public class AcessoCidadaoService {
     private final Roles roles;
 
     public UsuarioDto autenticar(String accessToken) {
+        logger.info("Autenticar usuário SisCap.");
         ACUserInfoDto userInfo = getUserInfo(accessToken);
         Usuario usuario = buscarOuCriarUsuario(userInfo, accessToken);
         String token = tokenService.gerarToken(usuario);
+        logger.info("Token JWT gerado.");
         byte[] imagemPerfil = new byte[0];
         try {
             Resource imagem = imagemPerfilService.buscar(usuario.getPessoa().getNomeImagem());
@@ -50,10 +52,12 @@ public class AcessoCidadaoService {
         }
 
         Set<Permissoes> permissoes = null;
-        if (usuario.getPapeis() != null && !usuario.getPapeis().isEmpty())
+        if (usuario.getPapeis() != null && !usuario.getPapeis().isEmpty()) {
+            logger.info("Buscando permissões de usuário");
             permissoes = usuario.getPapeis().stream().map(r -> roles.getRoles().get(r)).toList()
-                .stream().flatMap(List::stream).collect(Collectors.toSet());
-
+                    .stream().flatMap(List::stream).collect(Collectors.toSet());
+            logger.info("Permissões de usuário encontradas com sucesso.");
+        }
 
         return new UsuarioDto(token, usuario.getPessoa().getNome(), usuario.getEmail(), usuario.getSubNovo(),
                 imagemPerfil, permissoes);
@@ -62,26 +66,34 @@ public class AcessoCidadaoService {
     private Usuario buscarOuCriarUsuario(ACUserInfoDto userInfo, String accessToken) {
         Usuario usuario = (Usuario) usuarioRepository.findByEmail(userInfo.email());
         if (usuario != null) {
+            logger.info("Usuário já existente, procedendo com atualizações de papeis e token.");
             usuario.setAccessToken(accessToken);
             usuario.setPapeis(userInfo.role());
             usuarioRepository.saveAndFlush(usuario);
+            logger.info("Usuário atualizado com sucesso.");
             return usuario;
         }
 
+        logger.info("Usuário inexistente, prosseguindo para criação de um novo usuário.");
         Pessoa pessoa;
         try {
             pessoa = pessoaService.buscarPorEmail(userInfo.email());
+            logger.info("Foi encontrado uma pessoa com este email, procedendo para criação de usuário para essa pessoa.");
         } catch (PessoaNaoEncontradoException e) {
+            logger.info("Pessoa não encontrada, procedendo para criação de uma nova pessoa.");
             pessoa = new Pessoa();
             pessoa.setNome(userInfo.apelido());
             pessoa.setEmail(userInfo.email());
             pessoa.setApagado(false);
             pessoa = pessoaService.salvarNovaPessoaAcessoCidadao(pessoa);
+            logger.info("Pessoa criada com sucesso.");
         }
 
         usuario = new Usuario(userInfo.email(), null, userInfo.role(), pessoa, userInfo.subNovo(), accessToken);
 
         usuarioRepository.save(usuario);
+
+        logger.info("Usuário criado com sucesso.");
 
         return usuario;
     }
