@@ -91,6 +91,8 @@ class OrganizacaoServiceTest {
         Organizacao organizacao = getOrganizacao();
 
         when(repository.findById(1L)).thenReturn(Optional.of(organizacao));
+        when(tipoOrganizacaoService.existePorId(1L)).thenReturn(true);
+        when(paisService.existePorId(1L)).thenReturn(true);
 
         assertThat(service.atualizar(1L, form)).isEqualTo(new OrganizacaoDto(organizacao, null));
         verify(imagemPerfilService, times(1)).atualizar(organizacao.getNomeImagem(), form.imagemPerfil());

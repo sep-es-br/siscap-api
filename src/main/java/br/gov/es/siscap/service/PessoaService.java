@@ -64,7 +64,6 @@ public class PessoaService {
     @Transactional
     public PessoaDto atualizar(Long id, PessoaForm form) throws IOException {
         logger.info("Atualizar pessoa de id {}: {}.", id, form);
-        validarPessoa(form);
         Pessoa pessoa = buscarPorId(id);
         pessoa.atualizar(form);
         if (form.imagemPerfil() != null)

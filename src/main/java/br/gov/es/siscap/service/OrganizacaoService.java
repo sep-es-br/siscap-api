@@ -61,7 +61,7 @@ public class OrganizacaoService {
     public OrganizacaoDto salvar(OrganizacaoForm form) throws IOException {
         logger.info("Cadastrar nova organização: {}", form);
 
-        validarOrganizacao(form);
+        validarOrganizacao(form, true);
 
         String nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
         Organizacao organizacao = repository.save(new Organizacao(form, nomeImagem));
@@ -83,6 +83,7 @@ public class OrganizacaoService {
     @Transactional
     public OrganizacaoDto atualizar(Long id, OrganizacaoForm form) throws IOException {
         logger.info("Atualizar organização de id {}: {}", id, form);
+        validarOrganizacao(form, false);
         Organizacao organizacao = buscarPorId(id);
         organizacao.atualizar(form);
         if (form.imagemPerfil() != null)
@@ -112,7 +113,7 @@ public class OrganizacaoService {
         return repository.findById(id).orElseThrow(() -> new OrganizacaoNaoEncontradaException(id));
     }
 
-    private void validarOrganizacao(OrganizacaoForm form) {
+    private void validarOrganizacao(OrganizacaoForm form, boolean isSalvar) {
         List<String> erros = new ArrayList<>();
         if (form.idCidade() != null && !cidadeService.existePorId(form.idCidade()))
             erros.add("Erro ao encontrar cidade com id " + form.idCidade());
@@ -129,7 +130,7 @@ public class OrganizacaoService {
         if (!tipoOrganizacaoService.existePorId(form.idTipoOrganizacao()))
             erros.add("Erro ao encontrar tipo de organização com id " + form.idTipoOrganizacao());
 
-        if(repository.existsByCnpj(form.cnpj()))
+        if(repository.existsByCnpj(form.cnpj()) && isSalvar)
             erros.add("Já existe uma organização cadastrada com esse CNPJ.");
 
         if (!erros.isEmpty()) {

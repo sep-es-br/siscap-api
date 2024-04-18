@@ -31,7 +31,7 @@ public class ProjetoService {
     @Transactional
     public ProjetoDto salvar(ProjetoForm form) {
         logger.info("Cadatrar novo projeto: {}.", form);
-        validarProjeto(form);
+        validarProjeto(form, true);
         Projeto projeto = repository.save(new Projeto(form));
         logger.info("Cadastro de projeto finalizado!");
         return new ProjetoDto(projeto);
@@ -44,7 +44,7 @@ public class ProjetoService {
     @Transactional
     public ProjetoDto atualizar(Long id, ProjetoForm form) {
         logger.info("Atualizar projeto de id {}: {}.", id, form);
-        validarProjeto(form);
+        validarProjeto(form, false);
         Projeto projeto = buscarPorId(id);
         projeto.atualizarProjeto(form);
         repository.save(projeto);
@@ -69,7 +69,7 @@ public class ProjetoService {
         return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
     }
 
-    private void validarProjeto(ProjetoForm form) {
+    private void validarProjeto(ProjetoForm form, boolean isSalvar) {
         List<String> erros = new ArrayList<>();
 
         if (!organizacaoService.existePorId(form.idOrganizacao())) {
@@ -80,7 +80,7 @@ public class ProjetoService {
                 erros.add("Erro ao encontrar Microrregião com id " + id);
         });
 
-        if (repository.existsBySigla(form.sigla()))
+        if (repository.existsBySigla(form.sigla()) && isSalvar)
             erros.add("Já existe um projeto cadastrado com essa sigla.");
 
         if (!erros.isEmpty()) {
