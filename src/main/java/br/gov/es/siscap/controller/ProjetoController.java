@@ -3,14 +3,18 @@ package br.gov.es.siscap.controller;
 import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.form.ProjetoForm;
+import br.gov.es.siscap.service.ArquivosService;
 import br.gov.es.siscap.service.ProjetoService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class ProjetoController {
 
     private final ProjetoService service;
+    private final ArquivosService arquivosService;
 
     /**
      * Método para listar todos os projetos no banco.
@@ -81,6 +86,19 @@ public class ProjetoController {
     @GetMapping("/{id}")
     public ResponseEntity<ProjetoDto> buscar(@PathVariable @NotNull Long id) {
         return ResponseEntity.ok(service.buscar(id));
+    }
+
+    @GetMapping("/dic/{idProjeto}")
+    public ResponseEntity<Resource> gerarDIC(@PathVariable Integer idProjeto) {
+        Resource resource = arquivosService.gerarArquivo("DIC", idProjeto);
+        String nomeArquivo = service.gerarNomeArquivo(idProjeto);
+
+        String contentType = "application/pdf";
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + ".pdf\"")
+                .body(resource);
     }
 
 }

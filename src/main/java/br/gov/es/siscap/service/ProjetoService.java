@@ -65,6 +65,19 @@ public class ProjetoService {
         return new ProjetoDto(buscarPorId(id));
     }
 
+    public String gerarNomeArquivo(Integer idProjeto) {
+        Projeto projeto = buscarPorId(Long.valueOf(idProjeto));
+
+        String cnpj = formatarCnpj(projeto.getOrganizacao().getCnpj());
+
+        return "PROJETO n. " +
+                projeto.getId() + "/" +
+                projeto.getCriadoEm().getYear() + "-" +
+                projeto.getOrganizacao().getNomeFantasia() + "-" +
+                cnpj;
+    }
+
+
     private Projeto buscarPorId(Long id) {
         return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
     }
@@ -87,6 +100,10 @@ public class ProjetoService {
             erros.forEach(logger::error);
             throw new ValidacaoSiscapException(erros);
         }
+    }
+
+    private String formatarCnpj(String cnpj) {
+        return cnpj.replaceAll("^(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})$", "$1.$2.$3/$4-$5");
     }
 
 }
