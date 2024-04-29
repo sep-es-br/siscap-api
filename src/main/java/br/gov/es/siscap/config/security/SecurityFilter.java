@@ -29,6 +29,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+
 @Component
 @RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
@@ -49,19 +51,19 @@ public class SecurityFilter extends OncePerRequestFilter {
             try {
                 String email = tokenService.validarToken(token);
                 usuario = (Usuario) usuarioRepository.findByEmail(email);
+
+                if (usuario == null) {
+                    enviarMensagemErro(UNAUTHORIZED,
+                            List.of("Usuário não encontrado. Faça o login novamente"), response);
+                    return;
+                }
             } catch (JWTVerificationException e) {
                 var expiresAt = LocalDateTime.ofInstant(JWT.decode(token).getExpiresAt().toInstant(), ZoneOffset.of("-03:00"));
                 List<String> erros = new ArrayList<>();
                 erros.add("Por favor, faça o login novamente.");
                 if (LocalDateTime.now().isAfter(expiresAt))
                     erros.add("Token expirado em " + expiresAt);
-                String mensagem = ToStringBuilder
-                        .reflectionToString(new MensagemErroRest(HttpStatus.UNAUTHORIZED,
-                                        "Token Invalido", erros),
-                        ToStringStyle.JSON_STYLE);
-                response.setHeader("Content-Type", "application/json");
-                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                response.getWriter().write(mensagem);
+                enviarMensagemErro(UNAUTHORIZED, erros, response);
                 return;
             }
 
@@ -80,5 +82,13 @@ public class SecurityFilter extends OncePerRequestFilter {
         var authHeader = request.getHeader("Authorization");
         if (authHeader == null) return null;
         return authHeader.replace("Bearer ", "");
+    }
+
+    private void enviarMensagemErro(HttpStatus status, List<String> erros, HttpServletResponse response) throws IOException {
+        String mensagem = ToStringBuilder.reflectionToString(
+                new MensagemErroRest(status, "Token Invalido", erros), ToStringStyle.JSON_STYLE);
+        response.setHeader("Content-Type", "application/json");
+        response.setStatus(status.value());
+        response.getWriter().write(mensagem);
     }
 }

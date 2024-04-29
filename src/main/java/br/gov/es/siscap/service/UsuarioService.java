@@ -1,5 +1,6 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,5 +16,9 @@ public class UsuarioService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return repository.findByEmail(username);
+    }
+
+    public void excluirPorPessoa(Long id) {
+        repository.deleteByPessoa(new Pessoa(id));
     }
 }

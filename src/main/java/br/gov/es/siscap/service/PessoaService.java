@@ -31,6 +31,7 @@ public class PessoaService {
 
     private final PessoaRepository repository;
     private final ImagemPerfilService imagemPerfilService;
+    private final UsuarioService usuarioService;
     private final Logger logger = LogManager.getLogger(PessoaService.class);
 
     @Transactional
@@ -78,6 +79,7 @@ public class PessoaService {
         logger.info("Excluir pessoa {}.", id);
         Pessoa pessoa = buscarPorId(id);
         pessoa.apagar();
+        usuarioService.excluirPorPessoa(pessoa.getId());
         repository.saveAndFlush(pessoa);
         repository.deleteById(id);
         imagemPerfilService.apagar(pessoa.getNomeImagem());
@@ -120,7 +122,7 @@ public class PessoaService {
         if (repository.existsByEmail(form.email()))
             erros.add("Já existe uma pessoa cadastrada com esse email.");
 
-        if (repository.existsByCpf(form.cpf()))
+        if (form.cpf() != null && repository.existsByCpf(form.cpf()))
             erros.add("Já existe uma pessoa cadastrada com esse cpf.");
 
         if (!erros.isEmpty()) {

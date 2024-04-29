@@ -98,6 +98,7 @@ public class Pessoa {
 
     public void apagar() {
         this.cpf = null;
+        this.email = null;
         this.atualizadoEm = LocalDateTime.now();
     }
 }
