@@ -130,7 +130,7 @@ public class OrganizacaoService {
         if (!tipoOrganizacaoService.existePorId(form.idTipoOrganizacao()))
             erros.add("Erro ao encontrar tipo de organização com id " + form.idTipoOrganizacao());
 
-        if(repository.existsByCnpj(form.cnpj()) && isSalvar)
+        if(form.cnpj() != null && repository.existsByCnpj(form.cnpj()) && isSalvar)
             erros.add("Já existe uma organização cadastrada com esse CNPJ.");
 
         if (!erros.isEmpty()) {
