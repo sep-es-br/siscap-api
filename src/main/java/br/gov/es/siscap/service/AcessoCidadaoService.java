@@ -64,7 +64,8 @@ public class AcessoCidadaoService {
     }
 
     private Usuario buscarOuCriarUsuario(ACUserInfoDto userInfo, String accessToken) {
-        Usuario usuario = (Usuario) usuarioRepository.findByEmail(userInfo.email());
+        String email = userInfo.emailCorporativo() != null ? userInfo.emailCorporativo() : userInfo.email();
+        Usuario usuario = (Usuario) usuarioRepository.findByEmail(email);
         if (usuario != null) {
             logger.info("Usuário já existente, procedendo com atualizações de papeis e token.");
             usuario.setAccessToken(accessToken);
@@ -77,19 +78,19 @@ public class AcessoCidadaoService {
         logger.info("Usuário inexistente, prosseguindo para criação de um novo usuário.");
         Pessoa pessoa;
         try {
-            pessoa = pessoaService.buscarPorEmail(userInfo.email());
+            pessoa = pessoaService.buscarPorEmail(email);
             logger.info("Foi encontrado uma pessoa com este email, procedendo para criação de usuário para essa pessoa.");
         } catch (PessoaNaoEncontradoException e) {
             logger.info("Pessoa não encontrada, procedendo para criação de uma nova pessoa.");
             pessoa = new Pessoa();
             pessoa.setNome(userInfo.apelido());
-            pessoa.setEmail(userInfo.email());
+            pessoa.setEmail(email);
             pessoa.setApagado(false);
             pessoa = pessoaService.salvarNovaPessoaAcessoCidadao(pessoa);
             logger.info("Pessoa criada com sucesso.");
         }
 
-        usuario = new Usuario(userInfo.email(), null, userInfo.role(), pessoa, userInfo.subNovo(), accessToken);
+        usuario = new Usuario(email, null, userInfo.role(), pessoa, userInfo.subNovo(), accessToken);
 
         usuarioRepository.save(usuario);
 

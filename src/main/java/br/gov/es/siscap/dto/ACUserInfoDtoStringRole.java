@@ -9,6 +9,7 @@ public record ACUserInfoDtoStringRole(
         Boolean agentepublico,
         String email,
         String sub,
-        String role) {
+        String role,
+        String emailCorporativo) {
 
 }
