@@ -12,6 +12,8 @@ import br.gov.es.siscap.repository.OrganizacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,12 +33,16 @@ public class OrganizacaoService {
 
     private final OrganizacaoRepository repository;
     private final CidadeService cidadeService;
-    private final PessoaService pessoaService;
+    private PessoaService pessoaService;
     private final PaisService paisService;
     private final TipoOrganizacaoService tipoOrganizacaoService;
     private final ImagemPerfilService imagemPerfilService;
-
     private final Logger logger = LogManager.getLogger(OrganizacaoService.class);
+
+    @Autowired
+    private void setPessoaService(@Lazy PessoaService pessoaService) {
+        this.pessoaService = pessoaService;
+    }
 
     public boolean existePorId(Long id) {
         return repository.existsById(id);

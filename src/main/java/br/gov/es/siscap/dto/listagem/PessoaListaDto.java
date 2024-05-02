@@ -6,9 +6,11 @@ public record PessoaListaDto(
         Long id,
         String nome,
         String email,
+        String nomeOrganizacao,
         byte[] imagemPerfil) {
 
     public PessoaListaDto(Pessoa pessoa, byte[] imagemPerfil) {
-        this(pessoa.getId(), pessoa.getNome(), pessoa.getEmail(), imagemPerfil);
+        this(pessoa.getId(), pessoa.getNome(), pessoa.getEmail(),
+                pessoa.getOrganizacao() != null ? pessoa.getOrganizacao().getNome() : null, imagemPerfil);
     }
 }

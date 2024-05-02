@@ -12,6 +12,8 @@ import br.gov.es.siscap.repository.PessoaRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +34,13 @@ public class PessoaService {
     private final PessoaRepository repository;
     private final ImagemPerfilService imagemPerfilService;
     private final UsuarioService usuarioService;
+    private OrganizacaoService organizacaoService;
     private final Logger logger = LogManager.getLogger(PessoaService.class);
+
+    @Autowired
+    protected void setPessoaService(@Lazy OrganizacaoService organizacaoService) {
+        this.organizacaoService = organizacaoService;
+    }
 
     @Transactional
     public PessoaDto salvar(PessoaForm form) throws IOException {
@@ -99,7 +107,7 @@ public class PessoaService {
     }
 
     @Transactional
-    public Pessoa salvarNovaPessoaAcessoCidadao(Pessoa pessoa){
+    public Pessoa salvarNovaPessoaAcessoCidadao(Pessoa pessoa) {
         return repository.save(pessoa);
     }
 
@@ -124,6 +132,9 @@ public class PessoaService {
 
         if (form.cpf() != null && repository.existsByCpf(form.cpf()))
             erros.add("Já existe uma pessoa cadastrada com esse cpf.");
+
+        if (form.idOrganizacao() != null && !organizacaoService.existePorId(form.idOrganizacao()))
+            erros.add("Erro ao encontrar organização com o id " + form.idOrganizacao());
 
         if (!erros.isEmpty()) {
             erros.forEach(logger::error);

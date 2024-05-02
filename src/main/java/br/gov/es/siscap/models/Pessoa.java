@@ -40,6 +40,10 @@ public class Pessoa {
     @JoinColumn(name = "id_endereco")
     private Endereco endereco;
     private String nomeImagem;
+    @ManyToOne
+    @SQLJoinTableRestriction("apagado = FALSE")
+    @JoinColumn(name = "id_organizacao")
+    private Organizacao organizacao;
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "pessoa_area_atuacao",
             joinColumns = {@JoinColumn(name = "id_pessoa")},
@@ -63,6 +67,7 @@ public class Pessoa {
         this.telefoneComercial = form.telefoneComercial();
         this.telefonePessoal = form.telefonePessoal();
         this.endereco = form.endereco() != null ? new Endereco(form.endereco()) : null;
+        this.organizacao = form.idOrganizacao() != null ? new Organizacao(form.idOrganizacao()) : null;
         this.areasAtuacao = form.idAreasAtuacao() != null ?
                 form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet()) : null;
         this.nomeImagem = nomeImagem;
@@ -88,6 +93,7 @@ public class Pessoa {
             this.endereco.atualizarEndereco(form.endereco());
         else
             this.endereco = new Endereco(form.endereco());
+        this.organizacao = form.idOrganizacao() != null ? new Organizacao(form.idOrganizacao()) : null;
         this.areasAtuacao = form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet());
         this.setAtualizadoEm(LocalDateTime.now());
     }

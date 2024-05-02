@@ -31,11 +31,16 @@ class PessoaServiceTest {
     private PessoaRepository repository;
     @Mock
     private ImagemPerfilService imagemPerfilService;
+    @Mock
+    private UsuarioService usuarioService;
+    @Mock
+    private OrganizacaoService organizacaoService;
     private AutoCloseable closeable;
 
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
+        service.setPessoaService(organizacaoService);
     }
 
     @AfterEach
@@ -47,9 +52,10 @@ class PessoaServiceTest {
     @DisplayName("Deve salvar uma pessoa corretamente")
     void salvar() throws IOException {
         PessoaForm pessoaForm = getForm();
-        Pessoa pessoa = getOrganizacao();
+        Pessoa pessoa = getPessoa();
 
         when(repository.save(any(Pessoa.class))).thenReturn(pessoa);
+        when(organizacaoService.existePorId(pessoaForm.idOrganizacao())).thenReturn(true);
 
         assertThat(service.salvar(pessoaForm)).isEqualTo(new PessoaDto(pessoa, null));
         verify(imagemPerfilService, times(1)).salvar(any(MultipartFile.class));
@@ -58,7 +64,7 @@ class PessoaServiceTest {
     @Test
     @DisplayName("Deve buscar uma pessoa corretamente")
     void buscar() throws IOException {
-        Pessoa pessoa = getOrganizacao();
+        Pessoa pessoa = getPessoa();
         when(repository.findById(1L)).thenReturn(Optional.of(pessoa));
 
         assertThat(service.buscar(1L)).isEqualTo(new PessoaDto(pessoa, null));
@@ -68,7 +74,7 @@ class PessoaServiceTest {
     @DisplayName("Deve atualizar uma pessoa corretamente")
     void atualizar() throws IOException {
         PessoaForm form = getFormParaUpdate();
-        Pessoa pessoa = getOrganizacao();
+        Pessoa pessoa = getPessoa();
         pessoa.atualizarImagemPerfil("batata.jpg");
 
         when(repository.findById(1L)).thenReturn(Optional.of(pessoa));
@@ -81,12 +87,12 @@ class PessoaServiceTest {
     @Test
     @DisplayName("Deve excluir uma pessoa corretamente")
     void excluir() {
-        Pessoa pessoa = getOrganizacao();
-        when(repository.findById(1L)).thenReturn(Optional.of(pessoa));
+        Pessoa entidade = getPessoa();
+        when(repository.findById(1L)).thenReturn(Optional.of(entidade));
 
         service.excluir(1L);
         verify(repository, times(1)).deleteById(1L);
-        verify(imagemPerfilService, times(1)).apagar(pessoa.getNomeImagem());
+        verify(imagemPerfilService, times(1)).apagar("batata.jpg");
     }
 
     private EnderecoForm getEnderecoForm() {
@@ -97,18 +103,18 @@ class PessoaServiceTest {
     private PessoaForm getForm() {
         return new PessoaForm("Batata com Cheddar e Bacon", "Batatinha", "Brasileiro",
                 "Masculino", "12312312312", "batata@mail.com",
-                "", "", getEnderecoForm(), Set.of("123", "333"),
+                "", "", getEnderecoForm(),1L, Set.of("123", "333"),
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 
     private PessoaForm getFormParaUpdate() {
         return new PessoaForm("Batata com Cheddar e Bacon", "Batatinha", "Brasileiro",
                 "Masculino", "12312312312", "batata@mail.com",
-                "", "", getEnderecoForm(), Set.of("123", "333"),
+                "", "", getEnderecoForm(),1L, Set.of("123", "333"),
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 
-    private Pessoa getOrganizacao() {
+    private Pessoa getPessoa() {
         return new Pessoa(getForm(), "batata.jpg");
     }
 
