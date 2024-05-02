@@ -79,7 +79,7 @@ class AcessoCidadaoServiceTest {
 
     private ACUserInfoDto getUserInfoAdmin() {
         return new ACUserInfoDto("Batata", true, true, "XYZ", "xD-182", false,
-                "batata@email.com", "182", new HashSet<>(List.of("ADMIN")));
+                "batata@email.com", "batata@email.com", "182", new HashSet<>(List.of("ADMIN")));
     }
 
     private UserDetails getUsuario() {

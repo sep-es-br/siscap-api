@@ -12,11 +12,13 @@ public record ACUserInfoDto(
         String subNovo,
         Boolean agentepublico,
         String email,
+        String emailCorporativo,
         String sub,
         Set<String> role) {
 
     public ACUserInfoDto(ACUserInfoDtoStringRole userInfo) {
         this(userInfo.apelido(), userInfo.cpfValidado(), userInfo.verificada(), userInfo.verificacaoTipo(), userInfo.subNovo(),
-                userInfo.agentepublico(), userInfo.email(), userInfo.sub(), new HashSet<>(List.of(userInfo.role())));
+                userInfo.agentepublico(), userInfo.email(), userInfo.emailCorporativo(), userInfo.sub(),
+                new HashSet<>(List.of(userInfo.role())));
     }
 }
