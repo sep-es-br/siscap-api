@@ -78,11 +78,11 @@ public class PessoaService {
     public void excluir(Long id) {
         logger.info("Excluir pessoa {}.", id);
         Pessoa pessoa = buscarPorId(id);
+        imagemPerfilService.apagar(pessoa.getNomeImagem());
         pessoa.apagar();
         usuarioService.excluirPorPessoa(pessoa.getId());
         repository.saveAndFlush(pessoa);
         repository.deleteById(id);
-        imagemPerfilService.apagar(pessoa.getNomeImagem());
         logger.info("Exclusão de pessoa com id {} finalizada com sucesso!", id);
     }
 

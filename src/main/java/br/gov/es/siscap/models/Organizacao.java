@@ -92,6 +92,7 @@ public class Organizacao {
     public void apagar() {
         this.atualizadoEm = LocalDateTime.now();
         this.cnpj = null;
+        this.nomeImagem = null;
     }
 
     public void atualizar(OrganizacaoForm form) {

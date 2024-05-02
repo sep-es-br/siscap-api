@@ -73,10 +73,10 @@ public class OrganizacaoService {
     public void excluir(Long id) {
         logger.info("Excluir organização {}.", id);
         Organizacao organizacao = buscarPorId(id);
+        imagemPerfilService.apagar(organizacao.getNomeImagem());
         organizacao.apagar();
         repository.saveAndFlush(organizacao);
         repository.deleteById(organizacao.getId());
-        imagemPerfilService.apagar(organizacao.getNomeImagem());
         logger.info("Exclusão da organização com id {} finalizada!", id);
     }
 
