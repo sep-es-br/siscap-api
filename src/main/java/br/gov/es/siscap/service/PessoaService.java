@@ -77,6 +77,10 @@ public class PessoaService {
         pessoa.atualizar(form);
         if (form.imagemPerfil() != null)
             pessoa.atualizarImagemPerfil(imagemPerfilService.atualizar(pessoa.getNomeImagem(), form.imagemPerfil()));
+        else {
+            imagemPerfilService.apagar(pessoa.getNomeImagem());
+            pessoa.atualizarImagemPerfil(null);
+        }
         repository.save(pessoa);
         logger.info("Atualização de pessoa finalizado com sucesso!");
         return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()));
