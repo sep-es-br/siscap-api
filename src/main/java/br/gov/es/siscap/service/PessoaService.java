@@ -12,6 +12,8 @@ import br.gov.es.siscap.repository.PessoaRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +33,14 @@ public class PessoaService {
 
     private final PessoaRepository repository;
     private final ImagemPerfilService imagemPerfilService;
+    private final UsuarioService usuarioService;
+    private OrganizacaoService organizacaoService;
     private final Logger logger = LogManager.getLogger(PessoaService.class);
+
+    @Autowired
+    protected void setPessoaService(@Lazy OrganizacaoService organizacaoService) {
+        this.organizacaoService = organizacaoService;
+    }
 
     @Transactional
     public PessoaDto salvar(PessoaForm form) throws IOException {
@@ -68,6 +77,10 @@ public class PessoaService {
         pessoa.atualizar(form);
         if (form.imagemPerfil() != null)
             pessoa.atualizarImagemPerfil(imagemPerfilService.atualizar(pessoa.getNomeImagem(), form.imagemPerfil()));
+        else {
+            imagemPerfilService.apagar(pessoa.getNomeImagem());
+            pessoa.atualizarImagemPerfil(null);
+        }
         repository.save(pessoa);
         logger.info("Atualização de pessoa finalizado com sucesso!");
         return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()));
@@ -77,10 +90,11 @@ public class PessoaService {
     public void excluir(Long id) {
         logger.info("Excluir pessoa {}.", id);
         Pessoa pessoa = buscarPorId(id);
+        imagemPerfilService.apagar(pessoa.getNomeImagem());
         pessoa.apagar();
+        usuarioService.excluirPorPessoa(pessoa.getId());
         repository.saveAndFlush(pessoa);
         repository.deleteById(id);
-        imagemPerfilService.apagar(pessoa.getNomeImagem());
         logger.info("Exclusão de pessoa com id {} finalizada com sucesso!", id);
     }
 
@@ -97,7 +111,7 @@ public class PessoaService {
     }
 
     @Transactional
-    public Pessoa salvarNovaPessoaAcessoCidadao(Pessoa pessoa){
+    public Pessoa salvarNovaPessoaAcessoCidadao(Pessoa pessoa) {
         return repository.save(pessoa);
     }
 
@@ -120,8 +134,11 @@ public class PessoaService {
         if (repository.existsByEmail(form.email()))
             erros.add("Já existe uma pessoa cadastrada com esse email.");
 
-        if (repository.existsByCpf(form.cpf()))
+        if (form.cpf() != null && repository.existsByCpf(form.cpf()))
             erros.add("Já existe uma pessoa cadastrada com esse cpf.");
+
+        if (form.idOrganizacao() != null && !organizacaoService.existePorId(form.idOrganizacao()))
+            erros.add("Erro ao encontrar organização com o id " + form.idOrganizacao());
 
         if (!erros.isEmpty()) {
             erros.forEach(logger::error);

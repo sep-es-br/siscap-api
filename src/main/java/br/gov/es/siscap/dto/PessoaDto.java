@@ -17,6 +17,7 @@ public record PessoaDto(
         String telefoneComercial,
         String telefonePessoal,
         EnderecoDto endereco,
+        Long idOrganizacao,
         Set<String> idAreasAtuacao,
         byte[] imagemPerfil) {
 
@@ -24,6 +25,7 @@ public record PessoaDto(
         this(pessoa.getId(), pessoa.getNome(), pessoa.getNomeSocial(), pessoa.getNacionalidade(), pessoa.getGenero(),
                 pessoa.getCpf(), pessoa.getEmail(), pessoa.getTelefoneComercial(), pessoa.getTelefonePessoal(),
                 pessoa.getEndereco() != null ? new EnderecoDto(pessoa.getEndereco()) : null,
+                pessoa.getOrganizacao() != null ? pessoa.getOrganizacao().getId() : null,
                 pessoa.getAreasAtuacao() != null ?
                         pessoa.getAreasAtuacao().stream().map(AreaAtuacao::getId).collect(Collectors.toSet()) : null,
                 imagemPerfil);

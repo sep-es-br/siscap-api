@@ -12,6 +12,8 @@ import br.gov.es.siscap.repository.OrganizacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,12 +33,16 @@ public class OrganizacaoService {
 
     private final OrganizacaoRepository repository;
     private final CidadeService cidadeService;
-    private final PessoaService pessoaService;
+    private PessoaService pessoaService;
     private final PaisService paisService;
     private final TipoOrganizacaoService tipoOrganizacaoService;
     private final ImagemPerfilService imagemPerfilService;
-
     private final Logger logger = LogManager.getLogger(OrganizacaoService.class);
+
+    @Autowired
+    private void setPessoaService(@Lazy PessoaService pessoaService) {
+        this.pessoaService = pessoaService;
+    }
 
     public boolean existePorId(Long id) {
         return repository.existsById(id);
@@ -73,10 +79,10 @@ public class OrganizacaoService {
     public void excluir(Long id) {
         logger.info("Excluir organização {}.", id);
         Organizacao organizacao = buscarPorId(id);
+        imagemPerfilService.apagar(organizacao.getNomeImagem());
         organizacao.apagar();
         repository.saveAndFlush(organizacao);
         repository.deleteById(organizacao.getId());
-        imagemPerfilService.apagar(organizacao.getNomeImagem());
         logger.info("Exclusão da organização com id {} finalizada!", id);
     }
 
@@ -130,7 +136,7 @@ public class OrganizacaoService {
         if (!tipoOrganizacaoService.existePorId(form.idTipoOrganizacao()))
             erros.add("Erro ao encontrar tipo de organização com id " + form.idTipoOrganizacao());
 
-        if(repository.existsByCnpj(form.cnpj()) && isSalvar)
+        if(form.cnpj() != null && repository.existsByCnpj(form.cnpj()) && isSalvar)
             erros.add("Já existe uma organização cadastrada com esse CNPJ.");
 
         if (!erros.isEmpty()) {

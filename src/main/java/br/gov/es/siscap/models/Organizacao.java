@@ -92,6 +92,7 @@ public class Organizacao {
     public void apagar() {
         this.atualizadoEm = LocalDateTime.now();
         this.cnpj = null;
+        this.nomeImagem = null;
     }
 
     public void atualizar(OrganizacaoForm form) {
@@ -101,12 +102,12 @@ public class Organizacao {
         this.telefone = form.telefone();
         this.email = form.email();
         this.site = form.site();
-        this.organizacaoPai = new Organizacao(form.idOrganizacaoPai());
-        this.pessoa = new Pessoa(form.idPessoaResponsavel());
-        this.cidade = new Cidade(form.idCidade());
-        this.estado = new Estado(form.idEstado());
-        this.pais = new Pais(form.idPais());
-        this.tipoOrganizacao = new TipoOrganizacao(form.idTipoOrganizacao());
+        this.organizacaoPai = form.idOrganizacaoPai() != null ? new Organizacao(form.idOrganizacaoPai()) : null;
+        this.pessoa = form.idPessoaResponsavel() != null ? new Pessoa(form.idPessoaResponsavel()) : null;
+        this.cidade = form.idCidade() != null ? new Cidade(form.idCidade()) : null;
+        this.estado = form.idEstado() != null ? new Estado(form.idEstado()) : null;
+        this.pais = form.idPais() != null ? new Pais(form.idPais()) : null;
+        this.tipoOrganizacao = form.idTipoOrganizacao() != null ? new TipoOrganizacao(form.idTipoOrganizacao()) : null;
         this.setAtualizadoEm(LocalDateTime.now());
     }
 

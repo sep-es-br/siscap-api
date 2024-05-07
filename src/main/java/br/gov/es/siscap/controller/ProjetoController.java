@@ -33,7 +33,7 @@ public class ProjetoController {
      * @return Retorna um objeto page que contem a listagem dos registro e mais detalhamento da paginação.
      */
     @GetMapping
-    public Page<ProjetoListaDto> listar(@PageableDefault(size = 15) Pageable pageable) {
+    public Page<ProjetoListaDto> listar(@PageableDefault(size = 15, sort = "sigla") Pageable pageable) {
         return service.listarTodos(pageable);
     }
 

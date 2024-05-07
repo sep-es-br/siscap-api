@@ -30,7 +30,7 @@ public class PessoaController {
     private final ImagemPerfilService imagemPerfilService;
 
     @GetMapping
-    public Page<PessoaListaDto> listar(@PageableDefault(size = 15) Pageable pageable) {
+    public Page<PessoaListaDto> listar(@PageableDefault(size = 15, sort = "nome") Pageable pageable) {
         return service.listarTodos(pageable);
     }
 

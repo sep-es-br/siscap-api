@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class OrganizacaoController {
     private final OrganizacaoService service;
 
     @GetMapping
-    public Page<OrganizacaoListaDto> listar(Pageable pageable) {
+    public Page<OrganizacaoListaDto> listar(@PageableDefault(size = 15, sort = "nomeFantasia") Pageable pageable) {
         return service.listarTodos(pageable);
     }
 
