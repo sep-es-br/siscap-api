@@ -41,4 +41,8 @@ public class Cidade {
 
     public Cidade() {
     }
+
+    public Cidade(Long id) {
+        this.id = id;
+    }
 }

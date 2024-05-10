@@ -1,33 +1,35 @@
 package br.gov.es.siscap.dto;
 
 import br.gov.es.siscap.models.Microrregiao;
+import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public record ProjetoDto(
         Long id,
         String sigla,
         String titulo,
-        BigInteger valorEstimado,
+        BigDecimal valorEstimado,
         String objetivo,
         String objetivoEspecifico,
         Long idStatus,
-        Long idEntidade,
+        Long idOrganizacao,
         String situacaoProblema,
         String solucoesPropostas,
         String impactos,
         String arranjosInstitucionais,
-        List<Long> idMicrorregioes) {
+        List<Long> idMicrorregioes,
+        List<Long> idPessoasEquipeElab) {
 
     public ProjetoDto(Projeto projeto) {
         this(projeto.getId(), projeto.getSigla(), projeto.getTitulo(), projeto.getValorEstimado(),
                 projeto.getObjetivo(), projeto.getObjetivoEspecifico(), projeto.getStatus().getId(),
-                projeto.getEntidade().getId(), projeto.getSituacaoProblema(), projeto.getSolucoesPropostas(),
+                projeto.getOrganizacao().getId(), projeto.getSituacaoProblema(), projeto.getSolucoesPropostas(),
                 projeto.getImpactos(), projeto.getArranjosInstitucionais(),
-                projeto.getMicrorregioes().stream().map(Microrregiao::getId).collect(Collectors.toList()));
+                projeto.getMicrorregioes().stream().map(Microrregiao::getId).toList(),
+                projeto.getEquipeElaboracao().stream().map(Pessoa::getId).toList());
     }
 
 }

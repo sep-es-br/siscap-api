@@ -1,22 +1,20 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoDto;
-import br.gov.es.siscap.dto.ProjetoListaDto;
-import br.gov.es.siscap.exception.ProjetoNaoEncontradoException;
-import br.gov.es.siscap.exception.SisCapServiceException;
+import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
+import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.form.ProjetoForm;
-import br.gov.es.siscap.form.ProjetoUpdateForm;
-import br.gov.es.siscap.models.Entidade;
-import br.gov.es.siscap.models.Microrregiao;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,22 +24,16 @@ import java.util.List;
 public class ProjetoService {
 
     private final ProjetoRepository repository;
-    private final EntidadeService entidadeService;
+    private final OrganizacaoService organizacaoService;
     private final MicrorregiaoService microrregiaoService;
+    private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
     @Transactional
     public ProjetoDto salvar(ProjetoForm form) {
-        List<String> erros = new ArrayList<>();
-        if (!entidadeService.existePorId(form.idEntidade())) {
-            erros.add("Erro ao encontrar entidade com id " + form.idEntidade());
-        }
-        for (Long id : form.idMicrorregioes()) {
-            if (!microrregiaoService.existePorId(id))
-                erros.add("Erro ao encontrar microrregião com id " + id);
-        }
-        if (!erros.isEmpty())
-            throw new SisCapServiceException(erros);
+        logger.info("Cadatrar novo projeto: {}.", form);
+        validarProjeto(form, true);
         Projeto projeto = repository.save(new Projeto(form));
+        logger.info("Cadastro de projeto finalizado!");
         return new ProjetoDto(projeto);
     }
 
@@ -50,52 +42,68 @@ public class ProjetoService {
     }
 
     @Transactional
-    public ProjetoDto atualizar(Long id, ProjetoUpdateForm form) {
+    public ProjetoDto atualizar(Long id, ProjetoForm form) {
+        logger.info("Atualizar projeto de id {}: {}.", id, form);
+        validarProjeto(form, false);
         Projeto projeto = buscarPorId(id);
-        atualizarProjeto(projeto, form);
+        projeto.atualizarProjeto(form);
+        repository.save(projeto);
         return new ProjetoDto(projeto);
     }
 
     @Transactional
     public void excluir(Long id) {
+        logger.info("Excluir projeto {}.", id);
         Projeto projeto = buscarPorId(id);
+        projeto.apagar();
+        repository.saveAndFlush(projeto);
         repository.deleteById(id);
-        projeto.setAtualizadoEm(LocalDateTime.now());
+        logger.info("Exclusão do projeto com id {} finalizada!", id);
     }
 
     public ProjetoDto buscar(Long id) {
         return new ProjetoDto(buscarPorId(id));
     }
 
+    public String gerarNomeArquivo(Integer idProjeto) {
+        Projeto projeto = buscarPorId(Long.valueOf(idProjeto));
+
+        String cnpj = formatarCnpj(projeto.getOrganizacao().getCnpj());
+
+        return "PROJETO n. " +
+                projeto.getId() + "/" +
+                projeto.getCriadoEm().getYear() + "-" +
+                projeto.getOrganizacao().getNomeFantasia() + "-" +
+                cnpj;
+    }
+
+
     private Projeto buscarPorId(Long id) {
         return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
     }
 
-    private void atualizarProjeto(Projeto projeto, ProjetoUpdateForm form) {
-        if (form.sigla() != null)
-            projeto.setSigla(form.sigla());
-        if (form.titulo() != null)
-            projeto.setTitulo(form.titulo());
-        if (form.idEntidade() != null)
-            projeto.setEntidade(new Entidade(form.idEntidade()));
-        if (form.valorEstimado() != null)
-            projeto.setValorEstimado(form.valorEstimado());
-        if (form.idMicrorregioes() != null && !form.idMicrorregioes().isEmpty())
-            projeto.setMicrorregioes(form.idMicrorregioes()
-                    .stream().map(Microrregiao::new).toList());
-        if (form.objetivo() != null)
-            projeto.setObjetivo(form.objetivo());
-        if (form.objetivoEspecifico() != null)
-            projeto.setObjetivoEspecifico(form.objetivoEspecifico());
-        if (form.situacaoProblema() != null)
-            projeto.setSituacaoProblema(form.situacaoProblema());
-        if (form.solucoesPropostas() != null)
-            projeto.setSolucoesPropostas(form.solucoesPropostas());
-        if (form.impactos() != null)
-            projeto.setImpactos(form.impactos());
-        if (form.arranjosInstitucionais() != null)
-            projeto.setArranjosInstitucionais(form.arranjosInstitucionais());
-        projeto.setAtualizadoEm(LocalDateTime.now());
+    private void validarProjeto(ProjetoForm form, boolean isSalvar) {
+        List<String> erros = new ArrayList<>();
+
+        if (!organizacaoService.existePorId(form.idOrganizacao())) {
+            erros.add("Erro ao encontrar Organização com id " + form.idOrganizacao());
+        }
+        form.idMicrorregioes().forEach(id -> {
+            if (!microrregiaoService.existePorId(id))
+                erros.add("Erro ao encontrar Microrregião com id " + id);
+        });
+
+        if (repository.existsBySigla(form.sigla()) && isSalvar)
+            erros.add("Já existe um projeto cadastrado com essa sigla.");
+
+        if (!erros.isEmpty()) {
+            erros.forEach(logger::error);
+            throw new ValidacaoSiscapException(erros);
+        }
+    }
+
+    private String formatarCnpj(String cnpj) {
+        return cnpj.replaceAll("^(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})$", "$1.$2.$3/$4-$5");
     }
 
 }

@@ -1,21 +1,22 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.ProjetoDto;
-import br.gov.es.siscap.dto.ProjetoListaDto;
+import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.form.ProjetoForm;
-import br.gov.es.siscap.form.ProjetoUpdateForm;
+import br.gov.es.siscap.service.ArquivosService;
 import br.gov.es.siscap.service.ProjetoService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.net.URI;
 
 @RestController
 @RequestMapping("/projetos")
@@ -23,6 +24,7 @@ import java.net.URI;
 public class ProjetoController {
 
     private final ProjetoService service;
+    private final ArquivosService arquivosService;
 
     /**
      * Método para listar todos os projetos no banco.
@@ -31,7 +33,7 @@ public class ProjetoController {
      * @return Retorna um objeto page que contem a listagem dos registro e mais detalhamento da paginação.
      */
     @GetMapping
-    public Page<ProjetoListaDto> listar(@PageableDefault(size = 15) Pageable pageable) {
+    public Page<ProjetoListaDto> listar(@PageableDefault(size = 15, sort = "sigla") Pageable pageable) {
         return service.listarTodos(pageable);
     }
 
@@ -43,11 +45,9 @@ public class ProjetoController {
      * o projeto criado contendo outros campos de controle da aplicação.
      */
     @PostMapping
-    public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form,
-                                                UriComponentsBuilder uriBuilder) {
+    public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form) {
         ProjetoDto projeto = service.salvar(form);
-        URI uri = uriBuilder.path("/projetos/{id}").buildAndExpand(projeto.id()).toUri();
-        return ResponseEntity.created(uri).body(projeto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(projeto);
     }
 
     /**
@@ -60,7 +60,7 @@ public class ProjetoController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id,
-                                                @Valid @RequestBody ProjetoUpdateForm form) {
+                                                @Valid @RequestBody ProjetoForm form) {
         ProjetoDto dto = service.atualizar(id, form);
         return ResponseEntity.ok().body(dto);
     }
@@ -84,8 +84,21 @@ public class ProjetoController {
      * @return O DTO completo do Projeto.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ProjetoDto> detalhar(@PathVariable @NotNull Long id) {
+    public ResponseEntity<ProjetoDto> buscar(@PathVariable @NotNull Long id) {
         return ResponseEntity.ok(service.buscar(id));
+    }
+
+    @GetMapping("/dic/{idProjeto}")
+    public ResponseEntity<Resource> gerarDIC(@PathVariable Integer idProjeto) {
+        Resource resource = arquivosService.gerarArquivo("DIC", idProjeto);
+        String nomeArquivo = service.gerarNomeArquivo(idProjeto);
+
+        String contentType = "application/pdf";
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + ".pdf\"")
+                .body(resource);
     }
 
 }

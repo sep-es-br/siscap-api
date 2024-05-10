@@ -3,6 +3,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+logs/
 
 ### STS ###
 .apt_generated
@@ -36,3 +37,6 @@ build/
 src/main/resources/application-prod.yml
 src/main/resources/application-hml.yml
 src/main/resources/application-dev.yml
+
+### Permissions ###
+src/main/resources/permissions

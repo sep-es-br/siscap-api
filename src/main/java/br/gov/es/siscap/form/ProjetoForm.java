@@ -2,14 +2,14 @@ package br.gov.es.siscap.form;
 
 import jakarta.validation.constraints.*;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
  * Formulário para cadastrar um novo projeto. Não deve ser usado fora desse contexto.
  * @param sigla
  * @param titulo
- * @param idEntidade
+ * @param idOrganizacao
  * @param valorEstimado
  * @param idMicrorregioes
  * @param objetivo
@@ -28,10 +28,10 @@ public record ProjetoForm(
         String titulo,
         @NotNull
         @Positive
-        Long idEntidade,
+        Long idOrganizacao,
         @Positive
         @NotNull
-        BigInteger valorEstimado,
+        BigDecimal valorEstimado,
         @NotEmpty
         List<Long> idMicrorregioes,
         @NotBlank
@@ -51,5 +51,7 @@ public record ProjetoForm(
         String impactos,
         @NotBlank
         @Size(max = 2000)
-        String arranjosInstitucionais) {
+        String arranjosInstitucionais,
+        @NotEmpty
+        List<Long> idPessoasEquipeElab) {
 }

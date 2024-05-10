@@ -1,6 +1,7 @@
 services:
   postgres_siscap:
     image: postgres:12.17
+    container_name: pg_siscap
     restart: always
     environment:
       POSTGRES_PASSWORD: "dev@siscap"

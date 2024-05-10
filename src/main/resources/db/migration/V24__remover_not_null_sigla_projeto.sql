@@ -1,0 +1,1 @@
+alter table projeto alter column sigla drop not null;

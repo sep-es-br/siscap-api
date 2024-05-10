@@ -1,0 +1,1 @@
+alter table projeto alter column valor_estimado type numeric(25,2);
