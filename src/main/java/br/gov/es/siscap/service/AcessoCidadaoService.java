@@ -4,6 +4,7 @@ import br.gov.es.siscap.dto.ACUserInfoDto;
 import br.gov.es.siscap.dto.ACUserInfoDtoStringRole;
 import br.gov.es.siscap.dto.UsuarioDto;
 import br.gov.es.siscap.enums.Permissoes;
+import br.gov.es.siscap.exception.UsuarioSemPermissaoException;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.infra.Roles;
@@ -108,13 +109,17 @@ public class AcessoCidadaoService {
         HttpClient client = HttpClient.newHttpClient();
 
         try {
+            ACUserInfoDto userInfoDto;
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.body().contains("role\":\"")) {
-                ACUserInfoDtoStringRole acUserInfoDtoStringRole = new ObjectMapper().readValue(response.body(), ACUserInfoDtoStringRole.class);
-                return new ACUserInfoDto(acUserInfoDtoStringRole);
-            }
+            if (response.body().contains("role\":\""))
+                userInfoDto = new ACUserInfoDto(new ObjectMapper().readValue(response.body(), ACUserInfoDtoStringRole.class));
+            else
+                userInfoDto = new ObjectMapper().readValue(response.body(), ACUserInfoDto.class);
 
-            return new ObjectMapper().readValue(response.body(), ACUserInfoDto.class);
+            if (userInfoDto.role() == null || userInfoDto.role().isEmpty())
+                throw new UsuarioSemPermissaoException();
+
+            return userInfoDto;
         } catch (InterruptedException | IOException e) {
             logger.error(e.getMessage());
             Thread.currentThread().interrupt();

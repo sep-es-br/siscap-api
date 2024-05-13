@@ -1,5 +1,6 @@
 package br.gov.es.siscap.infra;
 
+import br.gov.es.siscap.exception.UsuarioSemPermissaoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.NaoEncontradoException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
@@ -63,6 +64,13 @@ public class RestExceptionHandler {
     private ResponseEntity<MensagemErroRest> validacaoSiscapHandler(ValidacaoSiscapException exception) {
         var mensagem = new MensagemErroRest(HttpStatus.BAD_REQUEST, "Existem alguns problemas com o cadastro.",
                 exception.getErros());
+        return montarRetorno(mensagem);
+    }
+
+    @ExceptionHandler(UsuarioSemPermissaoException.class)
+    private ResponseEntity<MensagemErroRest> naoAutorizadoHandler(UsuarioSemPermissaoException exception) {
+        var mensagem = new MensagemErroRest(HttpStatus.UNAUTHORIZED, "Acesso negado",
+                Collections.singletonList(exception.getMessage()));
         return montarRetorno(mensagem);
     }
 
