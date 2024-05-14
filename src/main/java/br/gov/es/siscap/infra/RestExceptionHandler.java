@@ -1,5 +1,6 @@
 package br.gov.es.siscap.infra;
 
+import br.gov.es.siscap.exception.UsuarioSemAutorizacaoException;
 import br.gov.es.siscap.exception.UsuarioSemPermissaoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.NaoEncontradoException;
@@ -68,8 +69,15 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(UsuarioSemPermissaoException.class)
-    private ResponseEntity<MensagemErroRest> naoAutorizadoHandler(UsuarioSemPermissaoException exception) {
+    private ResponseEntity<MensagemErroRest> usuarioSemPermissaoHandler(UsuarioSemPermissaoException exception) {
         var mensagem = new MensagemErroRest(HttpStatus.UNAUTHORIZED, "Acesso negado",
+                Collections.singletonList(exception.getMessage()));
+        return montarRetorno(mensagem);
+    }
+
+    @ExceptionHandler(UsuarioSemAutorizacaoException.class)
+    private ResponseEntity<MensagemErroRest> usuarioSemAutorizacaoHandler(UsuarioSemAutorizacaoException exception) {
+        var mensagem = new MensagemErroRest(HttpStatus.FORBIDDEN, "Acesso negado",
                 Collections.singletonList(exception.getMessage()));
         return montarRetorno(mensagem);
     }

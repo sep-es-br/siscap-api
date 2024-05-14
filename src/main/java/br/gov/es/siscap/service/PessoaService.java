@@ -3,11 +3,13 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
+import br.gov.es.siscap.exception.UsuarioSemAutorizacaoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
 import br.gov.es.siscap.exception.service.ServiceSisCapException;
 import br.gov.es.siscap.form.PessoaForm;
 import br.gov.es.siscap.models.Pessoa;
+import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.PessoaRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -18,6 +20,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,7 +74,10 @@ public class PessoaService {
     }
 
     @Transactional
-    public PessoaDto atualizar(Long id, PessoaForm form) throws IOException {
+    public PessoaDto atualizar(Long id, PessoaForm form, Authentication auth) throws IOException {
+        if (auth != null && !buscarPorId(id).getEmail().equals(((Usuario) auth.getPrincipal()).getEmail())) {
+            throw new UsuarioSemAutorizacaoException();
+        }
         logger.info("Atualizar pessoa de id {}: {}.", id, form);
         Pessoa pessoa = buscarPorId(id);
         pessoa.atualizar(form);
@@ -106,7 +112,7 @@ public class PessoaService {
         return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(SelectDto::new).toList();
     }
 
-    public Pessoa buscarPorEmail(String email) {
+    public Pessoa meuPerfil(String email) {
         return repository.findByEmail(email).orElseThrow(() -> new PessoaNaoEncontradoException(email));
     }
 

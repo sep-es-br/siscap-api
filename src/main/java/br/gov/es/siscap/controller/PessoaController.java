@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -46,18 +47,25 @@ public class PessoaController {
         return ResponseEntity.ok(service.buscar(id));
     }
 
-    @GetMapping("/email")
-    public ResponseEntity<PessoaDto> buscarPorEmail(@NotNull String email) throws IOException {
-        Pessoa pessoa = service.buscarPorEmail(email);
+    @GetMapping("/meu-perfil")
+    public ResponseEntity<PessoaDto> meuPerfil(@NotNull String email) throws IOException {
+        Pessoa pessoa = service.meuPerfil(email);
         Resource imagem = imagemPerfilService.buscar(pessoa.getNomeImagem());
         byte[] conteudo = imagem != null ? imagem.getContentAsByteArray() : null;
         return ResponseEntity.ok(new PessoaDto(pessoa, conteudo));
     }
 
+    @PutMapping("/meu-perfil/{id}")
+    public ResponseEntity<PessoaDto> atualizarMeuPerfil(@NotNull @PathVariable Long id, PessoaForm form,
+                                                        Authentication auth)
+            throws IOException {
+        return ResponseEntity.ok(service.atualizar(id, form, auth));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<PessoaDto> atualizar(@NotNull @PathVariable Long id, PessoaForm form)
             throws IOException {
-        return ResponseEntity.ok(service.atualizar(id, form));
+        return ResponseEntity.ok(service.atualizar(id, form, null));
     }
 
     @DeleteMapping("/{id}")

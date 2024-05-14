@@ -79,7 +79,7 @@ public class AcessoCidadaoService {
         logger.info("Usuário inexistente, prosseguindo para criação de um novo usuário.");
         Pessoa pessoa;
         try {
-            pessoa = pessoaService.buscarPorEmail(email);
+            pessoa = pessoaService.meuPerfil(email);
             logger.info("Foi encontrado uma pessoa com este email, procedendo para criação de usuário para essa pessoa.");
         } catch (PessoaNaoEncontradoException e) {
             logger.info("Pessoa não encontrada, procedendo para criação de uma nova pessoa.");

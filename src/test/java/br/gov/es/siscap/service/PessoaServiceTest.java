@@ -80,7 +80,7 @@ class PessoaServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(pessoa));
         when(imagemPerfilService.atualizar(pessoa.getNomeImagem(), form.imagemPerfil())).thenReturn(form.imagemPerfil().getName());
 
-        assertThat(service.atualizar(1L, form)).isEqualTo(new PessoaDto(pessoa, null));
+        assertThat(service.atualizar(1L, form, null)).isEqualTo(new PessoaDto(pessoa, null));
         verify(imagemPerfilService, times(1)).atualizar(pessoa.getNomeImagem(), form.imagemPerfil());
     }
 

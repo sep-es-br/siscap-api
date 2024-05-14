@@ -39,6 +39,8 @@ public class SecurityConfig {
                     authConfig.requestMatchers(PUT, PATH_PROJETO).hasAnyAuthority(ADMIN_AUTH.name(), PROJETO_ATUALIZAR.name());
                     authConfig.requestMatchers(DELETE, PATH_PROJETO).hasAnyAuthority(ADMIN_AUTH.name(), PROJETO_APAGAR.name());
 
+                    authConfig.requestMatchers(GET, "/pessoas/meu-perfil").permitAll();
+                    authConfig.requestMatchers(PUT, "/pessoas/meu-perfil/*").permitAll();
                     authConfig.requestMatchers(POST, PATH_PESSOAS).hasAnyAuthority(ADMIN_AUTH.name(), PESSOA_CADASTRAR.name());
                     authConfig.requestMatchers(PUT, PATH_PESSOAS).hasAnyAuthority(ADMIN_AUTH.name(), PESSOA_ATUALIZAR.name());
                     authConfig.requestMatchers(DELETE, PATH_PESSOAS).hasAnyAuthority(ADMIN_AUTH.name(), PESSOA_APAGAR.name());
