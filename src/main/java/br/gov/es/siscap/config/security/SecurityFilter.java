@@ -49,8 +49,8 @@ public class SecurityFilter extends OncePerRequestFilter {
         if (token != null) {
             Usuario usuario;
             try {
-                String email = tokenService.validarToken(token);
-                usuario = (Usuario) usuarioRepository.findByEmail(email);
+                String subNovo = tokenService.validarToken(token);
+                usuario = (Usuario) usuarioRepository.findBySubNovo(subNovo);
 
                 if (usuario == null) {
                     enviarMensagemErro(UNAUTHORIZED,

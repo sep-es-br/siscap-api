@@ -1,7 +1,7 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.UsuarioDto;
-import br.gov.es.siscap.service.AcessoCidadaoService;
+import br.gov.es.siscap.service.AutenticacaoService;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -16,12 +16,12 @@ import java.util.Base64;
 @RestController
 @RequestMapping("/signin")
 @RequiredArgsConstructor
-public class AcessoCidadaoController {
+public class AutenticacaoController {
 
     @Value("${frontend.host}")
     private String frontEndHost;
 
-    private final AcessoCidadaoService service;
+    private final AutenticacaoService service;
 
     /**
      * Endpoint necessário para fazer o redirecionamento do token de acesso para o front end.

@@ -48,8 +48,8 @@ public class PessoaController {
     }
 
     @GetMapping("/meu-perfil")
-    public ResponseEntity<PessoaDto> meuPerfil(@NotNull String email) throws IOException {
-        Pessoa pessoa = service.meuPerfil(email);
+    public ResponseEntity<PessoaDto> meuPerfil(@NotNull String subNovo) throws IOException {
+        Pessoa pessoa = service.buscarPorSubNovo(subNovo);
         Resource imagem = imagemPerfilService.buscar(pessoa.getNomeImagem());
         byte[] conteudo = imagem != null ? imagem.getContentAsByteArray() : null;
         return ResponseEntity.ok(new PessoaDto(pessoa, conteudo));

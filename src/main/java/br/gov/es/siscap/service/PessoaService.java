@@ -75,7 +75,7 @@ public class PessoaService {
 
     @Transactional
     public PessoaDto atualizar(Long id, PessoaForm form, Authentication auth) throws IOException {
-        if (auth != null && !buscarPorId(id).getEmail().equals(((Usuario) auth.getPrincipal()).getEmail())) {
+        if (auth != null && !buscarPorId(id).getSubNovo().equals(((Usuario) auth.getPrincipal()).getSubNovo())) {
             throw new UsuarioSemAutorizacaoException();
         }
         logger.info("Atualizar pessoa de id {}: {}.", id, form);
@@ -112,8 +112,8 @@ public class PessoaService {
         return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(SelectDto::new).toList();
     }
 
-    public Pessoa meuPerfil(String email) {
-        return repository.findByEmail(email).orElseThrow(() -> new PessoaNaoEncontradoException(email));
+    public Pessoa buscarPorSubNovo(String subNovo) {
+        return repository.findBySubNovo(subNovo).orElseThrow(() -> new PessoaNaoEncontradoException(subNovo));
     }
 
     @Transactional

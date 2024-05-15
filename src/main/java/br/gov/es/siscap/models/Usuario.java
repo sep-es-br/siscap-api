@@ -23,7 +23,6 @@ public class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    private String email;
     private String senha;
     @Setter
     @ElementCollection(fetch = FetchType.EAGER)
@@ -36,8 +35,7 @@ public class Usuario implements UserDetails {
     @Setter
     private String accessToken;
 
-    public Usuario(String email, String senha, Set<String> papeis, Pessoa pessoa, String subNovo, String accessToken) {
-        this.email = email;
+    public Usuario(String senha, Set<String> papeis, Pessoa pessoa, String subNovo, String accessToken) {
         this.senha = senha;
         this.papeis = papeis;
         this.pessoa = pessoa;
@@ -61,7 +59,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return subNovo;
     }
 
     @Override
