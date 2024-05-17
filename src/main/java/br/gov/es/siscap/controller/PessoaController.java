@@ -2,8 +2,10 @@ package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.form.PessoaForm;
+import br.gov.es.siscap.form.PessoaFormUpdate;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.service.ImagemPerfilService;
 import br.gov.es.siscap.service.PessoaService;
@@ -16,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -46,18 +49,25 @@ public class PessoaController {
         return ResponseEntity.ok(service.buscar(id));
     }
 
-    @GetMapping("/email")
-    public ResponseEntity<PessoaDto> buscarPorEmail(@NotNull String email) throws IOException {
-        Pessoa pessoa = service.buscarPorEmail(email);
+    @GetMapping("/meu-perfil")
+    public ResponseEntity<PessoaDto> meuPerfil(@NotNull String subNovo) throws IOException {
+        Pessoa pessoa = service.buscarPorSub(subNovo);
         Resource imagem = imagemPerfilService.buscar(pessoa.getNomeImagem());
         byte[] conteudo = imagem != null ? imagem.getContentAsByteArray() : null;
         return ResponseEntity.ok(new PessoaDto(pessoa, conteudo));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<PessoaDto> atualizar(@NotNull @PathVariable Long id, PessoaForm form)
+    @PutMapping("/meu-perfil/{id}")
+    public ResponseEntity<PessoaDto> atualizarMeuPerfil(@NotNull @PathVariable Long id, PessoaFormUpdate form,
+                                                        Authentication auth)
             throws IOException {
-        return ResponseEntity.ok(service.atualizar(id, form));
+        return ResponseEntity.ok(service.atualizar(id, form, auth));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PessoaDto> atualizar(@NotNull @PathVariable Long id, PessoaFormUpdate form)
+            throws IOException {
+        return ResponseEntity.ok(service.atualizar(id, form, null));
     }
 
     @DeleteMapping("/{id}")
@@ -69,6 +79,11 @@ public class PessoaController {
     @GetMapping("/select")
     public List<SelectDto> listarSelect() {
         return service.buscarSelect();
+    }
+
+    @GetMapping("/acesso-cidadao/{cpf}")
+    public ResponseEntity<AgentePublicoACDto> buscarPessoaNoAcessoCidadaoPorCpf(@PathVariable String cpf) {
+        return ResponseEntity.ok(service.buscarPessoaNoAcessoCidadaoPorCpf(cpf));
     }
 
 }

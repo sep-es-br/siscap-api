@@ -23,10 +23,10 @@ import static br.gov.es.siscap.enums.Permissoes.ADMIN_AUTH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-class AcessoCidadaoServiceTest {
+class AutenticacaoServiceTest {
 
     @InjectMocks
-    private AcessoCidadaoService service;
+    private AutenticacaoService service;
     @Mock
     private ImagemPerfilService imagemPerfilService;
     @Mock
@@ -62,7 +62,7 @@ class AcessoCidadaoServiceTest {
         var userInfoAdmin = getUserInfoAdmin();
 
         doReturn(userInfoAdmin).when(spy).getUserInfo("xD");
-        when(usuarioRepository.findByEmail("batata@email.com")).thenReturn(usuario);
+        when(usuarioRepository.findBySub("xD-182")).thenReturn(usuario);
         when(tokenService.gerarToken((Usuario) usuario)).thenReturn("1");
         when(imagemPerfilService.buscar(((Usuario) usuario).getPessoa().getNomeImagem())).thenReturn(null);
         when(roles.getRoles()).thenReturn(permissoes);
@@ -73,7 +73,7 @@ class AcessoCidadaoServiceTest {
         assertThat(usuarioDto.permissoes()).contains(ADMIN_AUTH);
 
         verify(spy, times(1)).getUserInfo("xD");
-        verify(usuarioRepository, times(1)).findByEmail("batata@email.com");
+        verify(usuarioRepository, times(1)).findBySub("xD-182");
         verify(imagemPerfilService, times(1)).buscar(((Usuario) usuario).getPessoa().getNomeImagem());
     }
 
@@ -83,7 +83,7 @@ class AcessoCidadaoServiceTest {
     }
 
     private UserDetails getUsuario() {
-        return new Usuario("batata@email.com", null, new HashSet<>(List.of("ADMIN")),
+        return new Usuario(null, new HashSet<>(List.of("ADMIN")),
                 new Pessoa(1L), "", "");
     }
 

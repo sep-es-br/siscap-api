@@ -1,6 +1,7 @@
 package br.gov.es.siscap.models;
 
 import br.gov.es.siscap.form.PessoaForm;
+import br.gov.es.siscap.form.PessoaFormUpdate;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,12 +45,15 @@ public class Pessoa {
     @SQLJoinTableRestriction("apagado = FALSE")
     @JoinColumn(name = "id_organizacao")
     private Organizacao organizacao;
+    @Setter
+    private String sub;
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "pessoa_area_atuacao",
             joinColumns = {@JoinColumn(name = "id_pessoa")},
             inverseJoinColumns = @JoinColumn(name = "id_area_atuacao"))
     private Set<AreaAtuacao> areasAtuacao;
     @DateTimeFormat
+    @Setter
     private LocalDateTime criadoEm;
     @Setter
     @DateTimeFormat
@@ -68,6 +72,7 @@ public class Pessoa {
         this.telefonePessoal = form.telefonePessoal();
         this.endereco = form.endereco() != null ? new Endereco(form.endereco()) : null;
         this.organizacao = form.idOrganizacao() != null ? new Organizacao(form.idOrganizacao()) : null;
+        this.sub = form.sub();
         this.areasAtuacao = form.idAreasAtuacao() != null ?
                 form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet()) : null;
         this.nomeImagem = nomeImagem;
@@ -78,7 +83,7 @@ public class Pessoa {
         this.id = id;
     }
 
-    public void atualizar(PessoaForm form) {
+    public void atualizar(PessoaFormUpdate form) {
         this.nome = form.nome();
         this.nomeSocial = form.nomeSocial();
         this.nacionalidade = form.nacionalidade();
@@ -106,6 +111,7 @@ public class Pessoa {
         this.cpf = null;
         this.email = null;
         this.nomeImagem = null;
+        this.sub = null;
         this.atualizadoEm = LocalDateTime.now();
     }
 }
