@@ -6,6 +6,6 @@ public class PessoaNaoEncontradoException extends NaoEncontradoException {
     }
 
     public PessoaNaoEncontradoException(String subNovo) {
-        super("Não foi encontrada uma pessoa com o subNovo [" + subNovo + "]!");
+        super("Não foi encontrada uma pessoa com o sub [" + subNovo + "]!");
     }
 }

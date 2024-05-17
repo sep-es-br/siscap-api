@@ -61,13 +61,12 @@ public class AutenticacaoService {
             logger.info("Permissões de usuário encontradas com sucesso.");
         }
 
-        return new UsuarioDto(token, usuario.getPessoa().getNome(), getEmailUserInfo(userInfo), usuario.getSubNovo(),
+        return new UsuarioDto(token, usuario.getPessoa().getNome(), getEmailUserInfo(userInfo), usuario.getSub(),
                 imagemPerfil, permissoes);
     }
 
     private Usuario buscarOuCriarUsuario(ACUserInfoDto userInfo, String accessToken) {
-        String email = getEmailUserInfo(userInfo);
-        Usuario usuario = (Usuario) usuarioRepository.findBySubNovo(userInfo.subNovo());
+        Usuario usuario = (Usuario) usuarioRepository.findBySub(userInfo.subNovo());
         if (usuario != null) {
             logger.info("Usuário já existente, procedendo com atualizações de papeis e token.");
             usuario.setAccessToken(accessToken);
@@ -80,14 +79,14 @@ public class AutenticacaoService {
         logger.info("Usuário inexistente, prosseguindo para criação de um novo usuário.");
         Pessoa pessoa;
         try {
-            pessoa = pessoaService.buscarPorSubNovo(userInfo.subNovo());
-            logger.info("Foi encontrado uma pessoa com este email, procedendo para criação de usuário para essa pessoa.");
+            pessoa = pessoaService.buscarPorSub(userInfo.subNovo());
+            logger.info("Foi encontrado uma pessoa com este sub, procedendo para criação de usuário para essa pessoa.");
         } catch (PessoaNaoEncontradoException e) {
             logger.info("Pessoa não encontrada, procedendo para criação de uma nova pessoa.");
             pessoa = new Pessoa();
             pessoa.setNome(userInfo.apelido());
-            pessoa.setEmail(email);
-            pessoa.setSubNovo(userInfo.subNovo());
+            pessoa.setEmail(getEmailUserInfo(userInfo));
+            pessoa.setSub(userInfo.subNovo());
             pessoa.setApagado(false);
             pessoa.setCriadoEm(LocalDateTime.now());
             pessoa = pessoaService.salvarNovaPessoaAcessoCidadao(pessoa);

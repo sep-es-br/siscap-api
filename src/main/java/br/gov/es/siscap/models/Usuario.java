@@ -31,15 +31,15 @@ public class Usuario implements UserDetails {
     @SQLJoinTableRestriction("apagado = FALSE")
     @JoinColumn(name = "id_pessoa")
     private Pessoa pessoa;
-    private String subNovo;
+    private String sub;
     @Setter
     private String accessToken;
 
-    public Usuario(String senha, Set<String> papeis, Pessoa pessoa, String subNovo, String accessToken) {
+    public Usuario(String senha, Set<String> papeis, Pessoa pessoa, String sub, String accessToken) {
         this.senha = senha;
         this.papeis = papeis;
         this.pessoa = pessoa;
-        this.subNovo = subNovo;
+        this.sub = sub;
         this.accessToken = accessToken;
     }
 
@@ -59,7 +59,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public String getUsername() {
-        return subNovo;
+        return sub;
     }
 
     @Override

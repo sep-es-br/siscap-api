@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.form.EnderecoForm;
 import br.gov.es.siscap.form.PessoaForm;
+import br.gov.es.siscap.form.PessoaFormUpdate;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.repository.PessoaRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -73,7 +74,7 @@ class PessoaServiceTest {
     @Test
     @DisplayName("Deve atualizar uma pessoa corretamente")
     void atualizar() throws IOException {
-        PessoaForm form = getFormParaUpdate();
+        PessoaFormUpdate form = getFormParaUpdate();
         Pessoa pessoa = getPessoa();
         pessoa.atualizarImagemPerfil("batata.jpg");
 
@@ -107,10 +108,10 @@ class PessoaServiceTest {
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 
-    private PessoaForm getFormParaUpdate() {
-        return new PessoaForm("Batata com Cheddar e Bacon", "Batatinha", "Brasileiro",
+    private PessoaFormUpdate getFormParaUpdate() {
+        return new PessoaFormUpdate("Batata com Cheddar e Bacon", "Batatinha", "Brasileiro",
                 "Masculino", "12312312312", "batata@mail.com",
-                "", "", getEnderecoForm(),1L, "182", Set.of("123", "333"),
+                "", "", getEnderecoForm(),1L,  Set.of("123", "333"),
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 

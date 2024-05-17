@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Set;
 
-public record PessoaForm(
+public record PessoaFormUpdate(
         @NotBlank
         String nome,
         String nomeSocial,
@@ -26,7 +26,6 @@ public record PessoaForm(
         @Valid
         EnderecoForm endereco,
         Long idOrganizacao,
-        String sub,
         Set<String> idAreasAtuacao,
         MultipartFile imagemPerfil) {
 }

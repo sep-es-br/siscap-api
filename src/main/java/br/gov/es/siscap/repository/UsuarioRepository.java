@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 
-    UserDetails findBySubNovo(String subNovo);
+    UserDetails findBySub(String subNovo);
     void deleteByPessoa(Pessoa pessoa);
 }

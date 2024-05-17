@@ -62,7 +62,7 @@ class AutenticacaoServiceTest {
         var userInfoAdmin = getUserInfoAdmin();
 
         doReturn(userInfoAdmin).when(spy).getUserInfo("xD");
-        when(usuarioRepository.findBySubNovo("xD-182")).thenReturn(usuario);
+        when(usuarioRepository.findBySub("xD-182")).thenReturn(usuario);
         when(tokenService.gerarToken((Usuario) usuario)).thenReturn("1");
         when(imagemPerfilService.buscar(((Usuario) usuario).getPessoa().getNomeImagem())).thenReturn(null);
         when(roles.getRoles()).thenReturn(permissoes);
@@ -73,7 +73,7 @@ class AutenticacaoServiceTest {
         assertThat(usuarioDto.permissoes()).contains(ADMIN_AUTH);
 
         verify(spy, times(1)).getUserInfo("xD");
-        verify(usuarioRepository, times(1)).findBySubNovo("xD-182");
+        verify(usuarioRepository, times(1)).findBySub("xD-182");
         verify(imagemPerfilService, times(1)).buscar(((Usuario) usuario).getPessoa().getNomeImagem());
     }
 
