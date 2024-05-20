@@ -85,7 +85,7 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(ApiAcessoCidadaoException.class)
     private ResponseEntity<MensagemErroRest> apiAcessoCidadaoHandler(ApiAcessoCidadaoException e) {
-        var mensagem = new MensagemErroRest(HttpStatus.FORBIDDEN, e.getMessage(), e.getErros());
+        var mensagem = new MensagemErroRest(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e.getErros());
         return montarRetorno(mensagem);
     }
 

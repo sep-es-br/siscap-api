@@ -110,7 +110,8 @@ public class AcessoCidadaoService {
                 SubResponseDto subResponseDto = new ObjectMapper().readValue(response.body(), SubResponseDto.class);
                 return subResponseDto.sub();
             }
-            logger.error("Não foi possível buscar o sub por cpf");
+            logger.error("Não foi possível buscar o sub por cpf. Status: {}; Corpo: {}",
+                    response.statusCode(), response.body());
             throw new ApiAcessoCidadaoException(Collections.singletonList(STATUS + response.statusCode()));
         } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();
