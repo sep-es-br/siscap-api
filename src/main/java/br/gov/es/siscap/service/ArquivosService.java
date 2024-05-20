@@ -1,6 +1,6 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.exception.service.ServiceSisCapException;
+import br.gov.es.siscap.exception.service.SiscapServiceException;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -46,7 +46,7 @@ public class ArquivosService {
             return Files.newInputStream(Path.of(raizRelatorios + "/" + nomeArquivo + ".jasper"));
         } catch (IOException e) {
             logger.info("Erro ao encontrar o arquivo {}.jasper", nomeArquivo);
-            throw new ServiceSisCapException(List.of("Erro ao encontrar o arquivo " + nomeArquivo + ".jasper"));
+            throw new SiscapServiceException(List.of("Erro ao encontrar o arquivo " + nomeArquivo + ".jasper"));
         }
     }
 
@@ -58,7 +58,7 @@ public class ArquivosService {
             return JasperFillManager.fillReport(relatorio, map, dataSource.getConnection());
         } catch (JRException | SQLException e) {
             logger.info("Erro ao preencher o relatório.");
-            throw new ServiceSisCapException(List.of("Erro ao preencher o relatório. Contate o suporte."));
+            throw new SiscapServiceException(List.of("Erro ao preencher o relatório. Contate o suporte."));
         }
     }
 
@@ -69,7 +69,7 @@ public class ArquivosService {
             return new ByteArrayResource(byteArrayOutputStream.toByteArray());
         } catch (JRException e) {
             logger.info("Erro ao exportar o relatório.");
-            throw new ServiceSisCapException(List.of("Erro ao exportar o relatório. Contate o suporte."));
+            throw new SiscapServiceException(List.of("Erro ao exportar o relatório. Contate o suporte."));
         }
     }
 

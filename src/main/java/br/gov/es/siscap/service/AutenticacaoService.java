@@ -6,7 +6,7 @@ import br.gov.es.siscap.dto.UsuarioDto;
 import br.gov.es.siscap.enums.Permissoes;
 import br.gov.es.siscap.exception.UsuarioSemPermissaoException;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
-import br.gov.es.siscap.exception.service.ServiceSisCapException;
+import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.infra.Roles;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Usuario;
@@ -68,6 +68,7 @@ public class AutenticacaoService {
     private Usuario buscarOuCriarUsuario(ACUserInfoDto userInfo, String accessToken) {
         Usuario usuario = (Usuario) usuarioRepository.findBySub(userInfo.subNovo());
         if (usuario != null) {
+            pessoaService.validarSub(userInfo.subNovo(), usuario.getPessoa().getId());
             logger.info("Usuário já existente, procedendo com atualizações de papeis e token.");
             usuario.setAccessToken(accessToken);
             usuario.setPapeis(userInfo.role());
@@ -82,15 +83,7 @@ public class AutenticacaoService {
             pessoa = pessoaService.buscarPorSub(userInfo.subNovo());
             logger.info("Foi encontrado uma pessoa com este sub, procedendo para criação de usuário para essa pessoa.");
         } catch (PessoaNaoEncontradoException e) {
-            logger.info("Pessoa não encontrada, procedendo para criação de uma nova pessoa.");
-            pessoa = new Pessoa();
-            pessoa.setNome(userInfo.apelido());
-            pessoa.setEmail(getEmailUserInfo(userInfo));
-            pessoa.setSub(userInfo.subNovo());
-            pessoa.setApagado(false);
-            pessoa.setCriadoEm(LocalDateTime.now());
-            pessoa = pessoaService.salvarNovaPessoaAcessoCidadao(pessoa);
-            logger.info("Pessoa criada com sucesso.");
+            pessoa = criarPessoa(userInfo);
         }
 
         usuario = new Usuario(null, userInfo.role(), pessoa, userInfo.subNovo(), accessToken);
@@ -100,6 +93,20 @@ public class AutenticacaoService {
         logger.info("Usuário criado com sucesso.");
 
         return usuario;
+    }
+
+    private Pessoa criarPessoa(ACUserInfoDto userInfo) {
+        Pessoa pessoa;
+        logger.info("Pessoa não encontrada, procedendo para criação de uma nova pessoa.");
+        pessoa = new Pessoa();
+        pessoa.setNome(userInfo.apelido());
+        pessoa.setEmail(getEmailUserInfo(userInfo));
+        pessoa.setSub(userInfo.subNovo());
+        pessoa.setApagado(false);
+        pessoa.setCriadoEm(LocalDateTime.now());
+        pessoa = pessoaService.salvarNovaPessoaAcessoCidadao(pessoa);
+        logger.info("Pessoa criada com sucesso.");
+        return pessoa;
     }
 
     private static String getEmailUserInfo(ACUserInfoDto userInfo) {
@@ -130,6 +137,6 @@ public class AutenticacaoService {
             logger.error(e.getMessage());
             Thread.currentThread().interrupt();
         }
-        throw new ServiceSisCapException(List.of("Não foi possivel identificar um usuário no acesso cidadão com esse token. Faça login novamente!"));
+        throw new SiscapServiceException(List.of("Não foi possivel identificar um usuário no acesso cidadão com esse token. Faça login novamente!"));
     }
 }

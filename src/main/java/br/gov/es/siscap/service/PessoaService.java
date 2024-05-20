@@ -7,7 +7,7 @@ import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.exception.UsuarioSemAutorizacaoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
-import br.gov.es.siscap.exception.service.ServiceSisCapException;
+import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.form.PessoaForm;
 import br.gov.es.siscap.form.PessoaFormUpdate;
 import br.gov.es.siscap.models.Pessoa;
@@ -71,7 +71,7 @@ public class PessoaService {
             try {
                 return new PessoaListaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()));
             } catch (IOException e) {
-                throw new ServiceSisCapException(Collections.singletonList(e.getMessage()));
+                throw new SiscapServiceException(Collections.singletonList(e.getMessage()));
             }
         });
     }
@@ -126,6 +126,16 @@ public class PessoaService {
 
     public AgentePublicoACDto buscarPessoaNoAcessoCidadaoPorCpf(String cpf) {
         return acessoCidadaoService.buscarPessoaPorCpf(cpf);
+    }
+
+    @Transactional
+    public void validarSub(String sub, Long idPessoa) {
+        Pessoa pessoa = buscarPorId(idPessoa);
+        if (pessoa.getSub() == null) {
+            pessoa.setSub(sub);
+            repository.saveAndFlush(pessoa);
+        } else if (!pessoa.getSub().equals(sub))
+            throw new SiscapServiceException(Collections.singletonList("Falha na integridade do Sub do usuário"));
     }
 
     private Pessoa buscarPorId(Long id) {

@@ -5,11 +5,11 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
-public class ServiceSisCapException extends RuntimeException {
+public class SiscapServiceException extends RuntimeException {
 
     private final List<String> erros;
 
-    public ServiceSisCapException(List<String> erros) {
+    public SiscapServiceException(List<String> erros) {
         this.erros = erros;
     }
 

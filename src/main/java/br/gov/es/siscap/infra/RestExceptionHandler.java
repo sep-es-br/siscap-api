@@ -5,7 +5,7 @@ import br.gov.es.siscap.exception.UsuarioSemAutorizacaoException;
 import br.gov.es.siscap.exception.UsuarioSemPermissaoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.NaoEncontradoException;
-import br.gov.es.siscap.exception.service.ServiceSisCapException;
+import br.gov.es.siscap.exception.service.SiscapServiceException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -31,8 +31,8 @@ public class RestExceptionHandler {
         return montarRetorno(mensagem);
     }
 
-    @ExceptionHandler(ServiceSisCapException.class)
-    private ResponseEntity<MensagemErroRest> sisCapServiceHandler(ServiceSisCapException e) {
+    @ExceptionHandler(SiscapServiceException.class)
+    private ResponseEntity<MensagemErroRest> sisCapServiceHandler(SiscapServiceException e) {
         var mensagem = new MensagemErroRest(HttpStatus.INTERNAL_SERVER_ERROR,
                 "O SisCap API teve problemas ao processar a requisição", e.getErros());
         return montarRetorno(mensagem);
