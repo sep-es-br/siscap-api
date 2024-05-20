@@ -17,7 +17,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,18 +42,10 @@ public class AcessoCidadaoService {
     private String grantType;
     @Value("${api.acessocidadao.scope}")
     private String scope;
-    private String clientToken;
-    private LocalDateTime expiracaoClientToken;
 
     private final Logger logger = LogManager.getLogger(AcessoCidadaoService.class);
 
-    private String getClientToken() {
-        if (clientToken == null || expiracaoClientToken.isBefore(LocalDateTime.now()))
-            obterClientToken();
-        return clientToken;
-    }
-
-    private void obterClientToken() {
+    private String obterClientToken() {
         final String basicToken = clientId + ":" + clientSecret;
 
         Map<String, String> parameters = new HashMap<>();
@@ -80,8 +71,7 @@ public class AcessoCidadaoService {
             if (response.statusCode() == 200) {
                 LoginACResponseDto loginACResponseDto = new ObjectMapper()
                         .readValue(response.body(), LoginACResponseDto.class);
-                clientToken = loginACResponseDto.accessToken();
-                expiracaoClientToken = LocalDateTime.now().plusHours(loginACResponseDto.expiresIn());
+                return loginACResponseDto.accessToken();
             } else {
                 logger.error("Não foi possível gerar o ClientToken para a API do Acesso Cidadão");
                 throw new ApiAcessoCidadaoException(Collections.singletonList(STATUS + response.statusCode()));
@@ -94,7 +84,7 @@ public class AcessoCidadaoService {
     }
 
     private String buscarSubPorCpf(String cpf) {
-        String accessToken = getClientToken();
+        String accessToken = obterClientToken();
 
         String url = acessocidadaoUriWebApi.concat("/api/cidadao/" + cpf + "/pesquisaSub");
 
@@ -121,7 +111,7 @@ public class AcessoCidadaoService {
     }
 
     private AgentePublicoACDto buscarAgentePublicoPorSub(String sub) {
-        String accessToken = getClientToken();
+        String accessToken = obterClientToken();
         String url = acessocidadaoUriWebApi.concat("/api/agentepublico/" + sub);
 
         HttpRequest request = HttpRequest.newBuilder(URI.create(url))
