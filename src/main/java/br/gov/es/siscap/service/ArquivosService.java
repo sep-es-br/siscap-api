@@ -1,10 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.exception.service.SiscapServiceException;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +19,7 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class ArquivosService {
@@ -55,6 +53,7 @@ public class ArquivosService {
             HashMap<String, Object> map = new HashMap<>();
             map.put("idProjeto", idProjeto);
             map.put("pathRelatorios", raizRelatorios);
+            map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
             return JasperFillManager.fillReport(relatorio, map, dataSource.getConnection());
         } catch (JRException | SQLException e) {
             logger.info("Erro ao preencher o relatório.");
