@@ -5,7 +5,7 @@ import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.dto.listagem.OrganizacaoListaDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.OrganizacaoNaoEncontradaException;
-import br.gov.es.siscap.exception.service.ServiceSisCapException;
+import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.form.OrganizacaoForm;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.repository.OrganizacaoRepository;
@@ -58,7 +58,7 @@ public class OrganizacaoService {
             try {
                 return new OrganizacaoListaDto(organizacao, getImagemNotNull(organizacao.getNomeImagem()));
             } catch (IOException e) {
-                throw new ServiceSisCapException(Collections.singletonList(e.getMessage()));
+                throw new SiscapServiceException(Collections.singletonList(e.getMessage()));
             }
         });
     }

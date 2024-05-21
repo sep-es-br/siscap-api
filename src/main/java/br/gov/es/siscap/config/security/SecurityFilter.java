@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -49,11 +48,11 @@ public class SecurityFilter extends OncePerRequestFilter {
         if (token != null) {
             Usuario usuario;
             try {
-                String email = tokenService.validarToken(token);
-                usuario = (Usuario) usuarioRepository.findByEmail(email);
+                String subNovo = tokenService.validarToken(token);
+                usuario = (Usuario) usuarioRepository.findBySub(subNovo);
 
                 if (usuario == null) {
-                    enviarMensagemErro(UNAUTHORIZED,
+                    enviarMensagemErro(
                             List.of("Usuário não encontrado. Faça o login novamente"), response);
                     return;
                 }
@@ -63,7 +62,7 @@ public class SecurityFilter extends OncePerRequestFilter {
                 erros.add("Por favor, faça o login novamente.");
                 if (LocalDateTime.now().isAfter(expiresAt))
                     erros.add("Token expirado em " + expiresAt);
-                enviarMensagemErro(UNAUTHORIZED, erros, response);
+                enviarMensagemErro(erros, response);
                 return;
             }
 
@@ -84,11 +83,11 @@ public class SecurityFilter extends OncePerRequestFilter {
         return authHeader.replace("Bearer ", "");
     }
 
-    private void enviarMensagemErro(HttpStatus status, List<String> erros, HttpServletResponse response) throws IOException {
+    private void enviarMensagemErro(List<String> erros, HttpServletResponse response) throws IOException {
         String mensagem = ToStringBuilder.reflectionToString(
-                new MensagemErroRest(status, "Token Invalido", erros), ToStringStyle.JSON_STYLE);
+                new MensagemErroRest(UNAUTHORIZED, "Token Invalido", erros), ToStringStyle.JSON_STYLE);
         response.setHeader("Content-Type", "application/json");
-        response.setStatus(status.value());
+        response.setStatus(UNAUTHORIZED.value());
         response.getWriter().write(mensagem);
     }
 }

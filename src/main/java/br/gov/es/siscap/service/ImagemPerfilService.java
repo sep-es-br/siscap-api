@@ -1,6 +1,6 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.exception.service.ImagemSisCapException;
+import br.gov.es.siscap.exception.service.SiscapImagemException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +35,7 @@ public class ImagemPerfilService {
             if (imagem == null)
                 return null;
             if (imagem.isEmpty())
-                throw new ImagemSisCapException("O arquivo de imagemPerfil está vazio");
+                throw new SiscapImagemException("O arquivo de imagemPerfil está vazio");
 
             logger.info("Salvar nova imagem {}", imagem.getOriginalFilename());
 
@@ -51,7 +51,7 @@ public class ImagemPerfilService {
             return destino;
         } catch (IOException e) {
             logger.error("Erro ao salvar imagem. {}", e.getMessage());
-            throw new ImagemSisCapException(e.getMessage());
+            throw new SiscapImagemException(e.getMessage());
         }
     }
 
@@ -67,11 +67,11 @@ public class ImagemPerfilService {
                 return resource;
             } else {
                 logger.error("Imagem {} não encontrada no diretório de imagens.", nomeImagem);
-                throw new ImagemSisCapException("Não foi possível ler o arquivo " + nomeImagem);
+                throw new SiscapImagemException("Não foi possível ler o arquivo " + nomeImagem);
             }
         } catch (MalformedURLException e) {
             logger.error("Não foi possível ler o arquivo {}. {}", nomeImagem, e.getMessage());
-            throw new ImagemSisCapException("Não foi possível ler o arquivo " + nomeImagem);
+            throw new SiscapImagemException("Não foi possível ler o arquivo " + nomeImagem);
         }
     }
 

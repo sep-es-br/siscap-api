@@ -1,6 +1,6 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.exception.service.ServiceSisCapException;
+import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.models.Usuario;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -26,11 +26,11 @@ public class TokenService {
             Algorithm algoritmo = Algorithm.HMAC256(secret);
             return JWT.create()
                     .withIssuer(ISSUER)
-                    .withSubject(usuario.getEmail())
+                    .withSubject(usuario.getSub())
                     .withExpiresAt(getDataExpiracao())
                     .sign(algoritmo);
         } catch (JWTCreationException exception) {
-            throw new ServiceSisCapException(List.of("Erro ao gerar o token", exception.getMessage()));
+            throw new SiscapServiceException(List.of("Erro ao gerar o token", exception.getMessage()));
         }
     }
 

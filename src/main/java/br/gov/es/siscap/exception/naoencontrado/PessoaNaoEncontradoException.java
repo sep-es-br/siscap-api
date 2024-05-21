@@ -5,7 +5,7 @@ public class PessoaNaoEncontradoException extends NaoEncontradoException {
         super("Não foi encontrada uma pessoa com o id [" + id + "]!");
     }
 
-    public PessoaNaoEncontradoException(String email) {
-        super("Não foi encontrada uma pessoa com o email [" + email + "]!");
+    public PessoaNaoEncontradoException(String subNovo) {
+        super("Não foi encontrada uma pessoa com o sub [" + subNovo + "]!");
     }
 }
