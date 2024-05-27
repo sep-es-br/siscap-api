@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,6 +78,13 @@ public class ProjetoService {
                 cnpj;
     }
 
+    public int buscarQuantidadeProjetos() {
+        return Integer.parseInt(String.valueOf((repository.count())));
+    }
+
+    public BigDecimal buscarSomatorioValorEstimadoProjetos() {
+        return repository.somarValorEstimadoTodosProjetos();
+    }
 
     private Projeto buscarPorId(Long id) {
         return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
