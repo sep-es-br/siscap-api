@@ -1,8 +1,10 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.dto.ProjetoPessoaSelectDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.form.ProjetoForm;
+import br.gov.es.siscap.form.ProjetoFormUpdate;
 import br.gov.es.siscap.service.ArquivosService;
 import br.gov.es.siscap.service.ProjetoService;
 import jakarta.validation.Valid;
@@ -17,6 +19,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/projetos")
@@ -60,7 +64,7 @@ public class ProjetoController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id,
-                                                @Valid @RequestBody ProjetoForm form) {
+                                                @Valid @RequestBody ProjetoFormUpdate form) {
         ProjetoDto dto = service.atualizar(id, form);
         return ResponseEntity.ok().body(dto);
     }
@@ -99,6 +103,11 @@ public class ProjetoController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + ".pdf\"")
                 .body(resource);
+    }
+
+    @GetMapping("/projeto-pessoa/select")
+    public List<ProjetoPessoaSelectDto> listarSelectProjetoPessoa() {
+        return service.buscarSelectProjetoPessoa();
     }
 
 }

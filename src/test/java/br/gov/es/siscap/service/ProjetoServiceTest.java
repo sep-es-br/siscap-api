@@ -5,6 +5,9 @@ import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.form.ProjetoForm;
+import br.gov.es.siscap.form.ProjetoFormUpdate;
+import br.gov.es.siscap.form.ProjetoPessoaForm;
+import br.gov.es.siscap.form.ProjetoPessoaFormUpdate;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -187,8 +190,10 @@ class ProjetoServiceTest {
         when(microrregiaoService.existePorId(any())).thenReturn(true);
         when(repository.existsBySigla(any())).thenReturn(false);
 
-        try{
+        try {
             service.atualizar(1L, getProjetoFormParaUpdate());
+        } catch (NullPointerException nullPointerException) {
+            fail(nullPointerException.getMessage());
         } catch (RuntimeException e) {
             assertThat(e).isInstanceOf(ProjetoNaoEncontradoException.class);
         }
@@ -198,14 +203,16 @@ class ProjetoServiceTest {
     private ProjetoForm getProjetoForm() {
         return new ProjetoForm("SISCAP", "Sis Cap", 1L, new BigDecimal(182),
                 List.of(1L), "siscap", "siscap", "siscap", "siscap",
-                "siscap", "siscap", List.of(1L));
+                "siscap", "siscap", List.of(new ProjetoPessoaForm[]{}));
     }
 
-    private ProjetoForm getProjetoFormParaUpdate() {
-        return new ProjetoForm("SISCAPA", "Sis Cap ATUALIZADO", 2L, new BigDecimal(182),
+    private ProjetoFormUpdate getProjetoFormParaUpdate() {
+        return new ProjetoFormUpdate("SISCAPA", "Sis Cap ATUALIZADO", 2L, new BigDecimal(182),
                 List.of(1L), "siscap ATUALIZADO", "siscap ATUALIZADO",
                 "siscap ATUALIZADO", "siscap ATUALIZADO",
-                "siscap ATUALIZADO", "siscap ATUALIZADO", List.of(2L));
+                "siscap ATUALIZADO", "siscap ATUALIZADO", List.of(
+                        new ProjetoPessoaFormUpdate[]{}
+        ));
     }
 
     private List<Projeto> getProjetoList() {

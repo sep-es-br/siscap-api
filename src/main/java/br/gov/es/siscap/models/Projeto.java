@@ -1,8 +1,10 @@
 package br.gov.es.siscap.models;
 
 import br.gov.es.siscap.form.ProjetoForm;
+import br.gov.es.siscap.form.ProjetoFormUpdate;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
@@ -45,11 +47,9 @@ public class Projeto {
             joinColumns = {@JoinColumn(name = "id_projeto")},
             inverseJoinColumns = @JoinColumn(name = "id_microrregiao"))
     private List<Microrregiao> microrregioes;
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "projeto_pessoa",
-            joinColumns = {@JoinColumn(name = "id_projeto")},
-            inverseJoinColumns = @JoinColumn(name = "id_pessoa"))
-    private List<Pessoa> equipeElaboracao;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "projeto")
+    @Setter
+    private List<ProjetoPessoa> equipeElaboracao;
     @ManyToOne
     @JoinColumn(name = "id_area")
     @SQLJoinTableRestriction("apagado = FALSE")
@@ -76,12 +76,15 @@ public class Projeto {
         this.impactos = form.impactos();
         this.arranjosInstitucionais = form.arranjosInstitucionais();
         this.microrregioes = form.idMicrorregioes().stream().map(Microrregiao::new).toList();
-        this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).toList();
         this.criadoEm = LocalDateTime.now();
         this.apagado = Boolean.FALSE;
     }
 
-    public void atualizarProjeto(ProjetoForm form) {
+    public Projeto(Long id) {
+        this.id = id;
+    }
+
+    public void atualizarProjeto(ProjetoFormUpdate form) {
         this.sigla = form.sigla();
         this.titulo = form.titulo();
         this.organizacao = new Organizacao(form.idOrganizacao());
@@ -94,23 +97,13 @@ public class Projeto {
         this.solucoesPropostas = form.solucoesPropostas();
         this.impactos = form.impactos();
         this.arranjosInstitucionais = form.arranjosInstitucionais();
-        this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).collect(Collectors.toList());
+        this.equipeElaboracao = form.equipeElab().stream().map(ProjetoPessoa::new).collect(Collectors.toList());
         this.atualizadoEm = LocalDateTime.now();
     }
 
     public void apagar() {
         this.sigla = null;
         this.atualizadoEm = LocalDateTime.now();
-    }
-
-    public Long getIdEixo() {
-        return this.area.getEixo() != null ? this.area.getEixo().getId() : null;
-    }
-
-    public Long getIdPlano() {
-        if (getIdEixo() == null)
-            return null;
-        return this.area.getEixo().getPlano() != null ? this.area.getEixo().getPlano().getId() : null;
     }
 
 }

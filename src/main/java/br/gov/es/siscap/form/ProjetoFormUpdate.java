@@ -6,21 +6,7 @@ import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Formulário para cadastrar um novo projeto. Não deve ser usado fora desse contexto.
- * @param sigla
- * @param titulo
- * @param idOrganizacao
- * @param valorEstimado
- * @param idMicrorregioes
- * @param objetivo
- * @param objetivoEspecifico
- * @param situacaoProblema
- * @param solucoesPropostas
- * @param impactos
- * @param arranjosInstitucionais
- */
-public record ProjetoForm(
+public record ProjetoFormUpdate (
         @NotBlank
         @Size(max = 12)
         String sigla,
@@ -54,5 +40,5 @@ public record ProjetoForm(
         @Size(max = 2000)
         String arranjosInstitucionais,
         @NotEmpty
-        List<ProjetoPessoaForm> equipeElab) implements IProjetoForm {
+        List<ProjetoPessoaFormUpdate> equipeElab) implements IProjetoForm {
 }

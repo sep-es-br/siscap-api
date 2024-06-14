@@ -1,7 +1,6 @@
 package br.gov.es.siscap.dto;
 
 import br.gov.es.siscap.models.Microrregiao;
-import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 
 import java.math.BigDecimal;
@@ -21,7 +20,8 @@ public record ProjetoDto(
         String impactos,
         String arranjosInstitucionais,
         List<Long> idMicrorregioes,
-        List<Long> idPessoasEquipeElab) {
+        List<ProjetoPessoaDto> idPessoasEquipeElab) {
+
 
     public ProjetoDto(Projeto projeto) {
         this(projeto.getId(), projeto.getSigla(), projeto.getTitulo(), projeto.getValorEstimado(),
@@ -29,7 +29,7 @@ public record ProjetoDto(
                 projeto.getOrganizacao().getId(), projeto.getSituacaoProblema(), projeto.getSolucoesPropostas(),
                 projeto.getImpactos(), projeto.getArranjosInstitucionais(),
                 projeto.getMicrorregioes().stream().map(Microrregiao::getId).toList(),
-                projeto.getEquipeElaboracao().stream().map(Pessoa::getId).toList());
+                projeto.getEquipeElaboracao().stream().map(ProjetoPessoaDto::new).toList());
     }
 
 }
