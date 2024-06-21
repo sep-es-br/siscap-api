@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 public record OrganizacaoForm(
         @NotBlank
         String nome,
-        String abreviatura,
+        String nomeFantasia,
         String telefone,
         String cnpj,
         String email,

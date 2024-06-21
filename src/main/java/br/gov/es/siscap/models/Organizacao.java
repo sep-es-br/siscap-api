@@ -73,7 +73,7 @@ public class Organizacao {
 
     public Organizacao(OrganizacaoForm form, String nomeImagem) {
         this.nome = form.nome();
-        this.nomeFantasia = form.abreviatura();
+        this.nomeFantasia = form.nomeFantasia();
         this.cnpj = form.cnpj();
         this.telefone = form.telefone();
         this.email = form.email();
@@ -97,7 +97,7 @@ public class Organizacao {
 
     public void atualizar(OrganizacaoForm form) {
         this.nome = form.nome();
-        this.nomeFantasia = form.abreviatura();
+        this.nomeFantasia = form.nomeFantasia();
         this.cnpj = form.cnpj();
         this.telefone = form.telefone();
         this.email = form.email();

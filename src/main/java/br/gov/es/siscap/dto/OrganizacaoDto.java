@@ -5,7 +5,7 @@ import br.gov.es.siscap.models.Organizacao;
 public record OrganizacaoDto(
         Long id,
         String nome,
-        String abreviatura,
+        String nomeFantasia,
         String telefone,
         String cnpj,
         String email,
