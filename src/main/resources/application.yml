@@ -1,6 +1,7 @@
 spring:
   application:
     name: SISCAP
+    version: 1.0.0
   profiles:
     active: dev
 
