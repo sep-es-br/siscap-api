@@ -22,9 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +48,10 @@ public class OrganizacaoService {
 
     public List<SelectDto> buscarSelect() {
         return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(SelectDto::new).toList();
+
+//        List<Organizacao> organizacaoList = repository.findAll(Sort.by(Sort.Order.asc("id")));
+//        Set<Organizacao> organizacaoSet = new HashSet<>(organizacaoList);
+//        return organizacaoSet.stream().map(organizacao -> new SelectDto(organizacao.getId(), organizacao.getNome())).toList();
     }
 
     public Page<OrganizacaoListaDto> listarTodos(Pageable pageable) {
