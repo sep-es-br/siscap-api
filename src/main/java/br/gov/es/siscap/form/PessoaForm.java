@@ -27,6 +27,6 @@ public record PessoaForm(
         EnderecoForm endereco,
         Long idOrganizacao,
         String sub,
-        Set<String> idAreasAtuacao,
+        Set<Long> idAreasAtuacao,
         MultipartFile imagemPerfil) {
 }

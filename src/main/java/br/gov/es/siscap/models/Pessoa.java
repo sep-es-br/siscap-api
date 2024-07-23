@@ -66,11 +66,15 @@ public class Pessoa {
 	@Column(name = "sub")
 	private String sub;
 
+	@OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL)
+	private Set<ProjetoPessoa> projetoPessoaSet;
+
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "pessoa_area_atuacao",
 				joinColumns = {@JoinColumn(name = "id_pessoa")},
 				inverseJoinColumns = @JoinColumn(name = "id_area_atuacao"))
 	private Set<AreaAtuacao> areasAtuacao;
+
 
 	@OneToMany(mappedBy = "pessoa", cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.MERGE})
 	private Set<PessoaOrganizacao> pessoaOrganizacaoSet;

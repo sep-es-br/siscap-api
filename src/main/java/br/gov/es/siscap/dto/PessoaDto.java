@@ -17,7 +17,7 @@ public record PessoaDto(
 			String telefoneComercial,
 			String telefonePessoal,
 			EnderecoDto endereco,
-			Set<String> idAreasAtuacao,
+			Set<Long> idAreasAtuacao,
 			byte[] imagemPerfil,
 			Long idOrganizacao,
 			Boolean isResponsavelOrganizacao) {

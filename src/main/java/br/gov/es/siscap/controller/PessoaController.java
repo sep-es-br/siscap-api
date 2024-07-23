@@ -49,6 +49,13 @@ public class PessoaController {
         return ResponseEntity.ok(service.buscar(id));
     }
 
+    @GetMapping("/responsavel/{orgId}")
+    public ResponseEntity<SelectDto> buscarResponsavelPorIdOrganizacao(
+          @NotNull @PathVariable Long orgId
+    ) throws IOException {
+        return ResponseEntity.ok(service.buscarResponsavelPorIdOrganizacao(orgId));
+    }
+
     @GetMapping("/meu-perfil")
     public ResponseEntity<PessoaDto> meuPerfil(@NotNull String subNovo) throws IOException {
         Pessoa pessoa = service.buscarPorSub(subNovo);

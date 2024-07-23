@@ -4,6 +4,7 @@ import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
+import br.gov.es.siscap.exception.OrganizacaoSemResponsavelException;
 import br.gov.es.siscap.exception.UsuarioSemAutorizacaoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
@@ -11,6 +12,7 @@ import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.form.PessoaForm;
 import br.gov.es.siscap.form.PessoaFormUpdate;
 import br.gov.es.siscap.models.Pessoa;
+import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.PessoaRepository;
 import lombok.RequiredArgsConstructor;
@@ -74,6 +76,16 @@ public class PessoaService {
                 throw new SiscapServiceException(Collections.singletonList(e.getMessage()));
             }
         });
+    }
+
+    public SelectDto buscarResponsavelPorIdOrganizacao(Long orgId) {
+        PessoaOrganizacao pessoaOrganizacao = this.organizacaoService.buscarPorId(orgId).buscarPessoaOrganizacaoPorOrganizacao();
+
+        if (pessoaOrganizacao != null && pessoaOrganizacao.getResponsavel()) {
+            return new SelectDto(pessoaOrganizacao.getPessoa());
+        } else {
+            throw new OrganizacaoSemResponsavelException();
+        }
     }
 
     @Transactional
