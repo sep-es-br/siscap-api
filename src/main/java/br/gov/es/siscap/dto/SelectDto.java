@@ -25,7 +25,7 @@ public record SelectDto(String id, String nome) {
     }
 
     public SelectDto(Organizacao organizacao) {
-        this(organizacao.getId(), organizacao.getNome());
+        this(organizacao.getId(), (organizacao.getNomeFantasia()) + " - " + organizacao.getNome());
     }
 
     public SelectDto(Microrregiao microrregiao) {
