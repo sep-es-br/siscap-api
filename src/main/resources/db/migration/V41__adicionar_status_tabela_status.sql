@@ -1,0 +1,2 @@
+insert into status (id, status, criado_em, atualizado_em, apagado) values (2, 'INATIVO', current_timestamp, null, false);
+insert into status (id, status, criado_em, atualizado_em, apagado) values (3, 'EXCLUIDO', current_timestamp, null, false);

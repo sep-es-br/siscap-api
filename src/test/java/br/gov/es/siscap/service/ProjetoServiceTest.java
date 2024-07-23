@@ -1,5 +1,6 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
@@ -32,187 +33,189 @@ import static org.mockito.Mockito.*;
 
 class ProjetoServiceTest {
 
-    @Mock
-    private ProjetoRepository repository;
-    @Mock
-    private OrganizacaoService organizacaoService;
-    @Mock
-    private MicrorregiaoService microrregiaoService;
-    @Mock
-    private AreaService areaService;
-    @InjectMocks
-    private ProjetoService service;
-    private AutoCloseable closeable;
+	@Mock
+	private ProjetoRepository repository;
+	@Mock
+	private OrganizacaoService organizacaoService;
+	@Mock
+	private MicrorregiaoService microrregiaoService;
+	@Mock
+	private AreaService areaService;
+	@InjectMocks
+	private ProjetoService service;
+	private AutoCloseable closeable;
 
-    @BeforeEach
-    void setUp() {
-        closeable = MockitoAnnotations.openMocks(this);
-    }
+	@BeforeEach
+	void setUp() {
+		closeable = MockitoAnnotations.openMocks(this);
+	}
 
-    @AfterEach
-    void tearDown() throws Exception {
-        closeable.close();
-    }
+	@AfterEach
+	void tearDown() throws Exception {
+		closeable.close();
+	}
 
-    @Test
-    @DisplayName("Deve salvar um projeto corretamente")
-    void salvar() {
-        ProjetoForm form = getProjetoForm();
-        var projeto = new Projeto(form);
+	@Test
+	@DisplayName("Deve salvar um projeto corretamente")
+	void salvar() {
+		ProjetoForm form = getProjetoForm();
+		var projeto = new Projeto(form);
 
-        when(organizacaoService.existePorId(1L)).thenReturn(true);
-        when(microrregiaoService.existePorId(1L)).thenReturn(true);
-        when(areaService.existePorId(1L)).thenReturn(true);
+		when(organizacaoService.existePorId(1L)).thenReturn(true);
+		when(microrregiaoService.existePorId(1L)).thenReturn(true);
+		when(areaService.existePorId(1L)).thenReturn(true);
 
-        when(repository.save(any())).thenReturn(projeto);
+		when(repository.save(any())).thenReturn(projeto);
 
-        assertThat(service.salvar(form)).isEqualTo(new ProjetoDto(projeto));
-        verify(repository, times(1)).save(any());
-    }
+		assertThat(service.salvar(form)).isEqualTo(new ProjetoDto(projeto));
+		verify(repository, times(1)).save(any());
+	}
 
-    @Test
-    @DisplayName("Validar todas mensagens de erro das validações de projetos")
-    void salvarComErrosDeValidacao() {
-        ProjetoForm form = getProjetoForm();
+	@Test
+	@DisplayName("Validar todas mensagens de erro das validações de projetos")
+	void salvarComErrosDeValidacao() {
+		ProjetoForm form = getProjetoForm();
 
-        when(organizacaoService.existePorId(1L)).thenReturn(false);
-        when(microrregiaoService.existePorId(1L)).thenReturn(false);
-        when(repository.existsBySigla("SISCAP")).thenReturn(true);
+		when(organizacaoService.existePorId(1L)).thenReturn(false);
+		when(microrregiaoService.existePorId(1L)).thenReturn(false);
+		when(repository.existsBySigla("SISCAP")).thenReturn(true);
 
-        try {
-            service.salvar(form);
-            fail("É preciso lançar todas exceptions de validação de projetos.");
-        } catch (ValidacaoSiscapException e) {
-            assertThat(e.getErros()).contains("Erro ao encontrar Organização com id " + 1L,
-                    "Erro ao encontrar Microrregião com id " + 1L,
-                    "Já existe um projeto cadastrado com essa sigla.");
-        }
-        verify(repository, times(0)).save(any());
-    }
+		try {
+			service.salvar(form);
+			fail("É preciso lançar todas exceptions de validação de projetos.");
+		} catch (ValidacaoSiscapException e) {
+			assertThat(e.getErros()).contains("Erro ao encontrar Organização com id " + 1L,
+						"Erro ao encontrar Microrregião com id " + 1L,
+						"Já existe um projeto cadastrado com essa sigla.");
+		}
+		verify(repository, times(0)).save(any());
+	}
 
-    @Test
-    @DisplayName("Deve lançar exceção ao salvar")
-    void salvarComErro() {
-        ProjetoForm form = getProjetoForm();
+	@Test
+	@DisplayName("Deve lançar exceção ao salvar")
+	void salvarComErro() {
+		ProjetoForm form = getProjetoForm();
 
-        when(organizacaoService.existePorId(1L)).thenReturn(false);
-        when(microrregiaoService.existePorId(1L)).thenReturn(false);
-        when(areaService.existePorId(1L)).thenReturn(false);
+		when(organizacaoService.existePorId(1L)).thenReturn(false);
+		when(microrregiaoService.existePorId(1L)).thenReturn(false);
+		when(areaService.existePorId(1L)).thenReturn(false);
 
-        doThrow(new RuntimeException("Erro ao salvar no repositório")).when(repository).save(any());
+		doThrow(new RuntimeException("Erro ao salvar no repositório")).when(repository).save(any());
 
-        assertThrows(ValidacaoSiscapException.class, () -> service.salvar(form));
-    }
+		assertThrows(ValidacaoSiscapException.class, () -> service.salvar(form));
+	}
 
-    @Test
-    @DisplayName("Deve listar corretamente")
-    void listar() {
-        PageRequest pageRequest = PageRequest.of(0, 15);
-        when(repository.findAll(pageRequest)).thenReturn(new PageImpl<>(getProjetoList()));
+	@Test
+	@DisplayName("Deve listar corretamente")
+	void listar() {
+		PageRequest pageRequest = PageRequest.of(0, 15);
+		when(repository.findAll(pageRequest)).thenReturn(new PageImpl<>(getProjetoList()));
 
-        Page<ProjetoListaDto> projetos = service.listarTodos(pageRequest);
+		Page<ProjetoListaDto> projetos = service.listarTodos(pageRequest);
 
-        assertThat(projetos).hasSize(20);
-    }
+		assertThat(projetos).hasSize(20);
+	}
 
-    @Test
-    @DisplayName("Deve listar corretamente")
-    void listarPaginacao() {
-        List<Projeto> projetos = getProjetoList();
-        Pageable pageable = PageRequest.of(1, 10);
-        Page<Projeto> projetoPage = new PageImpl<>(projetos, pageable, projetos.size());
-        when(repository.findAll(any(Pageable.class))).thenReturn(projetoPage);
+	@Test
+	@DisplayName("Deve listar corretamente")
+	void listarPaginacao() {
+		List<Projeto> projetos = getProjetoList();
+		Pageable pageable = PageRequest.of(1, 10);
+		Page<Projeto> projetoPage = new PageImpl<>(projetos, pageable, projetos.size());
+		when(repository.findAll(any(Pageable.class))).thenReturn(projetoPage);
 
-        Page<ProjetoListaDto> retorno = service.listarTodos(pageable);
+		Page<ProjetoListaDto> retorno = service.listarTodos(pageable);
 
-        assertThat(retorno.getTotalPages()).isEqualTo(2);
-        assertThat(retorno.getTotalElements()).isEqualTo(20);
-    }
+		assertThat(retorno.getTotalPages()).isEqualTo(2);
+		assertThat(retorno.getTotalElements()).isEqualTo(20);
+	}
 
-    @Test
-    @DisplayName("Deve retornar um page vazio ao nao encontrar nenhum projeto")
-    void listarVazio() {
-        Pageable pageable = PageRequest.of(1, 10);
-        when(repository.findAll(any(Pageable.class))).thenReturn(Page.empty());
+	@Test
+	@DisplayName("Deve retornar um page vazio ao nao encontrar nenhum projeto")
+	void listarVazio() {
+		Pageable pageable = PageRequest.of(1, 10);
+		when(repository.findAll(any(Pageable.class))).thenReturn(Page.empty());
 
-        Page<ProjetoListaDto> retorno = service.listarTodos(pageable);
+		Page<ProjetoListaDto> retorno = service.listarTodos(pageable);
 
-        assertThat(retorno).isEmpty();
-    }
+		assertThat(retorno).isEmpty();
+	}
 
-    @Test
-    @DisplayName("Deve excluir um projeto corretamente")
-    void excluir() {
-        var projeto = new Projeto(getProjetoForm());
-        when(repository.findById(1L)).thenReturn(Optional.of(projeto));
+	@Test
+	@DisplayName("Deve excluir um projeto corretamente")
+	void excluir() {
+		var projeto = new Projeto(getProjetoForm());
+		when(repository.findById(1L)).thenReturn(Optional.of(projeto));
 
-        service.excluir(1L);
+		service.excluir(1L);
 
-        assertThat(projeto.getSigla()).isNull();
-        verify(repository, times(1)).saveAndFlush(projeto);
-        verify(repository, times(1)).deleteById(1L);
-    }
+		assertThat(projeto.getSigla()).isNull();
+		verify(repository, times(1)).saveAndFlush(projeto);
+		verify(repository, times(1)).deleteById(1L);
+	}
 
-    @Test
-    @DisplayName("Deve lançar erro ao não conseguir encontrar o projeto")
-    void excluirNaoEncontrarProjeto() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
+	@Test
+	@DisplayName("Deve lançar erro ao não conseguir encontrar o projeto")
+	void excluirNaoEncontrarProjeto() {
+		when(repository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(ProjetoNaoEncontradoException.class, () -> service.excluir(1L));
-        verify(repository, never()).deleteById(1L);
-    }
+		assertThrows(ProjetoNaoEncontradoException.class, () -> service.excluir(1L));
+		verify(repository, never()).deleteById(1L);
+	}
 
-    @Test
-    @DisplayName("Deve atualizar um projeto corretamente")
-    void atualizar() {
-        var projeto = new Projeto(getProjetoForm());
+	@Test
+	@DisplayName("Deve atualizar um projeto corretamente")
+	void atualizar() {
+		var projeto = new Projeto(getProjetoForm());
 
-        when(repository.findById(1L)).thenReturn(Optional.of(projeto));
-        when(organizacaoService.existePorId(any())).thenReturn(true);
-        when(microrregiaoService.existePorId(any())).thenReturn(true);
-        when(repository.existsBySigla(any())).thenReturn(false);
+		when(repository.findById(1L)).thenReturn(Optional.of(projeto));
+		when(organizacaoService.existePorId(any())).thenReturn(true);
+		when(microrregiaoService.existePorId(any())).thenReturn(true);
+		when(repository.existsBySigla(any())).thenReturn(false);
 
-        ProjetoDto dto = service.atualizar(1L, getProjetoFormParaUpdate());
+		ProjetoDto dto = service.atualizar(1L, getProjetoFormParaUpdate());
 
-        verify(repository, times(1)).save(projeto);
-        assertThat(dto.sigla()).isEqualTo("SISCAPA");
-    }
+		verify(repository, times(1)).save(projeto);
+		assertThat(dto.sigla()).isEqualTo("SISCAPA");
+	}
 
-    @Test
-    @DisplayName("Deve lançar erro ao não encontrar projeto")
-    void atualizarNaoEncontrarProjeto() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
+	@Test
+	@DisplayName("Deve lançar erro ao não encontrar projeto")
+	void atualizarNaoEncontrarProjeto() {
+		when(repository.findById(1L)).thenReturn(Optional.empty());
 
-        when(organizacaoService.existePorId(any())).thenReturn(true);
-        when(microrregiaoService.existePorId(any())).thenReturn(true);
-        when(repository.existsBySigla(any())).thenReturn(false);
+		when(organizacaoService.existePorId(any())).thenReturn(true);
+		when(microrregiaoService.existePorId(any())).thenReturn(true);
+		when(repository.existsBySigla(any())).thenReturn(false);
 
-        try{
-            service.atualizar(1L, getProjetoFormParaUpdate());
-        } catch (RuntimeException e) {
-            assertThat(e).isInstanceOf(ProjetoNaoEncontradoException.class);
-        }
-        verify(repository, never()).save(any(Projeto.class));
-    }
+		try {
+			service.atualizar(1L, getProjetoFormParaUpdate());
+		} catch (RuntimeException e) {
+			assertThat(e).isInstanceOf(ProjetoNaoEncontradoException.class);
+		}
+		verify(repository, never()).save(any(Projeto.class));
+	}
 
-    private ProjetoForm getProjetoForm() {
-        return new ProjetoForm("SISCAP", "Sis Cap", 1L, new BigDecimal(182),
-                List.of(1L), "siscap", "siscap", "siscap", "siscap",
-                "siscap", "siscap", List.of(1L));
-    }
+	private ProjetoForm getProjetoForm() {
+		return new ProjetoForm("SISCAP", "Sis Cap", 1L, new BigDecimal(182),
+					List.of(1L), "siscap", "siscap", "siscap", "siscap",
+					"siscap", "siscap", 1L,
+					List.of(new EquipeDto(1L, 1L, 1L, null)));
+	}
 
-    private ProjetoForm getProjetoFormParaUpdate() {
-        return new ProjetoForm("SISCAPA", "Sis Cap ATUALIZADO", 2L, new BigDecimal(182),
-                List.of(1L), "siscap ATUALIZADO", "siscap ATUALIZADO",
-                "siscap ATUALIZADO", "siscap ATUALIZADO",
-                "siscap ATUALIZADO", "siscap ATUALIZADO", List.of(2L));
-    }
+	private ProjetoForm getProjetoFormParaUpdate() {
+		return new ProjetoForm("SISCAPA", "Sis Cap ATUALIZADO", 2L, new BigDecimal(182),
+					List.of(1L), "siscap ATUALIZADO", "siscap ATUALIZADO",
+					"siscap ATUALIZADO", "siscap ATUALIZADO",
+					"siscap ATUALIZADO", "siscap ATUALIZADO", 2L,
+					List.of(new EquipeDto(2L, 1L, 1L, "razao")));
+	}
 
-    private List<Projeto> getProjetoList() {
-        List<Projeto> projetos = new ArrayList<>();
-        for (int i = 0; i < 20; i++)
-            projetos.add(new Projeto(getProjetoForm()));
-        return projetos;
-    }
+	private List<Projeto> getProjetoList() {
+		List<Projeto> projetos = new ArrayList<>();
+		for (int i = 0; i < 20; i++)
+			projetos.add(new Projeto(getProjetoForm()));
+		return projetos;
+	}
 
 }
