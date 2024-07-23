@@ -113,7 +113,7 @@ public class OrganizacaoService {
         return conteudoImagem;
     }
 
-    private Organizacao buscarPorId(Long id) {
+    public Organizacao buscarPorId(Long id) {
         return repository.findById(id).orElseThrow(() -> new OrganizacaoNaoEncontradaException(id));
     }
 

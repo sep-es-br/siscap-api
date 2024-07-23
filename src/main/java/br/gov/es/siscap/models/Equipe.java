@@ -1,6 +1,8 @@
 package br.gov.es.siscap.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,24 +10,28 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "status")
+@Table(name = "equipe")
 @NoArgsConstructor
 @Getter
 @Setter
-@SQLDelete(sql = "update status set apagado = true where id=?")
+@SQLDelete(sql = "update equipe set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class Status {
+public class Equipe {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "equipe_id_gen")
+	@SequenceGenerator(name = "equipe_id_gen", sequenceName = "equipe_id_seq", allocationSize = 1)
 	@Column(name = "id", nullable = false)
 	private Long id;
 
-	@Column(name = "status")
-	private String status;
+	@Size(max = 255)
+	@NotNull
+	@Column(name = "tipo", nullable = false)
+	private String tipo;
 
 	@DateTimeFormat
 	@Column(name = "criado_em")
@@ -36,9 +42,10 @@ public class Status {
 	private LocalDateTime atualizadoEm;
 
 	@Column(name = "apagado")
-	private boolean apagado = Boolean.FALSE;
+	private Boolean apagado;
 
-	public Status(Long id) {
+	public Equipe(Long id) {
 		this.id = id;
 	}
+
 }

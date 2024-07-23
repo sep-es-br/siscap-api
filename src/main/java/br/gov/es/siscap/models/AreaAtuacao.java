@@ -11,11 +11,11 @@ import lombok.NoArgsConstructor;
 public class AreaAtuacao {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String nome;
 
-    public AreaAtuacao(String id) {
+    public AreaAtuacao(Long id) {
         this.id = id;
     }
 
