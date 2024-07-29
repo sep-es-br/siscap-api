@@ -4,7 +4,7 @@ import br.gov.es.siscap.models.Organizacao;
 
 public record OrganizacaoListaDto(
         Long id,
-        String abreviatura,
+        String nomeFantasia,
         String nome,
         String nomeTipoOrganizacao,
         String telefone,

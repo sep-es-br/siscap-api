@@ -2,11 +2,11 @@ package br.gov.es.siscap.dto;
 
 import br.gov.es.siscap.models.*;
 
-public record SelectDto(String id, String nome) {
+public record SelectDto(Long id, String nome) {
 
-    public SelectDto(Long id, String nome) {
-        this(String.valueOf(id), nome);
-    }
+//    public SelectDto(Long id, String nome) {
+//        this(id, nome);
+//    }
 
     public SelectDto(TipoOrganizacao tipoOrganizacao) {
         this(tipoOrganizacao.getId(), tipoOrganizacao.getTipo());
@@ -25,7 +25,7 @@ public record SelectDto(String id, String nome) {
     }
 
     public SelectDto(Organizacao organizacao) {
-        this(organizacao.getId(), organizacao.getNome());
+        this(organizacao.getId(), (organizacao.getNomeFantasia()) + " - " + organizacao.getNome());
     }
 
     public SelectDto(Microrregiao microrregiao) {
@@ -50,5 +50,9 @@ public record SelectDto(String id, String nome) {
 
     public SelectDto(AreaAtuacao areaAtuacao) {
         this(areaAtuacao.getId(), areaAtuacao.getNome());
+    }
+
+    public SelectDto(Papel papel) {
+        this(papel.getId(), papel.getTipo());
     }
 }

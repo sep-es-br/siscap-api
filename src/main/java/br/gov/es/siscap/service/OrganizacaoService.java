@@ -22,9 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -115,7 +113,7 @@ public class OrganizacaoService {
         return conteudoImagem;
     }
 
-    private Organizacao buscarPorId(Long id) {
+    public Organizacao buscarPorId(Long id) {
         return repository.findById(id).orElseThrow(() -> new OrganizacaoNaoEncontradaException(id));
     }
 
