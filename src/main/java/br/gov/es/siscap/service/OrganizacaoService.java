@@ -8,6 +8,7 @@ import br.gov.es.siscap.exception.naoencontrado.OrganizacaoNaoEncontradaExceptio
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.form.OrganizacaoForm;
 import br.gov.es.siscap.models.Organizacao;
+import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.repository.OrganizacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -31,6 +32,7 @@ public class OrganizacaoService {
 
     private final OrganizacaoRepository repository;
     private final CidadeService cidadeService;
+    private final PessoaOrganizacaoService pessoaOrganizacaoService;
     private PessoaService pessoaService;
     private final PaisService paisService;
     private final TipoOrganizacaoService tipoOrganizacaoService;
@@ -100,6 +102,7 @@ public class OrganizacaoService {
     public OrganizacaoDto buscar(Long id) throws IOException {
         logger.info("Buscar pessoa {}.", id);
         Organizacao organizacao = buscarPorId(id);
+        Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorOrganizacao(organizacao);
         return new OrganizacaoDto(organizacao, getImagemNotNull(organizacao.getNomeImagem()));
     }
 

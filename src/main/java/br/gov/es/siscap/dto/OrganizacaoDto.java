@@ -27,7 +27,8 @@ public record OrganizacaoDto(
 					organizacao.getCidade() != null ? organizacao.getCidade().getId() : null,
 					organizacao.getEstado() != null ? organizacao.getEstado().getId() : null,
 					organizacao.getPais() != null ? organizacao.getPais().getId() : null,
-					organizacao.getTipoOrganizacao() != null ? organizacao.getTipoOrganizacao().getId() : null,
-					organizacao.buscarPessoaOrganizacaoPorOrganizacao() != null && organizacao.buscarPessoaOrganizacaoPorOrganizacao().getResponsavel() ? organizacao.buscarPessoaOrganizacaoPorOrganizacao().getPessoa().getId() : null);
+					organizacao.getTipoOrganizacao() != null ? organizacao.getTipoOrganizacao().getId() : null, null);
+//					organizacao.buscarResponsavel() != null ? organizacao.buscarResponsavel().getPessoa().getId() : null);
+//					organizacao.buscarPessoaOrganizacaoPorOrganizacao() != null && organizacao.buscarPessoaOrganizacaoPorOrganizacao().getResponsavel() ? organizacao.buscarPessoaOrganizacaoPorOrganizacao().getPessoa().getId() : null);
 	}
 }

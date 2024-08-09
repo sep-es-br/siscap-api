@@ -28,7 +28,8 @@ public record PessoaDto(
 					pessoa.getEndereco() != null ? new EnderecoDto(pessoa.getEndereco()) : null, pessoa.getAreasAtuacao() != null ?
 								pessoa.getAreasAtuacao().stream().map(AreaAtuacao::getId).collect(Collectors.toSet()) : null,
 					imagemPerfil,
-					pessoa.buscarPessoaOrganizacaoPorPessoa() != null ? pessoa.buscarPessoaOrganizacaoPorPessoa().getOrganizacao().getId() : null,
-					pessoa.buscarPessoaOrganizacaoPorPessoa() != null ? pessoa.buscarPessoaOrganizacaoPorPessoa().getResponsavel() : null);
+					null, false);
+//					pessoa.buscarPessoaOrganizacaoPorPessoa() != null ? pessoa.buscarPessoaOrganizacaoPorPessoa().getOrganizacao().getId() : null,
+//					pessoa.buscarPessoaOrganizacaoPorPessoa() != null ? pessoa.buscarPessoaOrganizacaoPorPessoa().getResponsavel() : null);
 	}
 }

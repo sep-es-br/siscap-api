@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +43,7 @@ public class PessoaService {
     private final ImagemPerfilService imagemPerfilService;
     private final UsuarioService usuarioService;
     private final AcessoCidadaoService acessoCidadaoService;
+    private final PessoaOrganizacaoService pessoaOrganizacaoService;
     private OrganizacaoService organizacaoService;
     private final Logger logger = LogManager.getLogger(PessoaService.class);
 
@@ -64,6 +66,7 @@ public class PessoaService {
     public PessoaDto buscar(Long id) throws IOException {
         logger.info("Buscar pessoa com id [{}]", id);
         Pessoa pessoa = buscarPorId(id);
+        Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorPessoa(pessoa);
         return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()));
     }
 
@@ -79,13 +82,23 @@ public class PessoaService {
     }
 
     public SelectDto buscarResponsavelPorIdOrganizacao(Long orgId) {
-        PessoaOrganizacao pessoaOrganizacao = this.organizacaoService.buscarPorId(orgId).buscarPessoaOrganizacaoPorOrganizacao();
+        Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorIdOrganizacao(orgId);
 
-        if (pessoaOrganizacao != null && pessoaOrganizacao.getResponsavel()) {
-            return new SelectDto(pessoaOrganizacao.getPessoa());
+        Pessoa responsavel = pessoaOrganizacaoService.buscarResponsavelOrganizacao(pessoaOrganizacaoSet);
+
+        if(responsavel != null) {
+            return new SelectDto(responsavel);
         } else {
             throw new OrganizacaoSemResponsavelException();
         }
+
+//        PessoaOrganizacao pessoaOrganizacao = this.organizacaoService.buscarPorId(orgId).buscarResponsavel();
+//
+//        if (pessoaOrganizacao != null && pessoaOrganizacao.getResponsavel()) {
+//            return new SelectDto(pessoaOrganizacao.getPessoa());
+//        } else {
+//            throw new OrganizacaoSemResponsavelException();
+//        }
     }
 
     @Transactional

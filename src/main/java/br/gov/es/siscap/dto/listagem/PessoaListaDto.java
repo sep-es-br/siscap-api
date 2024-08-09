@@ -10,8 +10,8 @@ public record PessoaListaDto(
 			byte[] imagemPerfil) {
 
 	public PessoaListaDto(Pessoa pessoa, byte[] imagemPerfil) {
-		this(pessoa.getId(), pessoa.getNome(), pessoa.getEmail(),
-					pessoa.buscarPessoaOrganizacaoPorPessoa() != null ? pessoa.buscarPessoaOrganizacaoPorPessoa().getOrganizacao().getNome() : null,
+		this(pessoa.getId(), pessoa.getNome(), pessoa.getEmail(), "TESTE",
+//					pessoa.buscarPessoaOrganizacaoPorPessoa() != null ? pessoa.buscarPessoaOrganizacaoPorPessoa().getOrganizacao().getNome() : null,
 					imagemPerfil);
 	}
 }

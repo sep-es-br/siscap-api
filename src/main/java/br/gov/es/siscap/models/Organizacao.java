@@ -80,7 +80,8 @@ public class Organizacao {
 	@SQLJoinTableRestriction("apagado = FALSE")
 	private TipoOrganizacao tipoOrganizacao;
 
-	@OneToMany(mappedBy = "organizacao", cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.MERGE})
+//	@OneToMany(mappedBy = "organizacao", cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.MERGE})
+	@OneToMany(mappedBy = "organizacao")
 	private Set<PessoaOrganizacao> pessoaOrganizacaoSet;
 
 	@DateTimeFormat
@@ -112,7 +113,7 @@ public class Organizacao {
 		this.estado = form.idEstado() != null ? new Estado(form.idEstado()) : null;
 		this.pais = new Pais(form.idPais());
 		this.tipoOrganizacao = new TipoOrganizacao(form.idTipoOrganizacao());
-		adicionarPessoaOrganizacao(new PessoaOrganizacao(new Pessoa(form.idPessoaResponsavel()), this));
+//		adicionarPessoaOrganizacao(new PessoaOrganizacao(new Pessoa(form.idPessoaResponsavel()), this));
 		this.criadoEm = LocalDateTime.now();
 	}
 
@@ -128,15 +129,15 @@ public class Organizacao {
 		this.estado = form.idEstado() != null ? new Estado(form.idEstado()) : null;
 		this.pais = form.idPais() != null ? new Pais(form.idPais()) : null;
 		this.tipoOrganizacao = form.idTipoOrganizacao() != null ? new TipoOrganizacao(form.idTipoOrganizacao()) : null;
-		if (form.idPessoaResponsavel() != null) {
-			if (buscarPessoaOrganizacaoPorOrganizacao() == null) {
-				adicionarPessoaOrganizacao(new PessoaOrganizacao(new Pessoa(form.idPessoaResponsavel()), this));
-			} else {
-				editarPessoaOrganizacao(buscarPessoaOrganizacaoPorOrganizacao(), new Pessoa(form.idPessoaResponsavel()));
-			}
-		} else {
-			removerPessoaOrganizacao(buscarPessoaOrganizacaoPorOrganizacao());
-		}
+//		if (form.idPessoaResponsavel() != null) {
+//			if (buscarResponsavel() == null) {
+//				adicionarPessoaOrganizacao(new PessoaOrganizacao(new Pessoa(form.idPessoaResponsavel()), this));
+//			} else {
+//				editarPessoaOrganizacao(buscarResponsavel(), new Pessoa(form.idPessoaResponsavel()));
+//			}
+//		} else {
+//			removerPessoaOrganizacao(buscarPessoaOrganizacaoPorOrganizacao());
+//		}
 		this.setAtualizadoEm(LocalDateTime.now());
 	}
 
@@ -151,46 +152,56 @@ public class Organizacao {
 		this.nomeImagem = null;
 	}
 
-	public PessoaOrganizacao buscarPessoaOrganizacaoPorOrganizacao() {
-		if (pessoaOrganizacaoSet == null) {
-			return null;
-		}
-		return pessoaOrganizacaoSet.stream()
-					.filter(pessoaOrganizacao -> pessoaOrganizacao.getOrganizacao().equals(this))
-					.findFirst()
-					.orElse(null);
-
-	}
-
-	private void adicionarPessoaOrganizacao(PessoaOrganizacao pessoaOrganizacao) {
-		if (pessoaOrganizacaoSet == null) {
-			pessoaOrganizacaoSet = new HashSet<>();
-		}
-		pessoaOrganizacao.setResponsavel(true);
-		pessoaOrganizacaoSet.add(pessoaOrganizacao);
-	}
-
-	private void editarPessoaOrganizacao(PessoaOrganizacao pessoaOrganizacao, Pessoa pessoa) {
-		if (pessoaOrganizacaoSet != null && pessoaOrganizacaoSet.contains(pessoaOrganizacao)) {
-			if (Objects.equals(pessoaOrganizacao.getPessoa().getId(), pessoa.getId())) {
-				pessoaOrganizacao.setResponsavel(true);
-				pessoaOrganizacao.setAtualizadoEm(LocalDateTime.now());
-				pessoaOrganizacaoSet.add(pessoaOrganizacao);
-			} else {
-				pessoaOrganizacao.apagar();
-				pessoaOrganizacaoSet.remove(pessoaOrganizacao);
-
-				PessoaOrganizacao newPessoaOrganizacao = new PessoaOrganizacao(pessoa, this);
-				newPessoaOrganizacao.setResponsavel(true);
-				pessoaOrganizacaoSet.add(newPessoaOrganizacao);
-			}
-		}
-	}
-
-	private void removerPessoaOrganizacao(PessoaOrganizacao pessoaOrganizacao) {
-		if (pessoaOrganizacaoSet != null) {
-			pessoaOrganizacao.apagar();
-			pessoaOrganizacaoSet.remove(pessoaOrganizacao);
-		}
-	}
+//	public PessoaOrganizacao buscarResponsavel() {
+//		if (pessoaOrganizacaoSet == null) {
+//			return null;
+//		}
+//		return pessoaOrganizacaoSet.stream()
+//					.filter(PessoaOrganizacao::getResponsavel)
+//					.findFirst()
+//					.orElse(null);
+//	}
+//
+//	public PessoaOrganizacao buscarPessoaOrganizacaoPorOrganizacao() {
+//		if (pessoaOrganizacaoSet == null) {
+//			return null;
+//		}
+//		return pessoaOrganizacaoSet.stream()
+//					.filter(pessoaOrganizacao -> pessoaOrganizacao.getOrganizacao().equals(this))
+//					.findFirst()
+//					.orElse(null);
+//
+//	}
+//
+//	private void adicionarPessoaOrganizacao(PessoaOrganizacao pessoaOrganizacao) {
+//		if (pessoaOrganizacaoSet == null) {
+//			pessoaOrganizacaoSet = new HashSet<>();
+//		}
+//		pessoaOrganizacao.setResponsavel(true);
+//		pessoaOrganizacaoSet.add(pessoaOrganizacao);
+//	}
+//
+//	private void editarPessoaOrganizacao(PessoaOrganizacao pessoaOrganizacao, Pessoa pessoa) {
+//		if (pessoaOrganizacaoSet != null && pessoaOrganizacaoSet.contains(pessoaOrganizacao)) {
+//			if (Objects.equals(pessoaOrganizacao.getPessoa().getId(), pessoa.getId())) {
+//				pessoaOrganizacao.setResponsavel(true);
+//				pessoaOrganizacao.setAtualizadoEm(LocalDateTime.now());
+//				pessoaOrganizacaoSet.add(pessoaOrganizacao);
+//			} else {
+//				pessoaOrganizacao.apagar();
+//				pessoaOrganizacaoSet.remove(pessoaOrganizacao);
+//
+//				PessoaOrganizacao newPessoaOrganizacao = new PessoaOrganizacao(pessoa, this);
+//				newPessoaOrganizacao.setResponsavel(true);
+//				pessoaOrganizacaoSet.add(newPessoaOrganizacao);
+//			}
+//		}
+//	}
+//
+//	private void removerPessoaOrganizacao(PessoaOrganizacao pessoaOrganizacao) {
+//		if (pessoaOrganizacaoSet != null) {
+//			pessoaOrganizacao.apagar();
+//			pessoaOrganizacaoSet.remove(pessoaOrganizacao);
+//		}
+//	}
 }
