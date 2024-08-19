@@ -1,7 +1,9 @@
 package br.gov.es.siscap.dto;
 
 import br.gov.es.siscap.models.AreaAtuacao;
+import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.Pessoa;
+import br.gov.es.siscap.models.PessoaOrganizacao;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,8 +21,8 @@ public record PessoaDto(
 			EnderecoDto endereco,
 			Set<Long> idAreasAtuacao,
 			byte[] imagemPerfil,
-			Long idOrganizacao,
-			Boolean isResponsavelOrganizacao) {
+			Set<Long> idOrganizacoes,
+			Long idOrganizacaoResponsavel) {
 
 	public PessoaDto(Pessoa pessoa, byte[] imagemPerfil) {
 		this(pessoa.getId(), pessoa.getNome(), pessoa.getNomeSocial(), pessoa.getNacionalidade(), pessoa.getGenero(),
@@ -28,7 +30,16 @@ public record PessoaDto(
 					pessoa.getEndereco() != null ? new EnderecoDto(pessoa.getEndereco()) : null, pessoa.getAreasAtuacao() != null ?
 								pessoa.getAreasAtuacao().stream().map(AreaAtuacao::getId).collect(Collectors.toSet()) : null,
 					imagemPerfil,
-					pessoa.buscarPessoaOrganizacaoPorPessoa() != null ? pessoa.buscarPessoaOrganizacaoPorPessoa().getOrganizacao().getId() : null,
-					pessoa.buscarPessoaOrganizacaoPorPessoa() != null ? pessoa.buscarPessoaOrganizacaoPorPessoa().getResponsavel() : null);
+					null, null);
+	}
+
+	public PessoaDto(Pessoa pessoa, byte[] imagemPerfil, Set<PessoaOrganizacao> pessoaOrganizacaoSet) {
+		this(pessoa.getId(), pessoa.getNome(), pessoa.getNomeSocial(), pessoa.getNacionalidade(), pessoa.getGenero(),
+					pessoa.getCpf(), pessoa.getEmail(), pessoa.getTelefoneComercial(), pessoa.getTelefonePessoal(),
+					pessoa.getEndereco() != null ? new EnderecoDto(pessoa.getEndereco()) : null, pessoa.getAreasAtuacao() != null ?
+								pessoa.getAreasAtuacao().stream().map(AreaAtuacao::getId).collect(Collectors.toSet()) : null,
+					imagemPerfil,
+					pessoaOrganizacaoSet.stream().map(PessoaOrganizacao::getOrganizacao).map(Organizacao::getId).collect(Collectors.toSet()),
+					pessoaOrganizacaoSet.stream().filter(PessoaOrganizacao::getResponsavel).findFirst().map(pessoaOrganizacao -> pessoaOrganizacao.getOrganizacao().getId()).orElse(null));
 	}
 }

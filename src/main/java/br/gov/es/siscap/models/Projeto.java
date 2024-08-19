@@ -1,6 +1,5 @@
 package br.gov.es.siscap.models;
 
-import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.form.ProjetoForm;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -13,11 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "projeto")
@@ -70,13 +65,10 @@ public class Projeto {
 	@Column(name = "arranjos_institucionais")
 	private String arranjosInstitucionais;
 
-	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "projeto_microrregiao",
-				joinColumns = {@JoinColumn(name = "id_projeto")},
-				inverseJoinColumns = @JoinColumn(name = "id_microrregiao"))
-	private List<Microrregiao> microrregioes;
+	@OneToMany(mappedBy = "projeto")
+	private Set<ProjetoCidade> projetoCidadeSet;
 
-	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "projeto")
 	private Set<ProjetoPessoa> projetoPessoaSet;
 
 	@ManyToOne
@@ -107,8 +99,6 @@ public class Projeto {
 		this.solucoesPropostas = form.solucoesPropostas();
 		this.impactos = form.impactos();
 		this.arranjosInstitucionais = form.arranjosInstitucionais();
-		this.microrregioes = form.idMicrorregioes().stream().map(Microrregiao::new).toList();
-		adicionarProjetoPessoa(form.idResponsavelProponente(), form.equipeElaboracao());
 		this.criadoEm = LocalDateTime.now();
 		this.apagado = Boolean.FALSE;
 	}
@@ -118,29 +108,18 @@ public class Projeto {
 		this.titulo = form.titulo();
 		this.organizacao = new Organizacao(form.idOrganizacao());
 		this.valorEstimado = form.valorEstimado();
-		this.microrregioes = form.idMicrorregioes()
-					.stream().map(Microrregiao::new).collect(Collectors.toList());
 		this.objetivo = form.objetivo();
 		this.objetivoEspecifico = form.objetivoEspecifico();
 		this.situacaoProblema = form.situacaoProblema();
 		this.solucoesPropostas = form.solucoesPropostas();
 		this.impactos = form.impactos();
 		this.arranjosInstitucionais = form.arranjosInstitucionais();
-		editarProjetoPessoa(form.idResponsavelProponente(), form.equipeElaboracao());
 		this.atualizadoEm = LocalDateTime.now();
 	}
 
 	public void apagar() {
 		this.sigla = null;
 		this.atualizadoEm = LocalDateTime.now();
-	}
-
-	public Long getResponsavelProponente() {
-		return buscarResponsavelProponente().getPessoa().getId();
-	}
-
-	public List<EquipeDto> getEquipeElaboracao() {
-		return buscarMembrosEquipeElaboracao().stream().map(EquipeDto::new).collect(Collectors.toList());
 	}
 
 	public Long getIdEixo() {
@@ -151,65 +130,5 @@ public class Projeto {
 		if (getIdEixo() == null)
 			return null;
 		return this.area.getEixo().getPlano() != null ? this.area.getEixo().getPlano().getId() : null;
-	}
-
-	private void adicionarProjetoPessoa(Long idResponsavelProponente, List<EquipeDto> equipeDtoList) {
-		if (this.projetoPessoaSet == null)
-			this.projetoPessoaSet = new HashSet<>();
-
-		this.projetoPessoaSet.add(new ProjetoPessoa(this, idResponsavelProponente));
-
-		equipeDtoList.stream()
-					.map(equipeDto -> new ProjetoPessoa(this, equipeDto))
-					.forEach(this.projetoPessoaSet::add);
-	}
-
-	private void editarProjetoPessoa(Long idResponsavelProponente, List<EquipeDto> equipeDtoList) {
-		if (this.projetoPessoaSet != null) {
-			ProjetoPessoa responsavelProponente = buscarResponsavelProponente();
-			Set<ProjetoPessoa> membrosEquipeElaboracaoSet = buscarMembrosEquipeElaboracao();
-
-			if (responsavelProponente != null && !Objects.equals(responsavelProponente.getPessoa().getId(), idResponsavelProponente)) {
-				responsavelProponente.atualizar();
-				this.projetoPessoaSet.remove(responsavelProponente);
-				this.projetoPessoaSet.add(new ProjetoPessoa(this, idResponsavelProponente));
-			}
-
-			equipeDtoList.forEach(equipeDto -> {
-				membrosEquipeElaboracaoSet.stream()
-							.filter(membro -> Objects.equals(membro.getPessoa().getId(), equipeDto.idPessoa()))
-							.findFirst()
-							.ifPresentOrElse(
-										(projetoPessoa) -> {
-											if (equipeDto.idStatus() != 1L && equipeDto.justificativa() != null) {
-												projetoPessoa.excluirMembro(equipeDto);
-												this.projetoPessoaSet.remove(projetoPessoa);
-											} else {
-												if (!Objects.equals(projetoPessoa.getPapel().getId(), equipeDto.idPapel())) {
-													projetoPessoa.atualizar();
-													this.projetoPessoaSet.remove(projetoPessoa);
-													this.projetoPessoaSet.add(new ProjetoPessoa(this, equipeDto));
-												}
-											}
-										},
-										() -> {
-											this.projetoPessoaSet.add(new ProjetoPessoa(this, equipeDto));
-										}
-							);
-			});
-		}
-	}
-
-	private ProjetoPessoa buscarResponsavelProponente() {
-		return this.projetoPessoaSet.stream()
-					.filter(projetoPessoa -> projetoPessoa.getPapel().getId() == 2L)
-					.findFirst()
-					.orElse(null);
-	}
-
-	private Set<ProjetoPessoa> buscarMembrosEquipeElaboracao() {
-		return this.projetoPessoaSet.stream()
-					.filter(projetoPessoa -> projetoPessoa.getPapel().getId() != 2L)
-					.collect(Collectors.toSet());
 	}
 }

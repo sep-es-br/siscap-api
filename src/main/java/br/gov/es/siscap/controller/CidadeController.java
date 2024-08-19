@@ -23,5 +23,4 @@ public class CidadeController {
     public List<SelectDto> listarSelect(@NotNull @RequestParam FiltroCidade filtrarPor, @RequestParam Long id) {
         return service.buscarSelect(filtrarPor, id);
     }
-
 }

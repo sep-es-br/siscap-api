@@ -1,6 +1,9 @@
 package br.gov.es.siscap.models;
 
 import br.gov.es.siscap.dto.EquipeDto;
+import br.gov.es.siscap.enums.EquipeEnum;
+import br.gov.es.siscap.enums.PapelEnum;
+import br.gov.es.siscap.enums.StatusEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -10,9 +13,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -20,7 +21,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @Getter
 @Setter
-@SQLDelete(sql = "update projeto_pessoa set apagado = true, data_fim = current_timestamp, atualizado_em = current_timestamp, justificativa = 'CASCADE_DELETE', id_status = 3 where id=?")
+@SQLDelete(sql = "update projeto_pessoa set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE and id_status = 1")
 public class ProjetoPessoa {
 
@@ -77,9 +78,9 @@ public class ProjetoPessoa {
 	public ProjetoPessoa(Projeto projeto, Long idResponsavelProponente) {
 		this.setProjeto(projeto);
 		this.setPessoa(new Pessoa(idResponsavelProponente));
-		this.setPapel(new Papel(2L));
-		this.setEquipe(new Equipe(1L));
-		this.setStatus(new Status(1L));
+		this.setPapel(new Papel(PapelEnum.RESPONSAVEL_PROPONENTE.getValue()));
+		this.setEquipe(new Equipe(EquipeEnum.ELABORACAO.getValue()));
+		this.setStatus(new Status(StatusEnum.ATIVO.getValue()));
 		this.setJustificativa(null);
 	}
 
@@ -87,23 +88,39 @@ public class ProjetoPessoa {
 		this.setProjeto(projeto);
 		this.setPessoa(new Pessoa(equipeDto.idPessoa()));
 		this.setPapel(new Papel(equipeDto.idPapel()));
-		this.setEquipe(new Equipe(1L));
+		this.setEquipe(new Equipe(EquipeEnum.ELABORACAO.getValue()));
 		this.setStatus(new Status(equipeDto.idStatus()));
 		this.setJustificativa(equipeDto.justificativa());
 	}
 
-	public void atualizar() {
-		this.setStatus(new Status(2L));
+	public void atualizarResponsavelProponente(Long idStatus) {
+		this.setStatus(new Status(idStatus));
 		this.setDataFim(LocalDateTime.now());
 		this.setAtualizadoEm(LocalDateTime.now());
 	}
 
-	public void excluirMembro(EquipeDto equipeDto) {
+	public void atualizarMembroEquipe(EquipeDto equipeDto) {
 		this.setPapel(new Papel(equipeDto.idPapel()));
-		this.setStatus(new Status(equipeDto.idStatus()));
-		this.setJustificativa(equipeDto.justificativa());
+		if(!Objects.equals(equipeDto.idStatus(), StatusEnum.ATIVO.getValue())) {
+			this.setStatus(new Status(equipeDto.idStatus()));
+			this.setJustificativa(equipeDto.justificativa());
+			this.setDataFim(LocalDateTime.now());
+			this.setAtualizadoEm(LocalDateTime.now());
+		}
+	}
+
+	public void apagar(String justificativa) {
+		this.setStatus(new Status(StatusEnum.EXCLUIDO.getValue()));
 		this.setDataFim(LocalDateTime.now());
 		this.setAtualizadoEm(LocalDateTime.now());
-		this.setApagado(true);
+		this.setJustificativa(justificativa);
+	}
+
+	public boolean isResponsavelProponente() {
+		return Objects.equals(this.getPapel().getId(), PapelEnum.RESPONSAVEL_PROPONENTE.getValue());
+	}
+
+	public boolean compararIdPessoaComEquipeDto(EquipeDto equipeDto) {
+		return Objects.equals(this.getPessoa().getId(), equipeDto.idPessoa());
 	}
 }

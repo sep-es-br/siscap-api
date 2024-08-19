@@ -92,6 +92,18 @@ public class RestExceptionHandler {
 		return montarRetorno(mensagem);
 	}
 
+	@ExceptionHandler(EquipeSemResponsavelProponenteException.class)
+	private ResponseEntity<MensagemErroRest> equipeSemResposavelProponenteHandler(EquipeSemResponsavelProponenteException e) {
+		var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND, "Erro ao processar a requisição", Collections.singletonList(e.getMessage()));
+		return montarRetorno(mensagem);
+	}
+
+	@ExceptionHandler(RelatorioNomeArquivoException.class)
+	private ResponseEntity<MensagemErroRest> relatorioNomeArquivoHandler(RelatorioNomeArquivoException e) {
+		var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND, "Erro ao gerar relatório", Collections.singletonList(e.getMessage()));
+		return montarRetorno(mensagem);
+	}
+
 	private ResponseEntity<MensagemErroRest> montarRetorno(MensagemErroRest mensagem) {
 		logger.error(mensagem);
 		return ResponseEntity.status(mensagem.status()).body(mensagem);
