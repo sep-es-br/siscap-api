@@ -1,5 +1,6 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.dto.RateioDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -9,36 +10,37 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "pessoa_organizacao")
+@Table(name = "projeto_cidade")
 @NoArgsConstructor
 @Getter
 @Setter
-@SQLDelete(sql = "update pessoa_organizacao set apagado = true where id=?")
+@SQLDelete(sql = "update projeto_cidade set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class PessoaOrganizacao {
+public class ProjetoCidade {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "pessoa_organizacao_id_gen")
-	@SequenceGenerator(name = "pessoa_organizacao_id_gen", sequenceName = "pessoa_organizacao_id_seq", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "projeto_cidade_id_gen")
+	@SequenceGenerator(name = "projeto_cidade_id_gen", sequenceName = "projeto_cidade_id_seq", allocationSize = 1)
 	@Column(name = "id", nullable = false)
-	private Long id;
+	private Integer id;
 
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_pessoa", nullable = false)
-	private Pessoa pessoa;
+	@JoinColumn(name = "id_projeto", nullable = false)
+	private Projeto projeto;
 
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_organizacao", nullable = false)
-	private Organizacao organizacao;
+	@JoinColumn(name = "id_cidade", nullable = false)
+	private Cidade cidade;
 
-	@Column(name = "responsavel")
-	private Boolean responsavel = Boolean.FALSE;
+	@Column(name = "quantia", precision = 25, scale = 2)
+	private BigDecimal quantia;
 
 	@DateTimeFormat
 	@Column(name = "data_inicio")
@@ -57,19 +59,12 @@ public class PessoaOrganizacao {
 	private LocalDateTime atualizadoEm;
 
 	@Column(name = "apagado")
-	private boolean apagado = Boolean.FALSE;
+	private Boolean apagado = Boolean.FALSE;
 
-	public PessoaOrganizacao(Pessoa pessoa, Organizacao organizacao) {
-		this.setPessoa(pessoa);
-		this.setOrganizacao(organizacao);
-	}
-
-	public PessoaOrganizacao(Pessoa pessoa) {
-		this.setPessoa(pessoa);
-	}
-
-	public PessoaOrganizacao(Organizacao organizacao) {
-		this.setOrganizacao(organizacao);
+	public ProjetoCidade(Projeto projeto, RateioDto rateioDto) {
+		this.setProjeto(projeto);
+		this.setCidade(new Cidade(rateioDto.idCidade()));
+		this.setQuantia(rateioDto.quantia());
 	}
 
 	public void apagar() {
@@ -77,4 +72,9 @@ public class PessoaOrganizacao {
 		this.setAtualizadoEm(LocalDateTime.now());
 		this.setApagado(true);
 	}
+
+	public boolean compararComRateioDto(RateioDto rateioDto) {
+		return Objects.equals(this.getCidade().getId(), rateioDto.idCidade());
+	}
+
 }

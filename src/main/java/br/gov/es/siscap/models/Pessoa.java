@@ -12,8 +12,6 @@ import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -66,18 +64,17 @@ public class Pessoa {
 	@Column(name = "sub")
 	private String sub;
 
-	@OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL)
-	private Set<ProjetoPessoa> projetoPessoaSet;
-
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "pessoa_area_atuacao",
 				joinColumns = {@JoinColumn(name = "id_pessoa")},
 				inverseJoinColumns = @JoinColumn(name = "id_area_atuacao"))
 	private Set<AreaAtuacao> areasAtuacao;
 
-
-	@OneToMany(mappedBy = "pessoa", cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.MERGE})
+	@OneToMany(mappedBy = "pessoa")
 	private Set<PessoaOrganizacao> pessoaOrganizacaoSet;
+
+	@OneToMany(mappedBy = "pessoa")
+	private Set<ProjetoPessoa> projetoPessoaSet;
 
 	@DateTimeFormat
 	@Column(name = "criado_em")
@@ -108,7 +105,6 @@ public class Pessoa {
 		this.areasAtuacao = form.idAreasAtuacao() != null ?
 					form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet()) : null;
 		this.nomeImagem = nomeImagem;
-		adicionarPessoaOrganizacao(new PessoaOrganizacao(this, new Organizacao(form.idOrganizacao())));
 		this.criadoEm = LocalDateTime.now();
 	}
 
@@ -128,15 +124,6 @@ public class Pessoa {
 		else
 			this.endereco = new Endereco(form.endereco());
 		this.areasAtuacao = form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet());
-		if (form.idOrganizacao() != null) {
-			if (buscarPessoaOrganizacaoPorPessoa() == null) {
-				adicionarPessoaOrganizacao(new PessoaOrganizacao(this, new Organizacao(form.idOrganizacao())));
-			} else {
-				editarPessoaOrganizacao(buscarPessoaOrganizacaoPorPessoa(), new Organizacao(form.idOrganizacao()));
-			}
-		} else {
-			removerPessoaOrganizacao(buscarPessoaOrganizacaoPorPessoa());
-		}
 		this.setAtualizadoEm(LocalDateTime.now());
 	}
 
@@ -150,40 +137,5 @@ public class Pessoa {
 		this.nomeImagem = null;
 		this.sub = null;
 		this.atualizadoEm = LocalDateTime.now();
-	}
-
-	public PessoaOrganizacao buscarPessoaOrganizacaoPorPessoa() {
-		if (pessoaOrganizacaoSet == null) {
-			return null;
-		}
-		return pessoaOrganizacaoSet.stream()
-					.filter(pessoaOrganizacao -> pessoaOrganizacao.getPessoa().equals(this))
-					.findFirst()
-					.orElse(null);
-
-	}
-
-	private void adicionarPessoaOrganizacao(PessoaOrganizacao pessoaOrganizacao) {
-		if (pessoaOrganizacaoSet == null) {
-			pessoaOrganizacaoSet = new HashSet<>();
-		}
-		pessoaOrganizacaoSet.add(pessoaOrganizacao);
-	}
-
-	private void editarPessoaOrganizacao(PessoaOrganizacao pessoaOrganizacao, Organizacao organizacao) {
-		if (pessoaOrganizacaoSet != null && pessoaOrganizacaoSet.contains(pessoaOrganizacao) && !Objects.equals(pessoaOrganizacao.getOrganizacao().getId(), organizacao.getId())) {
-			pessoaOrganizacao.apagar();
-			pessoaOrganizacaoSet.remove(pessoaOrganizacao);
-
-			PessoaOrganizacao newPessoaOrganizacao = new PessoaOrganizacao(this, organizacao);
-			pessoaOrganizacaoSet.add(newPessoaOrganizacao);
-		}
-	}
-
-	private void removerPessoaOrganizacao(PessoaOrganizacao pessoaOrganizacao) {
-		if (pessoaOrganizacaoSet != null && pessoaOrganizacaoSet.contains(pessoaOrganizacao)) {
-			pessoaOrganizacao.apagar();
-			pessoaOrganizacaoSet.remove(pessoaOrganizacao);
-		}
 	}
 }
