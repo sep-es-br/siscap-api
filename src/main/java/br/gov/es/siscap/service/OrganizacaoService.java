@@ -71,6 +71,13 @@ public class OrganizacaoService {
 
         String nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
         Organizacao organizacao = repository.save(new Organizacao(form, nomeImagem));
+
+        if(form.idPessoaResponsavel() != null) {
+            Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.salvarPorOrganizacao(organizacao, form.idPessoaResponsavel());
+            logger.info("Cadastro de organização finalizado!");
+            return new OrganizacaoDto(organizacao, getImagemNotNull(organizacao.getNomeImagem()), pessoaOrganizacaoSet);
+        }
+
         logger.info("Cadastro de organização finalizado!");
         return new OrganizacaoDto(organizacao, getImagemNotNull(organizacao.getNomeImagem()));
     }
@@ -83,6 +90,9 @@ public class OrganizacaoService {
         organizacao.apagar();
         repository.saveAndFlush(organizacao);
         repository.deleteById(organizacao.getId());
+
+        pessoaOrganizacaoService.excluirPorOrganizacao(organizacao);
+
         logger.info("Exclusão da organização com id {} finalizada!", id);
     }
 
@@ -94,16 +104,19 @@ public class OrganizacaoService {
         organizacao.atualizar(form);
         if (form.imagemPerfil() != null)
             organizacao.atualizarImagemPerfil(imagemPerfilService.atualizar(organizacao.getNomeImagem(), form.imagemPerfil()));
-        repository.save(organizacao);
+        Organizacao organizacaoResult = repository.save(organizacao);
+
+        Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.atualizarPorOrganizacao(organizacaoResult, form.idPessoaResponsavel());
+
         logger.info("Atualização da organização {} finalizada!", id);
-        return new OrganizacaoDto(organizacao, getImagemNotNull(organizacao.getNomeImagem()));
+        return new OrganizacaoDto(organizacao, getImagemNotNull(organizacao.getNomeImagem()), pessoaOrganizacaoSet);
     }
 
     public OrganizacaoDto buscar(Long id) throws IOException {
         logger.info("Buscar pessoa {}.", id);
         Organizacao organizacao = buscarPorId(id);
         Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorOrganizacao(organizacao);
-        return new OrganizacaoDto(organizacao, getImagemNotNull(organizacao.getNomeImagem()));
+        return new OrganizacaoDto(organizacao, getImagemNotNull(organizacao.getNomeImagem()), pessoaOrganizacaoSet);
     }
 
     private byte[] getImagemNotNull(String nomeImagem) throws IOException {

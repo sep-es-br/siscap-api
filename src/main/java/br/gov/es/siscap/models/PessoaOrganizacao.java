@@ -10,6 +10,7 @@ import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "pessoa_organizacao")
@@ -60,6 +61,14 @@ public class PessoaOrganizacao {
 
 	public PessoaOrganizacao(Pessoa pessoa, Organizacao organizacao) {
 		this.setPessoa(pessoa);
+		this.setOrganizacao(organizacao);
+	}
+
+	public PessoaOrganizacao(Pessoa pessoa) {
+		this.setPessoa(pessoa);
+	}
+
+	public PessoaOrganizacao(Organizacao organizacao) {
 		this.setOrganizacao(organizacao);
 	}
 

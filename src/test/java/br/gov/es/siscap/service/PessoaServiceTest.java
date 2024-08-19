@@ -34,14 +34,14 @@ class PessoaServiceTest {
     private ImagemPerfilService imagemPerfilService;
     @Mock
     private UsuarioService usuarioService;
-    @Mock
-    private OrganizacaoService organizacaoService;
+//    @Mock
+//    private OrganizacaoService organizacaoService;
     private AutoCloseable closeable;
 
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-        service.setPessoaService(organizacaoService);
+//        service.setPessoaService(organizacaoService);
     }
 
     @AfterEach
@@ -56,7 +56,7 @@ class PessoaServiceTest {
         Pessoa pessoa = getPessoa();
 
         when(repository.save(any(Pessoa.class))).thenReturn(pessoa);
-        when(organizacaoService.existePorId(pessoaForm.idOrganizacao())).thenReturn(true);
+//        when(organizacaoService.existePorId(pessoaForm.idOrganizacao())).thenReturn(true);
 
         assertThat(service.salvar(pessoaForm)).isEqualTo(new PessoaDto(pessoa, null));
         verify(imagemPerfilService, times(1)).salvar(any(MultipartFile.class));
@@ -104,14 +104,14 @@ class PessoaServiceTest {
     private PessoaForm getForm() {
         return new PessoaForm("Batata com Cheddar e Bacon", "Batatinha", "Brasileiro",
                 "Masculino", "12312312312", "batata@mail.com",
-                "", "", getEnderecoForm(),1L, "182", Set.of(123L, 333L),
+                "", "", getEnderecoForm(),Set.of(1L, 2L, 3L), "182", Set.of(123L, 333L),
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 
     private PessoaFormUpdate getFormParaUpdate() {
         return new PessoaFormUpdate("Batata com Cheddar e Bacon", "Batatinha", "Brasileiro",
                 "Masculino", "12312312312", "batata@mail.com",
-                "", "", getEnderecoForm(),1L,  Set.of(123L, 333L),
+                "", "", getEnderecoForm(),Set.of(1L, 2L, 3L),  Set.of(123L, 333L),
                 new MockMultipartFile("batata.jpg", "batata".getBytes()));
     }
 

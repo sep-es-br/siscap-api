@@ -25,7 +25,7 @@ public record PessoaForm(
         String telefonePessoal,
         @Valid
         EnderecoForm endereco,
-        Long idOrganizacao,
+        Set<Long> idOrganizacoes,
         String sub,
         Set<Long> idAreasAtuacao,
         MultipartFile imagemPerfil) {
