@@ -46,6 +46,7 @@ public class PessoaService {
 	private final AcessoCidadaoService acessoCidadaoService;
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final ProjetoPessoaService projetoPessoaService;
+	private final ProgramaPessoaService programaPessoaService;
 //	private OrganizacaoService organizacaoService;
 	private final Logger logger = LogManager.getLogger(PessoaService.class);
 
@@ -142,6 +143,7 @@ public class PessoaService {
 
 		pessoaOrganizacaoService.excluirPorPessoa(pessoa);
 		projetoPessoaService.excluirPorPessoa(pessoa);
+		programaPessoaService.excluirPorPessoa(pessoa);
 
 		logger.info("Exclusão de pessoa com id {} finalizada com sucesso!", id);
 	}

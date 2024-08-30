@@ -1,7 +1,9 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
+import br.gov.es.siscap.enums.StatusEnum;
 import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
@@ -15,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,7 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -32,6 +36,7 @@ public class ProjetoService {
 	private final ProjetoRepository repository;
 	private final ProjetoPessoaService projetoPessoaService;
 	private final ProjetoCidadeService projetoCidadeService;
+	private final ProgramaProjetoService programaProjetoService;
 	private final OrganizacaoService organizacaoService;
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
@@ -53,6 +58,13 @@ public class ProjetoService {
 		return repository
 					.findAll(pageable)
 					.map(projeto -> new ProjetoListaDto(projeto, projetoCidadeService.listarNomesCidadesPorProjeto(projeto)));
+	}
+
+	public List<SelectDto> buscarSelect() {
+		return repository.findAll(Sort.by(Sort.Direction.ASC, "titulo"))
+					.stream()
+					.filter(Projeto::isAtivo)
+					.map(SelectDto::new).toList();
 	}
 
 	@Transactional
@@ -81,6 +93,7 @@ public class ProjetoService {
 
 		projetoPessoaService.excluirPorProjeto(projeto);
 		projetoCidadeService.excluir(projeto);
+		programaProjetoService.excluirPorProjeto(projeto);
 
 		logger.info("Exclusão do projeto com id {} finalizada!", id);
 	}
@@ -98,7 +111,7 @@ public class ProjetoService {
 	public String gerarNomeArquivo(Integer idProjeto) {
 		Projeto projeto = buscarPorId(Long.valueOf(idProjeto));
 
-		if(projeto.getOrganizacao().getCnpj() == null) {
+		if (projeto.getOrganizacao().getCnpj() == null) {
 			throw new RelatorioNomeArquivoException("Organização não possui CNPJ.");
 		}
 

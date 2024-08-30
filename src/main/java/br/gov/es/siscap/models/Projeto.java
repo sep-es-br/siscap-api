@@ -1,5 +1,6 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.enums.StatusEnum;
 import br.gov.es.siscap.form.ProjetoForm;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -71,6 +73,9 @@ public class Projeto {
 	@OneToMany(mappedBy = "projeto")
 	private Set<ProjetoPessoa> projetoPessoaSet;
 
+	@OneToMany(mappedBy = "projeto")
+	private Set<ProgramaProjeto> programaProjetoSet;
+
 	@ManyToOne
 	@JoinColumn(name = "id_area")
 	@SQLJoinTableRestriction("apagado = FALSE")
@@ -86,6 +91,10 @@ public class Projeto {
 
 	@Column(name = "apagado")
 	private boolean apagado;
+
+	public Projeto(Long id) {
+		this.id = id;
+	}
 
 	public Projeto(ProjetoForm form) {
 		this.sigla = form.sigla();
@@ -130,5 +139,9 @@ public class Projeto {
 		if (getIdEixo() == null)
 			return null;
 		return this.area.getEixo().getPlano() != null ? this.area.getEixo().getPlano().getId() : null;
+	}
+
+	public boolean isAtivo() {
+		return Objects.equals(this.getStatus().getId(), StatusEnum.ATIVO.getValue());
 	}
 }

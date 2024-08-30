@@ -1,5 +1,6 @@
 package br.gov.es.siscap.controller;
 
+import br.gov.es.siscap.dto.CidadeMicrorregiaoSelectDto;
 import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.enums.FiltroCidade;
 import br.gov.es.siscap.service.CidadeService;
@@ -22,5 +23,10 @@ public class CidadeController {
     @GetMapping("/select")
     public List<SelectDto> listarSelect(@NotNull @RequestParam FiltroCidade filtrarPor, @RequestParam Long id) {
         return service.buscarSelect(filtrarPor, id);
+    }
+
+    @GetMapping("/select/microrregioes")
+    public List<CidadeMicrorregiaoSelectDto> listarSelectComMicrorregioes() {
+        return service.buscarSelectComMicrorregioes();
     }
 }
