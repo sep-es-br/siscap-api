@@ -68,6 +68,9 @@ public class Projeto {
 	private String arranjosInstitucionais;
 
 	@OneToMany(mappedBy = "projeto")
+	private Set<ProjetoMicrorregiao> projetoMicrorregiaoSet;
+
+	@OneToMany(mappedBy = "projeto")
 	private Set<ProjetoCidade> projetoCidadeSet;
 
 	@OneToMany(mappedBy = "projeto")

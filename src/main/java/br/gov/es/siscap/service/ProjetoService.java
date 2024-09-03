@@ -1,15 +1,15 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
-import br.gov.es.siscap.enums.StatusEnum;
 import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.models.Projeto;
-import br.gov.es.siscap.models.ProjetoCidade;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +34,7 @@ public class ProjetoService {
 
 	private final ProjetoRepository repository;
 	private final ProjetoPessoaService projetoPessoaService;
-	private final ProjetoCidadeService projetoCidadeService;
+	private final ProjetoRateioService projetoRateioService;
 	private final ProgramaProjetoService programaProjetoService;
 	private final OrganizacaoService organizacaoService;
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
@@ -48,16 +47,16 @@ public class ProjetoService {
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.salvar(projeto, form.idResponsavelProponente(), form.equipeElaboracao());
 
-		Set<ProjetoCidade> projetoCidadeSet = projetoCidadeService.salvar(projeto, form.rateio());
+		RateioDto rateio = projetoRateioService.salvar(projeto, form.rateio());
 
 		logger.info("Cadastro de projeto finalizado!");
-		return ProjetoDto.montar(projeto, projetoPessoaSet, projetoCidadeSet);
+		return new ProjetoDto(projeto, rateio, buscarIdResponsavelProponente(projetoPessoaSet), buscarEquipeElaboracao(projetoPessoaSet));
 	}
 
 	public Page<ProjetoListaDto> listarTodos(Pageable pageable) {
 		return repository
 					.findAll(pageable)
-					.map(projeto -> new ProjetoListaDto(projeto, projetoCidadeService.listarNomesCidadesPorProjeto(projeto)));
+					.map(projeto -> new ProjetoListaDto(projeto, projetoRateioService.listarNomesMicrorregioesRateio(projeto)));
 	}
 
 	public List<SelectDto> buscarSelect() {
@@ -77,10 +76,10 @@ public class ProjetoService {
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.atualizar(projetoResult, form.idResponsavelProponente(), form.equipeElaboracao());
 
-		Set<ProjetoCidade> projetoCidadeSet = projetoCidadeService.atualizar(projetoResult, form.rateio());
+		RateioDto rateio = projetoRateioService.atualizar(projetoResult, form.rateio());
 
 		logger.info("Atualização do projeto de id: {} finalizada!", projetoResult.getId());
-		return ProjetoDto.montar(projeto, projetoPessoaSet, projetoCidadeSet);
+		return new ProjetoDto(projetoResult, rateio, buscarIdResponsavelProponente(projetoPessoaSet), buscarEquipeElaboracao(projetoPessoaSet));
 	}
 
 	@Transactional
@@ -92,7 +91,7 @@ public class ProjetoService {
 		repository.deleteById(id);
 
 		projetoPessoaService.excluirPorProjeto(projeto);
-		projetoCidadeService.excluir(projeto);
+		projetoRateioService.excluirPorProjeto(projeto);
 		programaProjetoService.excluirPorProjeto(projeto);
 
 		logger.info("Exclusão do projeto com id {} finalizada!", id);
@@ -103,9 +102,10 @@ public class ProjetoService {
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.buscarPorProjeto(projeto);
 
-		Set<ProjetoCidade> projetoCidadeSet = projetoCidadeService.buscarPorProjeto(projeto);
+		RateioDto rateio = projetoRateioService.buscarPorProjeto(projeto);
 
-		return ProjetoDto.montar(projeto, projetoPessoaSet, projetoCidadeSet);
+
+		return new ProjetoDto(projeto, rateio, buscarIdResponsavelProponente(projetoPessoaSet), buscarEquipeElaboracao(projetoPessoaSet));
 	}
 
 	public String gerarNomeArquivo(Integer idProjeto) {
@@ -134,6 +134,21 @@ public class ProjetoService {
 
 	private Projeto buscarPorId(Long id) {
 		return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
+	}
+
+	private Long buscarIdResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
+		return projetoPessoaSet.stream()
+					.filter(ProjetoPessoa::isResponsavelProponente)
+					.findFirst()
+					.map(projetoPessoa -> projetoPessoa.getPessoa().getId())
+					.orElse(null);
+	}
+
+	private List<EquipeDto> buscarEquipeElaboracao(Set<ProjetoPessoa> projetoPessoaSet) {
+		return projetoPessoaSet.stream()
+					.filter(Predicate.not(ProjetoPessoa::isResponsavelProponente))
+					.map(EquipeDto::new)
+					.toList();
 	}
 
 	private void validarProjeto(ProjetoForm form, boolean isSalvar) {
