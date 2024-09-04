@@ -47,13 +47,7 @@ public class PessoaService {
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final ProjetoPessoaService projetoPessoaService;
 	private final ProgramaPessoaService programaPessoaService;
-//	private OrganizacaoService organizacaoService;
 	private final Logger logger = LogManager.getLogger(PessoaService.class);
-
-//	@Autowired
-//	protected void setPessoaService(@Lazy OrganizacaoService organizacaoService) {
-//		this.organizacaoService = organizacaoService;
-//	}
 
 	@Transactional
 	public PessoaDto salvar(PessoaForm form) throws IOException {
@@ -200,9 +194,6 @@ public class PessoaService {
 
 		if (form.cpf() != null && repository.existsByCpf(form.cpf()))
 			erros.add("Já existe uma pessoa cadastrada com esse cpf.");
-
-//		if (form.idOrganizacao() != null && !organizacaoService.existePorId(form.idOrganizacao()))
-//			erros.add("Erro ao encontrar organização com o id " + form.idOrganizacao());
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);

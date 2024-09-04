@@ -35,25 +35,6 @@ public class Valor extends ControleHistorico {
 	@OneToMany(mappedBy = "valor", fetch = FetchType.LAZY)
 	private Set<ProgramaValor> programaValorSet;
 
-//	@DateTimeFormat
-//	@Column(name = "data_inicio")
-//	private LocalDateTime dataInicio = LocalDateTime.now();
-//
-//	@DateTimeFormat
-//	@Column(name = "data_fim")
-//	private LocalDateTime dataFim;
-//
-//	@DateTimeFormat
-//	@Column(name = "criado_em")
-//	private LocalDateTime criadoEm = LocalDateTime.now();
-//
-//	@DateTimeFormat
-//	@Column(name = "atualizado_em")
-//	private LocalDateTime atualizadoEm;
-//
-//	@Column(name = "apagado")
-//	private Boolean apagado = Boolean.FALSE;
-
 	public Valor(Long id) {
 		super();
 		this.id = id;
