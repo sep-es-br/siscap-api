@@ -2,6 +2,7 @@ package br.gov.es.siscap.form;
 
 import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.RateioDto;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
@@ -39,11 +40,8 @@ public record ProjetoForm(
 			@NotNull
 			BigDecimal valorEstimado,
 
-//			@NotEmpty
-//			List<Long> idMicrorregioes,
-
-			@NotEmpty
-			List<RateioDto> rateio,
+			@Valid
+			RateioDto rateio,
 
 			@NotBlank
 			@Size(max = 2000)
@@ -68,9 +66,6 @@ public record ProjetoForm(
 			@NotBlank
 			@Size(max = 2000)
 			String arranjosInstitucionais,
-
-//			@NotEmpty
-//			List<Long> idPessoasEquipeElab
 
 			@Positive
 			@NotNull

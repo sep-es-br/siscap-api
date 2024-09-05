@@ -1,5 +1,6 @@
 package br.gov.es.siscap.dto;
 
+import br.gov.es.siscap.models.ProgramaPessoa;
 import br.gov.es.siscap.models.ProjetoPessoa;
 
 public record EquipeDto(
@@ -15,5 +16,14 @@ public record EquipeDto(
 					projetoPessoa.getPapel().getId(),
 					projetoPessoa.getStatus().getId(),
 					projetoPessoa.getJustificativa());
+	}
+
+	public EquipeDto(ProgramaPessoa programaPessoa) {
+		this(
+					programaPessoa.getPessoa().getId(),
+					programaPessoa.getPapel().getId(),
+					programaPessoa.getStatus().getId(),
+					programaPessoa.getJustificativa()
+		);
 	}
 }

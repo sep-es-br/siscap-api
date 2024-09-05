@@ -46,13 +46,8 @@ public class PessoaService {
 	private final AcessoCidadaoService acessoCidadaoService;
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final ProjetoPessoaService projetoPessoaService;
-//	private OrganizacaoService organizacaoService;
+	private final ProgramaPessoaService programaPessoaService;
 	private final Logger logger = LogManager.getLogger(PessoaService.class);
-
-//	@Autowired
-//	protected void setPessoaService(@Lazy OrganizacaoService organizacaoService) {
-//		this.organizacaoService = organizacaoService;
-//	}
 
 	@Transactional
 	public PessoaDto salvar(PessoaForm form) throws IOException {
@@ -142,6 +137,7 @@ public class PessoaService {
 
 		pessoaOrganizacaoService.excluirPorPessoa(pessoa);
 		projetoPessoaService.excluirPorPessoa(pessoa);
+		programaPessoaService.excluirPorPessoa(pessoa);
 
 		logger.info("Exclusão de pessoa com id {} finalizada com sucesso!", id);
 	}
@@ -198,9 +194,6 @@ public class PessoaService {
 
 		if (form.cpf() != null && repository.existsByCpf(form.cpf()))
 			erros.add("Já existe uma pessoa cadastrada com esse cpf.");
-
-//		if (form.idOrganizacao() != null && !organizacaoService.existePorId(form.idOrganizacao()))
-//			erros.add("Erro ao encontrar organização com o id " + form.idOrganizacao());
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
