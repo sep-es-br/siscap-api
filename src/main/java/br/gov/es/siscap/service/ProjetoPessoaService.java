@@ -97,7 +97,7 @@ public class ProjetoPessoaService {
 
 	@Transactional
 	public void excluirPorPessoa(Pessoa pessoa) {
-		logger.info("Excluindo Pessoa com id: {} da equipe", pessoa.getId());
+		logger.info("Excluindo Pessoa com id: {} da(s) equipe(s) de projeto", pessoa.getId());
 
 		Set<ProjetoPessoa> projetoPessoaSet = this.buscarPorPessoa(pessoa);
 
@@ -107,7 +107,7 @@ public class ProjetoPessoaService {
 
 		projetoPessoaRepository.deleteAll(projetoPessoaList);
 
-		logger.info("Pessoa excluida da equipe com sucesso");
+		logger.info("Pessoa excluida da(s) equipe(s) de projeto com sucesso");
 	}
 
 

@@ -76,6 +76,9 @@ public class Pessoa {
 	@OneToMany(mappedBy = "pessoa")
 	private Set<ProjetoPessoa> projetoPessoaSet;
 
+	@OneToMany(mappedBy = "pessoa")
+	private Set<ProgramaPessoa> programaPessoaSet;
+
 	@DateTimeFormat
 	@Column(name = "criado_em")
 	private LocalDateTime criadoEm;

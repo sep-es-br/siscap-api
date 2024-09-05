@@ -1,15 +1,20 @@
 package br.gov.es.siscap.dto;
 
-import br.gov.es.siscap.models.ProjetoCidade;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 public record RateioDto(
-			Long idCidade,
-			BigDecimal quantia
-) {
+			@NotEmpty
+			@Size(min = 1)
+			@Valid
+			List<RateioMicrorregiaoDto> rateioMicrorregiao,
 
-	public RateioDto(ProjetoCidade projetoCidade) {
-		this(projetoCidade.getCidade().getId(), projetoCidade.getQuantia());
-	}
+			@NotEmpty
+			@Size(min = 1)
+			@Valid
+			List<RateioCidadeDto> rateioCidade
+) {
 }

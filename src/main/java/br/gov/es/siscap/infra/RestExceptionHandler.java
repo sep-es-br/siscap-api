@@ -104,6 +104,12 @@ public class RestExceptionHandler {
 		return montarRetorno(mensagem);
 	}
 
+	@ExceptionHandler(ProgramaSemValorException.class)
+	private ResponseEntity<MensagemErroRest> programaSemValorHandler(ProgramaSemValorException e) {
+		var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND, "Erro ao processar a requisição", Collections.singletonList(e.getMessage()));
+		return montarRetorno(mensagem);
+	}
+
 	private ResponseEntity<MensagemErroRest> montarRetorno(MensagemErroRest mensagem) {
 		logger.error(mensagem);
 		return ResponseEntity.status(mensagem.status()).body(mensagem);

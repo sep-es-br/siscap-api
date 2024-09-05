@@ -22,59 +22,12 @@ public record ProjetoDto(
 			String solucoesPropostas,
 			String impactos,
 			String arranjosInstitucionais,
-//			List<Long> idMicrorregioes,
-			List<RateioDto> rateio,
+			RateioDto rateio,
 			Long idResponsavelProponente,
 			List<EquipeDto> equipeElaboracao) {
 
-//	public ProjetoDto(Projeto projeto) {
-//		this(projeto.getId(), projeto.getSigla(), projeto.getTitulo(), projeto.getValorEstimado(),
-//					projeto.getObjetivo(), projeto.getObjetivoEspecifico(), projeto.getStatus().getId(),
-//					projeto.getOrganizacao().getId(), projeto.getSituacaoProblema(), projeto.getSolucoesPropostas(),
-//					projeto.getImpactos(), projeto.getArranjosInstitucionais(),
-//					null, List.of());
-//					projeto.getMicrorregioes().stream().map(Microrregiao::getId).toList(),
-//					projeto.getResponsavelProponente(), projeto.getEquipeElaboracao());
-//	}
-
-//	public static ProjetoDto comProjetoPessoa(Projeto projeto, Set<ProjetoPessoa> projetoPessoaSet) {
-//		Long idResponsavelProponente = projetoPessoaSet.stream()
-//					.filter(ProjetoPessoa::isResponsavelProponente)
-//					.findFirst()
-//					.map(ProjetoPessoa::getPessoa)
-//					.map(Pessoa::getId)
-//					.orElse(null);
-//
-//		List<EquipeDto> equipeElaboracao = projetoPessoaSet.stream()
-//					.filter(Predicate.not(ProjetoPessoa::isResponsavelProponente))
-//					.map(EquipeDto::new)
-//					.collect(Collectors.toList());
-//
-//		return new ProjetoDto(projeto.getId(), projeto.getSigla(), projeto.getTitulo(), projeto.getValorEstimado(),
-//					projeto.getObjetivo(), projeto.getObjetivoEspecifico(), projeto.getStatus().getId(),
-//					projeto.getOrganizacao().getId(), projeto.getSituacaoProblema(), projeto.getSolucoesPropostas(),
-//					projeto.getImpactos(), projeto.getArranjosInstitucionais(),
-//					idResponsavelProponente, equipeElaboracao);
-//	}
-
-	public static ProjetoDto montar(Projeto projeto, Set<ProjetoPessoa> projetoPessoaSet, Set<ProjetoCidade> projetoCidadeSet) {
-		Long idResponsavelProponente = projetoPessoaSet.stream()
-					.filter(ProjetoPessoa::isResponsavelProponente)
-					.findFirst()
-					.map(ProjetoPessoa::getPessoa)
-					.map(Pessoa::getId)
-					.orElse(null);
-
-		List<EquipeDto> equipeElaboracao = projetoPessoaSet.stream()
-					.filter(Predicate.not(ProjetoPessoa::isResponsavelProponente))
-					.map(EquipeDto::new)
-					.toList();
-
-		List<RateioDto> rateio = projetoCidadeSet.stream()
-					.map(RateioDto::new)
-					.toList();
-
-		return new ProjetoDto(
+	public ProjetoDto(Projeto projeto, RateioDto rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao) {
+		this(
 					projeto.getId(),
 					projeto.getSigla(),
 					projeto.getTitulo(),
@@ -91,15 +44,4 @@ public record ProjetoDto(
 					idResponsavelProponente,
 					equipeElaboracao);
 	}
-
-//	public ProjetoDto(Projeto projeto, Set<ProjetoPessoa> projetoPessoaSet) {
-//		this(projeto.getId(), projeto.getSigla(), projeto.getTitulo(), projeto.getValorEstimado(),
-//					projeto.getObjetivo(), projeto.getObjetivoEspecifico(), projeto.getStatus().getId(),
-//					projeto.getOrganizacao().getId(), projeto.getSituacaoProblema(), projeto.getSolucoesPropostas(),
-//					projeto.getImpactos(), projeto.getArranjosInstitucionais(),
-////					projeto.getMicrorregioes().stream().map(Microrregiao::getId).toList(),
-//					projetoPessoaSet.stream().filter(projetoPessoa -> projetoPessoa.getPapel().getId() == 2L)
-//								.findFirst().map(projetoPessoa -> projetoPessoa.getPessoa().getId()).orElse(null),
-//					projetoPessoaSet.stream().filter(projetoPessoa -> projetoPessoa.getPapel().getId() != 2L).map(EquipeDto::new).toList());
-//	}
 }
