@@ -14,5 +14,7 @@ public interface PessoaOrganizacaoRepository extends JpaRepository<PessoaOrganiz
 
 	Set<PessoaOrganizacao> findAllByPessoa(Pessoa pessoa);
 
-	Set<PessoaOrganizacao> findAllByOrganizacao(Organizacao organizacao);
+	PessoaOrganizacao findByOrganizacaoAndIsResponsavelTrue(Organizacao organizacao);
+
+//	Set<PessoaOrganizacao> findAllByOrganizacao(Organizacao organizacao);
 }

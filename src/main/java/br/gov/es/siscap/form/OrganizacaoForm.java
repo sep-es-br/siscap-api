@@ -11,18 +11,29 @@ public record OrganizacaoForm(
 
 			@NotBlank
 			String abreviatura,
+
 			String telefone,
+
 			String cnpj,
+
 			String email,
+
 			String site,
+
 			MultipartFile imagemPerfil,
+
 			Long idOrganizacaoPai,
+
 			@NotNull
 			Long idPessoaResponsavel,
+
 			Long idCidade,
+
 			Long idEstado,
+
 			@NotNull
 			Long idPais,
+
 			@NotNull
 			Long idTipoOrganizacao) {
 }

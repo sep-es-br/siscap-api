@@ -22,38 +22,39 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrganizacaoController {
 
-    private final OrganizacaoService service;
+	private final OrganizacaoService service;
 
-    @GetMapping
-    public Page<OrganizacaoListaDto> listar(@PageableDefault(size = 15, sort = "nomeFantasia") Pageable pageable) {
-        return service.listarTodos(pageable);
-    }
+	@GetMapping
+	public Page<OrganizacaoListaDto> listarTodos(
+				@PageableDefault(size = 15, sort = "nomeFantasia") Pageable pageable,
+				@RequestParam(required = false, defaultValue = "") String search
+	) {
+		return service.listarTodos(pageable, search);
+	}
 
-    @PostMapping
-    public ResponseEntity<OrganizacaoDto> cadastrar(@Valid @ModelAttribute OrganizacaoForm form) throws IOException {
-        OrganizacaoDto dto = service.salvar(form);
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
-    }
+	@GetMapping("/select")
+	public List<SelectDto> listarSelect() {
+		return service.listarSelect();
+	}
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> excluir(@PathVariable Long id) {
-        service.excluir(id);
-        return ResponseEntity.ok().body("Organização excluída com sucesso!");
-    }
+	@GetMapping("/{id}")
+	public ResponseEntity<OrganizacaoDto> buscarPorId(@PathVariable Long id) throws IOException {
+		return ResponseEntity.ok(service.buscarPorId(id));
+	}
 
-    @PutMapping("/{id}")
-    public ResponseEntity<OrganizacaoDto> atualizar(@PathVariable Long id, OrganizacaoForm form) throws IOException {
-        return ResponseEntity.ok(service.atualizar(id, form));
-    }
+	@PostMapping
+	public ResponseEntity<OrganizacaoDto> cadastrar(@Valid @ModelAttribute OrganizacaoForm form) throws IOException {
+		return new ResponseEntity<>(service.cadastrar(form), HttpStatus.CREATED);
+	}
 
-    @GetMapping("/{id}")
-    public ResponseEntity<OrganizacaoDto> buscar(@PathVariable Long id) throws IOException {
-        return ResponseEntity.ok(service.buscar(id));
-    }
+	@PutMapping("/{id}")
+	public ResponseEntity<OrganizacaoDto> atualizar(@PathVariable Long id, OrganizacaoForm form) throws IOException {
+		return ResponseEntity.ok(service.atualizar(id, form));
+	}
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect() {
-        return service.buscarSelect();
-    }
-
+	@DeleteMapping("/{id}")
+	public ResponseEntity<String> excluir(@PathVariable Long id) {
+		service.excluir(id);
+		return ResponseEntity.ok("Organização excluída com sucesso!");
+	}
 }
