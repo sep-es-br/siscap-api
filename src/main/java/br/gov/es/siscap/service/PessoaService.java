@@ -57,7 +57,7 @@ public class PessoaService {
 		logger.info("Imagem de perfil para nova pessoa salva: {}.", form.imagemPerfil());
 		Pessoa pessoa = repository.save(new Pessoa(form, nomeImagem));
 		if (!form.idOrganizacoes().isEmpty()) {
-			Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.salvarPorPessoa(pessoa, form.idOrganizacoes());
+			Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.cadastrarPorPessoa(pessoa, form.idOrganizacoes());
 			logger.info("Cadastro de nova pessoa finalizado com sucesso!");
 			return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), pessoaOrganizacaoSet);
 		}
@@ -91,13 +91,22 @@ public class PessoaService {
 	}
 
 	public SelectDto buscarResponsavelPorIdOrganizacao(Long orgId) {
-		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorOrganizacao(new Organizacao(orgId));
+//		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorOrganizacao(new Organizacao(orgId));
+//
+//		Pessoa responsavel = pessoaOrganizacaoService.buscarResponsavelOrganizacao(pessoaOrganizacaoSet).orElse(null);
+//
+//		if (responsavel != null) {
+//			logger.info("Responsavel encontrado, id: {}", responsavel.getId());
+//			return new SelectDto(responsavel);
+//		} else {
+//			throw new OrganizacaoSemResponsavelException();
+//		}
 
-		Pessoa responsavel = pessoaOrganizacaoService.buscarResponsavelOrganizacao(pessoaOrganizacaoSet).orElse(null);
+		PessoaOrganizacao pessoaOrganizacao = pessoaOrganizacaoService.buscarPorOrganizacao(new Organizacao(orgId));
 
-		if (responsavel != null) {
-			logger.info("Responsavel encontrado, id: {}", responsavel.getId());
-			return new SelectDto(responsavel);
+		if (pessoaOrganizacao != null) {
+			logger.info("Responsavel encontrado, id: {}", pessoaOrganizacao.getPessoa().getId());
+			return new SelectDto(pessoaOrganizacao.getPessoa());
 		} else {
 			throw new OrganizacaoSemResponsavelException();
 		}

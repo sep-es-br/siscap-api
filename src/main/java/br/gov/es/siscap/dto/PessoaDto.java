@@ -40,6 +40,7 @@ public record PessoaDto(
 								pessoa.getAreasAtuacao().stream().map(AreaAtuacao::getId).collect(Collectors.toSet()) : null,
 					imagemPerfil,
 					pessoaOrganizacaoSet.stream().map(PessoaOrganizacao::getOrganizacao).map(Organizacao::getId).collect(Collectors.toSet()),
-					pessoaOrganizacaoSet.stream().filter(PessoaOrganizacao::getResponsavel).findFirst().map(pessoaOrganizacao -> pessoaOrganizacao.getOrganizacao().getId()).orElse(null));
+					0L);
+//					pessoaOrganizacaoSet.stream().filter(PessoaOrganizacao::getResponsavel).findFirst().map(pessoaOrganizacao -> pessoaOrganizacao.getOrganizacao().getId()).orElse(null));
 	}
 }

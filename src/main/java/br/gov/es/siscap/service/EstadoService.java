@@ -12,9 +12,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EstadoService {
 
-    private final EstadoRepository repository;
+	private final EstadoRepository repository;
 
-    public List<SelectDto> buscarSelect(Long idPais) {
-        return repository.findAllByPaisOrderByNome(new Pais(idPais)).stream().map(SelectDto::new).toList();
-    }
+	public boolean existePorId(Long id) {
+		return repository.existsById(id);
+	}
+
+	public List<SelectDto> buscarSelect(Long idPais) {
+		return repository.findAllByPaisOrderByNome(new Pais(idPais)).stream().map(SelectDto::new).toList();
+	}
 }
