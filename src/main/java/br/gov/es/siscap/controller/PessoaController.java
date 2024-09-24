@@ -5,14 +5,10 @@ import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.form.PessoaForm;
-import br.gov.es.siscap.form.PessoaFormUpdate;
-import br.gov.es.siscap.models.Pessoa;
-import br.gov.es.siscap.service.ImagemPerfilService;
 import br.gov.es.siscap.service.PessoaService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -29,68 +25,66 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PessoaController {
 
-    private final PessoaService service;
-    private final ImagemPerfilService imagemPerfilService;
+	private final PessoaService service;
 
-    @GetMapping
-    public Page<PessoaListaDto> listar(@PageableDefault(size = 15, sort = "nome") Pageable pageable) {
-        return service.listarTodos(pageable);
-    }
+	@GetMapping
+	public Page<PessoaListaDto> listarTodos(
+				@PageableDefault(size = 15, sort = "nome") Pageable pageable,
+				@RequestParam(required = false, defaultValue = "") String search
 
-    @PostMapping
-    public ResponseEntity<PessoaDto> cadastrar(@Valid @ModelAttribute PessoaForm form)
-            throws IOException {
-        PessoaDto dto = service.salvar(form);
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
-    }
+	) {
+		return service.listarTodos(pageable, search);
+	}
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PessoaDto> buscar(@NotNull @PathVariable Long id) throws IOException {
-        return ResponseEntity.ok(service.buscar(id));
-    }
+	@GetMapping("/select")
+	public List<SelectDto> listarSelect() {
+		return service.listarSelect();
+	}
 
-    @GetMapping("/responsavel/{orgId}")
-    public ResponseEntity<SelectDto> buscarResponsavelPorIdOrganizacao(
-          @NotNull @PathVariable Long orgId
-    ) throws IOException {
-        return ResponseEntity.ok(service.buscarResponsavelPorIdOrganizacao(orgId));
-    }
+	@GetMapping("/{id}")
+	public ResponseEntity<PessoaDto> buscarPorId(@NotNull @PathVariable Long id) throws IOException {
+		return ResponseEntity.ok(service.buscarPorId(id));
+	}
 
-    @GetMapping("/meu-perfil")
-    public ResponseEntity<PessoaDto> meuPerfil(@NotNull String subNovo) throws IOException {
-        Pessoa pessoa = service.buscarPorSub(subNovo);
-        Resource imagem = imagemPerfilService.buscar(pessoa.getNomeImagem());
-        byte[] conteudo = imagem != null ? imagem.getContentAsByteArray() : null;
-        return ResponseEntity.ok(new PessoaDto(pessoa, conteudo));
-    }
+	@PostMapping
+	public ResponseEntity<PessoaDto> cadastrar(@Valid @ModelAttribute PessoaForm form)
+				throws IOException {
+		return new ResponseEntity<>(service.cadastrar(form), HttpStatus.CREATED);
+	}
 
-    @PutMapping("/meu-perfil/{id}")
-    public ResponseEntity<PessoaDto> atualizarMeuPerfil(@NotNull @PathVariable Long id, PessoaFormUpdate form,
-                                                        Authentication auth)
-            throws IOException {
-        return ResponseEntity.ok(service.atualizar(id, form, auth));
-    }
+	@PutMapping("/{id}")
+	public ResponseEntity<PessoaDto> atualizar(@NotNull @PathVariable Long id, PessoaForm form)
+				throws IOException {
+		return ResponseEntity.ok(service.atualizar(id, form, null));
+	}
 
-    @PutMapping("/{id}")
-    public ResponseEntity<PessoaDto> atualizar(@NotNull @PathVariable Long id, PessoaFormUpdate form)
-            throws IOException {
-        return ResponseEntity.ok(service.atualizar(id, form, null));
-    }
+	@DeleteMapping("/{id}")
+	public ResponseEntity<String> excluir(@NotNull @PathVariable Long id) {
+		service.excluir(id);
+		return ResponseEntity.ok("Pessoa excluída com sucesso.");
+	}
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> excluir(@NotNull @PathVariable Long id) {
-        service.excluir(id);
-        return ResponseEntity.ok("Pessoa excluída com sucesso.");
-    }
+	@GetMapping("/acesso-cidadao/{cpf}")
+	public ResponseEntity<AgentePublicoACDto> buscarPessoaNoAcessoCidadaoPorCpf(@PathVariable String cpf) {
+		return ResponseEntity.ok(service.buscarPessoaNoAcessoCidadaoPorCpf(cpf));
+	}
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect() {
-        return service.buscarSelect();
-    }
+	@GetMapping("/responsavel/{orgId}")
+	public ResponseEntity<SelectDto> buscarResponsavelPorIdOrganizacao(
+				@NotNull @PathVariable Long orgId
+	) throws IOException {
+		return ResponseEntity.ok(service.buscarResponsavelPorIdOrganizacao(orgId));
+	}
 
-    @GetMapping("/acesso-cidadao/{cpf}")
-    public ResponseEntity<AgentePublicoACDto> buscarPessoaNoAcessoCidadaoPorCpf(@PathVariable String cpf) {
-        return ResponseEntity.ok(service.buscarPessoaNoAcessoCidadaoPorCpf(cpf));
-    }
+	@GetMapping("/meu-perfil")
+	public ResponseEntity<PessoaDto> buscarMeuPerfil(@NotNull String subNovo) throws IOException {
+		return ResponseEntity.ok(service.buscarMeuPerfil(subNovo));
+	}
 
+	@PutMapping("/meu-perfil/{id}")
+	public ResponseEntity<PessoaDto> atualizarMeuPerfil(@NotNull @PathVariable Long id, PessoaForm form,
+	                                                    Authentication auth)
+				throws IOException {
+		return ResponseEntity.ok(service.atualizar(id, form, auth));
+	}
 }

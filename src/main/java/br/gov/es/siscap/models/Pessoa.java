@@ -1,7 +1,6 @@
 package br.gov.es.siscap.models;
 
 import br.gov.es.siscap.form.PessoaForm;
-import br.gov.es.siscap.form.PessoaFormUpdate;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -81,7 +80,7 @@ public class Pessoa {
 
 	@DateTimeFormat
 	@Column(name = "criado_em")
-	private LocalDateTime criadoEm;
+	private LocalDateTime criadoEm = LocalDateTime.now();
 
 	@DateTimeFormat
 	@Column(name = "atualizado_em")
@@ -95,50 +94,44 @@ public class Pessoa {
 	}
 
 	public Pessoa(PessoaForm form, String nomeImagem) {
-		this.nome = form.nome();
-		this.nomeSocial = form.nomeSocial();
-		this.nacionalidade = form.nacionalidade();
-		this.genero = form.genero();
-		this.cpf = form.cpf();
-		this.email = form.email();
-		this.telefoneComercial = form.telefoneComercial();
-		this.telefonePessoal = form.telefonePessoal();
-		this.endereco = form.endereco() != null ? new Endereco(form.endereco()) : null;
-		this.sub = form.sub();
-		this.areasAtuacao = form.idAreasAtuacao() != null ?
-					form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet()) : null;
-		this.nomeImagem = nomeImagem;
-		this.criadoEm = LocalDateTime.now();
+		setDadosObrigatorios(form);
+		setDadosOpcionais(form);
+		this.atualizarImagemPerfil(nomeImagem);
+		this.setSub(form.sub());
 	}
 
-	public void atualizar(PessoaFormUpdate form) {
-		this.nome = form.nome();
-		this.nomeSocial = form.nomeSocial();
-		this.nacionalidade = form.nacionalidade();
-		this.genero = form.genero();
-		this.cpf = form.cpf();
-		this.email = form.email();
-		this.telefoneComercial = form.telefoneComercial();
-		this.telefonePessoal = form.telefonePessoal();
-		if (form.endereco() == null)
-			this.endereco = null;
-		else if (this.endereco != null)
-			this.endereco.atualizarEndereco(form.endereco());
-		else
-			this.endereco = new Endereco(form.endereco());
-		this.areasAtuacao = form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet());
+	public void atualizarPessoa(PessoaForm form) {
+		setDadosObrigatorios(form);
+		setDadosOpcionais(form);
 		this.setAtualizadoEm(LocalDateTime.now());
 	}
 
 	public void atualizarImagemPerfil(String nomeImagem) {
-		this.nomeImagem = nomeImagem;
+		this.setNomeImagem(nomeImagem);
 	}
 
-	public void apagar() {
+	public void apagarPessoa() {
 		this.cpf = null;
 		this.email = null;
 		this.nomeImagem = null;
 		this.sub = null;
 		this.atualizadoEm = LocalDateTime.now();
+	}
+
+	private void setDadosObrigatorios(PessoaForm form) {
+		this.setNome(form.nome());
+		this.setEmail(form.email());
+		this.setNacionalidade(form.nacionalidade());
+		this.setGenero(form.genero());
+	}
+
+	private void setDadosOpcionais(PessoaForm form) {
+		this.setNomeSocial(form.nomeSocial());
+		this.setCpf(form.cpf());
+		this.setTelefoneComercial(form.telefoneComercial());
+		this.setTelefonePessoal(form.telefonePessoal());
+		this.setEndereco(form.endereco() != null ? new Endereco(form.endereco()) : null);
+		this.setAreasAtuacao(form.idAreasAtuacao() != null ?
+					form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet()) : null);
 	}
 }
