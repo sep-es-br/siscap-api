@@ -40,7 +40,7 @@ public class OrganizacaoService {
 	public Page<OrganizacaoListaDto> listarTodos(Pageable pageable, String search) {
 		logger.info("Buscando todas as organizacoes");
 
-		return repository.findAllByNomeFantasiaContainingIgnoreCaseOrNomeContainingIgnoreCase(search, search, pageable)
+		return repository.paginarOrganizacoesPorFiltroPesquisaSimples(search, pageable)
 					.map(organizacao -> {
 						try {
 							return new OrganizacaoListaDto(organizacao, getImagemNotNull(organizacao.getNomeImagem()));
