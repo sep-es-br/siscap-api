@@ -14,11 +14,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TipoOrganizacaoController {
 
-    private final TipoOrganizacaoService service;
+	private final TipoOrganizacaoService service;
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect() {
-        return service.buscarSelect();
-    }
-
+	@GetMapping("/select")
+	public List<SelectDto> listarSelect() {
+		return service.buscarSelect();
+	}
 }

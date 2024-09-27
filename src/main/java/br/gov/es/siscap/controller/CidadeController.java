@@ -18,15 +18,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CidadeController {
 
-    private final CidadeService service;
+	private final CidadeService service;
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect(@NotNull @RequestParam FiltroCidade filtrarPor, @RequestParam Long id) {
-        return service.buscarSelect(filtrarPor, id);
-    }
+	@GetMapping("/select")
+	public List<SelectDto> listarSelect(@NotNull @RequestParam FiltroCidade filtrarPor, @RequestParam Long id) {
+		return service.buscarSelect(filtrarPor, id);
+	}
 
-    @GetMapping("/select/microrregioes")
-    public List<CidadeMicrorregiaoSelectDto> listarSelectComMicrorregioes() {
-        return service.buscarSelectComMicrorregioes();
-    }
+	@GetMapping("/select/microrregioes")
+	public List<CidadeMicrorregiaoSelectDto> listarSelectComMicrorregioes() {
+		return service.buscarSelectComMicrorregioes();
+	}
 }

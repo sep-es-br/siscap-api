@@ -14,11 +14,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PlanoController {
 
-    private final PlanoService service;
+	private final PlanoService service;
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect() {
-        return service.buscarSelect();
-    }
-
+	@GetMapping("/select")
+	public List<SelectDto> listarSelect() {
+		return service.buscarSelect();
+	}
 }

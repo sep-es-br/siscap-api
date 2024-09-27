@@ -8,10 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -36,8 +33,6 @@ public class Valor extends ControleHistorico {
 	private Set<ProgramaValor> programaValorSet;
 
 	public Valor(Long id) {
-		super();
-		this.id = id;
+		this.setId(id);
 	}
-
 }

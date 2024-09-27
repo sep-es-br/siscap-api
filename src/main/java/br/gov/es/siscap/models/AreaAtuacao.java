@@ -3,20 +3,24 @@ package br.gov.es.siscap.models;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "area_atuacao")
-@Getter
 @NoArgsConstructor
+@Getter
+@Setter
 public class AreaAtuacao {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String nome;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", nullable = false)
+	private Long id;
 
-    public AreaAtuacao(Long id) {
-        this.id = id;
-    }
+	@Column(name = "nome", nullable = false)
+	private String nome;
 
+	public AreaAtuacao(Long id) {
+		this.setId(id);
+	}
 }

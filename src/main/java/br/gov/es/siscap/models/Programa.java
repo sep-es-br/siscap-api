@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.hibernate.annotations.Where;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -58,8 +58,16 @@ public class Programa extends ControleHistorico {
 	@OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
 	private Set<ProgramaValor> programaValorSet;
 
+	@NotNull
+	@DateTimeFormat
+	@Column(name = "data_inicio", nullable = false)
+	private LocalDateTime dataInicio = LocalDateTime.now();
+
+	@DateTimeFormat
+	@Column(name = "data_fim")
+	private LocalDateTime dataFim;
+
 	public Programa(ProgramaForm form) {
-		super();
 		this.setSigla(form.sigla());
 		this.setTitulo(form.titulo());
 		this.setOrgaoExecutor(new Organizacao(form.idOrgaoExecutor()));
@@ -70,11 +78,12 @@ public class Programa extends ControleHistorico {
 		this.setSigla(form.sigla());
 		this.setTitulo(form.titulo());
 		this.setOrgaoExecutor(new Organizacao(form.idOrgaoExecutor()));
-		super.setAtualizadoEm(LocalDateTime.now());
+		super.atualizarHistorico();
 	}
 
 	public void apagar() {
 		this.setSigla(null);
+		this.setDataFim(LocalDateTime.now());
 		super.apagarHistorico();
 	}
 }

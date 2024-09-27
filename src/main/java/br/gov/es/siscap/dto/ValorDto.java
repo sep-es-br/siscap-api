@@ -9,7 +9,6 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
 public record ValorDto(
-
 			@NotNull
 			@Positive
 			BigDecimal quantia,

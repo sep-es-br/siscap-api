@@ -16,13 +16,10 @@ import java.util.List;
 @RequestMapping("/estados")
 public class EstadoController {
 
-    private final EstadoService service;
+	private final EstadoService service;
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect(@NotNull @RequestParam Long idPais) {
-        return service.buscarSelect(idPais);
-    }
-
-
-
+	@GetMapping("/select")
+	public List<SelectDto> listarSelect(@NotNull @RequestParam Long idPais) {
+		return service.buscarSelect(idPais);
+	}
 }

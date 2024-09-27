@@ -3,6 +3,7 @@ package br.gov.es.siscap.dto;
 import br.gov.es.siscap.models.Organizacao;
 
 public record OrganizacaoDto(
+
 			Long id,
 			String nome,
 			String abreviatura,
@@ -17,7 +18,8 @@ public record OrganizacaoDto(
 			Long idEstado,
 			Long idPais,
 			Long idTipoOrganizacao,
-			Long idPessoaResponsavel) {
+			Long idPessoaResponsavel
+) {
 
 	public OrganizacaoDto(Organizacao organizacao, byte[] imagemPerfil, Long idPessoaResponsavel) {
 		this(

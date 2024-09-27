@@ -10,7 +10,6 @@ import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Table(name = "pessoa_organizacao")
@@ -40,13 +39,22 @@ public class PessoaOrganizacao extends ControleHistorico {
 	@Column(name = "responsavel")
 	private Boolean isResponsavel = Boolean.FALSE;
 
+	@NotNull
+	@DateTimeFormat
+	@Column(name = "data_inicio", nullable = false)
+	private LocalDateTime dataInicio = LocalDateTime.now();
+
+	@DateTimeFormat
+	@Column(name = "data_fim")
+	private LocalDateTime dataFim;
+
 	public PessoaOrganizacao(Pessoa pessoa, Organizacao organizacao) {
-		super();
 		this.setPessoa(pessoa);
 		this.setOrganizacao(organizacao);
 	}
 
 	public void apagarPessoaOrganizacao() {
+		this.setDataFim(LocalDateTime.now());
 		super.apagarHistorico();
 	}
 }

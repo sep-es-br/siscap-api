@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
@@ -58,8 +60,16 @@ public class ProgramaPessoa extends ControleHistorico {
 	@Column(name = "justificativa")
 	private String justificativa;
 
+	@NotNull
+	@DateTimeFormat
+	@Column(name = "data_inicio", nullable = false)
+	private LocalDateTime dataInicio = LocalDateTime.now();
+
+	@DateTimeFormat
+	@Column(name = "data_fim")
+	private LocalDateTime dataFim;
+
 	public ProgramaPessoa(Programa programa, EquipeDto equipeDto) {
-		super();
 		this.setPrograma(programa);
 		this.setPessoa(new Pessoa(equipeDto.idPessoa()));
 		this.setPapel(new Papel(equipeDto.idPapel()));
@@ -72,6 +82,7 @@ public class ProgramaPessoa extends ControleHistorico {
 		if (!Objects.equals(equipeDto.idStatus(), StatusEnum.ATIVO.getValue())) {
 			this.setStatus(new Status(equipeDto.idStatus()));
 			this.setJustificativa(equipeDto.justificativa());
+			this.setDataFim(LocalDateTime.now());
 			super.atualizarHistorico();
 		}
 	}
@@ -79,11 +90,11 @@ public class ProgramaPessoa extends ControleHistorico {
 	public void apagar(String justificativa) {
 		this.setStatus(new Status(StatusEnum.EXCLUIDO.getValue()));
 		this.setJustificativa(justificativa);
+		this.setDataFim(LocalDateTime.now());
 		super.apagarHistorico();
 	}
 
 	public boolean compararIdPessoaComEquipeDto(EquipeDto equipeDto) {
 		return Objects.equals(this.getPessoa().getId(), equipeDto.idPessoa());
 	}
-
 }

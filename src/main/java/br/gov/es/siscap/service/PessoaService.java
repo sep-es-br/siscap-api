@@ -10,7 +10,6 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.form.PessoaForm;
-import br.gov.es.siscap.form.PessoaFormUpdate;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.PessoaOrganizacao;
@@ -19,8 +18,6 @@ import br.gov.es.siscap.repository.PessoaRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,66 +40,118 @@ public class PessoaService {
 
 	private final PessoaRepository repository;
 	private final ImagemPerfilService imagemPerfilService;
+	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final UsuarioService usuarioService;
 	private final AcessoCidadaoService acessoCidadaoService;
-	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final ProjetoPessoaService projetoPessoaService;
 	private final ProgramaPessoaService programaPessoaService;
 	private final Logger logger = LogManager.getLogger(PessoaService.class);
 
-	@Transactional
-	public PessoaDto salvar(PessoaForm form) throws IOException {
-		logger.info("Cadatrar nova pessoa: {}.", form);
-		validarPessoa(form);
-		String nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
-		logger.info("Imagem de perfil para nova pessoa salva: {}.", form.imagemPerfil());
-		Pessoa pessoa = repository.save(new Pessoa(form, nomeImagem));
-		if (!form.idOrganizacoes().isEmpty()) {
-			Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.cadastrarPorPessoa(pessoa, form.idOrganizacoes());
-			logger.info("Cadastro de nova pessoa finalizado com sucesso!");
-			return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), pessoaOrganizacaoSet);
-		}
-		logger.info("Cadastro de nova pessoa finalizado com sucesso!");
-		return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()));
+	public Page<PessoaListaDto> listarTodos(Pageable pageable, String search) {
+		logger.info("Buscando todas as pessoas.");
+
+		return repository.paginarPessoasPorFiltroPesquisaSimples(search, pageable)
+					.map(pessoa -> {
+						try {
+							Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorPessoa(pessoa);
+
+							List<String> nomesOrganizacoes = this.mapearNomesOrganizacoesPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+
+							return new PessoaListaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), nomesOrganizacoes);
+						} catch (IOException e) {
+							throw new SiscapServiceException(Collections.singletonList(e.getMessage()));
+						}
+					});
 	}
 
-	public PessoaDto buscar(Long id) throws IOException {
-		logger.info("Buscar pessoa com id [{}]", id);
-		Pessoa pessoa = buscarPorId(id);
+	public List<SelectDto> listarSelect() {
+		return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(SelectDto::new).toList();
+	}
+
+	public PessoaDto buscarPorId(Long id) throws IOException {
+		logger.info("Buscando pessoa com id: {}", id);
+
+		Pessoa pessoa = buscar(id);
+
 		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorPessoa(pessoa);
+		Set<Long> idOrganizacoes = this.mapearIdOrganizacoesPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+		Long idOrganizacaoResponsavel = this.mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
 
-		if(!pessoaOrganizacaoSet.isEmpty()) {
-			return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), pessoaOrganizacaoSet);
-		}
-
-		return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()));
+		return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), idOrganizacoes, idOrganizacaoResponsavel);
 	}
 
-	public Page<PessoaListaDto> listarTodos(Pageable pageable) {
-		logger.info("Listar todas pessoas");
-		return repository.findAll(pageable).map(pessoa -> {
-			try {
-				Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorPessoa(pessoa);
+	@Transactional
+	public PessoaDto cadastrar(PessoaForm form) throws IOException {
+		logger.info("Cadastrando nova pessoa");
+		logger.info("Dados: {}", form);
 
-				return new PessoaListaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), pessoaOrganizacaoSet);
-			} catch (IOException e) {
-				throw new SiscapServiceException(Collections.singletonList(e.getMessage()));
-			}
-		});
+		validarPessoa(form);
+
+		String nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
+
+		Pessoa pessoa = repository.save(new Pessoa(form, nomeImagem));
+
+		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.cadastrarPorPessoa(pessoa, form.idOrganizacoes());
+		Set<Long> idOrganizacoes = this.mapearIdOrganizacoesPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+		Long idOrganizacaoResponsavel = this.mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+
+		logger.info("Pessoa cadastrada com sucesso");
+		return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), idOrganizacoes, idOrganizacaoResponsavel);
+	}
+
+
+	// ENTENDER QUESTÃO PessoaForm E PessoaFormUpdate
+
+	@Transactional
+//	public PessoaDto atualizar(Long id, PessoaFormUpdate form, Authentication auth) throws IOException {
+	public PessoaDto atualizar(Long id, PessoaForm form, Authentication auth) throws IOException {
+		if (auth != null && !buscar(id).getSub().equals(((Usuario) auth.getPrincipal()).getSub())) {
+			throw new UsuarioSemAutorizacaoException();
+		}
+
+		logger.info("Atualizando pessoa com id: {}", id);
+		logger.info("Dados: {}", form);
+
+		Pessoa pessoa = buscar(id);
+		pessoa.atualizarPessoa(form);
+
+		if (form.imagemPerfil() != null)
+			pessoa.atualizarImagemPerfil(imagemPerfilService.atualizar(pessoa.getNomeImagem(), form.imagemPerfil()));
+		else {
+			imagemPerfilService.apagar(pessoa.getNomeImagem());
+			pessoa.atualizarImagemPerfil(null);
+		}
+
+		Pessoa pessoaResultado = repository.save(pessoa);
+
+		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.atualizarPorPessoa(pessoaResultado, form.idOrganizacoes());
+		Set<Long> idOrganizacoes = this.mapearIdOrganizacoesPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+		Long idOrganizacaoResponsavel = this.mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+
+		logger.info("Pessoa atualizada com sucesso");
+		return new PessoaDto(pessoaResultado, getImagemNotNull(pessoa.getNomeImagem()), idOrganizacoes, idOrganizacaoResponsavel);
+	}
+
+	@Transactional
+	public void excluir(Long id) {
+		logger.info("Excluindo pessoa com id: {}", id);
+		Pessoa pessoa = buscar(id);
+		imagemPerfilService.apagar(pessoa.getNomeImagem());
+		pessoa.apagarPessoa();
+
+		usuarioService.excluirPorPessoa(pessoa.getId());
+
+		repository.saveAndFlush(pessoa);
+		repository.deleteById(id);
+
+		pessoaOrganizacaoService.excluirPorPessoa(pessoa);
+		projetoPessoaService.excluirPorPessoa(pessoa);
+		programaPessoaService.excluirPorPessoa(pessoa);
+
+		logger.info("Pessoa excluida com sucesso");
 	}
 
 	public SelectDto buscarResponsavelPorIdOrganizacao(Long orgId) {
-//		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorOrganizacao(new Organizacao(orgId));
-//
-//		Pessoa responsavel = pessoaOrganizacaoService.buscarResponsavelOrganizacao(pessoaOrganizacaoSet).orElse(null);
-//
-//		if (responsavel != null) {
-//			logger.info("Responsavel encontrado, id: {}", responsavel.getId());
-//			return new SelectDto(responsavel);
-//		} else {
-//			throw new OrganizacaoSemResponsavelException();
-//		}
-
 		PessoaOrganizacao pessoaOrganizacao = pessoaOrganizacaoService.buscarPorOrganizacao(new Organizacao(orgId));
 
 		if (pessoaOrganizacao != null) {
@@ -112,55 +162,25 @@ public class PessoaService {
 		}
 	}
 
-	@Transactional
-	public PessoaDto atualizar(Long id, PessoaFormUpdate form, Authentication auth) throws IOException {
-		if (auth != null && !buscarPorId(id).getSub().equals(((Usuario) auth.getPrincipal()).getSub())) {
-			throw new UsuarioSemAutorizacaoException();
-		}
-		logger.info("Atualizar pessoa de id {}: {}.", id, form);
-		Pessoa pessoa = buscarPorId(id);
-		pessoa.atualizar(form);
-		if (form.imagemPerfil() != null)
-			pessoa.atualizarImagemPerfil(imagemPerfilService.atualizar(pessoa.getNomeImagem(), form.imagemPerfil()));
-		else {
-			imagemPerfilService.apagar(pessoa.getNomeImagem());
-			pessoa.atualizarImagemPerfil(null);
-		}
-		Pessoa pessoaResult = repository.save(pessoa);
-
-		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.atualizarPorPessoa(pessoaResult, form.idOrganizacoes());
-
-		logger.info("Atualização de pessoa finalizado com sucesso!");
-		return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), pessoaOrganizacaoSet);
-	}
-
-	@Transactional
-	public void excluir(Long id) {
-		logger.info("Excluir pessoa {}.", id);
-		Pessoa pessoa = buscarPorId(id);
-		imagemPerfilService.apagar(pessoa.getNomeImagem());
-		pessoa.apagar();
-		usuarioService.excluirPorPessoa(pessoa.getId());
-		repository.saveAndFlush(pessoa);
-		repository.deleteById(id);
-
-		pessoaOrganizacaoService.excluirPorPessoa(pessoa);
-		projetoPessoaService.excluirPorPessoa(pessoa);
-		programaPessoaService.excluirPorPessoa(pessoa);
-
-		logger.info("Exclusão de pessoa com id {} finalizada com sucesso!", id);
-	}
-
 	public boolean existePorId(Long id) {
 		return repository.existsById(id);
 	}
 
-	public List<SelectDto> buscarSelect() {
-		return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(SelectDto::new).toList();
-	}
-
 	public Pessoa buscarPorSub(String sub) {
 		return repository.findBySub(sub).orElseThrow(() -> new PessoaNaoEncontradoException(sub));
+	}
+
+	public PessoaDto buscarMeuPerfil(String subNovo) throws IOException {
+		Pessoa pessoa = buscarPorSub(subNovo);
+
+		Resource imagem = imagemPerfilService.buscar(pessoa.getNomeImagem());
+		byte[] conteudo = imagem != null ? imagem.getContentAsByteArray() : null;
+
+		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorPessoa(pessoa);
+		Set<Long> idOrganizacoes = this.mapearIdOrganizacoesPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+		Long idOrganizacaoResponsavel = this.mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+
+		return new PessoaDto(pessoa, conteudo, idOrganizacoes, idOrganizacaoResponsavel);
 	}
 
 	@Transactional
@@ -174,7 +194,7 @@ public class PessoaService {
 
 	@Transactional
 	public void validarSub(String sub, Long idPessoa) {
-		Pessoa pessoa = buscarPorId(idPessoa);
+		Pessoa pessoa = buscar(idPessoa);
 		if (pessoa.getSub() == null) {
 			pessoa.setSub(sub);
 			repository.saveAndFlush(pessoa);
@@ -182,7 +202,7 @@ public class PessoaService {
 			throw new SiscapServiceException(Collections.singletonList("Falha na integridade do Sub do usuário"));
 	}
 
-	private Pessoa buscarPorId(Long id) {
+	private Pessoa buscar(Long id) {
 		return repository.findById(id).orElseThrow(() -> new PessoaNaoEncontradoException(id));
 	}
 
@@ -196,12 +216,40 @@ public class PessoaService {
 		return conteudoImagem;
 	}
 
+	private List<String> mapearNomesOrganizacoesPorPessoaOrganizacaoSet(Set<PessoaOrganizacao> pessoaOrganizacaoSet) {
+		return pessoaOrganizacaoSet
+					.stream()
+					.map(PessoaOrganizacao::getOrganizacao)
+					.map(Organizacao::getNome)
+					.toList();
+	}
+
+	private Set<Long> mapearIdOrganizacoesPorPessoaOrganizacaoSet(Set<PessoaOrganizacao> pessoaOrganizacaoSet) {
+		return pessoaOrganizacaoSet
+					.stream()
+					.map(pessoaOrganizacao -> pessoaOrganizacao.getOrganizacao().getId())
+					.collect(Collectors.toSet());
+	}
+
+	private Long mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(Set<PessoaOrganizacao> pessoaOrganizacaoSet) {
+		return pessoaOrganizacaoSet
+					.stream()
+					.filter(PessoaOrganizacao::getIsResponsavel)
+					.findFirst()
+					.map(pessoaOrganizacao -> pessoaOrganizacao.getOrganizacao().getId())
+					.orElse(null);
+	}
+
 	private void validarPessoa(PessoaForm form) {
 		List<String> erros = new ArrayList<>();
-		if (repository.existsByEmail(form.email()))
+
+		boolean checkPessoaExistePorEmail = repository.existsByEmail(form.email());
+		boolean checkFormCpfNotNullPessoaExistePorCpf = form.cpf() != null && repository.existsByCpf(form.cpf());
+
+		if (checkPessoaExistePorEmail)
 			erros.add("Já existe uma pessoa cadastrada com esse email.");
 
-		if (form.cpf() != null && repository.existsByCpf(form.cpf()))
+		if (checkFormCpfNotNullPessoaExistePorCpf)
 			erros.add("Já existe uma pessoa cadastrada com esse cpf.");
 
 		if (!erros.isEmpty()) {
@@ -209,5 +257,4 @@ public class PessoaService {
 			throw new ValidacaoSiscapException(erros);
 		}
 	}
-
 }

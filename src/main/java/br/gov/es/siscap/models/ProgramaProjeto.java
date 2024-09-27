@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -42,23 +43,27 @@ public class ProgramaProjeto extends ControleHistorico {
 	@Column(name = "valor", nullable = false, precision = 25, scale = 2)
 	private BigDecimal valor;
 
+	@NotNull
+	@DateTimeFormat
+	@Column(name = "data_inicio", nullable = false)
+	private LocalDateTime dataInicio = LocalDateTime.now();
+
+	@DateTimeFormat
+	@Column(name = "data_fim")
+	private LocalDateTime dataFim;
+
 	public ProgramaProjeto(Programa programa, ProjetoPropostoDto projetoPropostoDto) {
-		super();
 		this.setPrograma(programa);
 		this.setProjeto(new Projeto(projetoPropostoDto.idProjeto()));
 		this.setValor(projetoPropostoDto.valor());
 	}
 
-	public void atualizarProjetoProposto(ProjetoPropostoDto projetoPropostoDto) {
-
-	}
-
 	public void apagarProjetoProposto() {
+		this.setDataFim(LocalDateTime.now());
 		super.apagarHistorico();
 	}
 
 	public boolean compararIdProjetoComProjetoPropostoDto(ProjetoPropostoDto projetoPropostoDto) {
 		return Objects.equals(this.getProjeto().getId(), projetoPropostoDto.idProjeto());
 	}
-
 }
