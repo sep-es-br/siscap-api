@@ -1,7 +1,7 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.ProjetoDto;
-import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.ProjetoPropostoSelectDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.service.ArquivosService;
@@ -38,7 +38,7 @@ public class ProjetoController {
 	}
 
 	@GetMapping("/select")
-	public List<SelectDto> listarSelect() {
+	public List<ProjetoPropostoSelectDto> listarSelect() {
 		return service.listarSelect();
 	}
 

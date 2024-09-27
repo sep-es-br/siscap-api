@@ -1,9 +1,6 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.EquipeDto;
-import br.gov.es.siscap.dto.ProjetoDto;
-import br.gov.es.siscap.dto.RateioDto;
-import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.*;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
@@ -48,11 +45,11 @@ public class ProjetoService {
 					.map(projeto -> new ProjetoListaDto(projeto, projetoRateioService.listarNomesMicrorregioesRateio(projeto)));
 	}
 
-	public List<SelectDto> listarSelect() {
+	public List<ProjetoPropostoSelectDto> listarSelect() {
 		return repository.findAll(Sort.by(Sort.Direction.ASC, "titulo"))
 					.stream()
 					.filter(Projeto::isAtivo)
-					.map(SelectDto::new).toList();
+					.map(ProjetoPropostoSelectDto::new).toList();
 	}
 
 	public ProjetoDto buscarPorId(Long id) {
