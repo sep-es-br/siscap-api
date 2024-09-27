@@ -31,7 +31,6 @@ public class PessoaController {
 	public Page<PessoaListaDto> listarTodos(
 				@PageableDefault(size = 15, sort = "nome") Pageable pageable,
 				@RequestParam(required = false, defaultValue = "") String search
-
 	) {
 		return service.listarTodos(pageable, search);
 	}

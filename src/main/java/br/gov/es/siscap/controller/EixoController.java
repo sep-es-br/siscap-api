@@ -15,11 +15,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EixoController {
 
-    private final EixoService service;
+	private final EixoService service;
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect(@NotNull Long idPlano) {
-        return service.buscarSelectPorPlano(idPlano);
-    }
-
+	@GetMapping("/select")
+	public List<SelectDto> listarSelect(@NotNull Long idPlano) {
+		return service.buscarSelectPorPlano(idPlano);
+	}
 }

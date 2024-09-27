@@ -13,12 +13,12 @@ import java.util.Optional;
 public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 
 	@Query("select p from Pessoa p " +
-				"inner join PessoaOrganizacao po on po.pessoa = p " +
-				"inner join Organizacao o on o = po.organizacao " +
+				"left join PessoaOrganizacao po on po.pessoa = p " +
+				"left join Organizacao o on o = po.organizacao " +
 				"where " +
 				" p.apagado = false and " +
-				" po.apagado = false and " +
-				" o.apagado = false and " +
+				" (po is null or po.apagado = false) and " +
+				" (o is null or o.apagado = false) and " +
 				" (lower(p.nome) like lower(concat('%', :search, '%')) or " +
 				" lower(p.email) like lower(concat('%', :search, '%')) or " +
 				" lower(o.nome) like lower(concat('%', :search, '%')) or " +

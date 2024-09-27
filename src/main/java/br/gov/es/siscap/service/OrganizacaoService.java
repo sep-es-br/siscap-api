@@ -43,7 +43,7 @@ public class OrganizacaoService {
 		return repository.paginarOrganizacoesPorFiltroPesquisaSimples(search, pageable)
 					.map(organizacao -> {
 						try {
-							return new OrganizacaoListaDto(organizacao, getImagemNotNull(organizacao.getNomeImagem()));
+							return new OrganizacaoListaDto(organizacao, this.getImagemNotNull(organizacao.getNomeImagem()));
 						} catch (IOException e) {
 							throw new SiscapServiceException(Collections.singletonList(e.getMessage()));
 						}
@@ -57,7 +57,7 @@ public class OrganizacaoService {
 	public OrganizacaoDto buscarPorId(Long id) throws IOException {
 		logger.info("Buscando organizacao com id: {}", id);
 
-		Organizacao organizacao = buscar(id);
+		Organizacao organizacao = this.buscar(id);
 
 		/*
 			12/09/2024
@@ -66,7 +66,7 @@ public class OrganizacaoService {
 		PessoaOrganizacao pessoaOrganizacao = pessoaOrganizacaoService.buscarPorOrganizacao(organizacao);
 		Long idPessoaResponsavel = pessoaOrganizacao != null ? pessoaOrganizacao.getPessoa().getId() : null;
 
-		return new OrganizacaoDto(organizacao, getImagemNotNull(organizacao.getNomeImagem()), idPessoaResponsavel);
+		return new OrganizacaoDto(organizacao, this.getImagemNotNull(organizacao.getNomeImagem()), idPessoaResponsavel);
 	}
 
 	@Transactional
@@ -74,7 +74,7 @@ public class OrganizacaoService {
 		logger.info("Cadastrando nova organizacao");
 		logger.info("Dados: {}", form);
 
-		validarOrganizacao(form, true);
+		this.validarOrganizacao(form, true);
 
 		String nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
 
@@ -82,7 +82,7 @@ public class OrganizacaoService {
 		Long idPessoaResponsavel = pessoaOrganizacaoService.cadastrarPorOrganizacao(organizacao, form.idPessoaResponsavel()).getPessoa().getId();
 
 		logger.info("Organizacao cadastrada com sucesso");
-		return new OrganizacaoDto(organizacao, getImagemNotNull(organizacao.getNomeImagem()), idPessoaResponsavel);
+		return new OrganizacaoDto(organizacao, this.getImagemNotNull(organizacao.getNomeImagem()), idPessoaResponsavel);
 	}
 
 	@Transactional
@@ -90,9 +90,9 @@ public class OrganizacaoService {
 		logger.info("Atualizando organizacao com id: {}", id);
 		logger.info("Dados: {}", form);
 
-		validarOrganizacao(form, false);
+		this.validarOrganizacao(form, false);
 
-		Organizacao organizacao = buscar(id);
+		Organizacao organizacao = this.buscar(id);
 		organizacao.atualizarOrganizacao(form);
 
 		if (form.imagemPerfil() != null)
@@ -102,20 +102,20 @@ public class OrganizacaoService {
 		Long idPessoaResponsavel = pessoaOrganizacaoService.atualizarPorOrganizacao(organizacaoResultado, form.idPessoaResponsavel()).getPessoa().getId();
 
 		logger.info("Organizacao atualizada com sucesso");
-		return new OrganizacaoDto(organizacaoResultado, getImagemNotNull(organizacaoResultado.getNomeImagem()), idPessoaResponsavel);
+		return new OrganizacaoDto(organizacaoResultado, this.getImagemNotNull(organizacaoResultado.getNomeImagem()), idPessoaResponsavel);
 	}
 
 	@Transactional
 	public void excluir(Long id) {
 		logger.info("Excluindo organizacao com id: {}", id);
 
-		Organizacao organizacao = buscar(id);
+		Organizacao organizacao = this.buscar(id);
 
 		imagemPerfilService.apagar(organizacao.getNomeImagem());
 		organizacao.apagarOrganizacao();
-
 		repository.saveAndFlush(organizacao);
 		repository.deleteById(organizacao.getId());
+
 		pessoaOrganizacaoService.excluirPorOrganizacao(organizacao);
 
 		logger.info("Organizacao excluida com sucesso");
@@ -151,29 +151,29 @@ public class OrganizacaoService {
 		boolean checkFormIdOrganizacaoPaiNotNullExistePorId = form.idOrganizacaoPai() != null && !repository.existsById(form.idOrganizacaoPai());
 		boolean checkFormIdTipoOrganizacaoExistePorId = !tipoOrganizacaoService.existePorId(form.idTipoOrganizacao());
 		boolean checkFormCnpjNotNullSePaisBrasil = form.idPais().equals(1L) && form.cnpj() == null;
-		boolean checkFormCnpjNotNullExistsByCnpj = form.cnpj() != null && repository.existsByCnpj(form.cnpj());
+		boolean checkFormCnpjNotNullExistePorCnpj = form.cnpj() != null && repository.existsByCnpj(form.cnpj());
 
-		if (checkFormIdCidadeNotNullExistePorId) {
+		if (checkFormIdCidadeNotNullExistePorId)
 			erros.add("Erro ao encontrar cidade com id " + form.idCidade());
-		}
-		if (checkFormIdEstadoNotNullExistePorId) {
+
+		if (checkFormIdEstadoNotNullExistePorId)
 			erros.add("Erro ao encontrar estado com id " + form.idEstado());
-		}
-		if (checkFormIdPaisExistePorId) {
+
+		if (checkFormIdPaisExistePorId)
 			erros.add("Erro ao encontrar país com id " + form.idPais());
-		}
-		if (checkFormIdOrganizacaoPaiNotNullExistePorId) {
+
+		if (checkFormIdOrganizacaoPaiNotNullExistePorId)
 			erros.add("Erro ao encontrar organização pai com id " + form.idOrganizacaoPai());
-		}
-		if (checkFormIdTipoOrganizacaoExistePorId) {
+
+		if (checkFormIdTipoOrganizacaoExistePorId)
 			erros.add("Erro ao encontrar tipo de organização com id " + form.idTipoOrganizacao());
-		}
-		if (checkFormCnpjNotNullSePaisBrasil) {
+
+		if (checkFormCnpjNotNullSePaisBrasil)
 			erros.add("CNPJ é obrigatório para organizações do Brasil.");
-		}
-		if (checkFormCnpjNotNullExistsByCnpj && isSalvar) {
+
+		if (checkFormCnpjNotNullExistePorCnpj && isSalvar)
 			erros.add("Já existe uma organização cadastrada com esse CNPJ.");
-		}
+
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::warn);

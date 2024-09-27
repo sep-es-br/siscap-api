@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public record PessoaDto(
+
 			Long id,
 			String nome,
 			String nomeSocial,
@@ -20,7 +21,8 @@ public record PessoaDto(
 			Set<Long> idAreasAtuacao,
 			byte[] imagemPerfil,
 			Set<Long> idOrganizacoes,
-			Long idOrganizacaoResponsavel) {
+			Long idOrganizacaoResponsavel
+) {
 
 	public PessoaDto(Pessoa pessoa, byte[] imagemPerfil, Set<Long> idOrganizacoes, Long idOrganizacaoResponsavel) {
 		this(

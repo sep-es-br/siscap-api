@@ -5,11 +5,13 @@ import br.gov.es.siscap.models.Pessoa;
 import java.util.List;
 
 public record PessoaListaDto(
+
 			Long id,
 			String nome,
 			String email,
 			List<String> nomesOrganizacoes,
-			byte[] imagemPerfil) {
+			byte[] imagemPerfil
+) {
 
 	public PessoaListaDto(Pessoa pessoa, byte[] imagemPerfil, List<String> nomesOrganizacoes) {
 		this(

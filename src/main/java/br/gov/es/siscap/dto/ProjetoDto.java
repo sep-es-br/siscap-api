@@ -3,13 +3,10 @@ package br.gov.es.siscap.dto;
 import br.gov.es.siscap.models.*;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public record ProjetoDto(
+
 			Long id,
 			String sigla,
 			String titulo,
@@ -24,7 +21,8 @@ public record ProjetoDto(
 			String arranjosInstitucionais,
 			RateioDto rateio,
 			Long idResponsavelProponente,
-			List<EquipeDto> equipeElaboracao) {
+			List<EquipeDto> equipeElaboracao
+) {
 
 	public ProjetoDto(Projeto projeto, RateioDto rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao) {
 		this(
@@ -42,6 +40,7 @@ public record ProjetoDto(
 					projeto.getArranjosInstitucionais(),
 					rateio,
 					idResponsavelProponente,
-					equipeElaboracao);
+					equipeElaboracao
+		);
 	}
 }

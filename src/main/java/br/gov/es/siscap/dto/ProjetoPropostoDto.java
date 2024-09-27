@@ -5,6 +5,7 @@ import br.gov.es.siscap.models.ProgramaProjeto;
 import java.math.BigDecimal;
 
 public record ProjetoPropostoDto(
+
 			Long idProjeto,
 			BigDecimal valor
 ) {

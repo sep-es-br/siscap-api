@@ -1,5 +1,6 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.form.EnderecoForm;
 import br.gov.es.siscap.form.PessoaForm;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,9 +9,7 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,23 +20,23 @@ import java.util.stream.Collectors;
 @Setter
 @SQLDelete(sql = "update pessoa set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class Pessoa {
+public class Pessoa extends ControleHistorico {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
 	private Long id;
 
-	@Column(name = "nome")
+	@Column(name = "nome", nullable = false)
 	private String nome;
 
 	@Column(name = "nome_social")
 	private String nomeSocial;
 
-	@Column(name = "nacionalidade")
+	@Column(name = "nacionalidade", nullable = false)
 	private String nacionalidade;
 
-	@Column(name = "genero")
+	@Column(name = "genero", nullable = false)
 	private String genero;
 
 	@Column(name = "cpf")
@@ -66,7 +65,7 @@ public class Pessoa {
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "pessoa_area_atuacao",
 				joinColumns = {@JoinColumn(name = "id_pessoa")},
-				inverseJoinColumns = @JoinColumn(name = "id_area_atuacao"))
+				inverseJoinColumns = @JoinColumn(name = "id_area_atuacao", nullable = false))
 	private Set<AreaAtuacao> areasAtuacao;
 
 	@OneToMany(mappedBy = "pessoa")
@@ -78,32 +77,23 @@ public class Pessoa {
 	@OneToMany(mappedBy = "pessoa")
 	private Set<ProgramaPessoa> programaPessoaSet;
 
-	@DateTimeFormat
-	@Column(name = "criado_em")
-	private LocalDateTime criadoEm = LocalDateTime.now();
-
-	@DateTimeFormat
-	@Column(name = "atualizado_em")
-	private LocalDateTime atualizadoEm;
-
-	@Column(name = "apagado")
-	private boolean apagado = Boolean.FALSE;
-
 	public Pessoa(Long id) {
-		this.id = id;
+		this.setId(id);
 	}
 
 	public Pessoa(PessoaForm form, String nomeImagem) {
-		setDadosObrigatorios(form);
-		setDadosOpcionais(form);
+		this.setDadosObrigatorios(form);
+		this.setDadosOpcionais(form);
+		this.criarEndereco(form.endereco());
 		this.atualizarImagemPerfil(nomeImagem);
 		this.setSub(form.sub());
 	}
 
 	public void atualizarPessoa(PessoaForm form) {
-		setDadosObrigatorios(form);
-		setDadosOpcionais(form);
-		this.setAtualizadoEm(LocalDateTime.now());
+		this.setDadosObrigatorios(form);
+		this.setDadosOpcionais(form);
+		this.atualizarEndereco(form.endereco());
+		super.atualizarHistorico();
 	}
 
 	public void atualizarImagemPerfil(String nomeImagem) {
@@ -111,11 +101,11 @@ public class Pessoa {
 	}
 
 	public void apagarPessoa() {
-		this.cpf = null;
-		this.email = null;
-		this.nomeImagem = null;
-		this.sub = null;
-		this.atualizadoEm = LocalDateTime.now();
+		this.setCpf(null);
+		this.setEmail(null);
+		this.setNomeImagem(null);
+		this.setSub(null);
+		super.apagarHistorico();
 	}
 
 	private void setDadosObrigatorios(PessoaForm form) {
@@ -130,8 +120,24 @@ public class Pessoa {
 		this.setCpf(form.cpf());
 		this.setTelefoneComercial(form.telefoneComercial());
 		this.setTelefonePessoal(form.telefonePessoal());
-		this.setEndereco(form.endereco() != null ? new Endereco(form.endereco()) : null);
 		this.setAreasAtuacao(form.idAreasAtuacao() != null ?
 					form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet()) : null);
+	}
+
+	private void criarEndereco(EnderecoForm enderecoForm) {
+		this.setEndereco(enderecoForm != null ? new Endereco(enderecoForm) : null);
+	}
+
+	private void atualizarEndereco(EnderecoForm enderecoForm) {
+		if (enderecoForm != null) {
+			if (this.getEndereco() == null) {
+				this.setEndereco(new Endereco(enderecoForm));
+			} else {
+				this.getEndereco().atualizarEndereco(enderecoForm);
+			}
+		} else if (this.getEndereco() != null) {
+			this.getEndereco().apagarEndereco();
+			this.setEndereco(null);
+		}
 	}
 }

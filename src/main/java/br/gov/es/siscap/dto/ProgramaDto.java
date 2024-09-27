@@ -21,7 +21,7 @@ public record ProgramaDto(
 					programa.getOrgaoExecutor().getId(),
 					equipeCaptacao,
 					projetosPropostos,
-					valor);
-
+					valor
+		);
 	}
 }

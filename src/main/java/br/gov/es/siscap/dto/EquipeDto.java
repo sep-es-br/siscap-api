@@ -4,6 +4,7 @@ import br.gov.es.siscap.models.ProgramaPessoa;
 import br.gov.es.siscap.models.ProjetoPessoa;
 
 public record EquipeDto(
+
 			Long idPessoa,
 			Long idPapel,
 			Long idStatus,
@@ -15,7 +16,8 @@ public record EquipeDto(
 					projetoPessoa.getPessoa().getId(),
 					projetoPessoa.getPapel().getId(),
 					projetoPessoa.getStatus().getId(),
-					projetoPessoa.getJustificativa());
+					projetoPessoa.getJustificativa()
+		);
 	}
 
 	public EquipeDto(ProgramaPessoa programaPessoa) {

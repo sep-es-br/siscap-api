@@ -39,38 +39,60 @@ public class ProjetoService {
 	private final OrganizacaoService organizacaoService;
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
-	@Transactional
-	public ProjetoDto salvar(ProjetoForm form) {
-		logger.info("Cadastrar novo projeto: {}.", form);
-		validarProjeto(form, true);
-		Projeto projeto = repository.save(new Projeto(form));
+	// IMPLEMENTAR METODO DE PESQUISA SIMPLES UTILIZANDO ARGUMENTO search
+	public Page<ProjetoListaDto> listarTodos(Pageable pageable, String search) {
+		logger.info("Buscando todos os projetos");
 
-		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.salvar(projeto, form.idResponsavelProponente(), form.equipeElaboracao());
-
-		RateioDto rateio = projetoRateioService.salvar(projeto, form.rateio());
-
-		logger.info("Cadastro de projeto finalizado!");
-		return new ProjetoDto(projeto, rateio, buscarIdResponsavelProponente(projetoPessoaSet), buscarEquipeElaboracao(projetoPessoaSet));
-	}
-
-	public Page<ProjetoListaDto> listarTodos(Pageable pageable) {
 		return repository
 					.findAll(pageable)
 					.map(projeto -> new ProjetoListaDto(projeto, projetoRateioService.listarNomesMicrorregioesRateio(projeto)));
 	}
 
-	public List<SelectDto> buscarSelect() {
+	public List<SelectDto> listarSelect() {
 		return repository.findAll(Sort.by(Sort.Direction.ASC, "titulo"))
 					.stream()
 					.filter(Projeto::isAtivo)
 					.map(SelectDto::new).toList();
 	}
 
+	public ProjetoDto buscarPorId(Long id) {
+		logger.info("Buscando projeto com id: {}", id);
+
+		Projeto projeto = this.buscar(id);
+
+		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.buscarPorProjeto(projeto);
+
+		RateioDto rateio = projetoRateioService.buscarPorProjeto(projeto);
+
+		return new ProjetoDto(projeto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
+	}
+
+	@Transactional
+	public ProjetoDto cadastrar(ProjetoForm form) {
+		logger.info("Cadastrando novo projeto");
+		logger.info("Dados: {}", form);
+
+		this.validarProjeto(form, true);
+
+		Projeto projeto = repository.save(new Projeto(form));
+
+		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.salvar(projeto, form.idResponsavelProponente(), form.equipeElaboracao());
+
+		RateioDto rateio = projetoRateioService.salvar(projeto, form.rateio());
+
+		logger.info("Projeto cadastrado com sucesso");
+		return new ProjetoDto(projeto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
+	}
+
+
 	@Transactional
 	public ProjetoDto atualizar(Long id, ProjetoForm form) {
-		logger.info("Atualizar projeto de id {}: {}.", id, form);
-		validarProjeto(form, false);
-		Projeto projeto = buscarPorId(id);
+		logger.info("Atualizando projeto com id: {}", id);
+		logger.info("Dados: {}", form);
+
+		this.validarProjeto(form, false);
+
+		Projeto projeto = this.buscar(id);
 		projeto.atualizarProjeto(form);
 		Projeto projetoResult = repository.save(projeto);
 
@@ -78,15 +100,17 @@ public class ProjetoService {
 
 		RateioDto rateio = projetoRateioService.atualizar(projetoResult, form.rateio());
 
-		logger.info("Atualização do projeto de id: {} finalizada!", projetoResult.getId());
-		return new ProjetoDto(projetoResult, rateio, buscarIdResponsavelProponente(projetoPessoaSet), buscarEquipeElaboracao(projetoPessoaSet));
+		logger.info("Projeto atualizado com sucesso");
+		return new ProjetoDto(projetoResult, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
 	}
 
 	@Transactional
 	public void excluir(Long id) {
-		logger.info("Excluir projeto {}.", id);
-		Projeto projeto = buscarPorId(id);
-		projeto.apagar();
+		logger.info("Excluindo projeto com id: {}", id);
+
+		Projeto projeto = this.buscar(id);
+
+		projeto.apagarProjeto();
 		repository.saveAndFlush(projeto);
 		repository.deleteById(id);
 
@@ -94,28 +118,18 @@ public class ProjetoService {
 		projetoRateioService.excluirPorProjeto(projeto);
 		programaProjetoService.excluirPorProjeto(projeto);
 
-		logger.info("Exclusão do projeto com id {} finalizada!", id);
+		logger.info("Projeto excluido com sucesso");
 	}
 
-	public ProjetoDto buscar(Long id) {
-		Projeto projeto = this.buscarPorId(id);
-
-		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.buscarPorProjeto(projeto);
-
-		RateioDto rateio = projetoRateioService.buscarPorProjeto(projeto);
-
-
-		return new ProjetoDto(projeto, rateio, buscarIdResponsavelProponente(projetoPessoaSet), buscarEquipeElaboracao(projetoPessoaSet));
-	}
 
 	public String gerarNomeArquivo(Integer idProjeto) {
-		Projeto projeto = buscarPorId(Long.valueOf(idProjeto));
+		Projeto projeto = this.buscar(Long.valueOf(idProjeto));
 
 		if (projeto.getOrganizacao().getCnpj() == null) {
 			throw new RelatorioNomeArquivoException("Organização não possui CNPJ.");
 		}
 
-		String cnpj = formatarCnpj(projeto.getOrganizacao().getCnpj());
+		String cnpj = this.formatarCnpj(projeto.getOrganizacao().getCnpj());
 
 		return "PROJETO n. " +
 					projeto.getId() + "/" +
@@ -132,7 +146,7 @@ public class ProjetoService {
 		return repository.somarValorEstimadoTodosProjetos();
 	}
 
-	private Projeto buscarPorId(Long id) {
+	private Projeto buscar(Long id) {
 		return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 	}
 
@@ -151,14 +165,21 @@ public class ProjetoService {
 					.toList();
 	}
 
+	private String formatarCnpj(String cnpj) {
+		return cnpj.replaceAll("^(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})$", "$1.$2.$3/$4-$5");
+	}
+
 	private void validarProjeto(ProjetoForm form, boolean isSalvar) {
 		List<String> erros = new ArrayList<>();
 
-		if (!organizacaoService.existePorId(form.idOrganizacao())) {
-			erros.add("Erro ao encontrar Organização com id " + form.idOrganizacao());
-		}
+		boolean checkFormIdOrganizacaoExistePorId = !organizacaoService.existePorId(form.idOrganizacao());
+		boolean checkProjetoExistePorSigla = repository.existsBySigla(form.sigla()) && isSalvar;
 
-		if (repository.existsBySigla(form.sigla()) && isSalvar)
+		if (checkFormIdOrganizacaoExistePorId)
+			erros.add("Erro ao encontrar Organização com id " + form.idOrganizacao());
+
+
+		if (checkProjetoExistePorSigla)
 			erros.add("Já existe um projeto cadastrado com essa sigla.");
 
 		if (!erros.isEmpty()) {
@@ -166,9 +187,4 @@ public class ProjetoService {
 			throw new ValidacaoSiscapException(erros);
 		}
 	}
-
-	private String formatarCnpj(String cnpj) {
-		return cnpj.replaceAll("^(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})$", "$1.$2.$3/$4-$5");
-	}
-
 }

@@ -2,36 +2,29 @@ package br.gov.es.siscap.models;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.format.annotation.DateTimeFormat;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tipo_organizacao")
+@NoArgsConstructor
 @Getter
+@Setter
 @SQLDelete(sql = "update tipo_organizacao set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class TipoOrganizacao {
+public class TipoOrganizacao extends ControleHistorico {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String tipo;
-    @DateTimeFormat
-    private LocalDateTime criadoEm;
-    @Setter
-    @DateTimeFormat
-    private LocalDateTime atualizadoEm;
-    @Setter
-    private boolean apagado = Boolean.FALSE;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", nullable = false)
+	private Long id;
 
-    public TipoOrganizacao() {
-    }
+	@Column(name = "tipo", nullable = false)
+	private String tipo;
 
-    public TipoOrganizacao(Long id) {
-        this.id = id;
-    }
+	public TipoOrganizacao(Long id) {
+		this.setId(id);
+	}
 }

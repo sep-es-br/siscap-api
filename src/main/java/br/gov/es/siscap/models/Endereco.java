@@ -3,84 +3,81 @@ package br.gov.es.siscap.models;
 import br.gov.es.siscap.form.EnderecoForm;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.format.annotation.DateTimeFormat;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "endereco")
+@NoArgsConstructor
 @Getter
+@Setter
 @SQLDelete(sql = "update endereco set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class Endereco {
+public class Endereco extends ControleHistorico {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String rua;
-    private String numero;
-    private String bairro;
-    private String complemento;
-    private String codigoPostal;
-    @ManyToOne
-    @JoinColumn(name = "id_cidade")
-    @SQLJoinTableRestriction("apagado = FALSE")
-    private Cidade cidade;
-    @DateTimeFormat
-    private LocalDateTime criadoEm;
-    @Setter
-    @DateTimeFormat
-    private LocalDateTime atualizadoEm;
-    @Setter
-    private boolean apagado = Boolean.FALSE;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", nullable = false)
+	private Long id;
 
-    public Endereco() {
-    }
+	@Column(name = "rua")
+	private String rua;
 
-    public Endereco(EnderecoForm endereco) {
-        this.rua = endereco.rua();
-        this.numero = endereco.numero();
-        this.bairro = endereco.bairro();
-        this.complemento = endereco.complemento();
-        this.codigoPostal = endereco.codigoPostal();
-        this.cidade = endereco.idCidade() != null ? new Cidade(endereco.idCidade()) : null;
-        this.criadoEm = LocalDateTime.now();
-    }
+	@Column(name = "numero")
+	private String numero;
 
-    public void atualizarEndereco(EnderecoForm form) {
-        if (form.rua() != null)
-            this.rua = form.rua();
-        if (form.numero() != null)
-            this.numero = form.numero();
-        if (form.bairro() != null)
-            this.bairro = form.bairro();
-        if (form.complemento() != null)
-            this.complemento = form.complemento();
-        if (form.codigoPostal() != null)
-            this.codigoPostal = form.codigoPostal();
-        if (form.idCidade() != null)
-            this.cidade = new Cidade(form.idCidade());
-        this.setAtualizadoEm(LocalDateTime.now());
-    }
+	@Column(name = "bairro")
+	private String bairro;
 
-    public Long getIdCidade() {
-        return this.cidade != null ? this.cidade.getId() : null;
-    }
+	@Column(name = "complemento")
+	private String complemento;
 
-    public Long getIdEstado() {
-        if (getIdCidade() == null)
-            return null;
-        return this.cidade.getEstado() != null ? this.cidade.getEstado().getId() : null;
-    }
+	@Column(name = "codigo_postal")
+	private String codigoPostal;
 
-    public Long getIdPais() {
-        if (getIdEstado() == null)
-            return null;
-        return this.cidade.getEstado().getPais() != null ? this.cidade.getEstado().getPais().getId() : null;
-    }
+	@ManyToOne
+	@JoinColumn(name = "id_cidade", nullable = false)
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private Cidade cidade;
 
+	public Endereco(EnderecoForm form) {
+		this.setDadosEndereco(form);
+	}
+
+	public void atualizarEndereco(EnderecoForm form) {
+		this.setDadosEndereco(form);
+		super.atualizarHistorico();
+	}
+
+	public void apagarEndereco() {
+		super.apagarHistorico();
+	}
+
+	public Long getIdCidade() {
+		return this.cidade != null ? this.cidade.getId() : null;
+	}
+
+	public Long getIdEstado() {
+		if (this.getIdCidade() == null)
+			return null;
+		return this.cidade.getEstado() != null ? this.cidade.getEstado().getId() : null;
+	}
+
+	public Long getIdPais() {
+		if (this.getIdEstado() == null)
+			return null;
+		return this.cidade.getEstado().getPais() != null ? this.cidade.getEstado().getPais().getId() : null;
+	}
+
+	private void setDadosEndereco(EnderecoForm form) {
+		this.setRua(form.rua());
+		this.setNumero(form.numero());
+		this.setBairro(form.bairro());
+		this.setComplemento(form.complemento());
+		this.setCodigoPostal(form.codigoPostal());
+		this.setCidade(new Cidade(form.idCidade()));
+	}
 }

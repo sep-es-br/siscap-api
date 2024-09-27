@@ -4,10 +4,6 @@ import br.gov.es.siscap.models.*;
 
 public record SelectDto(Long id, String nome) {
 
-//    public SelectDto(Long id, String nome) {
-//        this(id, nome);
-//    }
-
 	public SelectDto(TipoOrganizacao tipoOrganizacao) {
 		this(tipoOrganizacao.getId(), tipoOrganizacao.getTipo());
 	}

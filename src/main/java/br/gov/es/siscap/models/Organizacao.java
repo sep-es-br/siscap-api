@@ -9,9 +9,7 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -21,17 +19,17 @@ import java.util.Set;
 @Setter
 @SQLDelete(sql = "update organizacao set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class Organizacao {
+public class Organizacao extends ControleHistorico {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
 	private Long id;
 
-	@Column(name = "nome")
+	@Column(name = "nome", nullable = false)
 	private String nome;
 
-	@Column(name = "nome_fantasia")
+	@Column(name = "nome_fantasia", nullable = false)
 	private String nomeFantasia;
 
 	@Column(name = "cnpj")
@@ -55,8 +53,8 @@ public class Organizacao {
 	private Organizacao organizacaoPai;
 
 	@ManyToOne
+	@JoinColumn(name = "status", nullable = false)
 	@SQLJoinTableRestriction("apagado = FALSE")
-	@JoinColumn(name = "status")
 	private Status status = new Status(StatusEnum.ATIVO.getValue());
 
 	@ManyToOne
@@ -75,26 +73,15 @@ public class Organizacao {
 	private Pais pais;
 
 	@ManyToOne
-	@JoinColumn(name = "id_tipo_organizacao")
+	@JoinColumn(name = "id_tipo_organizacao", nullable = false)
 	@SQLJoinTableRestriction("apagado = FALSE")
 	private TipoOrganizacao tipoOrganizacao;
 
 	@OneToMany(mappedBy = "organizacao")
 	private Set<PessoaOrganizacao> pessoaOrganizacaoSet;
 
-	@DateTimeFormat
-	@Column(name = "criado_em")
-	private LocalDateTime criadoEm = LocalDateTime.now();
-
-	@DateTimeFormat
-	@Column(name = "atualizado_em")
-	private LocalDateTime atualizadoEm;
-
-	@Column(name = "apagado")
-	private boolean apagado = Boolean.FALSE;
-
 	public Organizacao(Long id) {
-		this.id = id;
+		this.setId(id);
 	}
 
 	public Organizacao(OrganizacaoForm form, String nomeImagem) {
@@ -106,7 +93,7 @@ public class Organizacao {
 	public void atualizarOrganizacao(OrganizacaoForm form) {
 		this.setDadosObrigatorios(form);
 		this.setDadosOpcionais(form);
-		this.setAtualizadoEm(LocalDateTime.now());
+		super.atualizarHistorico();
 	}
 
 	public void atualizarImagemPerfil(String nomeImagem) {
@@ -114,9 +101,9 @@ public class Organizacao {
 	}
 
 	public void apagarOrganizacao() {
-		this.atualizadoEm = LocalDateTime.now();
-		this.cnpj = null;
-		this.nomeImagem = null;
+		this.setCnpj(null);
+		this.setNomeImagem(null);
+		super.apagarHistorico();
 	}
 
 	private void setDadosObrigatorios(OrganizacaoForm form) {

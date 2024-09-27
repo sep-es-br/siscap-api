@@ -14,11 +14,10 @@ import java.util.List;
 @RequestMapping("/microrregioes")
 public class MicrorregiaoController {
 
-    private final MicrorregiaoService service;
+	private final MicrorregiaoService service;
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect() {
-        return service.buscarSelect();
-    }
-
+	@GetMapping("/select")
+	public List<SelectDto> listarSelect() {
+		return service.buscarSelect();
+	}
 }

@@ -23,7 +23,7 @@ import java.util.Objects;
 @Setter
 @SQLDelete(sql = "update projeto_pessoa set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE and id_status = 1")
-public class ProjetoPessoa {
+public class ProjetoPessoa extends ControleHistorico {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "projeto_pessoa_id_gen")
@@ -53,6 +53,9 @@ public class ProjetoPessoa {
 	@JoinColumn(name = "id_status")
 	private Status status;
 
+	@Column(name = "justificativa")
+	private String justificativa;
+
 	@DateTimeFormat
 	@Column(name = "data_inicio")
 	private LocalDateTime dataInicio = LocalDateTime.now();
@@ -61,19 +64,6 @@ public class ProjetoPessoa {
 	@Column(name = "data_fim")
 	private LocalDateTime dataFim;
 
-	@DateTimeFormat
-	@Column(name = "criado_em")
-	private LocalDateTime criadoEm = LocalDateTime.now();
-
-	@DateTimeFormat
-	@Column(name = "atualizado_em")
-	private LocalDateTime atualizadoEm;
-
-	@Column(name = "apagado")
-	private Boolean apagado = Boolean.FALSE;
-
-	@Column(name = "justificativa")
-	private String justificativa;
 
 	public ProjetoPessoa(Projeto projeto, Long idResponsavelProponente) {
 		this.setProjeto(projeto);
@@ -96,24 +86,24 @@ public class ProjetoPessoa {
 	public void atualizarResponsavelProponente(Long idStatus) {
 		this.setStatus(new Status(idStatus));
 		this.setDataFim(LocalDateTime.now());
-		this.setAtualizadoEm(LocalDateTime.now());
+		super.atualizarHistorico();
 	}
 
 	public void atualizarMembroEquipe(EquipeDto equipeDto) {
 		this.setPapel(new Papel(equipeDto.idPapel()));
-		if(!Objects.equals(equipeDto.idStatus(), StatusEnum.ATIVO.getValue())) {
+		if (!Objects.equals(equipeDto.idStatus(), StatusEnum.ATIVO.getValue())) {
 			this.setStatus(new Status(equipeDto.idStatus()));
 			this.setJustificativa(equipeDto.justificativa());
 			this.setDataFim(LocalDateTime.now());
-			this.setAtualizadoEm(LocalDateTime.now());
+			super.atualizarHistorico();
 		}
 	}
 
 	public void apagar(String justificativa) {
 		this.setStatus(new Status(StatusEnum.EXCLUIDO.getValue()));
-		this.setDataFim(LocalDateTime.now());
-		this.setAtualizadoEm(LocalDateTime.now());
 		this.setJustificativa(justificativa);
+		this.setDataFim(LocalDateTime.now());
+		super.atualizarHistorico();
 	}
 
 	public boolean isResponsavelProponente() {
