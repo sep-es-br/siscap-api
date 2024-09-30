@@ -92,6 +92,11 @@ public class PessoaOrganizacaoService {
 
 		PessoaOrganizacao pessoaOrganizacao = this.buscarPorOrganizacao(organizacao);
 
+		if(pessoaOrganizacao == null) {
+			logger.info("MEDIDA PROVISORIA ATE TODAS AS ORGANIZACOES POSSUIREM UM RESPONSAVEL");
+			return this.cadastrarPorOrganizacao(organizacao, idPessoaResponsavel);
+		}
+
 		if (pessoaOrganizacao.getPessoa().getId().equals(idPessoaResponsavel)) {
 			return pessoaOrganizacao;
 		}
