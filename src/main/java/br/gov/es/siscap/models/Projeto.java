@@ -9,8 +9,10 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
 
@@ -81,6 +83,10 @@ public class Projeto extends ControleHistorico {
 	@JoinColumn(name = "id_area")
 	@SQLJoinTableRestriction("apagado = FALSE")
 	private Area area;
+
+	@DateTimeFormat
+	@Column(name = "data_registro")
+	private LocalDateTime dataRegistro;
 
 	public Projeto(Long id) {
 		this.setId(id);
