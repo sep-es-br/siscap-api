@@ -33,8 +33,10 @@ public class OrganizacaoController {
 	}
 
 	@GetMapping("/select")
-	public List<SelectDto> listarSelect() {
-		return service.listarSelect();
+	public List<SelectDto> listarSelect(
+				@RequestParam(required = false) Long filtroTipoOrganizacao
+	) {
+		return service.listarSelect(filtroTipoOrganizacao);
 	}
 
 	@GetMapping("/{id}")

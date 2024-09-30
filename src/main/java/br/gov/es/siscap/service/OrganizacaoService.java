@@ -9,6 +9,7 @@ import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.form.OrganizacaoForm;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.PessoaOrganizacao;
+import br.gov.es.siscap.models.TipoOrganizacao;
 import br.gov.es.siscap.repository.OrganizacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -50,8 +51,15 @@ public class OrganizacaoService {
 					});
 	}
 
-	public List<SelectDto> listarSelect() {
-		return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(SelectDto::new).toList();
+	public List<SelectDto> listarSelect(Long filtroTipoOrganizacao) {
+
+		Sort organizacaoListSort = Sort.by(Sort.Direction.ASC, "nome");
+
+		List<Organizacao> organizacaoList = filtroTipoOrganizacao != null
+					? repository.findAllByTipoOrganizacao(new TipoOrganizacao(filtroTipoOrganizacao), organizacaoListSort)
+					: repository.findAll(organizacaoListSort);
+
+		return organizacaoList.stream().map(SelectDto::new).toList();
 	}
 
 	public OrganizacaoDto buscarPorId(Long id) throws IOException {
