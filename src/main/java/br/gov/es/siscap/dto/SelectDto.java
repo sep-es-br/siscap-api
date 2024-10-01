@@ -1,5 +1,6 @@
 package br.gov.es.siscap.dto;
 
+import br.gov.es.siscap.TipoOperacao;
 import br.gov.es.siscap.models.*;
 
 public record SelectDto(Long id, String nome) {
@@ -58,5 +59,9 @@ public record SelectDto(Long id, String nome) {
 
 	public SelectDto(Valor valor) {
 		this(valor.getId(), valor.getTipo());
+	}
+
+	public SelectDto(TipoOperacao tipoOperacao) {
+		this(tipoOperacao.getId(), tipoOperacao.getTipo());
 	}
 }
