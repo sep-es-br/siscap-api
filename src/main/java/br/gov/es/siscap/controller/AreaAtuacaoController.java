@@ -14,11 +14,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AreaAtuacaoController {
 
-    private final AreaAtuacaoService service;
+	private final AreaAtuacaoService service;
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect() {
-        return service.buscarSelect();
-    }
-
+	@GetMapping("/select")
+	public List<SelectDto> listarSelect() {
+		return service.buscarSelect();
+	}
 }

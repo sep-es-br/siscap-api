@@ -17,5 +17,7 @@ public class PapelController {
 	private final PapelService service;
 
 	@GetMapping("/select")
-	public List<SelectDto> listarPapeisSelect() { return service.buscarSelect();}
+	public List<SelectDto> listarPapeisSelect() {
+		return service.buscarSelect();
+	}
 }

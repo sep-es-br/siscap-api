@@ -2,33 +2,29 @@ package br.gov.es.siscap.models;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.format.annotation.DateTimeFormat;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "plano")
+@NoArgsConstructor
 @Getter
+@Setter
 @SQLDelete(sql = "update plano set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class Plano {
+public class Plano extends ControleHistorico {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String nome;
-    @DateTimeFormat
-    private LocalDateTime criadoEm;
-    @DateTimeFormat
-    private LocalDateTime atualizadoEm;
-    private boolean apagado;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", nullable = false)
+	private Long id;
 
-    public Plano() {
-    }
+	@Column(name = "nome", nullable = false)
+	private String nome;
 
-    public Plano(Long id) {
-        this.id = id;
-    }
+	public Plano(Long id) {
+		this.setId(id);
+	}
 }

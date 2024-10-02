@@ -17,15 +17,6 @@ public class ControleHistorico {
 
 	@NotNull
 	@DateTimeFormat
-	@Column(name = "data_inicio", nullable = false)
-	private LocalDateTime dataInicio = LocalDateTime.now();
-
-	@DateTimeFormat
-	@Column(name = "data_fim")
-	private LocalDateTime dataFim;
-
-	@NotNull
-	@DateTimeFormat
 	@Column(name = "criado_em", nullable = false)
 	private LocalDateTime criadoEm = LocalDateTime.now();
 
@@ -38,7 +29,6 @@ public class ControleHistorico {
 	private Boolean apagado = Boolean.FALSE;
 
 	public void atualizarHistorico() {
-		this.setDataFim(LocalDateTime.now());
 		this.setAtualizadoEm(LocalDateTime.now());
 	}
 

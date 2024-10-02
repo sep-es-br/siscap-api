@@ -14,11 +14,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PaisController {
 
-    private final PaisService service;
+	private final PaisService service;
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect() {
-        return service.buscarSelect();
-    }
-
+	@GetMapping("/select")
+	public List<SelectDto> listarSelect() {
+		return service.buscarSelect();
+	}
 }

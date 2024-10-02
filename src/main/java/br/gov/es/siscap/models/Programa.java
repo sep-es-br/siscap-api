@@ -10,10 +10,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.hibernate.annotations.Where;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "programa")
@@ -44,10 +45,11 @@ public class Programa extends ControleHistorico {
 	@JoinColumn(name = "id_status", nullable = false)
 	private Status status;
 
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "orgao_executor", nullable = false)
-	private Organizacao orgaoExecutor;
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "programa_organizacao",
+				joinColumns = {@JoinColumn(name = "id_programa", nullable = false)},
+				inverseJoinColumns = @JoinColumn(name = "id_organizacao", nullable = false))
+	private Set<Organizacao> orgaoExecutorSet;
 
 	@OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
 	private Set<ProgramaPessoa> programaPessoaSet;
@@ -58,23 +60,42 @@ public class Programa extends ControleHistorico {
 	@OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
 	private Set<ProgramaValor> programaValorSet;
 
+	@NotNull
+	@DateTimeFormat
+	@Column(name = "data_inicio", nullable = false)
+	private LocalDateTime dataInicio = LocalDateTime.now();
+
+	@DateTimeFormat
+	@Column(name = "data_fim")
+	private LocalDateTime dataFim;
+
 	public Programa(ProgramaForm form) {
-		super();
 		this.setSigla(form.sigla());
 		this.setTitulo(form.titulo());
-		this.setOrgaoExecutor(new Organizacao(form.idOrgaoExecutor()));
+		this.setOrgaoExecutorSet(
+					form.idOrgaoExecutorList()
+								.stream()
+								.map(Organizacao::new)
+								.collect(Collectors.toSet())
+		);
 		this.setStatus(new Status(StatusEnum.ATIVO.getValue()));
 	}
 
 	public void atualizar(ProgramaForm form) {
 		this.setSigla(form.sigla());
 		this.setTitulo(form.titulo());
-		this.setOrgaoExecutor(new Organizacao(form.idOrgaoExecutor()));
-		super.setAtualizadoEm(LocalDateTime.now());
+		this.setOrgaoExecutorSet(
+					form.idOrgaoExecutorList()
+								.stream()
+								.map(Organizacao::new)
+								.collect(Collectors.toSet())
+		);
+		super.atualizarHistorico();
 	}
 
 	public void apagar() {
 		this.setSigla(null);
+		this.setDataFim(LocalDateTime.now());
 		super.apagarHistorico();
 	}
 }

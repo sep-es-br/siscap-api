@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -48,8 +49,16 @@ public class ProgramaValor extends ControleHistorico {
 	@Column(name = "quantia", nullable = false, precision = 25, scale = 2)
 	private BigDecimal quantia;
 
+	@NotNull
+	@DateTimeFormat
+	@Column(name = "data_inicio", nullable = false)
+	private LocalDateTime dataInicio = LocalDateTime.now();
+
+	@DateTimeFormat
+	@Column(name = "data_fim")
+	private LocalDateTime dataFim;
+
 	public ProgramaValor(Programa programa, ValorDto valorDto) {
-		super();
 		this.setPrograma(programa);
 		this.setValor(new Valor(valorDto.tipo()));
 		this.setMoeda(valorDto.moeda());
@@ -57,6 +66,7 @@ public class ProgramaValor extends ControleHistorico {
 	}
 
 	public void apagarProgramaValor() {
+		this.setDataFim(LocalDateTime.now());
 		super.apagarHistorico();
 	}
 
@@ -67,5 +77,4 @@ public class ProgramaValor extends ControleHistorico {
 								Objects.equals(this.getQuantia(), valorDto.quantia())
 		);
 	}
-
 }

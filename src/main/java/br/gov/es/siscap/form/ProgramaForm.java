@@ -18,9 +18,9 @@ public record ProgramaForm(
 			@Size(max = 150)
 			String titulo,
 
-			@NotNull
-			@Positive
-			Long idOrgaoExecutor,
+			@NotEmpty
+			@Size(min = 1)
+			List<Long> idOrgaoExecutorList,
 
 			@NotEmpty
 			@Size(min = 1)

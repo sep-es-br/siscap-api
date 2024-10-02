@@ -6,6 +6,7 @@ import br.gov.es.siscap.models.Programa;
 import java.math.BigDecimal;
 
 public record ProgramaListaDto(
+
 			Long id,
 			String sigla,
 			String titulo,

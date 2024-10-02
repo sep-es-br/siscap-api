@@ -8,10 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.format.annotation.DateTimeFormat;
-
-import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "equipe")
@@ -20,7 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @SQLDelete(sql = "update equipe set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class Equipe {
+public class Equipe extends ControleHistorico {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "equipe_id_gen")
@@ -33,19 +29,7 @@ public class Equipe {
 	@Column(name = "tipo", nullable = false)
 	private String tipo;
 
-	@DateTimeFormat
-	@Column(name = "criado_em")
-	private LocalDateTime criadoEm;
-
-	@DateTimeFormat
-	@Column(name = "atualizado_em")
-	private LocalDateTime atualizadoEm;
-
-	@Column(name = "apagado")
-	private Boolean apagado;
-
 	public Equipe(Long id) {
-		this.id = id;
+		this.setId(id);
 	}
-
 }

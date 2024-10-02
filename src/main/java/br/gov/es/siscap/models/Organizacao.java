@@ -1,5 +1,6 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.enums.StatusEnum;
 import br.gov.es.siscap.form.OrganizacaoForm;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,11 +9,7 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -22,17 +19,17 @@ import java.util.Set;
 @Setter
 @SQLDelete(sql = "update organizacao set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class Organizacao {
+public class Organizacao extends ControleHistorico {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
 	private Long id;
 
-	@Column(name = "nome")
+	@Column(name = "nome", nullable = false)
 	private String nome;
 
-	@Column(name = "nome_fantasia")
+	@Column(name = "nome_fantasia", nullable = false)
 	private String nomeFantasia;
 
 	@Column(name = "cnpj")
@@ -56,9 +53,9 @@ public class Organizacao {
 	private Organizacao organizacaoPai;
 
 	@ManyToOne
+	@JoinColumn(name = "status", nullable = false)
 	@SQLJoinTableRestriction("apagado = FALSE")
-	@JoinColumn(name = "status")
-	private Status status;
+	private Status status = new Status(StatusEnum.ATIVO.getValue());
 
 	@ManyToOne
 	@JoinColumn(name = "id_cidade")
@@ -76,68 +73,53 @@ public class Organizacao {
 	private Pais pais;
 
 	@ManyToOne
-	@JoinColumn(name = "id_tipo_organizacao")
+	@JoinColumn(name = "id_tipo_organizacao", nullable = false)
 	@SQLJoinTableRestriction("apagado = FALSE")
 	private TipoOrganizacao tipoOrganizacao;
 
 	@OneToMany(mappedBy = "organizacao")
 	private Set<PessoaOrganizacao> pessoaOrganizacaoSet;
 
-	@DateTimeFormat
-	@Column(name = "criado_em")
-	private LocalDateTime criadoEm;
-
-	@DateTimeFormat
-	@Column(name = "atualizado_em")
-	private LocalDateTime atualizadoEm;
-
-	@Column(name = "apagado")
-	private boolean apagado = Boolean.FALSE;
-
 	public Organizacao(Long id) {
-		this.id = id;
+		this.setId(id);
 	}
 
 	public Organizacao(OrganizacaoForm form, String nomeImagem) {
-		this.nome = form.nome();
-		this.nomeFantasia = form.abreviatura();
-		this.cnpj = form.cnpj();
-		this.telefone = form.telefone();
-		this.email = form.email();
-		this.site = form.site();
-		this.nomeImagem = nomeImagem;
-		this.organizacaoPai = form.idOrganizacaoPai() != null ? new Organizacao(form.idOrganizacaoPai()) : null;
-		this.status = new Status(1L);
-		this.cidade = form.idCidade() != null ? new Cidade(form.idCidade()) : null;
-		this.estado = form.idEstado() != null ? new Estado(form.idEstado()) : null;
-		this.pais = new Pais(form.idPais());
-		this.tipoOrganizacao = new TipoOrganizacao(form.idTipoOrganizacao());
-		this.criadoEm = LocalDateTime.now();
+		this.setDadosObrigatorios(form);
+		this.setDadosOpcionais(form);
+		this.atualizarImagemPerfil(nomeImagem);
 	}
 
-	public void atualizar(OrganizacaoForm form) {
-		this.nome = form.nome();
-		this.nomeFantasia = form.abreviatura();
-		this.cnpj = form.cnpj();
-		this.telefone = form.telefone();
-		this.email = form.email();
-		this.site = form.site();
-		this.organizacaoPai = form.idOrganizacaoPai() != null ? new Organizacao(form.idOrganizacaoPai()) : null;
-		this.cidade = form.idCidade() != null ? new Cidade(form.idCidade()) : null;
-		this.estado = form.idEstado() != null ? new Estado(form.idEstado()) : null;
-		this.pais = form.idPais() != null ? new Pais(form.idPais()) : null;
-		this.tipoOrganizacao = form.idTipoOrganizacao() != null ? new TipoOrganizacao(form.idTipoOrganizacao()) : null;
-		this.setAtualizadoEm(LocalDateTime.now());
+	public void atualizarOrganizacao(OrganizacaoForm form) {
+		this.setDadosObrigatorios(form);
+		this.setDadosOpcionais(form);
+		super.atualizarHistorico();
 	}
 
 	public void atualizarImagemPerfil(String nomeImagem) {
-		this.nomeImagem = nomeImagem;
+		this.setNomeImagem(nomeImagem);
 	}
 
+	public void apagarOrganizacao() {
+		this.setCnpj(null);
+		this.setNomeImagem(null);
+		super.apagarHistorico();
+	}
 
-	public void apagar() {
-		this.atualizadoEm = LocalDateTime.now();
-		this.cnpj = null;
-		this.nomeImagem = null;
+	private void setDadosObrigatorios(OrganizacaoForm form) {
+		this.setNome(form.nome());
+		this.setNomeFantasia(form.abreviatura());
+		this.setTipoOrganizacao(new TipoOrganizacao(form.idTipoOrganizacao()));
+		this.setPais(new Pais(form.idPais()));
+	}
+
+	private void setDadosOpcionais(OrganizacaoForm form) {
+		this.setCnpj(form.cnpj() != null ? form.cnpj() : null);
+		this.setOrganizacaoPai(form.idOrganizacaoPai() != null ? new Organizacao(form.idOrganizacaoPai()) : null);
+		this.setEstado(form.idEstado() != null ? new Estado(form.idEstado()) : null);
+		this.setCidade(form.idCidade() != null ? new Cidade(form.idCidade()) : null);
+		this.setTelefone(form.telefone() != null ? form.telefone() : null);
+		this.setEmail(form.email() != null ? form.email() : null);
+		this.setSite(form.site() != null ? form.site() : null);
 	}
 }

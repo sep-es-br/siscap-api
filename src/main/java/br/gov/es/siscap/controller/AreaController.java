@@ -15,11 +15,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AreaController {
 
-    private final AreaService service;
+	private final AreaService service;
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect(@NotNull Long idEixo) {
-        return service.buscarSelect(idEixo);
-    }
-
+	@GetMapping("/select")
+	public List<SelectDto> listarSelect(@NotNull Long idEixo) {
+		return service.buscarSelect(idEixo);
+	}
 }

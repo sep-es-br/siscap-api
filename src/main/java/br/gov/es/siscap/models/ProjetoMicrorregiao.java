@@ -8,8 +8,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "projeto_microrregiao")
@@ -37,15 +39,23 @@ public class ProjetoMicrorregiao extends ControleHistorico {
 	private Microrregiao microrregiao;
 
 	@NotNull
-	@Column(name = "quantia", precision = 25, scale = 2)
+	@Column(name = "quantia", nullable = false, precision = 25, scale = 2)
 	private BigDecimal quantia;
 
 	@NotNull
-	@Column(name = "percentual", precision = 5, scale = 2)
+	@Column(name = "percentual", nullable = false, precision = 5, scale = 2)
 	private BigDecimal percentual;
 
+	@NotNull
+	@DateTimeFormat
+	@Column(name = "data_inicio", nullable = false)
+	private LocalDateTime dataInicio = LocalDateTime.now();
+
+	@DateTimeFormat
+	@Column(name = "data_fim")
+	private LocalDateTime dataFim;
+
 	public ProjetoMicrorregiao(Projeto projeto, RateioMicrorregiaoDto rateioMicrorregiaoDto) {
-		super();
 		this.setProjeto(projeto);
 		this.setMicrorregiao(new Microrregiao(rateioMicrorregiaoDto.idMicrorregiao()));
 		this.setQuantia(rateioMicrorregiaoDto.quantia());
@@ -53,6 +63,7 @@ public class ProjetoMicrorregiao extends ControleHistorico {
 	}
 
 	public void apagar() {
+		this.setDataFim(LocalDateTime.now());
 		super.apagarHistorico();
 	}
 

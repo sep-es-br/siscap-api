@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 
 public record RateioMicrorregiaoDto(
+
 			Long idMicrorregiao,
 
 			@NotNull

@@ -10,7 +10,6 @@ import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Table(name = "pessoa_organizacao")
@@ -19,7 +18,7 @@ import java.util.Objects;
 @Setter
 @SQLDelete(sql = "update pessoa_organizacao set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class PessoaOrganizacao {
+public class PessoaOrganizacao extends ControleHistorico {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "pessoa_organizacao_id_gen")
@@ -38,43 +37,24 @@ public class PessoaOrganizacao {
 	private Organizacao organizacao;
 
 	@Column(name = "responsavel")
-	private Boolean responsavel = Boolean.FALSE;
+	private Boolean isResponsavel = Boolean.FALSE;
 
+	@NotNull
 	@DateTimeFormat
-	@Column(name = "data_inicio")
+	@Column(name = "data_inicio", nullable = false)
 	private LocalDateTime dataInicio = LocalDateTime.now();
 
 	@DateTimeFormat
 	@Column(name = "data_fim")
 	private LocalDateTime dataFim;
 
-	@DateTimeFormat
-	@Column(name = "criado_em")
-	private LocalDateTime criadoEm = LocalDateTime.now();
-
-	@DateTimeFormat
-	@Column(name = "atualizado_em")
-	private LocalDateTime atualizadoEm;
-
-	@Column(name = "apagado")
-	private boolean apagado = Boolean.FALSE;
-
 	public PessoaOrganizacao(Pessoa pessoa, Organizacao organizacao) {
 		this.setPessoa(pessoa);
 		this.setOrganizacao(organizacao);
 	}
 
-	public PessoaOrganizacao(Pessoa pessoa) {
-		this.setPessoa(pessoa);
-	}
-
-	public PessoaOrganizacao(Organizacao organizacao) {
-		this.setOrganizacao(organizacao);
-	}
-
-	public void apagar() {
+	public void apagarPessoaOrganizacao() {
 		this.setDataFim(LocalDateTime.now());
-		this.setAtualizadoEm(LocalDateTime.now());
-		this.setApagado(true);
+		super.apagarHistorico();
 	}
 }

@@ -7,9 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -19,7 +17,7 @@ import java.util.Set;
 @Setter
 @SQLDelete(sql = "update cidade set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class Cidade {
+public class Cidade extends ControleHistorico {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,10 +29,10 @@ public class Cidade {
 	@SQLJoinTableRestriction("apagado = FALSE")
 	private Estado estado;
 
-	@Column(name = "id_ibge")
+	@Column(name = "id_ibge", nullable = false)
 	private String codigoIBGE;
 
-	@Column(name = "nome")
+	@Column(name = "nome", nullable = false)
 	private String nome;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -45,18 +43,7 @@ public class Cidade {
 	@OneToMany(mappedBy = "cidade")
 	private Set<ProjetoCidade> projetoCidadeSet;
 
-	@DateTimeFormat
-	@Column(name = "criado_em")
-	private LocalDateTime criadoEm;
-
-	@DateTimeFormat
-	@Column(name = "atualizado_em")
-	private LocalDateTime atualizadoEm;
-
-	@Column(name = "apagado")
-	private boolean apagado = Boolean.FALSE;
-
 	public Cidade(Long id) {
-		this.id = id;
+		this.setId(id);
 	}
 }

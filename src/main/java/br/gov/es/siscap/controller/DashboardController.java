@@ -13,11 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/dashboard")
 public class DashboardController {
 
-    private final DashboardService service;
+	private final DashboardService service;
 
-    @GetMapping
-    public ResponseEntity<DashboardProjetoDto> quantidadeProjetos() {
-        return ResponseEntity.ok(service.buscarDashboardProjetos());
-    }
-
+	@GetMapping
+	public ResponseEntity<DashboardProjetoDto> quantidadeProjetos() {
+		return ResponseEntity.ok(service.buscarDashboardProjetos());
+	}
 }
