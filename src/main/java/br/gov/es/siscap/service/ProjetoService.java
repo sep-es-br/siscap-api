@@ -31,6 +31,7 @@ public class ProjetoService {
 
 	private final ProjetoRepository repository;
 	private final ProjetoPessoaService projetoPessoaService;
+	private final ProjetoValorService projetoValorService;
 	private final ProjetoRateioService projetoRateioService;
 	private final ProgramaProjetoService programaProjetoService;
 	private final OrganizacaoService organizacaoService;
@@ -42,7 +43,12 @@ public class ProjetoService {
 
 		return repository
 					.findAll(pageable)
-					.map(projeto -> new ProjetoListaDto(projeto, projetoRateioService.listarNomesMicrorregioesRateio(projeto)));
+					.map(projeto -> {
+						List<String> nomesMicrorregioesRateio = projetoRateioService.listarNomesMicrorregioesRateio(projeto);
+						ValorDto valorDto = projetoValorService.buscarPorProjeto(projeto);
+
+						return new ProjetoListaDto(projeto, valorDto, nomesMicrorregioesRateio);
+					});
 	}
 
 	public List<ProjetoPropostoSelectDto> listarSelect() {
@@ -59,9 +65,11 @@ public class ProjetoService {
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.buscarPorProjeto(projeto);
 
+		ValorDto valorDto = projetoValorService.buscarPorProjeto(projeto);
+
 		RateioDto rateio = projetoRateioService.buscarPorProjeto(projeto);
 
-		return new ProjetoDto(projeto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
+		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
 	}
 
 	@Transactional
@@ -73,12 +81,14 @@ public class ProjetoService {
 
 		Projeto projeto = repository.save(new Projeto(form));
 
-		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.salvar(projeto, form.idResponsavelProponente(), form.equipeElaboracao());
+		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.cadastrar(projeto, form.idResponsavelProponente(), form.equipeElaboracao());
 
-		RateioDto rateio = projetoRateioService.salvar(projeto, form.rateio());
+		ValorDto valorDto = projetoValorService.cadastrar(projeto, form.valor());
+
+		RateioDto rateio = projetoRateioService.cadastrar(projeto, form.rateio());
 
 		logger.info("Projeto cadastrado com sucesso");
-		return new ProjetoDto(projeto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
+		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
 	}
 
 
@@ -95,10 +105,12 @@ public class ProjetoService {
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.atualizar(projetoResult, form.idResponsavelProponente(), form.equipeElaboracao());
 
+		ValorDto valorDto = projetoValorService.atualizar(projetoResult, form.valor());
+
 		RateioDto rateio = projetoRateioService.atualizar(projetoResult, form.rateio());
 
 		logger.info("Projeto atualizado com sucesso");
-		return new ProjetoDto(projetoResult, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
+		return new ProjetoDto(projetoResult, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
 	}
 
 	@Transactional
@@ -112,6 +124,7 @@ public class ProjetoService {
 		repository.deleteById(id);
 
 		projetoPessoaService.excluirPorProjeto(projeto);
+		projetoValorService.excluir(projeto);
 		projetoRateioService.excluirPorProjeto(projeto);
 		programaProjetoService.excluirPorProjeto(projeto);
 
@@ -174,7 +187,6 @@ public class ProjetoService {
 
 		if (checkFormIdOrganizacaoExistePorId)
 			erros.add("Erro ao encontrar Organização com id " + form.idOrganizacao());
-
 
 		if (checkProjetoExistePorSigla)
 			erros.add("Já existe um projeto cadastrado com essa sigla.");

@@ -10,9 +10,10 @@ import java.math.BigDecimal;
 @Repository
 public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
 
-    boolean existsBySigla(String sigla);
+	boolean existsBySigla(String sigla);
 
-    @Query("select sum(p.valorEstimado) from Projeto p ")
-    BigDecimal somarValorEstimadoTodosProjetos();
+	@Query("select sum(pv.quantia) from Projeto p " +
+				" inner join ProjetoValor pv on pv.projeto = p ")
+	BigDecimal somarValorEstimadoTodosProjetos();
 
 }

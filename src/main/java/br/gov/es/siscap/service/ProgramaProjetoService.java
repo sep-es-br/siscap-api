@@ -31,7 +31,7 @@ public class ProgramaProjetoService {
 	}
 
 	@Transactional
-	public List<ProjetoPropostoDto> salvar(Programa programa, List<ProjetoPropostoDto> projetosPropostos) {
+	public List<ProjetoPropostoDto> cadastrar(Programa programa, List<ProjetoPropostoDto> projetosPropostos) {
 		logger.info("Cadastrando projetos propostos para o Programa com id: {}", programa.getId());
 
 		Set<ProgramaProjeto> programaProjetoSet = projetosPropostos.stream()

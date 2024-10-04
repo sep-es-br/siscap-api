@@ -15,7 +15,8 @@ public record ProjetoPropostoSelectDto(
 		this(
 					projeto.getId(),
 					(projeto.getSigla() + " - " + projeto.getTitulo()),
-					projeto.getValorEstimado()
+//					projeto.getValorEstimado()
+					BigDecimal.ZERO
 		);
 	}
 }

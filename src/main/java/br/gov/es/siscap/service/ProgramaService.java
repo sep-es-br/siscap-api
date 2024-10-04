@@ -30,12 +30,16 @@ public class ProgramaService {
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
 	public Page<ProgramaListaDto> listarTodos(Pageable pageable) {
+		logger.info("Buscando todos os programas");
+
 		return repository.findAll(pageable)
 					.map(programa -> new ProgramaListaDto(programa, programaValorService.buscarPorPrograma(programa)));
 	}
 
-	public ProgramaDto buscarPorIdPrograma(Long idPrograma) {
-		Programa programa = this.buscarPorId(idPrograma);
+	public ProgramaDto buscarPorId(Long id) {
+		logger.info("Buscando programa com id: {}", id);
+
+		Programa programa = this.buscar(id);
 
 		List<EquipeDto> equipeCaptacao = programaPessoaService.buscarPorPrograma(programa);
 
@@ -47,25 +51,28 @@ public class ProgramaService {
 	}
 
 	@Transactional
-	public ProgramaDto salvar(ProgramaForm form) {
-		logger.info("Cadastrar novo programa: {}.", form);
+	public ProgramaDto cadastrar(ProgramaForm form) {
+		logger.info("Cadastrando novo programa");
+		logger.info("Dados: {}", form);
 
 		Programa programa = repository.save(new Programa(form));
 
-		List<EquipeDto> equipeCaptacao = programaPessoaService.salvar(programa, form.equipeCaptacao());
+		List<EquipeDto> equipeCaptacao = programaPessoaService.cadastrar(programa, form.equipeCaptacao());
 
-		List<ProjetoPropostoDto> projetosPropostos = programaProjetoService.salvar(programa, form.projetosPropostos());
+		List<ProjetoPropostoDto> projetosPropostos = programaProjetoService.cadastrar(programa, form.projetosPropostos());
 
-		ValorDto valor = programaValorService.salvar(programa, form.valor());
+		ValorDto valor = programaValorService.cadastrar(programa, form.valor());
 
-		logger.info("Cadastro de programa finalizado!");
+		logger.info("Programa cadastrado com sucesso");
 		return new ProgramaDto(programa, equipeCaptacao, projetosPropostos, valor);
 	}
 
 	@Transactional
-	public ProgramaDto atualizar(Long idPrograma, ProgramaForm form) {
-		logger.info("Atualizar programa de id {}: {}.", idPrograma, form);
-		Programa programa = this.buscarPorId(idPrograma);
+	public ProgramaDto atualizar(Long id, ProgramaForm form) {
+		logger.info("Atualizando programa com id: {}", id);
+		logger.info("Dados: {}", form);
+
+		Programa programa = this.buscar(id);
 
 		programa.atualizar(form);
 
@@ -77,28 +84,28 @@ public class ProgramaService {
 
 		ValorDto valorAtualizado = programaValorService.atualizar(programaResult, form.valor());
 
-		logger.info("Atualização do programa de id: {} finalizada!", programaResult.getId());
+		logger.info("Programa atualizado com sucesso");
 		return new ProgramaDto(programaResult, equipeCaptacaoAtualizado, projetosPropostosAtualizado, valorAtualizado);
 
 	}
 
 	@Transactional
-	public void excluir(Long idPrograma) {
-		logger.info("Excluir programa {}.", idPrograma);
-		Programa programa = this.buscarPorId(idPrograma);
+	public void excluir(Long id) {
+		logger.info("Excluindo programa com id: {}", id);
+
+		Programa programa = this.buscar(id);
 		programa.apagar();
 		repository.saveAndFlush(programa);
-		repository.deleteById(idPrograma);
 
 		programaPessoaService.excluirPorPrograma(programa);
 		programaProjetoService.excluirPorPrograma(programa);
 		programaValorService.excluir(programa);
 
-		logger.info("Exclusão do programa com id {} finalizada!", idPrograma);
+		logger.info("Programa excluído com sucesso");
 	}
 
 
-	private Programa buscarPorId(Long idPrograma) {
-		return repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
+	private Programa buscar(Long id) {
+		return repository.findById(id).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
 	}
 }

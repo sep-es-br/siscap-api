@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,33 +27,31 @@ public class ProgramaController {
 		return service.listarTodos(pageable);
 	}
 
-	@GetMapping("/{idPrograma}")
-	public ProgramaDto buscarPorIdPrograma(@NotNull @Positive @PathVariable Long idPrograma) {
-		return service.buscarPorIdPrograma(idPrograma);
+	@GetMapping("/{id}")
+	public ProgramaDto buscarPorId(@NotNull @Positive @PathVariable Long id) {
+		return service.buscarPorId(id);
 	}
 
 	@PostMapping
-	public ResponseEntity<ProgramaDto> cadastrarPrograma(
+	public ResponseEntity<ProgramaDto> cadastrar(
 				@Valid @RequestBody ProgramaForm form
 	) {
-		ProgramaDto responseProgramaDto = service.salvar(form);
-		return ResponseEntity.ok(responseProgramaDto);
+		return new ResponseEntity<>(service.cadastrar(form), HttpStatus.CREATED);
 	}
 
-	@PutMapping("/{idPrograma}")
-	public ResponseEntity<ProgramaDto> atualizarPrograma(
-				@NotNull @Positive @PathVariable Long idPrograma,
+	@PutMapping("/{id}")
+	public ResponseEntity<ProgramaDto> atualizar(
+				@NotNull @Positive @PathVariable Long id,
 				@Valid @RequestBody ProgramaForm form
 	) {
-		ProgramaDto responseProgramaDto = service.atualizar(idPrograma, form);
-		return ResponseEntity.ok(responseProgramaDto);
+		return ResponseEntity.ok(service.atualizar(id, form));
 	}
 
-	@DeleteMapping("/{idPrograma}")
-	public ResponseEntity<String> excluirPrograma(
-				@NotNull @Positive @PathVariable Long idPrograma
+	@DeleteMapping("/{id}")
+	public ResponseEntity<String> excluir(
+				@NotNull @Positive @PathVariable Long id
 	) {
-		service.excluir(idPrograma);
-		return ResponseEntity.ok("Programa deletado com sucesso!");
+		service.excluir(id);
+		return ResponseEntity.ok("Programa excluido com sucesso!");
 	}
 }

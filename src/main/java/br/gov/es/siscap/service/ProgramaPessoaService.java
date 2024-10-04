@@ -31,7 +31,7 @@ public class ProgramaPessoaService {
 	}
 
 	@Transactional
-	public List<EquipeDto> salvar(Programa programa, List<EquipeDto> equipeCaptacao) {
+	public List<EquipeDto> cadastrar(Programa programa, List<EquipeDto> equipeCaptacao) {
 		logger.info("Cadastrando equipe do Programa com id: {}", programa.getId());
 
 		Set<ProgramaPessoa> programaPessoaSet = equipeCaptacao.stream()
