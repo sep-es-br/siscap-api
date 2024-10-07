@@ -58,7 +58,6 @@ public class ProjetoService {
 						return new ProjetoPropostoSelectDto(projeto, valorDto);
 					})
 					.toList();
-//					.map(ProjetoPropostoSelectDto::new).toList();
 	}
 
 	public ProjetoDto buscarPorId(Long id) {
