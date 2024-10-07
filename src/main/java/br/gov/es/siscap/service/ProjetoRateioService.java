@@ -53,12 +53,12 @@ public class ProjetoRateioService {
 	}
 
 	@Transactional
-	public RateioDto salvar(Projeto projeto, RateioDto rateioDto) {
+	public RateioDto cadastrar(Projeto projeto, RateioDto rateioDto) {
 		logger.info("Cadastrando novo rateio para o Projeto com id: {}", projeto.getId());
 
-		List<RateioMicrorregiaoDto> rateioMicrorregiaoDtoList = this.salvarRateioMicrorregiao(projeto, rateioDto.rateioMicrorregiao());
+		List<RateioMicrorregiaoDto> rateioMicrorregiaoDtoList = this.cadastrarRateioMicrorregiao(projeto, rateioDto.rateioMicrorregiao());
 
-		List<RateioCidadeDto> rateioCidadeDtoList = this.salvarRateioCidade(projeto, rateioDto.rateioCidade());
+		List<RateioCidadeDto> rateioCidadeDtoList = this.cadastrarRateioCidade(projeto, rateioDto.rateioCidade());
 
 		logger.info("Rateio para o Projeto cadastrado com sucesso");
 		return new RateioDto(rateioMicrorregiaoDtoList, rateioCidadeDtoList);
@@ -91,7 +91,7 @@ public class ProjetoRateioService {
 		logger.info("Rateio do Projeto excluido com sucesso");
 	}
 
-	private List<RateioMicrorregiaoDto> salvarRateioMicrorregiao(Projeto projeto, List<RateioMicrorregiaoDto> rateioMicrorregiaoDtoList) {
+	private List<RateioMicrorregiaoDto> cadastrarRateioMicrorregiao(Projeto projeto, List<RateioMicrorregiaoDto> rateioMicrorregiaoDtoList) {
 		logger.info("Cadastrando rateio por microrregioes para o Projeto com id: {}", projeto.getId());
 
 		Set<ProjetoMicrorregiao> projetoMicrorregiaoSet = new HashSet<>();
@@ -109,7 +109,7 @@ public class ProjetoRateioService {
 		return this.montarListaRateioMicrorregiaoDto(projetoMicrorregiaoList);
 	}
 
-	private List<RateioCidadeDto> salvarRateioCidade(Projeto projeto, List<RateioCidadeDto> rateioCidadeDtoList) {
+	private List<RateioCidadeDto> cadastrarRateioCidade(Projeto projeto, List<RateioCidadeDto> rateioCidadeDtoList) {
 		logger.info("Cadastrando rateio por cidades para o Projeto com id: {}", projeto.getId());
 
 		Set<ProjetoCidade> projetoCidadeSet = new HashSet<>();

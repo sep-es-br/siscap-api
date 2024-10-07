@@ -36,7 +36,7 @@ public class ProjetoPessoaService {
 	}
 
 	@Transactional
-	public Set<ProjetoPessoa> salvar(Projeto projeto, Long idResponsavelProponente, List<EquipeDto> equipeDtoList) {
+	public Set<ProjetoPessoa> cadastrar(Projeto projeto, Long idResponsavelProponente, List<EquipeDto> equipeDtoList) {
 		logger.info("Cadastrando equipe do Projeto com id: {}", projeto.getId());
 
 		Set<ProjetoPessoa> projetoPessoaSet = new HashSet<>();

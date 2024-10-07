@@ -70,26 +70,12 @@ public class Programa extends ControleHistorico {
 	private LocalDateTime dataFim;
 
 	public Programa(ProgramaForm form) {
-		this.setSigla(form.sigla());
-		this.setTitulo(form.titulo());
-		this.setOrgaoExecutorSet(
-					form.idOrgaoExecutorList()
-								.stream()
-								.map(Organizacao::new)
-								.collect(Collectors.toSet())
-		);
+		this.setDadosPrograma(form);
 		this.setStatus(new Status(StatusEnum.ATIVO.getValue()));
 	}
 
 	public void atualizar(ProgramaForm form) {
-		this.setSigla(form.sigla());
-		this.setTitulo(form.titulo());
-		this.setOrgaoExecutorSet(
-					form.idOrgaoExecutorList()
-								.stream()
-								.map(Organizacao::new)
-								.collect(Collectors.toSet())
-		);
+		this.setDadosPrograma(form);
 		super.atualizarHistorico();
 	}
 
@@ -97,5 +83,16 @@ public class Programa extends ControleHistorico {
 		this.setSigla(null);
 		this.setDataFim(LocalDateTime.now());
 		super.apagarHistorico();
+	}
+
+	private void setDadosPrograma(ProgramaForm form) {
+		this.setSigla(form.sigla());
+		this.setTitulo(form.titulo());
+		this.setOrgaoExecutorSet(
+					form.idOrgaoExecutorList()
+								.stream()
+								.map(Organizacao::new)
+								.collect(Collectors.toSet())
+		);
 	}
 }
