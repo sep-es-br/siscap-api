@@ -12,4 +12,6 @@ import java.util.Set;
 public interface ProgramaValorRepository extends JpaRepository<ProgramaValor, Long> {
 
 	Set<ProgramaValor> findAllByPrograma(Programa programa);
+
+	ProgramaValor findByPrograma(Programa programa);
 }
