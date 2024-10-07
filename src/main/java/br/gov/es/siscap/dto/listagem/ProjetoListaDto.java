@@ -1,5 +1,6 @@
 package br.gov.es.siscap.dto.listagem;
 
+import br.gov.es.siscap.dto.ValorDto;
 import br.gov.es.siscap.models.Projeto;
 
 import java.math.BigDecimal;
@@ -10,15 +11,17 @@ public record ProjetoListaDto(
 			Long id,
 			String sigla,
 			String titulo,
-			BigDecimal valorEstimado,
+			String moeda,
+			BigDecimal valor,
 			List<String> nomesMicrorregioesRateio
 ) {
-	public ProjetoListaDto(Projeto projeto, List<String> nomesMicrorregioesRateio) {
+	public ProjetoListaDto(Projeto projeto, ValorDto valorDto, List<String> nomesMicrorregioesRateio) {
 		this(
 					projeto.getId(),
 					projeto.getSigla(),
 					projeto.getTitulo(),
-					projeto.getValorEstimado(),
+					valorDto.moeda(),
+					valorDto.quantia(),
 					nomesMicrorregioesRateio
 		);
 	}

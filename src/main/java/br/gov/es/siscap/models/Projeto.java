@@ -11,7 +11,6 @@ import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
@@ -35,9 +34,6 @@ public class Projeto extends ControleHistorico {
 
 	@Column(name = "titulo", nullable = false, length = 150)
 	private String titulo;
-
-	@Column(name = "valor_estimado", nullable = false, precision = 25, scale = 2)
-	private BigDecimal valorEstimado;
 
 	@Column(name = "objetivo", nullable = false, length = 2000)
 	private String objetivo;
@@ -66,6 +62,9 @@ public class Projeto extends ControleHistorico {
 
 	@Column(name = "arranjos_institucionais", nullable = false, length = 2000)
 	private String arranjosInstitucionais;
+
+	@OneToMany(mappedBy = "projeto")
+	private Set<ProjetoValor> projetoValorSet;
 
 	@OneToMany(mappedBy = "projeto")
 	private Set<ProjetoMicrorregiao> projetoMicrorregiaoSet;
@@ -123,7 +122,6 @@ public class Projeto extends ControleHistorico {
 	private void setDadosProjeto(ProjetoForm form) {
 		this.setSigla(form.sigla());
 		this.setTitulo(form.titulo());
-		this.setValorEstimado(form.valorEstimado());
 		this.setObjetivo(form.objetivo());
 		this.setObjetivoEspecifico(form.objetivoEspecifico());
 		this.setStatus(new Status(StatusEnum.ATIVO.getValue()));

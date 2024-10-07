@@ -16,24 +16,24 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "programa_valor")
+@Table(name = "projeto_valor")
 @NoArgsConstructor
 @Getter
 @Setter
-@SQLDelete(sql = "update programa_valor set apagado = true where id=?")
+@SQLDelete(sql = "update projeto_valor set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class ProgramaValor extends ControleHistorico {
+public class ProjetoValor extends ControleHistorico {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "programa_valor_id_gen")
-	@SequenceGenerator(name = "programa_valor_id_gen", sequenceName = "programa_valor_id_seq", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "projeto_valor_id_gen")
+	@SequenceGenerator(name = "projeto_valor_id_gen", sequenceName = "projeto_valor_id_seq", allocationSize = 1)
 	@Column(name = "id", nullable = false)
 	private Integer id;
 
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_programa", nullable = false)
-	private Programa programa;
+	@JoinColumn(name = "id_projeto", nullable = false)
+	private Projeto projeto;
 
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -49,24 +49,31 @@ public class ProgramaValor extends ControleHistorico {
 	@Column(name = "quantia", nullable = false, precision = 25, scale = 2)
 	private BigDecimal quantia;
 
-	@NotNull
 	@DateTimeFormat
-	@Column(name = "data_inicio", nullable = false)
+	@Column(name = "data_inicio")
 	private LocalDateTime dataInicio = LocalDateTime.now();
 
 	@DateTimeFormat
 	@Column(name = "data_fim")
 	private LocalDateTime dataFim;
 
-	public ProgramaValor(Programa programa, ValorDto valorDto) {
-		this.setPrograma(programa);
+	public ProjetoValor(Projeto projeto, ValorDto valorDto) {
+		this.setProjeto(projeto);
 		this.setValor(new Valor(valorDto.tipo()));
 		this.setMoeda(valorDto.moeda());
 		this.setQuantia(valorDto.quantia());
 	}
 
-	public void apagarProgramaValor() {
+	public void apagarProjetoValor() {
 		this.setDataFim(LocalDateTime.now());
 		super.apagarHistorico();
+	}
+
+	public boolean compararProjetoValorComValorDto(ValorDto valorDto) {
+		return (
+					Objects.equals(this.getValor().getId(), valorDto.tipo()) &&
+								Objects.equals(this.getMoeda(), valorDto.moeda()) &&
+								Objects.equals(this.getQuantia(), valorDto.quantia())
+		);
 	}
 }

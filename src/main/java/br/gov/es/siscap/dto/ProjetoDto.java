@@ -2,7 +2,6 @@ package br.gov.es.siscap.dto;
 
 import br.gov.es.siscap.models.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public record ProjetoDto(
@@ -10,7 +9,7 @@ public record ProjetoDto(
 			Long id,
 			String sigla,
 			String titulo,
-			BigDecimal valorEstimado,
+			ValorDto valor,
 			String objetivo,
 			String objetivoEspecifico,
 			Long idStatus,
@@ -24,12 +23,12 @@ public record ProjetoDto(
 			List<EquipeDto> equipeElaboracao
 ) {
 
-	public ProjetoDto(Projeto projeto, RateioDto rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao) {
+	public ProjetoDto(Projeto projeto, ValorDto valor, RateioDto rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao) {
 		this(
 					projeto.getId(),
 					projeto.getSigla(),
 					projeto.getTitulo(),
-					projeto.getValorEstimado(),
+					valor,
 					projeto.getObjetivo(),
 					projeto.getObjetivoEspecifico(),
 					projeto.getStatus().getId(),
