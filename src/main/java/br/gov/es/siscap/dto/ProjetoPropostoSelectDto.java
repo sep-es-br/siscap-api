@@ -11,12 +11,11 @@ public record ProjetoPropostoSelectDto(
 			BigDecimal valorEstimado
 ) {
 
-	public ProjetoPropostoSelectDto(Projeto projeto) {
+	public ProjetoPropostoSelectDto(Projeto projeto, ValorDto valorDto) {
 		this(
 					projeto.getId(),
 					(projeto.getSigla() + " - " + projeto.getTitulo()),
-//					projeto.getValorEstimado()
-					BigDecimal.ZERO
+					valorDto.quantia()
 		);
 	}
 }
