@@ -23,8 +23,11 @@ public class ProgramaController {
 	private final ProgramaService service;
 
 	@GetMapping
-	public Page<ProgramaListaDto> listarTodos(@PageableDefault(size = 15, sort = "sigla") Pageable pageable) {
-		return service.listarTodos(pageable);
+	public Page<ProgramaListaDto> listarTodos(
+				@PageableDefault(size = 15, sort = "sigla") Pageable pageable,
+				@RequestParam(required = false, defaultValue = "") String search
+	) {
+		return service.listarTodos(pageable, search);
 	}
 
 	@GetMapping("/{id}")

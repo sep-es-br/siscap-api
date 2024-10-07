@@ -29,10 +29,10 @@ public class ProgramaService {
 	private final ProgramaValorService programaValorService;
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
-	public Page<ProgramaListaDto> listarTodos(Pageable pageable) {
+	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search) {
 		logger.info("Buscando todos os programas");
 
-		return repository.findAll(pageable)
+		return repository.paginarProgramasPorFiltroPesquisaSimples(search, pageable)
 					.map(programa -> new ProgramaListaDto(programa, programaValorService.buscarPorPrograma(programa)));
 	}
 

@@ -37,12 +37,10 @@ public class ProjetoService {
 	private final OrganizacaoService organizacaoService;
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
-	// IMPLEMENTAR METODO DE PESQUISA SIMPLES UTILIZANDO ARGUMENTO search
 	public Page<ProjetoListaDto> listarTodos(Pageable pageable, String search) {
 		logger.info("Buscando todos os projetos");
 
-		return repository
-					.findAll(pageable)
+		return repository.paginarProjetosPorFiltroPesquisaSimples(search, pageable)
 					.map(projeto -> {
 						List<String> nomesMicrorregioesRateio = projetoRateioService.listarNomesMicrorregioesRateio(projeto);
 						ValorDto valorDto = projetoValorService.buscarPorProjeto(projeto);
@@ -55,7 +53,12 @@ public class ProjetoService {
 		return repository.findAll(Sort.by(Sort.Direction.ASC, "titulo"))
 					.stream()
 					.filter(Projeto::isAtivo)
-					.map(ProjetoPropostoSelectDto::new).toList();
+					.map(projeto -> {
+						ValorDto valorDto = projetoValorService.buscarPorProjeto(projeto);
+						return new ProjetoPropostoSelectDto(projeto, valorDto);
+					})
+					.toList();
+//					.map(ProjetoPropostoSelectDto::new).toList();
 	}
 
 	public ProjetoDto buscarPorId(Long id) {
