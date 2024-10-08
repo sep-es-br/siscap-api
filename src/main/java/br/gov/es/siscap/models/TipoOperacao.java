@@ -1,4 +1,4 @@
-package br.gov.es.siscap;
+package br.gov.es.siscap.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

@@ -1,6 +1,6 @@
 package br.gov.es.siscap.dto;
 
-import br.gov.es.siscap.TipoOperacao;
+import br.gov.es.siscap.models.TipoOperacao;
 import br.gov.es.siscap.models.*;
 
 public record SelectDto(Long id, String nome) {
