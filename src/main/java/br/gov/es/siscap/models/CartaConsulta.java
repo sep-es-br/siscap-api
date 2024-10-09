@@ -64,12 +64,12 @@ public class CartaConsulta extends ControleHistorico {
 	}
 
 	private void setCartaConsultaObjeto(ObjetoSelectDto formObjeto) {
-		if (formObjeto.tipo().equals("projeto")) {
+		if (formObjeto.tipo().equals("Projeto")) {
 			this.setProjeto(new Projeto(formObjeto.id()));
 			if (this.getPrograma() != null) this.setPrograma(null);
 		}
 
-		if (formObjeto.tipo().equals("programa")) {
+		if (formObjeto.tipo().equals("Programa")) {
 			this.setPrograma(new Programa(formObjeto.id()));
 			if (this.getProjeto() != null) this.setProjeto(null);
 		}
