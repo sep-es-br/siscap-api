@@ -36,7 +36,7 @@ public class DocumentosService {
 	}
 
 	public String buscarCartaConsultaCorpo(String nomeDocumento) {
-		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento);
+		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento + extensaoArquivo);
 
 		try {
 			return Files.readString(caminhoDocumento);
@@ -48,7 +48,7 @@ public class DocumentosService {
 
 	public String cadastrarCartaConsultaCorpo(String corpo) {
 		String nomeDocumento = gerarNomeDocumentoCartaConsulta();
-		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento);
+		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento + extensaoArquivo);
 
 		try {
 			Files.write(caminhoDocumento, corpo.getBytes());
@@ -61,7 +61,7 @@ public class DocumentosService {
 	}
 
 	public void atualizarCartaConsultaCorpo(String nomeDocumento, String corpo) {
-		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento);
+		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento + extensaoArquivo);
 
 		try {
 			Files.write(caminhoDocumento, corpo.getBytes());
@@ -72,7 +72,7 @@ public class DocumentosService {
 	}
 
 	public void excluirCartaConsultaCorpo(String nomeDocumento) {
-		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento);
+		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento + extensaoArquivo);
 
 		try {
 			Files.deleteIfExists(caminhoDocumento);
@@ -86,6 +86,6 @@ public class DocumentosService {
 		String prefixo = "CC";
 		String dataFormatada = LocalDateTime.now().format(DateTimeFormatter.ofPattern(formatacaoData));
 		String porcaoAleatoria = UUID.randomUUID().toString().substring(0, 5);
-		return prefixo + dataFormatada + porcaoAleatoria + extensaoArquivo;
+		return prefixo + dataFormatada + porcaoAleatoria;
 	}
 }
