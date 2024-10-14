@@ -10,6 +10,9 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+
 @Entity
 @Table(name = "cartaconsulta")
 @NoArgsConstructor
@@ -55,6 +58,12 @@ public class CartaConsulta extends ControleHistorico {
 
 	public void apagarCartaConsulta() {
 		super.apagarHistorico();
+	}
+
+	public String formatarDataCartaConsultaListaDto() {
+		DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("dd/MM/yyyy").toFormatter();
+
+		return this.getCriadoEm().format(formatter);
 	}
 
 	public ObjetoSelectDto getCartaConsultaObjeto() {
