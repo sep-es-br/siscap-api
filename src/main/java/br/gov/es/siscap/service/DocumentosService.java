@@ -20,7 +20,7 @@ public class DocumentosService {
 	private final Path diretorioDocumentos;
 	private final Logger logger;
 
-	private static final String formatacaoData = "ddMMuuuuHHmmss";
+	private static final String formatacaoData = "uuuuMMddHHmmss";
 	private static final String extensaoArquivo = ".txt";
 
 	private Path diretorioCartaConsulta;
