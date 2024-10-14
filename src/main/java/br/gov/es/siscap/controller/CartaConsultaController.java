@@ -1,5 +1,6 @@
 package br.gov.es.siscap.controller;
 
+import br.gov.es.siscap.dto.CartaConsultaDetalhesDto;
 import br.gov.es.siscap.dto.CartaConsultaDto;
 import br.gov.es.siscap.dto.listagem.CartaConsultaListaDto;
 import br.gov.es.siscap.form.CartaConsultaForm;
@@ -29,6 +30,11 @@ public class CartaConsultaController {
 	@GetMapping("/{id}")
 	public ResponseEntity<CartaConsultaDto> buscarPorId(@PathVariable @NotNull Long id) {
 		return ResponseEntity.ok(service.buscarPorId(id));
+	}
+
+	@GetMapping("/{id}/detalhes")
+	public ResponseEntity<CartaConsultaDetalhesDto> buscarDetalhesPorId(@PathVariable @NotNull Long id) {
+		return ResponseEntity.ok(service.buscarDetalhesPorId(id));
 	}
 
 	@PostMapping
