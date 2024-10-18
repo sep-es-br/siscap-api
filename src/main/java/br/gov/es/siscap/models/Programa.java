@@ -42,8 +42,8 @@ public class Programa extends ControleHistorico {
 
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_status", nullable = false)
-	private Status status;
+	@JoinColumn(name = "id_tipo_status", nullable = false)
+	private TipoStatus tipoStatus;
 
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "programa_organizacao",
@@ -75,7 +75,7 @@ public class Programa extends ControleHistorico {
 
 	public Programa(ProgramaForm form) {
 		this.setDadosPrograma(form);
-		this.setStatus(new Status(StatusEnum.ATIVO.getValue()));
+		this.setTipoStatus(new TipoStatus(StatusEnum.ATIVO.getValue()));
 	}
 
 	public void atualizar(ProgramaForm form) {

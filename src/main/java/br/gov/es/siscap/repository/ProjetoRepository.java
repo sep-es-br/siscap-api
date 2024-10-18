@@ -14,7 +14,7 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
 
 	@Query("select p from Projeto p " +
 				"where " +
-				"p.status.id = 1 and " +
+				"p.tipoStatus.id = 1 and " +
 				"p.apagado = false and " +
 				"(lower(p.sigla) like lower(concat('%', :search ,'%')) or " +
 				"lower(p.titulo) like lower(concat('%', :search , '%')))"

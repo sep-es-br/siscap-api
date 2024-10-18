@@ -37,8 +37,8 @@ public class ProjetoValor extends ControleHistorico {
 
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_valor", nullable = false)
-	private Valor valor;
+	@JoinColumn(name = "id_tipo_valor", nullable = false)
+	private TipoValor tipoValor;
 
 	@Size(max = 3)
 	@NotNull
@@ -59,7 +59,7 @@ public class ProjetoValor extends ControleHistorico {
 
 	public ProjetoValor(Projeto projeto, ValorDto valorDto) {
 		this.setProjeto(projeto);
-		this.setValor(new Valor(valorDto.tipo()));
+		this.setTipoValor(new TipoValor(valorDto.tipo()));
 		this.setMoeda(valorDto.moeda());
 		this.setQuantia(valorDto.quantia());
 	}
@@ -71,7 +71,7 @@ public class ProjetoValor extends ControleHistorico {
 
 	public boolean compararProjetoValorComValorDto(ValorDto valorDto) {
 		return (
-					Objects.equals(this.getValor().getId(), valorDto.tipo()) &&
+					Objects.equals(this.getTipoValor().getId(), valorDto.tipo()) &&
 								Objects.equals(this.getMoeda(), valorDto.moeda()) &&
 								Objects.equals(this.getQuantia(), valorDto.quantia())
 		);

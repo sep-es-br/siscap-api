@@ -43,18 +43,18 @@ public class ProgramaPessoa extends ControleHistorico {
 
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_papel", nullable = false)
-	private Papel papel;
+	@JoinColumn(name = "id_tipo_papel", nullable = false)
+	private TipoPapel tipoPapel;
 
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_equipe", nullable = false)
-	private Equipe equipe;
+	@JoinColumn(name = "id_tipo_equipe", nullable = false)
+	private TipoEquipe tipoEquipe;
 
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_status", nullable = false)
-	private Status status;
+	private TipoStatus tipoStatus;
 
 	@Size(max = 255)
 	@Column(name = "justificativa")
@@ -72,15 +72,15 @@ public class ProgramaPessoa extends ControleHistorico {
 	public ProgramaPessoa(Programa programa, EquipeDto equipeDto) {
 		this.setPrograma(programa);
 		this.setPessoa(new Pessoa(equipeDto.idPessoa()));
-		this.setPapel(new Papel(equipeDto.idPapel()));
-		this.setEquipe(new Equipe(EquipeEnum.CAPTACAO.getValue()));
-		this.setStatus(new Status(StatusEnum.ATIVO.getValue()));
+		this.setTipoPapel(new TipoPapel(equipeDto.idPapel()));
+		this.setTipoEquipe(new TipoEquipe(EquipeEnum.CAPTACAO.getValue()));
+		this.setTipoStatus(new TipoStatus(StatusEnum.ATIVO.getValue()));
 	}
 
 	public void atualizarMembroEquipe(EquipeDto equipeDto) {
-		this.setPapel(new Papel(equipeDto.idPapel()));
+		this.setTipoPapel(new TipoPapel(equipeDto.idPapel()));
 		if (!Objects.equals(equipeDto.idStatus(), StatusEnum.ATIVO.getValue())) {
-			this.setStatus(new Status(equipeDto.idStatus()));
+			this.setTipoStatus(new TipoStatus(equipeDto.idStatus()));
 			this.setJustificativa(equipeDto.justificativa());
 			this.setDataFim(LocalDateTime.now());
 			super.atualizarHistorico();
@@ -88,7 +88,7 @@ public class ProgramaPessoa extends ControleHistorico {
 	}
 
 	public void apagar(String justificativa) {
-		this.setStatus(new Status(StatusEnum.EXCLUIDO.getValue()));
+		this.setTipoStatus(new TipoStatus(StatusEnum.EXCLUIDO.getValue()));
 		this.setJustificativa(justificativa);
 		this.setDataFim(LocalDateTime.now());
 		super.apagarHistorico();

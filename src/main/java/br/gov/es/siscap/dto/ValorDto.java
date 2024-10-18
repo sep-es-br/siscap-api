@@ -26,7 +26,7 @@ public record ValorDto(
 	public ValorDto(ProjetoValor projetoValor) {
 		this(
 					projetoValor.getQuantia(),
-					projetoValor.getValor().getId(),
+					projetoValor.getTipoValor().getId(),
 					projetoValor.getMoeda()
 		);
 	}
@@ -34,7 +34,7 @@ public record ValorDto(
 	public ValorDto(ProgramaValor programaValor) {
 		this(
 					programaValor.getQuantia(),
-					programaValor.getValor().getId(),
+					programaValor.getTipoValor().getId(),
 					programaValor.getMoeda()
 		);
 	}

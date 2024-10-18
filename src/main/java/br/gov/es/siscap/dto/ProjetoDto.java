@@ -31,7 +31,7 @@ public record ProjetoDto(
 					valor,
 					projeto.getObjetivo(),
 					projeto.getObjetivoEspecifico(),
-					projeto.getStatus().getId(),
+					projeto.getTipoStatus().getId(),
 					projeto.getOrganizacao().getId(),
 					projeto.getSituacaoProblema(),
 					projeto.getSolucoesPropostas(),

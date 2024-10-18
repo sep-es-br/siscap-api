@@ -49,16 +49,16 @@ public record SelectDto(Long id, String nome) {
 		this(areaAtuacao.getId(), areaAtuacao.getNome());
 	}
 
-	public SelectDto(Papel papel) {
-		this(papel.getId(), papel.getTipo());
+	public SelectDto(TipoPapel tipoPapel) {
+		this(tipoPapel.getId(), tipoPapel.getTipo());
 	}
 
 	public SelectDto(Projeto projeto) {
 		this(projeto.getId(), (projeto.getSigla() + " - " + projeto.getTitulo()));
 	}
 
-	public SelectDto(Valor valor) {
-		this(valor.getId(), valor.getTipo());
+	public SelectDto(TipoValor tipoValor) {
+		this(tipoValor.getId(), tipoValor.getTipo());
 	}
 
 	public SelectDto(TipoOperacao tipoOperacao) {

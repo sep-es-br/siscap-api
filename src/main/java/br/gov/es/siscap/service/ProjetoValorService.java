@@ -75,7 +75,7 @@ public class ProjetoValorService {
 	}
 
 	private boolean compararProjetoValorComValorDto(ProjetoValor projetoValor, ValorDto valorDto) {
-		boolean checkTipo = projetoValor.getValor().getId().equals(valorDto.tipo());
+		boolean checkTipo = projetoValor.getTipoValor().getId().equals(valorDto.tipo());
 		boolean checkMoeda = projetoValor.getMoeda().equals(valorDto.moeda());
 
 		BigDecimal quantiaProjetoValor = projetoValor.getQuantia().setScale(2, RoundingMode.FLOOR);

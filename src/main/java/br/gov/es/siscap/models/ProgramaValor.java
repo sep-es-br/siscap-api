@@ -13,7 +13,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Table(name = "programa_valor")
@@ -37,8 +36,8 @@ public class ProgramaValor extends ControleHistorico {
 
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_valor", nullable = false)
-	private Valor valor;
+	@JoinColumn(name = "id_tipo_valor", nullable = false)
+	private TipoValor tipoValor;
 
 	@Size(max = 3)
 	@NotNull
@@ -60,7 +59,7 @@ public class ProgramaValor extends ControleHistorico {
 
 	public ProgramaValor(Programa programa, ValorDto valorDto) {
 		this.setPrograma(programa);
-		this.setValor(new Valor(valorDto.tipo()));
+		this.setTipoValor(new TipoValor(valorDto.tipo()));
 		this.setMoeda(valorDto.moeda());
 		this.setQuantia(valorDto.quantia());
 	}

@@ -14,8 +14,8 @@ public record EquipeDto(
 	public EquipeDto(ProjetoPessoa projetoPessoa) {
 		this(
 					projetoPessoa.getPessoa().getId(),
-					projetoPessoa.getPapel().getId(),
-					projetoPessoa.getStatus().getId(),
+					projetoPessoa.getTipoPapel().getId(),
+					projetoPessoa.getTipoStatus().getId(),
 					projetoPessoa.getJustificativa()
 		);
 	}
@@ -23,8 +23,8 @@ public record EquipeDto(
 	public EquipeDto(ProgramaPessoa programaPessoa) {
 		this(
 					programaPessoa.getPessoa().getId(),
-					programaPessoa.getPapel().getId(),
-					programaPessoa.getStatus().getId(),
+					programaPessoa.getTipoPapel().getId(),
+					programaPessoa.getTipoStatus().getId(),
 					programaPessoa.getJustificativa()
 		);
 	}

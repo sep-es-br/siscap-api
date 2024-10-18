@@ -10,17 +10,17 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "equipe")
+@Table(name = "tipo_papel")
 @NoArgsConstructor
 @Getter
 @Setter
-@SQLDelete(sql = "update equipe set apagado = true where id=?")
+@SQLDelete(sql = "update tipo_papel set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class Equipe extends ControleHistorico {
+public class TipoPapel extends ControleHistorico {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "equipe_id_gen")
-	@SequenceGenerator(name = "equipe_id_gen", sequenceName = "equipe_id_seq", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tipo_papel_id_gen")
+	@SequenceGenerator(name = "tipo_papel_id_gen", sequenceName = "tipo_papel_id_seq", allocationSize = 1)
 	@Column(name = "id", nullable = false)
 	private Long id;
 
@@ -29,7 +29,7 @@ public class Equipe extends ControleHistorico {
 	@Column(name = "tipo", nullable = false)
 	private String tipo;
 
-	public Equipe(Long id) {
+	public TipoPapel(Long id) {
 		this.setId(id);
 	}
 }

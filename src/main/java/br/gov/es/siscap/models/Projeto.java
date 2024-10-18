@@ -43,8 +43,8 @@ public class Projeto extends ControleHistorico {
 
 	@ManyToOne
 	@SQLJoinTableRestriction("apagado = FALSE")
-	@JoinColumn(name = "status", nullable = false)
-	private Status status;
+	@JoinColumn(name = "id_tipo_status", nullable = false)
+	private TipoStatus tipoStatus;
 
 	@ManyToOne
 	@JoinColumn(name = "id_organizacao", nullable = false)
@@ -116,7 +116,7 @@ public class Projeto extends ControleHistorico {
 	}
 
 	public boolean isAtivo() {
-		return Objects.equals(this.getStatus().getId(), StatusEnum.ATIVO.getValue());
+		return Objects.equals(this.getTipoStatus().getId(), StatusEnum.ATIVO.getValue());
 	}
 
 	private void setDadosProjeto(ProjetoForm form) {
@@ -124,7 +124,7 @@ public class Projeto extends ControleHistorico {
 		this.setTitulo(form.titulo());
 		this.setObjetivo(form.objetivo());
 		this.setObjetivoEspecifico(form.objetivoEspecifico());
-		this.setStatus(new Status(StatusEnum.ATIVO.getValue()));
+		this.setTipoStatus(new TipoStatus(StatusEnum.ATIVO.getValue()));
 		this.setOrganizacao(new Organizacao(form.idOrganizacao()));
 		this.setSituacaoProblema(form.situacaoProblema());
 		this.setSolucoesPropostas(form.solucoesPropostas());
