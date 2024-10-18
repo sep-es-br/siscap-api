@@ -110,6 +110,12 @@ public class RestExceptionHandler {
 		return montarRetorno(mensagem);
 	}
 
+	@ExceptionHandler(CartaConsultaObjetoInvalidoException.class)
+	private ResponseEntity<MensagemErroRest> cartaConsultaObjetoInvalidoHandler(CartaConsultaObjetoInvalidoException e) {
+		var mensagem = new MensagemErroRest(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao buscar a(s) carta(s) consulta", Collections.singletonList(e.getMessage()));
+		return montarRetorno(mensagem);
+	}
+
 	private ResponseEntity<MensagemErroRest> montarRetorno(MensagemErroRest mensagem) {
 		logger.error(mensagem);
 		return ResponseEntity.status(mensagem.status()).body(mensagem);
