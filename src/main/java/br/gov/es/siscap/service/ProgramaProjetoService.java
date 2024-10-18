@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoPropostoDto;
+import br.gov.es.siscap.dto.SelectDto;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaProjeto;
 import br.gov.es.siscap.models.Projeto;
@@ -28,6 +29,13 @@ public class ProgramaProjetoService {
 		List<ProgramaProjeto> programaProjetoList = this.buscarProgramaProjetoSetPorPrograma(programa).stream().toList();
 
 		return this.montarListProjetoPropostoDto(programaProjetoList);
+	}
+
+	public List<SelectDto> buscarSelectDtoPorIdPrograma(Long idPrograma) {
+		return repository.findAllByPrograma(new Programa(idPrograma))
+					.stream()
+					.map(programaProjeto -> new SelectDto(programaProjeto.getProjeto().getId(), programaProjeto.getProjeto().getTitulo()))
+					.toList();
 	}
 
 	@Transactional

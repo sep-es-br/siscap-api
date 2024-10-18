@@ -16,3 +16,4 @@ log4j:
 raiz:
   imagens: C:/projetos/siscap/img
   relatorios: C:/projetos/siscap/relatorios
+  documentos: C:/projetos/siscap/documentos

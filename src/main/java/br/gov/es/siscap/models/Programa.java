@@ -69,6 +69,10 @@ public class Programa extends ControleHistorico {
 	@Column(name = "data_fim")
 	private LocalDateTime dataFim;
 
+	public Programa(Long id) {
+		this.setId(id);
+	}
+
 	public Programa(ProgramaForm form) {
 		this.setDadosPrograma(form);
 		this.setStatus(new Status(StatusEnum.ATIVO.getValue()));
