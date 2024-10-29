@@ -2,9 +2,11 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
 import br.gov.es.siscap.dto.listagem.CartaConsultaListaDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.exception.CartaConsultaObjetoInvalidoException;
 import br.gov.es.siscap.form.CartaConsultaForm;
 import br.gov.es.siscap.models.CartaConsulta;
+import br.gov.es.siscap.models.LocalidadeQuantia;
 import br.gov.es.siscap.repository.CartaConsultaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -24,9 +27,8 @@ public class CartaConsultaService {
 
 	private final CartaConsultaRepository repository;
 	private final DocumentosService documentosService;
-	private final ProgramaProjetoService programaProjetoService;
-	private final ProgramaValorService programaValorService;
-	private final ProjetoValorService projetoValorService;
+	private final ProjetoService projetoService;
+	private final LocalidadeQuantiaService localidadeQuantiaService;
 	private final Logger logger = LogManager.getLogger(CartaConsultaService.class);
 
 	public Page<CartaConsultaListaDto> listarTodos(Pageable pageable) {
@@ -47,7 +49,7 @@ public class CartaConsultaService {
 
 	public CartaConsultaDto buscarPorId(Long id) {
 
-		CartaConsulta cartaConsulta = repository.findById(id).orElseThrow();
+		CartaConsulta cartaConsulta = this.buscarCartaConsulta(id);
 
 		String corpo = documentosService.buscarCartaConsultaCorpo(cartaConsulta.getNomeDocumento());
 
@@ -56,11 +58,11 @@ public class CartaConsultaService {
 
 	public CartaConsultaDetalhesDto buscarDetalhesPorId(Long id) {
 
-		CartaConsulta cartaConsulta = repository.findById(id).orElseThrow();
+		CartaConsulta cartaConsulta = this.buscarCartaConsulta(id);
 
 		String corpo = documentosService.buscarCartaConsultaCorpo(cartaConsulta.getNomeDocumento());
 
-		List<SelectDto> projetosPropostos = this.construirProjetosPropostosList(cartaConsulta);
+		List<OpcoesDto> projetosPropostos = this.construirProjetosPropostosList(cartaConsulta);
 
 		ValorDto valor = this.construirValorDto(cartaConsulta);
 
@@ -82,7 +84,7 @@ public class CartaConsultaService {
 
 	@Transactional
 	public CartaConsultaDto atualizar(Long id, CartaConsultaForm form) {
-		CartaConsulta cartaConsulta = repository.findById(id).orElseThrow();
+		CartaConsulta cartaConsulta = this.buscarCartaConsulta(id);
 
 		cartaConsulta.atualizarCartaConsulta(form);
 
@@ -95,7 +97,7 @@ public class CartaConsultaService {
 
 	@Transactional
 	public void excluir(Long id) {
-		CartaConsulta cartaConsulta = repository.findById(id).orElseThrow();
+		CartaConsulta cartaConsulta = this.buscarCartaConsulta(id);
 
 		cartaConsulta.apagarCartaConsulta();
 
@@ -105,28 +107,26 @@ public class CartaConsultaService {
 	}
 
 	private CartaConsulta buscarCartaConsulta(Long id) {
-		// ADICIONAR EXCEÇÕES:
-		// |-> CARTACONSULTANAOENCONTRADA
-		// |-> CARTACONSULTAOBJETOINVALIDO (CASO PROJETO && PROGRAMA OU !PROJETO && !PROGRAMA)
-
 		return repository.findById(id).orElseThrow(() -> new RuntimeException("Carta de consulta não encontrada"));
 	}
 
-	private List<SelectDto> construirProjetosPropostosList(CartaConsulta cartaConsulta) {
+	private List<OpcoesDto> construirProjetosPropostosList(CartaConsulta cartaConsulta) {
 		if (cartaConsulta.getProjeto() != null && cartaConsulta.getPrograma() == null) {
 			return List.of();
 		}
 
-		return programaProjetoService.buscarSelectDtoPorIdPrograma(cartaConsulta.getPrograma().getId());
+		return projetoService.buscarProjetosPropostos(cartaConsulta.getPrograma());
 	}
 
 	private ValorDto construirValorDto(CartaConsulta cartaConsulta) {
 		if (cartaConsulta.getPrograma() != null && cartaConsulta.getProjeto() == null) {
-			return programaValorService.buscarPorPrograma(cartaConsulta.getPrograma());
+			Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorPrograma(cartaConsulta.getPrograma());
+			return localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 		}
 
 		if (cartaConsulta.getProjeto() != null && cartaConsulta.getPrograma() == null) {
-			return projetoValorService.buscarPorProjeto(cartaConsulta.getProjeto());
+			Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(cartaConsulta.getProjeto());
+			return localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 		}
 
 		return null;

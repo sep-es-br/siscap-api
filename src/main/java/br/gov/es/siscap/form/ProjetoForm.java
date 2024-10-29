@@ -25,8 +25,9 @@ public record ProjetoForm(
 			@Valid
 			ValorDto valor,
 
+			@NotEmpty
 			@Valid
-			RateioDto rateio,
+			List<RateioDto> rateio,
 
 			@NotBlank
 			@Size(max = 2000)

@@ -18,12 +18,12 @@ public record ProjetoDto(
 			String solucoesPropostas,
 			String impactos,
 			String arranjosInstitucionais,
-			RateioDto rateio,
+			List<RateioDto> rateio,
 			Long idResponsavelProponente,
 			List<EquipeDto> equipeElaboracao
 ) {
 
-	public ProjetoDto(Projeto projeto, ValorDto valor, RateioDto rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao) {
+	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao) {
 		this(
 					projeto.getId(),
 					projeto.getSigla(),
@@ -31,7 +31,7 @@ public record ProjetoDto(
 					valor,
 					projeto.getObjetivo(),
 					projeto.getObjetivoEspecifico(),
-					projeto.getStatus().getId(),
+					projeto.getTipoStatus().getId(),
 					projeto.getOrganizacao().getId(),
 					projeto.getSituacaoProblema(),
 					projeto.getSolucoesPropostas(),

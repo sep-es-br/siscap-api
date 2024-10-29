@@ -1,10 +1,12 @@
 package br.gov.es.siscap.dto;
 
+import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
 import br.gov.es.siscap.models.CartaConsulta;
 
 public record CartaConsultaDto(
+
 			Long id,
-			ObjetoSelectDto objeto,
+			ObjetoOpcoesDto objeto,
 			Long operacao,
 			String corpo
 ) {

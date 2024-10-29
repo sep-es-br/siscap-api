@@ -1,9 +1,9 @@
 package br.gov.es.siscap.models;
 
 import br.gov.es.siscap.dto.EquipeDto;
-import br.gov.es.siscap.enums.EquipeEnum;
-import br.gov.es.siscap.enums.PapelEnum;
-import br.gov.es.siscap.enums.StatusEnum;
+import br.gov.es.siscap.enums.TipoEquipeEnum;
+import br.gov.es.siscap.enums.TipoPapelEnum;
+import br.gov.es.siscap.enums.TipoStatusEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -22,7 +22,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @SQLDelete(sql = "update projeto_pessoa set apagado = true where id=?")
-@SQLRestriction("apagado = FALSE and id_status = 1")
+@SQLRestriction("apagado = FALSE and id_tipo_status = 1")
 public class ProjetoPessoa extends ControleHistorico {
 
 	@Id
@@ -42,16 +42,16 @@ public class ProjetoPessoa extends ControleHistorico {
 	private Pessoa pessoa;
 
 	@OneToOne(cascade = {CascadeType.REFRESH})
-	@JoinColumn(name = "id_papel")
-	private Papel papel;
+	@JoinColumn(name = "id_tipo_papel")
+	private TipoPapel tipoPapel;
 
 	@OneToOne(cascade = {CascadeType.REFRESH})
-	@JoinColumn(name = "id_equipe")
-	private Equipe equipe;
+	@JoinColumn(name = "id_tipo_equipe")
+	private TipoEquipe tipoEquipe;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "id_status")
-	private Status status;
+	@JoinColumn(name = "id_tipo_status")
+	private TipoStatus tipoStatus;
 
 	@Column(name = "justificativa")
 	private String justificativa;
@@ -68,31 +68,31 @@ public class ProjetoPessoa extends ControleHistorico {
 	public ProjetoPessoa(Projeto projeto, Long idResponsavelProponente) {
 		this.setProjeto(projeto);
 		this.setPessoa(new Pessoa(idResponsavelProponente));
-		this.setPapel(new Papel(PapelEnum.RESPONSAVEL_PROPONENTE.getValue()));
-		this.setEquipe(new Equipe(EquipeEnum.ELABORACAO.getValue()));
-		this.setStatus(new Status(StatusEnum.ATIVO.getValue()));
+		this.setTipoPapel(new TipoPapel(TipoPapelEnum.RESPONSAVEL_PROPONENTE.getValue()));
+		this.setTipoEquipe(new TipoEquipe(TipoEquipeEnum.ELABORACAO.getValue()));
+		this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
 		this.setJustificativa(null);
 	}
 
 	public ProjetoPessoa(Projeto projeto, EquipeDto equipeDto) {
 		this.setProjeto(projeto);
 		this.setPessoa(new Pessoa(equipeDto.idPessoa()));
-		this.setPapel(new Papel(equipeDto.idPapel()));
-		this.setEquipe(new Equipe(EquipeEnum.ELABORACAO.getValue()));
-		this.setStatus(new Status(equipeDto.idStatus()));
+		this.setTipoPapel(new TipoPapel(equipeDto.idPapel()));
+		this.setTipoEquipe(new TipoEquipe(TipoEquipeEnum.ELABORACAO.getValue()));
+		this.setTipoStatus(new TipoStatus(equipeDto.idStatus()));
 		this.setJustificativa(equipeDto.justificativa());
 	}
 
 	public void atualizarResponsavelProponente(Long idStatus) {
-		this.setStatus(new Status(idStatus));
+		this.setTipoStatus(new TipoStatus(idStatus));
 		this.setDataFim(LocalDateTime.now());
 		super.atualizarHistorico();
 	}
 
 	public void atualizarMembroEquipe(EquipeDto equipeDto) {
-		this.setPapel(new Papel(equipeDto.idPapel()));
-		if (!Objects.equals(equipeDto.idStatus(), StatusEnum.ATIVO.getValue())) {
-			this.setStatus(new Status(equipeDto.idStatus()));
+		this.setTipoPapel(new TipoPapel(equipeDto.idPapel()));
+		if (!Objects.equals(equipeDto.idStatus(), TipoStatusEnum.ATIVO.getValue())) {
+			this.setTipoStatus(new TipoStatus(equipeDto.idStatus()));
 			this.setJustificativa(equipeDto.justificativa());
 			this.setDataFim(LocalDateTime.now());
 			super.atualizarHistorico();
@@ -100,14 +100,14 @@ public class ProjetoPessoa extends ControleHistorico {
 	}
 
 	public void apagar(String justificativa) {
-		this.setStatus(new Status(StatusEnum.EXCLUIDO.getValue()));
+		this.setTipoStatus(new TipoStatus(TipoStatusEnum.EXCLUIDO.getValue()));
 		this.setJustificativa(justificativa);
 		this.setDataFim(LocalDateTime.now());
 		super.atualizarHistorico();
 	}
 
 	public boolean isResponsavelProponente() {
-		return Objects.equals(this.getPapel().getId(), PapelEnum.RESPONSAVEL_PROPONENTE.getValue());
+		return Objects.equals(this.getTipoPapel().getId(), TipoPapelEnum.RESPONSAVEL_PROPONENTE.getValue());
 	}
 
 	public boolean compararIdPessoaComEquipeDto(EquipeDto equipeDto) {

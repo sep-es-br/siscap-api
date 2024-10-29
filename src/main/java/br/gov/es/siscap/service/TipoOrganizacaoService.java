@@ -1,6 +1,6 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.repository.TipoOrganizacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -14,14 +14,13 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class TipoOrganizacaoService {
 
-    private final TipoOrganizacaoRepository repository;
+	private final TipoOrganizacaoRepository repository;
 
-    public List<SelectDto> buscarSelect() {
-        return repository.findAll(Sort.by(Sort.Direction.ASC, "tipo")).stream().map(SelectDto::new).toList();
-    }
+	public List<OpcoesDto> listarOpcoesDropdown() {
+		return repository.findAll(Sort.by(Sort.Direction.ASC, "tipo")).stream().map(OpcoesDto::new).toList();
+	}
 
-    public boolean existePorId(Long id) {
-        return repository.existsById(id);
-    }
-
+	public boolean existePorId(Long id) {
+		return repository.existsById(id);
+	}
 }

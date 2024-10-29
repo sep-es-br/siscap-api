@@ -1,7 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.EquipeDto;
-import br.gov.es.siscap.enums.StatusEnum;
+import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.exception.EquipeSemResponsavelProponenteException;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
@@ -64,7 +64,7 @@ public class ProjetoPessoaService {
 		ProjetoPessoa responsavelProponente = this.buscarResponsavelProponente(projetoPessoaSet);
 
 		if (!this.compararIdsResponsavelProponente(responsavelProponente.getPessoa().getId(), idResponsavelProponente)) {
-			responsavelProponente.atualizarResponsavelProponente(StatusEnum.INATIVO.getValue());
+			responsavelProponente.atualizarResponsavelProponente(TipoStatusEnum.INATIVO.getValue());
 			projetoPessoaRepository.save(responsavelProponente);
 
 			projetoPessoaRepository.save(new ProjetoPessoa(projeto, idResponsavelProponente));

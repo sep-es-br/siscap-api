@@ -104,12 +104,6 @@ public class RestExceptionHandler {
 		return montarRetorno(mensagem);
 	}
 
-	@ExceptionHandler(ProgramaSemValorException.class)
-	private ResponseEntity<MensagemErroRest> programaSemValorHandler(ProgramaSemValorException e) {
-		var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND, "Erro ao processar a requisição", Collections.singletonList(e.getMessage()));
-		return montarRetorno(mensagem);
-	}
-
 	@ExceptionHandler(CartaConsultaObjetoInvalidoException.class)
 	private ResponseEntity<MensagemErroRest> cartaConsultaObjetoInvalidoHandler(CartaConsultaObjetoInvalidoException e) {
 		var mensagem = new MensagemErroRest(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao buscar a(s) carta(s) consulta", Collections.singletonList(e.getMessage()));

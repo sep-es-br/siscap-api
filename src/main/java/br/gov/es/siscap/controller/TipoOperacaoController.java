@@ -1,6 +1,6 @@
 package br.gov.es.siscap.controller;
 
-import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.service.TipoOperacaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,8 +16,8 @@ public class TipoOperacaoController {
 
 	private final TipoOperacaoService service;
 
-	@GetMapping("/select")
-	public List<SelectDto> listarTipoOperacaoSelect() {
-		return service.buscarSelect();
+	@GetMapping("/opcoes")
+	public List<OpcoesDto> listarOpcoesDropdown() {
+		return service.listarOpcoesDropdown();
 	}
 }

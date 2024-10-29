@@ -1,6 +1,6 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.models.Pais;
 import br.gov.es.siscap.repository.EstadoRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class EstadoService {
 		return repository.existsById(id);
 	}
 
-	public List<SelectDto> buscarSelect(Long idPais) {
-		return repository.findAllByPaisOrderByNome(new Pais(idPais)).stream().map(SelectDto::new).toList();
+	public List<OpcoesDto> listarOpcoesDropdown(Long idPais) {
+		return repository.findAllByPaisOrderByNome(new Pais(idPais)).stream().map(OpcoesDto::new).toList();
 	}
 }
