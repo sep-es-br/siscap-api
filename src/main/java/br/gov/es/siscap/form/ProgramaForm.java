@@ -1,7 +1,6 @@
 package br.gov.es.siscap.form;
 
 import br.gov.es.siscap.dto.EquipeDto;
-import br.gov.es.siscap.dto.ProjetoPropostoDto;
 import br.gov.es.siscap.dto.ValorDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -27,7 +26,7 @@ public record ProgramaForm(
 			List<EquipeDto> equipeCaptacao,
 
 			@NotEmpty
-			List<ProjetoPropostoDto> projetosPropostos,
+			List<Long> idProjetoPropostoList,
 
 			@Valid
 			ValorDto valor

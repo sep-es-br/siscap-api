@@ -1,11 +1,11 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.ProjetoDto;
-import br.gov.es.siscap.dto.ProjetoPropostoSelectDto;
+import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.form.ProjetoForm;
-import br.gov.es.siscap.service.ArquivosService;
 import br.gov.es.siscap.service.ProjetoService;
+import br.gov.es.siscap.service.RelatoriosService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import java.util.List;
 public class ProjetoController {
 
 	private final ProjetoService service;
-	private final ArquivosService arquivosService;
+	private final RelatoriosService relatoriosService;
 
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
@@ -37,9 +37,9 @@ public class ProjetoController {
 		return service.listarTodos(pageable, search);
 	}
 
-	@GetMapping("/select")
-	public List<ProjetoPropostoSelectDto> listarSelect() {
-		return service.listarSelect();
+	@GetMapping("/opcoes")
+	public List<ProjetoPropostoOpcoesDto> listarOpcoesDropdown() {
+		return service.listarOpcoesDropdown();
 	}
 
 	@GetMapping("/{id}")
@@ -66,7 +66,7 @@ public class ProjetoController {
 
 	@GetMapping("/dic/{idProjeto}")
 	public ResponseEntity<Resource> gerarDIC(@PathVariable Integer idProjeto) {
-		Resource resource = arquivosService.gerarArquivo("DIC", idProjeto);
+		Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto);
 		String nomeArquivo = service.gerarNomeArquivo(idProjeto);
 
 		String contentType = "application/pdf";

@@ -1,6 +1,6 @@
 package br.gov.es.siscap.models;
 
-import br.gov.es.siscap.dto.ObjetoSelectDto;
+import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
 import br.gov.es.siscap.form.CartaConsultaForm;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -66,13 +66,13 @@ public class CartaConsulta extends ControleHistorico {
 		return this.getCriadoEm().format(formatter);
 	}
 
-	public ObjetoSelectDto getCartaConsultaObjeto() {
-		if (this.getProjeto() != null) return new ObjetoSelectDto(this.getProjeto());
-		if (this.getPrograma() != null) return new ObjetoSelectDto(this.getPrograma());
+	public ObjetoOpcoesDto getCartaConsultaObjeto() {
+		if (this.getProjeto() != null) return new ObjetoOpcoesDto(this.getProjeto());
+		if (this.getPrograma() != null) return new ObjetoOpcoesDto(this.getPrograma());
 		return null;
 	}
 
-	private void setCartaConsultaObjeto(ObjetoSelectDto formObjeto) {
+	private void setCartaConsultaObjeto(ObjetoOpcoesDto formObjeto) {
 		if (formObjeto.tipo().equals("Projeto")) {
 			this.setProjeto(new Projeto(formObjeto.id()));
 			if (this.getPrograma() != null) this.setPrograma(null);

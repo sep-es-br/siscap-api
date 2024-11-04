@@ -1,6 +1,6 @@
 package br.gov.es.siscap.form;
 
-import br.gov.es.siscap.dto.ObjetoSelectDto;
+import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Positive;
 public record CartaConsultaForm(
 
 			@Valid
-			ObjetoSelectDto objeto,
+			ObjetoOpcoesDto objeto,
 
 			@NotNull
 			@Positive

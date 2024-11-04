@@ -30,9 +30,6 @@ public class Microrregiao extends ControleHistorico {
 	@OneToMany(mappedBy = "microrregiao")
 	private List<Cidade> cidades;
 
-	@OneToMany(mappedBy = "microrregiao")
-	private Set<ProjetoMicrorregiao> projetoMicrorregiaoSet;
-
 	public Microrregiao(Long id) {
 		this.setId(id);
 	}

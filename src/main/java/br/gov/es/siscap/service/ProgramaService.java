@@ -2,9 +2,8 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaDto;
-import br.gov.es.siscap.dto.ProjetoPropostoDto;
-import br.gov.es.siscap.dto.ValorDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.repository.ProgramaRepository;
@@ -24,16 +23,19 @@ import java.util.List;
 public class ProgramaService {
 
 	private final ProgramaRepository repository;
+	private final ProjetoService projetoService;
 	private final ProgramaPessoaService programaPessoaService;
-	private final ProgramaProjetoService programaProjetoService;
-	private final ProgramaValorService programaValorService;
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
 	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search) {
 		logger.info("Buscando todos os programas");
 
 		return repository.paginarProgramasPorFiltroPesquisaSimples(search, pageable)
-					.map(programa -> new ProgramaListaDto(programa, programaValorService.buscarPorPrograma(programa)));
+					.map(ProgramaListaDto::new);
+	}
+
+	public List<OpcoesDto> listarOpcoesDropdown() {
+		return repository.findAll().stream().map(OpcoesDto::new).toList();
 	}
 
 	public ProgramaDto buscarPorId(Long id) {
@@ -43,11 +45,9 @@ public class ProgramaService {
 
 		List<EquipeDto> equipeCaptacao = programaPessoaService.buscarPorPrograma(programa);
 
-		List<ProjetoPropostoDto> projetosPropostos = programaProjetoService.buscarPorPrograma(programa);
+		List<Long> idProjetoPropostoList = projetoService.buscarIdProjetoPropostoList(programa);
 
-		ValorDto valor = programaValorService.buscarPorPrograma(programa);
-
-		return new ProgramaDto(programa, equipeCaptacao, projetosPropostos, valor);
+		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList);
 	}
 
 	@Transactional
@@ -59,12 +59,10 @@ public class ProgramaService {
 
 		List<EquipeDto> equipeCaptacao = programaPessoaService.cadastrar(programa, form.equipeCaptacao());
 
-		List<ProjetoPropostoDto> projetosPropostos = programaProjetoService.cadastrar(programa, form.projetosPropostos());
-
-		ValorDto valor = programaValorService.cadastrar(programa, form.valor());
+		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programa, form.idProjetoPropostoList());
 
 		logger.info("Programa cadastrado com sucesso");
-		return new ProgramaDto(programa, equipeCaptacao, projetosPropostos, valor);
+		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList);
 	}
 
 	@Transactional
@@ -78,14 +76,12 @@ public class ProgramaService {
 
 		Programa programaResult = repository.save(programa);
 
-		List<EquipeDto> equipeCaptacaoAtualizado = programaPessoaService.atualizar(programaResult, form.equipeCaptacao());
+		List<EquipeDto> equipeCaptacao = programaPessoaService.atualizar(programaResult, form.equipeCaptacao());
 
-		List<ProjetoPropostoDto> projetosPropostosAtualizado = programaProjetoService.atualizar(programaResult, form.projetosPropostos());
-
-		ValorDto valorAtualizado = programaValorService.atualizar(programaResult, form.valor());
+		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programaResult, form.idProjetoPropostoList());
 
 		logger.info("Programa atualizado com sucesso");
-		return new ProgramaDto(programaResult, equipeCaptacaoAtualizado, projetosPropostosAtualizado, valorAtualizado);
+		return new ProgramaDto(programaResult, equipeCaptacao, idProjetoPropostoList);
 
 	}
 
@@ -98,8 +94,7 @@ public class ProgramaService {
 		repository.saveAndFlush(programa);
 
 		programaPessoaService.excluirPorPrograma(programa);
-		programaProjetoService.excluirPorPrograma(programa);
-		programaValorService.excluir(programa);
+		projetoService.desvincularProjetosDoPrograma(programa);
 
 		logger.info("Programa excluído com sucesso");
 	}

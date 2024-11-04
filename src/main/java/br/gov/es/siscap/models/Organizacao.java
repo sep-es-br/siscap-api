@@ -1,6 +1,6 @@
 package br.gov.es.siscap.models;
 
-import br.gov.es.siscap.enums.StatusEnum;
+import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.form.OrganizacaoForm;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -53,9 +53,9 @@ public class Organizacao extends ControleHistorico {
 	private Organizacao organizacaoPai;
 
 	@ManyToOne
-	@JoinColumn(name = "status", nullable = false)
+	@JoinColumn(name = "id_tipo_status", nullable = false)
 	@SQLJoinTableRestriction("apagado = FALSE")
-	private Status status = new Status(StatusEnum.ATIVO.getValue());
+	private TipoStatus tipoStatus = new TipoStatus(TipoStatusEnum.ATIVO.getValue());
 
 	@ManyToOne
 	@JoinColumn(name = "id_cidade")

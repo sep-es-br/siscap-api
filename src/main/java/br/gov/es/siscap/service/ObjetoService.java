@@ -1,6 +1,6 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.ObjetoSelectDto;
+import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,25 +16,25 @@ public class ObjetoService {
 	private final ProjetoRepository projetoRepository;
 	private final ProgramaRepository programaRepository;
 
-	public List<ObjetoSelectDto> buscarSelect() {
+	public List<ObjetoOpcoesDto> listarOpcoesDropdown() {
 
-		List<ObjetoSelectDto> objetoSelectDtoList = new ArrayList<>();
+		List<ObjetoOpcoesDto> objetoOpcoesDtoList = new ArrayList<>();
 
-		List<ObjetoSelectDto> objetoSelectDtoProjetoMapList = projetoRepository
+		List<ObjetoOpcoesDto> objetoOpcoesDtoProgramaMapList = programaRepository
 					.findAll()
 					.stream()
-					.map(ObjetoSelectDto::new)
+					.map(ObjetoOpcoesDto::new)
 					.toList();
 
-		List<ObjetoSelectDto> objetoSelectDtoProgramaMapList = programaRepository
+		List<ObjetoOpcoesDto> objetoOpcoesDtoProjetoMapList = projetoRepository
 					.findAll()
 					.stream()
-					.map(ObjetoSelectDto::new)
+					.map(ObjetoOpcoesDto::new)
 					.toList();
 
-		objetoSelectDtoList.addAll(objetoSelectDtoProjetoMapList);
-		objetoSelectDtoList.addAll(objetoSelectDtoProgramaMapList);
+		objetoOpcoesDtoList.addAll(objetoOpcoesDtoProgramaMapList);
+		objetoOpcoesDtoList.addAll(objetoOpcoesDtoProjetoMapList);
 
-		return objetoSelectDtoList;
+		return objetoOpcoesDtoList;
 	}
 }

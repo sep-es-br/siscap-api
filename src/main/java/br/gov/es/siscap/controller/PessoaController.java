@@ -1,7 +1,7 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.PessoaDto;
-import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.form.PessoaForm;
@@ -35,9 +35,9 @@ public class PessoaController {
 		return service.listarTodos(pageable, search);
 	}
 
-	@GetMapping("/select")
-	public List<SelectDto> listarSelect() {
-		return service.listarSelect();
+	@GetMapping("/opcoes")
+	public List<OpcoesDto> listarOpcoesDropdown() {
+		return service.listarOpcoesDropdown();
 	}
 
 	@GetMapping("/{id}")
@@ -69,7 +69,7 @@ public class PessoaController {
 	}
 
 	@GetMapping("/responsavel/{orgId}")
-	public ResponseEntity<SelectDto> buscarResponsavelPorIdOrganizacao(
+	public ResponseEntity<OpcoesDto> buscarResponsavelPorIdOrganizacao(
 				@NotNull @PathVariable Long orgId
 	) throws IOException {
 		return ResponseEntity.ok(service.buscarResponsavelPorIdOrganizacao(orgId));

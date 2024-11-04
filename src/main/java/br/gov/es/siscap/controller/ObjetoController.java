@@ -1,7 +1,7 @@
 package br.gov.es.siscap.controller;
 
 
-import br.gov.es.siscap.dto.ObjetoSelectDto;
+import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
 import br.gov.es.siscap.service.ObjetoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +17,8 @@ public class ObjetoController {
 
 	private final ObjetoService service;
 
-	@GetMapping("/select")
-	public List<ObjetoSelectDto> listarObjetosSelect() {
-		return service.buscarSelect();
+	@GetMapping("/opcoes")
+	public List<ObjetoOpcoesDto> listarOpcoesDropdown() {
+		return service.listarOpcoesDropdown();
 	}
 }

@@ -13,16 +13,16 @@ public record ProjetoListaDto(
 			String titulo,
 			String moeda,
 			BigDecimal valor,
-			List<String> nomesMicrorregioesRateio
+			List<String> nomesLocalidadesRateio
 ) {
-	public ProjetoListaDto(Projeto projeto, ValorDto valorDto, List<String> nomesMicrorregioesRateio) {
+	public ProjetoListaDto(Projeto projeto, ValorDto valorDto, List<String> nomesLocalidadesRateio) {
 		this(
 					projeto.getId(),
 					projeto.getSigla(),
 					projeto.getTitulo(),
 					valorDto.moeda(),
 					valorDto.quantia(),
-					nomesMicrorregioesRateio
+					nomesLocalidadesRateio
 		);
 	}
 }

@@ -1,6 +1,6 @@
 package br.gov.es.siscap.models;
 
-import br.gov.es.siscap.enums.StatusEnum;
+import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.form.ProjetoForm;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -43,8 +43,8 @@ public class Projeto extends ControleHistorico {
 
 	@ManyToOne
 	@SQLJoinTableRestriction("apagado = FALSE")
-	@JoinColumn(name = "status", nullable = false)
-	private Status status;
+	@JoinColumn(name = "id_tipo_status", nullable = false)
+	private TipoStatus tipoStatus;
 
 	@ManyToOne
 	@JoinColumn(name = "id_organizacao", nullable = false)
@@ -64,19 +64,15 @@ public class Projeto extends ControleHistorico {
 	private String arranjosInstitucionais;
 
 	@OneToMany(mappedBy = "projeto")
-	private Set<ProjetoValor> projetoValorSet;
-
-	@OneToMany(mappedBy = "projeto")
-	private Set<ProjetoMicrorregiao> projetoMicrorregiaoSet;
-
-	@OneToMany(mappedBy = "projeto")
-	private Set<ProjetoCidade> projetoCidadeSet;
-
-	@OneToMany(mappedBy = "projeto")
 	private Set<ProjetoPessoa> projetoPessoaSet;
 
 	@OneToMany(mappedBy = "projeto")
-	private Set<ProgramaProjeto> programaProjetoSet;
+	private Set<LocalidadeQuantia> localidadeQuantiaSet;
+
+	@ManyToOne
+	@JoinColumn(name = "id_programa")
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private Programa programa;
 
 	@ManyToOne
 	@JoinColumn(name = "id_area")
@@ -102,6 +98,7 @@ public class Projeto extends ControleHistorico {
 
 	public void apagarProjeto() {
 		this.setSigla(null);
+		this.setPrograma(null);
 		super.apagarHistorico();
 	}
 
@@ -116,7 +113,7 @@ public class Projeto extends ControleHistorico {
 	}
 
 	public boolean isAtivo() {
-		return Objects.equals(this.getStatus().getId(), StatusEnum.ATIVO.getValue());
+		return Objects.equals(this.getTipoStatus().getId(), TipoStatusEnum.ATIVO.getValue());
 	}
 
 	private void setDadosProjeto(ProjetoForm form) {
@@ -124,7 +121,7 @@ public class Projeto extends ControleHistorico {
 		this.setTitulo(form.titulo());
 		this.setObjetivo(form.objetivo());
 		this.setObjetivoEspecifico(form.objetivoEspecifico());
-		this.setStatus(new Status(StatusEnum.ATIVO.getValue()));
+		this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
 		this.setOrganizacao(new Organizacao(form.idOrganizacao()));
 		this.setSituacaoProblema(form.situacaoProblema());
 		this.setSolucoesPropostas(form.solucoesPropostas());
