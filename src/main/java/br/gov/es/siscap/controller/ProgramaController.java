@@ -2,6 +2,7 @@ package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.service.ProgramaService;
 import jakarta.validation.Valid;
@@ -14,6 +15,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/programas")
@@ -28,6 +31,11 @@ public class ProgramaController {
 				@RequestParam(required = false, defaultValue = "") String search
 	) {
 		return service.listarTodos(pageable, search);
+	}
+
+	@GetMapping("/opcoes")
+	public List<OpcoesDto> listarOpcoesDropdown() {
+		return service.listarOpcoesDropdown();
 	}
 
 	@GetMapping("/{id}")

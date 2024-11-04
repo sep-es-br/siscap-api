@@ -1,7 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.PessoaDto;
-import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.exception.OrganizacaoSemResponsavelException;
@@ -64,8 +64,8 @@ public class PessoaService {
 					});
 	}
 
-	public List<SelectDto> listarSelect() {
-		return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(SelectDto::new).toList();
+	public List<OpcoesDto> listarOpcoesDropdown() {
+		return repository.findAll(Sort.by(Sort.Direction.ASC, "nome")).stream().map(OpcoesDto::new).toList();
 	}
 
 	public PessoaDto buscarPorId(Long id) throws IOException {
@@ -100,10 +100,7 @@ public class PessoaService {
 	}
 
 
-	// ENTENDER QUESTÃO PessoaForm E PessoaFormUpdate
-
 	@Transactional
-//	public PessoaDto atualizar(Long id, PessoaFormUpdate form, Authentication auth) throws IOException {
 	public PessoaDto atualizar(Long id, PessoaForm form, Authentication auth) throws IOException {
 		if (auth != null && !buscar(id).getSub().equals(((Usuario) auth.getPrincipal()).getSub())) {
 			throw new UsuarioSemAutorizacaoException();
@@ -151,12 +148,12 @@ public class PessoaService {
 		logger.info("Pessoa excluida com sucesso");
 	}
 
-	public SelectDto buscarResponsavelPorIdOrganizacao(Long orgId) {
+	public OpcoesDto buscarResponsavelPorIdOrganizacao(Long orgId) {
 		PessoaOrganizacao pessoaOrganizacao = pessoaOrganizacaoService.buscarPorOrganizacao(new Organizacao(orgId));
 
 		if (pessoaOrganizacao != null) {
 			logger.info("Responsavel encontrado, id: {}", pessoaOrganizacao.getPessoa().getId());
-			return new SelectDto(pessoaOrganizacao.getPessoa());
+			return new OpcoesDto(pessoaOrganizacao.getPessoa());
 		} else {
 			throw new OrganizacaoSemResponsavelException();
 		}

@@ -8,8 +8,6 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
 
-import java.util.Set;
-
 @Entity
 @Table(name = "cidade")
 @NoArgsConstructor
@@ -39,9 +37,6 @@ public class Cidade extends ControleHistorico {
 	@JoinColumn(name = "id_microrregiao")
 	@SQLJoinTableRestriction("apagado = FALSE")
 	private Microrregiao microrregiao;
-
-	@OneToMany(mappedBy = "cidade")
-	private Set<ProjetoCidade> projetoCidadeSet;
 
 	public Cidade(Long id) {
 		this.setId(id);

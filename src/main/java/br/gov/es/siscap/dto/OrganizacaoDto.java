@@ -32,7 +32,7 @@ public record OrganizacaoDto(
 					organizacao.getSite(),
 					imagemPerfil,
 					organizacao.getOrganizacaoPai() != null ? organizacao.getOrganizacaoPai().getId() : null,
-					organizacao.getStatus() != null ? organizacao.getStatus().getId() : null,
+					organizacao.getTipoStatus() != null ? organizacao.getTipoStatus().getId() : null,
 					organizacao.getCidade() != null ? organizacao.getCidade().getId() : null,
 					organizacao.getEstado() != null ? organizacao.getEstado().getId() : null,
 					organizacao.getPais() != null ? organizacao.getPais().getId() : null,

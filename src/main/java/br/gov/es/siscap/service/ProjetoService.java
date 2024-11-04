@@ -1,11 +1,15 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.form.ProjetoForm;
+import br.gov.es.siscap.models.LocalidadeQuantia;
+import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.repository.ProjetoRepository;
@@ -31,9 +35,7 @@ public class ProjetoService {
 
 	private final ProjetoRepository repository;
 	private final ProjetoPessoaService projetoPessoaService;
-	private final ProjetoValorService projetoValorService;
-	private final ProjetoRateioService projetoRateioService;
-	private final ProgramaProjetoService programaProjetoService;
+	private final LocalidadeQuantiaService localidadeQuantiaService;
 	private final OrganizacaoService organizacaoService;
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
@@ -42,20 +44,25 @@ public class ProjetoService {
 
 		return repository.paginarProjetosPorFiltroPesquisaSimples(search, pageable)
 					.map(projeto -> {
-						List<String> nomesMicrorregioesRateio = projetoRateioService.listarNomesMicrorregioesRateio(projeto);
-						ValorDto valorDto = projetoValorService.buscarPorProjeto(projeto);
+						Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 
-						return new ProjetoListaDto(projeto, valorDto, nomesMicrorregioesRateio);
+						List<String> nomesLocalidadesRateio = localidadeQuantiaService.listarNomesLocalidadesRateio(localidadeQuantiaSet);
+						ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+
+						return new ProjetoListaDto(projeto, valorDto, nomesLocalidadesRateio);
 					});
 	}
 
-	public List<ProjetoPropostoSelectDto> listarSelect() {
+	public List<ProjetoPropostoOpcoesDto> listarOpcoesDropdown() {
 		return repository.findAll(Sort.by(Sort.Direction.ASC, "titulo"))
 					.stream()
 					.filter(Projeto::isAtivo)
 					.map(projeto -> {
-						ValorDto valorDto = projetoValorService.buscarPorProjeto(projeto);
-						return new ProjetoPropostoSelectDto(projeto, valorDto);
+						Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
+
+						ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+
+						return new ProjetoPropostoOpcoesDto(projeto, valorDto);
 					})
 					.toList();
 	}
@@ -67,9 +74,11 @@ public class ProjetoService {
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.buscarPorProjeto(projeto);
 
-		ValorDto valorDto = projetoValorService.buscarPorProjeto(projeto);
+		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 
-		RateioDto rateio = projetoRateioService.buscarPorProjeto(projeto);
+		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+
+		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
 	}
@@ -85,9 +94,11 @@ public class ProjetoService {
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.cadastrar(projeto, form.idResponsavelProponente(), form.equipeElaboracao());
 
-		ValorDto valorDto = projetoValorService.cadastrar(projeto, form.valor());
+		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(), form.rateio());
 
-		RateioDto rateio = projetoRateioService.cadastrar(projeto, form.rateio());
+		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+
+		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		logger.info("Projeto cadastrado com sucesso");
 		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
@@ -107,9 +118,11 @@ public class ProjetoService {
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.atualizar(projetoResult, form.idResponsavelProponente(), form.equipeElaboracao());
 
-		ValorDto valorDto = projetoValorService.atualizar(projetoResult, form.valor());
+		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
 
-		RateioDto rateio = projetoRateioService.atualizar(projetoResult, form.rateio());
+		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+
+		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		logger.info("Projeto atualizado com sucesso");
 		return new ProjetoDto(projetoResult, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
@@ -126,11 +139,69 @@ public class ProjetoService {
 		repository.deleteById(id);
 
 		projetoPessoaService.excluirPorProjeto(projeto);
-		projetoValorService.excluir(projeto);
-		projetoRateioService.excluirPorProjeto(projeto);
-		programaProjetoService.excluirPorProjeto(projeto);
+		localidadeQuantiaService.excluir(projeto);
 
 		logger.info("Projeto excluido com sucesso");
+	}
+
+	public List<Long> buscarIdProjetoPropostoList(Programa programa) {
+		logger.info("Buscando projetos vinculados ao programa com id: {}", programa.getId());
+
+		return this.buscarProjetosPorPrograma(programa)
+					.stream()
+					.map(Projeto::getId)
+					.toList();
+	}
+
+	public List<OpcoesDto> buscarProjetosPropostos(Programa programa) {
+		return this.buscarProjetosPorPrograma(programa)
+					.stream()
+					.map(OpcoesDto::new)
+					.toList();
+	}
+
+	@Transactional
+	public List<Long> vincularProjetosAoPrograma(Programa programa, List<Long> idProjetoPropostoList) {
+		logger.info("Vinculando projetos ao programa com id: {}", programa.getId());
+		logger.info("Ids dos projetos: {}", idProjetoPropostoList);
+
+		Set<Projeto> projetoPropostoSet = repository.findAllByPrograma(programa);
+
+		if (!projetoPropostoSet.isEmpty()) {
+			projetoPropostoSet.forEach(projeto -> {
+				if (idProjetoPropostoList.stream().noneMatch(idProjetoProposto -> idProjetoProposto.equals(projeto.getId()))) {
+					projeto.setPrograma(null);
+				}
+			});
+
+			repository.saveAllAndFlush(projetoPropostoSet);
+		}
+
+		idProjetoPropostoList.forEach(idProjetoProposto -> {
+			Projeto projeto = this.buscar(idProjetoProposto);
+			projeto.setPrograma(programa);
+			repository.saveAndFlush(projeto);
+		});
+
+		logger.info("Projetos vinculados ao programa com sucesso");
+		return this.buscarIdProjetoPropostoList(programa);
+	}
+
+	@Transactional
+	public void desvincularProjetosDoPrograma(Programa programa) {
+		logger.info("Desvinculando projetos ao programa com id: {}", programa.getId());
+
+		Set<Projeto> projetoPropostoSet = repository.findAllByPrograma(programa);
+
+		if (!projetoPropostoSet.isEmpty()) {
+			projetoPropostoSet.forEach(projeto -> {
+				projeto.setPrograma(null);
+			});
+
+			repository.saveAllAndFlush(projetoPropostoSet);
+		}
+
+		logger.info("Projetos desvinculados do programa com sucesso");
 	}
 
 
@@ -155,7 +226,7 @@ public class ProjetoService {
 	}
 
 	public BigDecimal buscarSomatorioValorEstimadoProjetos() {
-		return repository.somarValorEstimadoTodosProjetos();
+		return localidadeQuantiaService.somarValorEstimadoTodosProjetos();
 	}
 
 	private Projeto buscar(Long id) {
@@ -175,6 +246,10 @@ public class ProjetoService {
 					.filter(Predicate.not(ProjetoPessoa::isResponsavelProponente))
 					.map(EquipeDto::new)
 					.toList();
+	}
+
+	private Set<Projeto> buscarProjetosPorPrograma(Programa programa) {
+		return repository.findAllByPrograma(programa);
 	}
 
 	private String formatarCnpj(String cnpj) {

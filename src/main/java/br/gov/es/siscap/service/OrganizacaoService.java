@@ -1,7 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.OrganizacaoDto;
-import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.listagem.OrganizacaoListaDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.OrganizacaoNaoEncontradaException;
@@ -51,7 +51,7 @@ public class OrganizacaoService {
 					});
 	}
 
-	public List<SelectDto> listarSelect(Long filtroTipoOrganizacao) {
+	public List<OpcoesDto> listarOpcoesDropdown(Long filtroTipoOrganizacao) {
 
 		Sort organizacaoListSort = Sort.by(Sort.Direction.ASC, "nome");
 
@@ -59,7 +59,7 @@ public class OrganizacaoService {
 					? repository.findAllByTipoOrganizacao(new TipoOrganizacao(filtroTipoOrganizacao), organizacaoListSort)
 					: repository.findAll(organizacaoListSort);
 
-		return organizacaoList.stream().map(SelectDto::new).toList();
+		return organizacaoList.stream().map(OpcoesDto::new).toList();
 	}
 
 	public OrganizacaoDto buscarPorId(Long id) throws IOException {

@@ -1,21 +1,20 @@
 package br.gov.es.siscap.dto;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
-import java.util.List;
+import java.math.BigDecimal;
 
 public record RateioDto(
 
-			@NotEmpty
-			@Size(min = 1)
-			@Valid
-			List<RateioMicrorregiaoDto> rateioMicrorregiao,
+			Long idLocalidade,
 
-			@NotEmpty
-			@Size(min = 1)
-			@Valid
-			List<RateioCidadeDto> rateioCidade
+			@NotNull
+			@Positive
+			BigDecimal percentual,
+
+			@NotNull
+			@Positive
+			BigDecimal quantia
 ) {
 }
