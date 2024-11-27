@@ -47,6 +47,10 @@ public class CartaConsultaService {
 		return cartasConsultaPaginadas;
 	}
 
+	public List<OpcoesDto> listarOpcoesDropdown() {
+		return repository.findAll().stream().map(OpcoesDto::new).toList();
+	}
+
 	public CartaConsultaDto buscarPorId(Long id) {
 
 		CartaConsulta cartaConsulta = this.buscarCartaConsulta(id);

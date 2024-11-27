@@ -3,6 +3,7 @@ package br.gov.es.siscap.controller;
 import br.gov.es.siscap.dto.CartaConsultaDetalhesDto;
 import br.gov.es.siscap.dto.CartaConsultaDto;
 import br.gov.es.siscap.dto.listagem.CartaConsultaListaDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.form.CartaConsultaForm;
 import br.gov.es.siscap.service.CartaConsultaService;
 import jakarta.validation.Valid;
@@ -15,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/cartas-consulta")
 @RequiredArgsConstructor
@@ -25,6 +28,11 @@ public class CartaConsultaController {
 	@GetMapping
 	public Page<CartaConsultaListaDto> listarTodos(@PageableDefault(size = 15, sort = "id") Pageable pageable) {
 		return service.listarTodos(pageable);
+	}
+
+	@GetMapping("/opcoes")
+	public List<OpcoesDto> listarOpcoesDropdown() {
+		return service.listarOpcoesDropdown();
 	}
 
 	@GetMapping("/{id}")

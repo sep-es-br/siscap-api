@@ -10,9 +10,6 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-
 @Entity
 @Table(name = "cartaconsulta")
 @NoArgsConstructor
@@ -45,6 +42,10 @@ public class CartaConsulta extends ControleHistorico {
 	@JoinColumn(name = "id_operacao", nullable = false)
 	private TipoOperacao tipoOperacao;
 
+	public CartaConsulta(Long id) {
+		this.setId(id);
+	}
+
 	public CartaConsulta(CartaConsultaForm form) {
 		this.setCartaConsultaObjeto(form.objeto());
 		this.setTipoOperacao(new TipoOperacao(form.operacao()));
@@ -60,10 +61,10 @@ public class CartaConsulta extends ControleHistorico {
 		super.apagarHistorico();
 	}
 
-	public String formatarDataCartaConsultaListaDto() {
-		DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("dd/MM/yyyy").toFormatter();
-
-		return this.getCriadoEm().format(formatter);
+	public String formatarCartaConsultaNomeOpcaoDto() {
+		if (this.getProjeto() != null) return this.getProjeto().getSigla() + " - " + this.getProjeto().getTitulo();
+		if (this.getPrograma() != null) return this.getPrograma().getSigla() + " - " + this.getPrograma().getTitulo();
+		return null;
 	}
 
 	public ObjetoOpcoesDto getCartaConsultaObjeto() {
