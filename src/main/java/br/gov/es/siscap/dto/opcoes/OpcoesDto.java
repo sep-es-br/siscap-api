@@ -68,4 +68,8 @@ public record OpcoesDto(Long id, String nome) {
 	public OpcoesDto(TipoOperacao tipoOperacao) {
 		this(tipoOperacao.getId(), tipoOperacao.getTipo());
 	}
+
+	public OpcoesDto(CartaConsulta cartaConsulta) {
+		this(cartaConsulta.getId(), (cartaConsulta.getTipoOperacao().getTipo() + " - " + cartaConsulta.formatarCartaConsultaNomeOpcaoDto()));
+	}
 }

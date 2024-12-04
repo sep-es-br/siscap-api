@@ -1,6 +1,8 @@
 package br.gov.es.siscap.dto.listagem;
 
+import br.gov.es.siscap.enums.FormatoDataEnum;
 import br.gov.es.siscap.models.CartaConsulta;
+import br.gov.es.siscap.utils.FormatadorData;
 
 public record CartaConsultaListaDto(
 
@@ -15,7 +17,7 @@ public record CartaConsultaListaDto(
 					cartaConsulta.getId(),
 					cartaConsulta.getTipoOperacao().getTipo(),
 					cartaConsulta.getCartaConsultaObjeto().nome(),
-					cartaConsulta.formatarDataCartaConsultaListaDto()
+					FormatadorData.formatar(cartaConsulta.getCriadoEm(), FormatoDataEnum.SIMPLES)
 		);
 	}
 }
