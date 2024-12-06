@@ -18,7 +18,6 @@ public class LocalidadeService {
 	public List<LocalidadeOpcoesDto> listarOpcoesDropdown() {
 		return repository.findAll()
 					.stream()
-					.filter(localidade -> localidade.getLocalidadePai() != null)
 					.map(LocalidadeOpcoesDto::new)
 					.toList();
 	}
