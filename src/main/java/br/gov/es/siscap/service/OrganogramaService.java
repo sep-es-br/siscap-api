@@ -2,9 +2,11 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.client.AcessoCidadaoTokenClient;
 import br.gov.es.siscap.client.AcessoCidadaoWebClient;
+import br.gov.es.siscap.client.OrganogramaWebClient;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.GrupoACDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.LoginACResponseDto;
+import br.gov.es.siscap.dto.organogramawebapi.OrganogramaOrganizacaoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,7 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AcessoCidadaoService {
+public class OrganogramaService {
 
 	public static final String AUTHORIZATION = "Authorization";
 	public static final String BEARER = "Bearer ";
@@ -34,16 +36,10 @@ public class AcessoCidadaoService {
 	private String scope;
 
 	private final AcessoCidadaoTokenClient tokenClient;
-	private final AcessoCidadaoWebClient webClient;
+	private final OrganogramaWebClient webClient;
 
-	public AgentePublicoACDto buscarPessoaPorCpf(String cpf) {
-		String sub = buscarSubPorCpf(cpf);
-		return buscarAgentePublicoPorSub(sub);
-	}
-
-	public List<GrupoACDto> buscarGruposPessoaPorCpf(String cpf) {
-		String sub = buscarSubPorCpf(cpf);
-		return buscarGruposAgentePublicoPorSub(sub);
+	public OrganogramaOrganizacaoDto testeOrganogramaOrganizacao(String guid) {
+		return buscarOrganizacaoPorGuid(guid);
 	}
 
 	private HashMap<String, Object> obterAuthorizationHeader() {
@@ -75,16 +71,7 @@ public class AcessoCidadaoService {
 		return headers;
 	}
 
-	private String buscarSubPorCpf(String cpf) {
-		return webClient.buscarSubPorCpf(obterAuthorizationHeader(), cpf).sub();
+	private OrganogramaOrganizacaoDto buscarOrganizacaoPorGuid(String guid) {
+		return webClient.buscarOrganizacaoPorGuid(obterAuthorizationHeader(), guid);
 	}
-
-	private AgentePublicoACDto buscarAgentePublicoPorSub(String sub) {
-		return new AgentePublicoACDto(webClient.buscarAgentePublicoPorSub(obterAuthorizationHeader(), sub));
-	}
-
-	public List<GrupoACDto> buscarGruposAgentePublicoPorSub(String sub) {
-		return webClient.buscarGruposAgentePublicoPorSub(obterAuthorizationHeader(), sub, "Todos");
-	}
-
 }
