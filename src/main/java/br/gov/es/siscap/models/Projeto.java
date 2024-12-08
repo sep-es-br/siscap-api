@@ -15,6 +15,17 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
 
+
+/*
+
+	REMOVER COLUNA id_tipo_status
+	CRIAR COLUNA status varchar(255) NOT NULL -> CONTROLAR COM StatusProjetoEnum
+	CRIAR COLUNA fase varchar(255) NOT NULL -> CHAPAR VALOR "DIC" POR ENQUANTO
+	CRIAR COLUNA rascunho boolean NOT NULL -> CONTROLAR COM @RequestParam NO CONTROLLER
+
+*/
+
+
 @Entity
 @Table(name = "projeto")
 @NoArgsConstructor
