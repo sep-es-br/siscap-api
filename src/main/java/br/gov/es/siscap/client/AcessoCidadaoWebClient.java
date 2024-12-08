@@ -1,5 +1,6 @@
 package br.gov.es.siscap.client;
 
+import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.GrupoACDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.SubResponseDto;
@@ -24,5 +25,8 @@ public interface AcessoCidadaoWebClient {
 
 	@GetMapping("/api/agentepublico/{sub}/grupos?tipo={tipo}")
 	List<GrupoACDto> buscarGruposAgentePublicoPorSub(@RequestHeader Map<String, Object> headers, @PathVariable String sub, @PathVariable String tipo);
+
+	@GetMapping("/api/agentepublico/{sub}/papeis")
+	List<ACAgentePublicoPapelDto> buscarPapeisAgentePublicoPorSub(@RequestHeader Map<String, Object> headers, @PathVariable String sub);
 
 }

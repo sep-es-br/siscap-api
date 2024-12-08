@@ -1,11 +1,13 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.PessoaDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.GrupoACDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.dto.organogramawebapi.OrganogramaOrganizacaoDto;
+import br.gov.es.siscap.dto.organogramawebapi.OrganogramaUnidadeInfoDto;
 import br.gov.es.siscap.exception.OrganizacaoSemResponsavelException;
 import br.gov.es.siscap.exception.UsuarioSemAutorizacaoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
@@ -190,14 +192,6 @@ public class PessoaService {
 
 	public AgentePublicoACDto buscarPessoaNoAcessoCidadaoPorCpf(String cpf) {
 		return acessoCidadaoService.buscarPessoaPorCpf(cpf);
-	}
-
-	public List<GrupoACDto> testeGrupos(String cpf) {
-		return acessoCidadaoService.buscarGruposPessoaPorCpf(cpf);
-	}
-
-	public OrganogramaOrganizacaoDto testeOrganogramaOrganizacao(String guid) {
-		return organogramaService.testeOrganogramaOrganizacao(guid);
 	}
 
 	@Transactional

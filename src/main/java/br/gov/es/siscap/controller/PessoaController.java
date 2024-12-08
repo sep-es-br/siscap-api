@@ -1,11 +1,13 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.PessoaDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.GrupoACDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.dto.organogramawebapi.OrganogramaOrganizacaoDto;
+import br.gov.es.siscap.dto.organogramawebapi.OrganogramaUnidadeInfoDto;
 import br.gov.es.siscap.form.PessoaForm;
 import br.gov.es.siscap.service.PessoaService;
 import jakarta.validation.Valid;
@@ -68,16 +70,6 @@ public class PessoaController {
 	@GetMapping("/acesso-cidadao/{cpf}")
 	public ResponseEntity<AgentePublicoACDto> buscarPessoaNoAcessoCidadaoPorCpf(@PathVariable String cpf) {
 		return ResponseEntity.ok(service.buscarPessoaNoAcessoCidadaoPorCpf(cpf));
-	}
-
-	@GetMapping("/teste/{cpf}")
-	public ResponseEntity<List<GrupoACDto>> testeGrupos(@PathVariable String cpf) {
-		return ResponseEntity.ok(service.testeGrupos(cpf));
-	}
-
-	@GetMapping("/outroteste/{guid}")
-	public ResponseEntity<OrganogramaOrganizacaoDto> testeOrganogramaOrganizacao(@PathVariable String guid) {
-		return ResponseEntity.ok(service.testeOrganogramaOrganizacao(guid));
 	}
 
 	@GetMapping("/responsavel/{orgId}")
