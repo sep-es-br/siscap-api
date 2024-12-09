@@ -3,7 +3,7 @@ package br.gov.es.siscap.dto;
 import br.gov.es.siscap.models.Organizacao;
 
 public record OrganizacaoDto(
-
+  
 			Long id,
 			String nome,
 			String abreviatura,
