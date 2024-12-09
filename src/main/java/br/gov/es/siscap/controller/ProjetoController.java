@@ -48,13 +48,13 @@ public class ProjetoController {
 	}
 
 	@PostMapping
-	public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form) {
-		return new ResponseEntity<>(service.cadastrar(form), HttpStatus.CREATED);
+	public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form, @RequestParam(required = false, defaultValue = "false") boolean rascunho) {
+		return new ResponseEntity<>(service.cadastrar(form, rascunho), HttpStatus.CREATED);
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id, @Valid @RequestBody ProjetoForm form) {
-		return ResponseEntity.ok(service.atualizar(id, form));
+	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id, @Valid @RequestBody ProjetoForm form, @RequestParam(required = false, defaultValue = "false") boolean rascunho) {
+		return ResponseEntity.ok(service.atualizar(id, form, rascunho));
 	}
 
 	@DeleteMapping("/{id}")

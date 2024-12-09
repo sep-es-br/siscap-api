@@ -11,18 +11,38 @@ public record ProjetoListaDto(
 			Long id,
 			String sigla,
 			String titulo,
-			String moeda,
-			BigDecimal valor,
-			List<String> nomesLocalidadesRateio
+			String status,
+			BigDecimal valorEstimado
 ) {
-	public ProjetoListaDto(Projeto projeto, ValorDto valorDto, List<String> nomesLocalidadesRateio) {
+	public ProjetoListaDto(Projeto projeto, BigDecimal valorEstimado) {
 		this(
 					projeto.getId(),
 					projeto.getSigla(),
 					projeto.getTitulo(),
-					valorDto.moeda(),
-					valorDto.quantia(),
-					nomesLocalidadesRateio
+					projeto.getStatus(),
+					valorEstimado
 		);
 	}
 }
+
+
+//public record ProjetoListaDto(
+//
+//			Long id,
+//			String sigla,
+//			String titulo,
+//			String moeda,
+//			BigDecimal valor,
+//			List<String> nomesLocalidadesRateio
+//) {
+//	public ProjetoListaDto(Projeto projeto, ValorDto valorDto, List<String> nomesLocalidadesRateio) {
+//		this(
+//					projeto.getId(),
+//					projeto.getSigla(),
+//					projeto.getTitulo(),
+//					valorDto.moeda(),
+//					valorDto.quantia(),
+//					nomesLocalidadesRateio
+//		);
+//	}
+//}

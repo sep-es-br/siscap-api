@@ -4,6 +4,7 @@ import br.gov.es.siscap.dto.*;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
+import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
@@ -46,10 +47,9 @@ public class ProjetoService {
 					.map(projeto -> {
 						Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 
-						List<String> nomesLocalidadesRateio = localidadeQuantiaService.listarNomesLocalidadesRateio(localidadeQuantiaSet);
 						ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
-						return new ProjetoListaDto(projeto, valorDto, nomesLocalidadesRateio);
+						return new ProjetoListaDto(projeto, valorDto.quantia());
 					});
 	}
 
@@ -84,13 +84,22 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public ProjetoDto cadastrar(ProjetoForm form) {
+	public ProjetoDto cadastrar(ProjetoForm form, boolean rascunho) {
 		logger.info("Cadastrando novo projeto");
 		logger.info("Dados: {}", form);
 
 		this.validarProjeto(form, true);
 
-		Projeto projeto = repository.save(new Projeto(form));
+		Projeto tempProjeto = new Projeto(form);
+		if (rascunho) {
+			tempProjeto.setRascunho(true);
+			tempProjeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
+		} else {
+			tempProjeto.setRascunho(false);
+			tempProjeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
+		}
+
+		Projeto projeto = repository.save(tempProjeto);
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.cadastrar(projeto, form.idResponsavelProponente(), form.equipeElaboracao());
 
@@ -106,7 +115,7 @@ public class ProjetoService {
 
 
 	@Transactional
-	public ProjetoDto atualizar(Long id, ProjetoForm form) {
+	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho) {
 		logger.info("Atualizando projeto com id: {}", id);
 		logger.info("Dados: {}", form);
 
@@ -114,6 +123,13 @@ public class ProjetoService {
 
 		Projeto projeto = this.buscar(id);
 		projeto.atualizarProjeto(form);
+		if (rascunho) {
+			projeto.setRascunho(true);
+			projeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
+		} else {
+			projeto.setRascunho(false);
+			projeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
+		}
 		Projeto projetoResult = repository.save(projeto);
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.atualizar(projetoResult, form.idResponsavelProponente(), form.equipeElaboracao());
