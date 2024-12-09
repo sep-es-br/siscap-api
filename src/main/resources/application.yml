@@ -1,6 +1,7 @@
 spring:
   application:
     name: SISCAP
+    version: 1.0.0
   profiles:
     active: dev
 
@@ -15,3 +16,4 @@ log4j:
 raiz:
   imagens: C:/projetos/siscap/img
   relatorios: C:/projetos/siscap/relatorios
+  documentos: C:/projetos/siscap/documentos

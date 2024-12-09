@@ -18,29 +18,28 @@ import java.util.Base64;
 @RequiredArgsConstructor
 public class AutenticacaoController {
 
-    @Value("${frontend.host}")
-    private String frontEndHost;
+	@Value("${frontend.host}")
+	private String frontEndHost;
 
-    private final AutenticacaoService service;
+	private final AutenticacaoService service;
 
-    /**
-     * Endpoint necessário para fazer o redirecionamento do token de acesso para o front end.
-     * Este endpoint recebe o redirecionamento a partir do arquivo acesso-cidadao-response.html que se fez necessário
-     *
-     * @param accessToken O access token do acesso cidadão.
-     * @return Um redirect para o frontend passando o token codigicado.
-     */
-    @Hidden
-    @GetMapping("/acesso-cidadao-response")
-    public RedirectView acessoCidadaoResponse(String accessToken) {
-        String tokenEmBase64 = Base64.getEncoder().encodeToString(accessToken.getBytes());
-        return new RedirectView(String.format("%s/token?token=%s", frontEndHost, tokenEmBase64));
-    }
+	/**
+	 * Endpoint necessário para fazer o redirecionamento do token de acesso para o front end.
+	 * Este endpoint recebe o redirecionamento a partir do arquivo acesso-cidadao-response.html que se fez necessário
+	 *
+	 * @param accessToken O access token do acesso cidadão.
+	 * @return Um redirect para o frontend passando o token codigicado.
+	 */
+	@Hidden
+	@GetMapping("/acesso-cidadao-response")
+	public RedirectView acessoCidadaoResponse(String accessToken) {
+		String tokenEmBase64 = Base64.getEncoder().encodeToString(accessToken.getBytes());
+		return new RedirectView(String.format("%s/token?token=%s", frontEndHost, tokenEmBase64));
+	}
 
-    @GetMapping("/user-info")
-    public UsuarioDto montarUsuarioDto(HttpServletRequest request) {
-        String authorization = request.getHeader("Authorization");
-        return service.autenticar( authorization.replace("Bearer ", ""));
-    }
-
+	@GetMapping("/user-info")
+	public UsuarioDto montarUsuarioDto(HttpServletRequest request) {
+		String authorization = request.getHeader("Authorization");
+		return service.autenticar(authorization.replace("Bearer ", ""));
+	}
 }

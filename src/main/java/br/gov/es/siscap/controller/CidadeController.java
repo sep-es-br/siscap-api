@@ -1,6 +1,6 @@
 package br.gov.es.siscap.controller;
 
-import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.enums.FiltroCidade;
 import br.gov.es.siscap.service.CidadeService;
 import jakarta.validation.constraints.NotNull;
@@ -17,11 +17,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CidadeController {
 
-    private final CidadeService service;
+	private final CidadeService service;
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect(@NotNull @RequestParam FiltroCidade filtrarPor, @RequestParam Long id) {
-        return service.buscarSelect(filtrarPor, id);
-    }
-
+	@GetMapping("/opcoes")
+	public List<OpcoesDto> listarOpcoesDropdown(@NotNull @RequestParam FiltroCidade filtrarPor, @RequestParam Long id) {
+		return service.listarOpcoesDropdown(filtrarPor, id);
+	}
 }

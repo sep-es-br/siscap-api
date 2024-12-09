@@ -20,52 +20,62 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    public static final String PATH_PESSOAS = "/pessoas/**";
-    private static final String PATH_PROJETO = "/projetos/**";
-    public static final String PATH_ORGANIZACOES = "/organizacoes/**";
+	public static final String PATH_PESSOAS = "/pessoas/**";
+	private static final String PATH_PROJETO = "/projetos/**";
+	private static final String PATH_PROGRAMAS = "/programas/**";
+	public static final String PATH_ORGANIZACOES = "/organizacoes/**";
+	private static final String PATH_CARTAS_CONSULTA = "/cartas-consulta/**";
 
-    private final ClientRegistrationRepository clientRegistrationRepository;
-    private final SecurityFilter securityFilter;
-    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+	private final ClientRegistrationRepository clientRegistrationRepository;
+	private final SecurityFilter securityFilter;
+	private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
-    @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
-                .authorizeHttpRequests(authConfig -> {
+	@Bean
+	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		return http
+					.csrf(AbstractHttpConfigurer::disable)
+					.sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
+					.authorizeHttpRequests(authConfig -> {
 
-                    authConfig.requestMatchers(POST, PATH_PROJETO).hasAnyAuthority(ADMIN_AUTH.name(), PROJETO_CADASTRAR.name());
-                    authConfig.requestMatchers(PUT, PATH_PROJETO).hasAnyAuthority(ADMIN_AUTH.name(), PROJETO_ATUALIZAR.name());
-                    authConfig.requestMatchers(DELETE, PATH_PROJETO).hasAnyAuthority(ADMIN_AUTH.name(), PROJETO_APAGAR.name());
+						authConfig.requestMatchers(POST, PATH_PROJETO).hasAnyAuthority(ADMIN_AUTH.name(), PROJETO_CADASTRAR.name());
+						authConfig.requestMatchers(PUT, PATH_PROJETO).hasAnyAuthority(ADMIN_AUTH.name(), PROJETO_ATUALIZAR.name());
+						authConfig.requestMatchers(DELETE, PATH_PROJETO).hasAnyAuthority(ADMIN_AUTH.name(), PROJETO_APAGAR.name());
 
-                    authConfig.requestMatchers(GET, "/pessoas/meu-perfil").permitAll();
-                    authConfig.requestMatchers(PUT, "/pessoas/meu-perfil/*").permitAll();
-                    authConfig.requestMatchers(POST, PATH_PESSOAS).hasAnyAuthority(ADMIN_AUTH.name(), PESSOA_CADASTRAR.name());
-                    authConfig.requestMatchers(PUT, PATH_PESSOAS).hasAnyAuthority(ADMIN_AUTH.name(), PESSOA_ATUALIZAR.name());
-                    authConfig.requestMatchers(DELETE, PATH_PESSOAS).hasAnyAuthority(ADMIN_AUTH.name(), PESSOA_APAGAR.name());
+						authConfig.requestMatchers(GET, "/pessoas/meu-perfil").permitAll();
+						authConfig.requestMatchers(PUT, "/pessoas/meu-perfil/*").permitAll();
+						authConfig.requestMatchers(POST, PATH_PESSOAS).hasAnyAuthority(ADMIN_AUTH.name(), PESSOA_CADASTRAR.name());
+						authConfig.requestMatchers(PUT, PATH_PESSOAS).hasAnyAuthority(ADMIN_AUTH.name(), PESSOA_ATUALIZAR.name());
+						authConfig.requestMatchers(DELETE, PATH_PESSOAS).hasAnyAuthority(ADMIN_AUTH.name(), PESSOA_APAGAR.name());
 
-                    authConfig.requestMatchers(POST, PATH_ORGANIZACOES).hasAnyAuthority(ADMIN_AUTH.name(), ORGANIZACAO_CADASTRAR.name());
-                    authConfig.requestMatchers(PUT, PATH_ORGANIZACOES).hasAnyAuthority(ADMIN_AUTH.name(), ORGANIZACAO_ATUALIZAR.name());
-                    authConfig.requestMatchers(DELETE, PATH_ORGANIZACOES).hasAnyAuthority(ADMIN_AUTH.name(), ORGANIZACAO_APAGAR.name());
+						authConfig.requestMatchers(POST, PATH_PROGRAMAS).hasAnyAuthority(ADMIN_AUTH.name(), PROGRAMA_CADASTRAR.name());
+						authConfig.requestMatchers(PUT, PATH_PROGRAMAS).hasAnyAuthority(ADMIN_AUTH.name(), PROGRAMA_ATUALIZAR.name());
+						authConfig.requestMatchers(DELETE, PATH_PROGRAMAS).hasAnyAuthority(ADMIN_AUTH.name(), PROGRAMA_APAGAR.name());
 
-                    authConfig.requestMatchers(HttpMethod.GET,
-                            "/swagger-ui.html",
-                            "/swagger-ui/*",
-                            "/v3/*",
-                            "/v3/api-docs/*",
-                            "/signin/*",
-                            "/acesso-cidadao-response.html").permitAll();
-                    authConfig.anyRequest().authenticated();
-                })
-                .oauth2Login(oAuth2LoginConfig ->
-                        oAuth2LoginConfig.authorizationEndpoint(authEndpointConfig ->
-                                authEndpointConfig.authorizationRequestResolver(new AuthorizationRequestResolver(
-                                        clientRegistrationRepository, "/oauth2/authorization")))
-                )
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exHandler -> exHandler.accessDeniedHandler(customAccessDeniedHandler))
-                .build();
-    }
+						authConfig.requestMatchers(POST, PATH_ORGANIZACOES).hasAnyAuthority(ADMIN_AUTH.name(), ORGANIZACAO_CADASTRAR.name());
+						authConfig.requestMatchers(PUT, PATH_ORGANIZACOES).hasAnyAuthority(ADMIN_AUTH.name(), ORGANIZACAO_ATUALIZAR.name());
+						authConfig.requestMatchers(DELETE, PATH_ORGANIZACOES).hasAnyAuthority(ADMIN_AUTH.name(), ORGANIZACAO_APAGAR.name());
+
+						authConfig.requestMatchers(POST, PATH_CARTAS_CONSULTA).hasAnyAuthority(ADMIN_AUTH.name(), CARTA_CONSULTA_CADASTRAR.name());
+						authConfig.requestMatchers(PUT, PATH_CARTAS_CONSULTA).hasAnyAuthority(ADMIN_AUTH.name(), CARTA_CONSULTA_ATUALIZAR.name());
+						authConfig.requestMatchers(DELETE, PATH_CARTAS_CONSULTA).hasAnyAuthority(ADMIN_AUTH.name(), CARTA_CONSULTA_APAGAR.name());
+
+						authConfig.requestMatchers(HttpMethod.GET,
+									"/swagger-ui.html",
+									"/swagger-ui/*",
+									"/v3/*",
+									"/v3/api-docs/*",
+									"/signin/*",
+									"/acesso-cidadao-response.html").permitAll();
+						authConfig.anyRequest().authenticated();
+					})
+					.oauth2Login(oAuth2LoginConfig ->
+								oAuth2LoginConfig.authorizationEndpoint(authEndpointConfig ->
+											authEndpointConfig.authorizationRequestResolver(new AuthorizationRequestResolver(
+														clientRegistrationRepository, "/oauth2/authorization")))
+					)
+					.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+					.exceptionHandling(exHandler -> exHandler.accessDeniedHandler(customAccessDeniedHandler))
+					.build();
+	}
 
 }

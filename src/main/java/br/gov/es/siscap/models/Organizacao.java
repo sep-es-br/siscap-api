@@ -1,117 +1,125 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.form.OrganizacaoForm;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "organizacao")
+@NoArgsConstructor
 @Getter
+@Setter
 @SQLDelete(sql = "update organizacao set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class Organizacao {
+public class Organizacao extends ControleHistorico {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String nome;
-    private String nomeFantasia;
-    private String cnpj;
-    private String telefone;
-    private String email;
-    private String site;
-    private String nomeImagem;
-    @OneToOne
-    @JoinColumn(name = "organizacao_pai")
-    @SQLJoinTableRestriction("apagado = FALSE")
-    private Organizacao organizacaoPai;
-    @ManyToOne
-    @SQLJoinTableRestriction("apagado = FALSE")
-    @JoinColumn(name = "status")
-    private Status status;
-    @OneToOne
-    @JoinColumn(name = "id_pessoa")
-    @SQLJoinTableRestriction("apagado = FALSE")
-    private Pessoa pessoa;
-    @ManyToOne
-    @JoinColumn(name = "id_cidade")
-    @SQLJoinTableRestriction("apagado = FALSE")
-    private Cidade cidade;
-    @ManyToOne
-    @JoinColumn(name = "id_estado")
-    @SQLJoinTableRestriction("apagado = FALSE")
-    private Estado estado;
-    @ManyToOne
-    @JoinColumn(name = "id_pais")
-    @SQLJoinTableRestriction("apagado = FALSE")
-    private Pais pais;
-    @ManyToOne
-    @JoinColumn(name = "id_tipo_organizacao")
-    @SQLJoinTableRestriction("apagado = FALSE")
-    private TipoOrganizacao tipoOrganizacao;
-    @DateTimeFormat
-    private LocalDateTime criadoEm;
-    @Setter
-    @DateTimeFormat
-    private LocalDateTime atualizadoEm;
-    @Setter
-    private boolean apagado = Boolean.FALSE;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", nullable = false)
+	private Long id;
 
-    public Organizacao() {
-    }
+	@Column(name = "nome", nullable = false)
+	private String nome;
 
-    public Organizacao(Long id) {
-        this.id = id;
-    }
+	@Column(name = "nome_fantasia", nullable = false)
+	private String nomeFantasia;
 
-    public Organizacao(OrganizacaoForm form, String nomeImagem) {
-        this.nome = form.nome();
-        this.nomeFantasia = form.nomeFantasia();
-        this.cnpj = form.cnpj();
-        this.telefone = form.telefone();
-        this.email = form.email();
-        this.site = form.site();
-        this.nomeImagem = nomeImagem;
-        this.organizacaoPai = form.idOrganizacaoPai() != null ? new Organizacao(form.idOrganizacaoPai()) : null;
-        this.status = new Status(1L);
-        this.pessoa = form.idPessoaResponsavel() != null ? new Pessoa(form.idPessoaResponsavel()) : null;
-        this.cidade = form.idCidade() != null ? new Cidade(form.idCidade()) : null;
-        this.estado = form.idEstado() != null ? new Estado(form.idEstado()) : null;
-        this.pais = new Pais(form.idPais());
-        this.tipoOrganizacao = new TipoOrganizacao(form.idTipoOrganizacao());
-        this.criadoEm = LocalDateTime.now();
-    }
+	@Column(name = "cnpj")
+	private String cnpj;
 
-    public void apagar() {
-        this.atualizadoEm = LocalDateTime.now();
-        this.cnpj = null;
-        this.nomeImagem = null;
-    }
+	@Column(name = "telefone")
+	private String telefone;
 
-    public void atualizar(OrganizacaoForm form) {
-        this.nome = form.nome();
-        this.nomeFantasia = form.nomeFantasia();
-        this.cnpj = form.cnpj();
-        this.telefone = form.telefone();
-        this.email = form.email();
-        this.site = form.site();
-        this.organizacaoPai = form.idOrganizacaoPai() != null ? new Organizacao(form.idOrganizacaoPai()) : null;
-        this.pessoa = form.idPessoaResponsavel() != null ? new Pessoa(form.idPessoaResponsavel()) : null;
-        this.cidade = form.idCidade() != null ? new Cidade(form.idCidade()) : null;
-        this.estado = form.idEstado() != null ? new Estado(form.idEstado()) : null;
-        this.pais = form.idPais() != null ? new Pais(form.idPais()) : null;
-        this.tipoOrganizacao = form.idTipoOrganizacao() != null ? new TipoOrganizacao(form.idTipoOrganizacao()) : null;
-        this.setAtualizadoEm(LocalDateTime.now());
-    }
+	@Column(name = "email")
+	private String email;
 
-    public void atualizarImagemPerfil(String nomeImagem) {
-        this.nomeImagem = nomeImagem;
-    }
+	@Column(name = "site")
+	private String site;
+
+	@Column(name = "nome_imagem")
+	private String nomeImagem;
+
+	@OneToOne
+	@JoinColumn(name = "organizacao_pai")
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private Organizacao organizacaoPai;
+
+	@ManyToOne
+	@JoinColumn(name = "id_tipo_status", nullable = false)
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private TipoStatus tipoStatus = new TipoStatus(TipoStatusEnum.ATIVO.getValue());
+
+	@ManyToOne
+	@JoinColumn(name = "id_cidade")
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private Cidade cidade;
+
+	@ManyToOne
+	@JoinColumn(name = "id_estado")
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private Estado estado;
+
+	@ManyToOne
+	@JoinColumn(name = "id_pais")
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private Pais pais;
+
+	@ManyToOne
+	@JoinColumn(name = "id_tipo_organizacao", nullable = false)
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private TipoOrganizacao tipoOrganizacao;
+
+	@OneToMany(mappedBy = "organizacao")
+	private Set<PessoaOrganizacao> pessoaOrganizacaoSet;
+
+	public Organizacao(Long id) {
+		this.setId(id);
+	}
+
+	public Organizacao(OrganizacaoForm form, String nomeImagem) {
+		this.setDadosObrigatorios(form);
+		this.setDadosOpcionais(form);
+		this.atualizarImagemPerfil(nomeImagem);
+	}
+
+	public void atualizarOrganizacao(OrganizacaoForm form) {
+		this.setDadosObrigatorios(form);
+		this.setDadosOpcionais(form);
+		super.atualizarHistorico();
+	}
+
+	public void atualizarImagemPerfil(String nomeImagem) {
+		this.setNomeImagem(nomeImagem);
+	}
+
+	public void apagarOrganizacao() {
+		this.setCnpj(null);
+		this.setNomeImagem(null);
+		super.apagarHistorico();
+	}
+
+	private void setDadosObrigatorios(OrganizacaoForm form) {
+		this.setNome(form.nome());
+		this.setNomeFantasia(form.abreviatura());
+		this.setTipoOrganizacao(new TipoOrganizacao(form.idTipoOrganizacao()));
+		this.setPais(new Pais(form.idPais()));
+	}
+
+	private void setDadosOpcionais(OrganizacaoForm form) {
+		this.setCnpj(form.cnpj() != null ? form.cnpj() : null);
+		this.setOrganizacaoPai(form.idOrganizacaoPai() != null ? new Organizacao(form.idOrganizacaoPai()) : null);
+		this.setEstado(form.idEstado() != null ? new Estado(form.idEstado()) : null);
+		this.setCidade(form.idCidade() != null ? new Cidade(form.idCidade()) : null);
+		this.setTelefone(form.telefone() != null ? form.telefone() : null);
+		this.setEmail(form.email() != null ? form.email() : null);
+		this.setSite(form.site() != null ? form.site() : null);
+	}
 }

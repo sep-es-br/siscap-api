@@ -9,24 +9,38 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Set;
 
 public record PessoaForm(
-        @NotBlank
-        String nome,
-        String nomeSocial,
-        @NotBlank
-        String nacionalidade,
-        @NotBlank
-        String genero,
-        @Size(max = 11, min = 11)
-        String cpf,
-        @Email
-        @NotBlank
-        String email,
-        String telefoneComercial,
-        String telefonePessoal,
-        @Valid
-        EnderecoForm endereco,
-        Long idOrganizacao,
-        String sub,
-        Set<String> idAreasAtuacao,
-        MultipartFile imagemPerfil) {
+
+			@NotBlank
+			String nome,
+
+			String nomeSocial,
+
+			@NotBlank
+			String nacionalidade,
+
+			@NotBlank
+			String genero,
+
+			@Size(max = 11, min = 11)
+			String cpf,
+
+			@Email
+			@NotBlank
+			String email,
+
+			String telefoneComercial,
+
+			String telefonePessoal,
+
+			@Valid
+			EnderecoForm endereco,
+
+			Set<Long> idOrganizacoes,
+
+			String sub,
+
+			Set<Long> idAreasAtuacao,
+
+			MultipartFile imagemPerfil
+) {
 }

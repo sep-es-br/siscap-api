@@ -1,6 +1,6 @@
 package br.gov.es.siscap.controller;
 
-import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.service.PlanoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,11 +14,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PlanoController {
 
-    private final PlanoService service;
+	private final PlanoService service;
 
-    @GetMapping("/select")
-    public List<SelectDto> listarSelect() {
-        return service.buscarSelect();
-    }
-
+	@GetMapping("/opcoes")
+	public List<OpcoesDto> listarOpcoesDropdown() {
+		return service.listarOpcoesDropdown();
+	}
 }

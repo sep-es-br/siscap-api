@@ -1,116 +1,131 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.form.ProjetoForm;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "projeto")
+@NoArgsConstructor
 @Getter
+@Setter
 @SQLDelete(sql = "update projeto set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class Projeto {
+public class Projeto extends ControleHistorico {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String sigla;
-    private String titulo;
-    private BigDecimal valorEstimado;
-    private String objetivo;
-    private String objetivoEspecifico;
-    @ManyToOne
-    @SQLJoinTableRestriction("apagado = FALSE")
-    @JoinColumn(name = "status")
-    private Status status;
-    @ManyToOne
-    @JoinColumn(name = "id_organizacao")
-    @SQLJoinTableRestriction("apagado = FALSE")
-    private Organizacao organizacao;
-    private String situacaoProblema;
-    private String solucoesPropostas;
-    private String impactos;
-    private String arranjosInstitucionais;
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "projeto_microrregiao",
-            joinColumns = {@JoinColumn(name = "id_projeto")},
-            inverseJoinColumns = @JoinColumn(name = "id_microrregiao"))
-    private List<Microrregiao> microrregioes;
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "projeto_pessoa",
-            joinColumns = {@JoinColumn(name = "id_projeto")},
-            inverseJoinColumns = @JoinColumn(name = "id_pessoa"))
-    private List<Pessoa> equipeElaboracao;
-    @ManyToOne
-    @JoinColumn(name = "id_area")
-    @SQLJoinTableRestriction("apagado = FALSE")
-    private Area area;
-    @DateTimeFormat
-    private LocalDateTime criadoEm;
-    @DateTimeFormat
-    private LocalDateTime atualizadoEm;
-    private boolean apagado;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", nullable = false)
+	private Long id;
 
-    public Projeto() {
-    }
+	@Column(name = "sigla", length = 12)
+	private String sigla;
 
-    public Projeto(ProjetoForm form) {
-        this.sigla = form.sigla();
-        this.titulo = form.titulo();
-        this.valorEstimado = form.valorEstimado();
-        this.objetivo = form.objetivo();
-        this.objetivoEspecifico = form.objetivoEspecifico();
-        this.status = new Status(1L);
-        this.organizacao = new Organizacao(form.idOrganizacao());
-        this.situacaoProblema = form.situacaoProblema();
-        this.solucoesPropostas = form.solucoesPropostas();
-        this.impactos = form.impactos();
-        this.arranjosInstitucionais = form.arranjosInstitucionais();
-        this.microrregioes = form.idMicrorregioes().stream().map(Microrregiao::new).toList();
-        this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).toList();
-        this.criadoEm = LocalDateTime.now();
-        this.apagado = Boolean.FALSE;
-    }
+	@Column(name = "titulo", nullable = false, length = 150)
+	private String titulo;
 
-    public void atualizarProjeto(ProjetoForm form) {
-        this.sigla = form.sigla();
-        this.titulo = form.titulo();
-        this.organizacao = new Organizacao(form.idOrganizacao());
-        this.valorEstimado = form.valorEstimado();
-        this.microrregioes = form.idMicrorregioes()
-                .stream().map(Microrregiao::new).collect(Collectors.toList());
-        this.objetivo = form.objetivo();
-        this.objetivoEspecifico = form.objetivoEspecifico();
-        this.situacaoProblema = form.situacaoProblema();
-        this.solucoesPropostas = form.solucoesPropostas();
-        this.impactos = form.impactos();
-        this.arranjosInstitucionais = form.arranjosInstitucionais();
-        this.equipeElaboracao = form.idPessoasEquipeElab().stream().map(Pessoa::new).collect(Collectors.toList());
-        this.atualizadoEm = LocalDateTime.now();
-    }
+	@Column(name = "objetivo", nullable = false, length = 2000)
+	private String objetivo;
 
-    public void apagar() {
-        this.sigla = null;
-        this.atualizadoEm = LocalDateTime.now();
-    }
+	@Column(name = "objetivo_especifico", nullable = false, length = 2000)
+	private String objetivoEspecifico;
 
-    public Long getIdEixo() {
-        return this.area.getEixo() != null ? this.area.getEixo().getId() : null;
-    }
+	@ManyToOne
+	@SQLJoinTableRestriction("apagado = FALSE")
+	@JoinColumn(name = "id_tipo_status", nullable = false)
+	private TipoStatus tipoStatus;
 
-    public Long getIdPlano() {
-        if (getIdEixo() == null)
-            return null;
-        return this.area.getEixo().getPlano() != null ? this.area.getEixo().getPlano().getId() : null;
-    }
+	@ManyToOne
+	@JoinColumn(name = "id_organizacao", nullable = false)
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private Organizacao organizacao;
 
+	@Column(name = "situacao_problema", nullable = false, length = 2000)
+	private String situacaoProblema;
+
+	@Column(name = "solucoes_propostas", nullable = false, length = 2000)
+	private String solucoesPropostas;
+
+	@Column(name = "impactos", nullable = false, length = 2000)
+	private String impactos;
+
+	@Column(name = "arranjos_institucionais", nullable = false, length = 2000)
+	private String arranjosInstitucionais;
+
+	@OneToMany(mappedBy = "projeto")
+	private Set<ProjetoPessoa> projetoPessoaSet;
+
+	@OneToMany(mappedBy = "projeto")
+	private Set<LocalidadeQuantia> localidadeQuantiaSet;
+
+	@ManyToOne
+	@JoinColumn(name = "id_programa")
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private Programa programa;
+
+	@ManyToOne
+	@JoinColumn(name = "id_area")
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private Area area;
+
+	@DateTimeFormat
+	@Column(name = "data_registro")
+	private LocalDateTime dataRegistro;
+
+	public Projeto(Long id) {
+		this.setId(id);
+	}
+
+	public Projeto(ProjetoForm form) {
+		this.setDadosProjeto(form);
+	}
+
+	public void atualizarProjeto(ProjetoForm form) {
+		this.setDadosProjeto(form);
+		super.atualizarHistorico();
+	}
+
+	public void apagarProjeto() {
+		this.setSigla(null);
+		this.setPrograma(null);
+		super.apagarHistorico();
+	}
+
+	public Long getIdEixo() {
+		return this.area.getEixo() != null ? this.area.getEixo().getId() : null;
+	}
+
+	public Long getIdPlano() {
+		if (getIdEixo() == null)
+			return null;
+		return this.area.getEixo().getPlano() != null ? this.area.getEixo().getPlano().getId() : null;
+	}
+
+	public boolean isAtivo() {
+		return Objects.equals(this.getTipoStatus().getId(), TipoStatusEnum.ATIVO.getValue());
+	}
+
+	private void setDadosProjeto(ProjetoForm form) {
+		this.setSigla(form.sigla());
+		this.setTitulo(form.titulo());
+		this.setObjetivo(form.objetivo());
+		this.setObjetivoEspecifico(form.objetivoEspecifico());
+		this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
+		this.setOrganizacao(new Organizacao(form.idOrganizacao()));
+		this.setSituacaoProblema(form.situacaoProblema());
+		this.setSolucoesPropostas(form.solucoesPropostas());
+		this.setImpactos(form.impactos());
+		this.setArranjosInstitucionais(form.arranjosInstitucionais());
+	}
 }

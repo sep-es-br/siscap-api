@@ -1,6 +1,6 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.SelectDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.enums.FiltroCidade;
 import br.gov.es.siscap.models.Estado;
 import br.gov.es.siscap.models.Pais;
@@ -16,16 +16,16 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class CidadeService {
 
-    private final CidadeRepository repository;
+	private final CidadeRepository repository;
 
-    public boolean existePorId(Long id) {
-        return repository.existsById(id);
-    }
+	public boolean existePorId(Long id) {
+		return repository.existsById(id);
+	}
 
-    public List<SelectDto> buscarSelect(FiltroCidade filtrarPor, Long id) {
-        return switch (filtrarPor) {
-            case PAIS -> repository.findAllByEstadoPaisOrderByNome(new Pais(id)).stream().map(SelectDto::new).toList();
-            case ESTADO -> repository.findAllByEstadoOrderByNome(new Estado(id)).stream().map(SelectDto::new).toList();
-        };
-    }
+	public List<OpcoesDto> listarOpcoesDropdown(FiltroCidade filtrarPor, Long id) {
+		return switch (filtrarPor) {
+			case PAIS -> repository.findAllByEstadoPaisOrderByNome(new Pais(id)).stream().map(OpcoesDto::new).toList();
+			case ESTADO -> repository.findAllByEstadoOrderByNome(new Estado(id)).stream().map(OpcoesDto::new).toList();
+		};
+	}
 }
