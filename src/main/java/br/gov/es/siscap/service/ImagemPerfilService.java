@@ -22,80 +22,80 @@ import java.util.UUID;
 @Service
 public class ImagemPerfilService {
 
-    private final Path diretorioPadrao;
-    private final Logger logger = LogManager.getLogger(ImagemPerfilService.class);
+	private final Path diretorioPadrao;
+	private final Logger logger = LogManager.getLogger(ImagemPerfilService.class);
 
-    public ImagemPerfilService(@Value("${raiz.imagens}") String caminhoRaiz) {
-        this.diretorioPadrao = Paths.get(caminhoRaiz);
-    }
+	public ImagemPerfilService(@Value("${raiz.imagens}") String caminhoRaiz) {
+		this.diretorioPadrao = Paths.get(caminhoRaiz);
+	}
 
 
-    public String salvar(MultipartFile imagem) {
-        try {
-            if (imagem == null)
-                return null;
-            if (imagem.isEmpty())
-                throw new SiscapImagemException("O arquivo de imagemPerfil está vazio");
+	public String salvar(MultipartFile imagem) {
+		try {
+			if (imagem == null)
+				return null;
+			if (imagem.isEmpty())
+				throw new SiscapImagemException("O arquivo de imagemPerfil está vazio");
 
-            logger.info("Salvar nova imagem {}", imagem.getOriginalFilename());
+			logger.info("Salvar nova imagem {}", imagem.getOriginalFilename());
 
-            String destino = UUID.randomUUID() + "." +
-                    Objects.requireNonNull(imagem.getResource().getFilename()).split("\\.")[1];
+			String destino = UUID.randomUUID() + "." +
+						Objects.requireNonNull(imagem.getResource().getFilename()).split("\\.")[1];
 
-            try (InputStream inputStream = imagem.getInputStream()) {
-                Files.copy(inputStream, diretorioPadrao.resolve(destino), StandardCopyOption.REPLACE_EXISTING);
-            }
+			try (InputStream inputStream = imagem.getInputStream()) {
+				Files.copy(inputStream, diretorioPadrao.resolve(destino), StandardCopyOption.REPLACE_EXISTING);
+			}
 
-            logger.info("Imagem {} salva com sucesso.", destino);
+			logger.info("Imagem {} salva com sucesso.", destino);
 
-            return destino;
-        } catch (IOException e) {
-            logger.error("Erro ao salvar imagem. {}", e.getMessage());
-            throw new SiscapImagemException(e.getMessage());
-        }
-    }
+			return destino;
+		} catch (IOException e) {
+			logger.error("Erro ao salvar imagem. {}", e.getMessage());
+			throw new SiscapImagemException(e.getMessage());
+		}
+	}
 
-    public Resource buscar(String nomeImagem) {
-        try {
-            if (nomeImagem == null)
-                return null;
-            logger.info("Buscar imagem {}.", nomeImagem);
-            Path caminhoImagem = load(nomeImagem);
-            Resource resource = new UrlResource(caminhoImagem.toUri());
-            if (resource.exists() || resource.isReadable()) {
-                logger.info("Imagem {} encontrada.", nomeImagem);
-                return resource;
-            } else {
-                logger.error("Imagem {} não encontrada no diretório de imagens.", nomeImagem);
-                throw new SiscapImagemException("Não foi possível ler o arquivo " + nomeImagem);
-            }
-        } catch (MalformedURLException e) {
-            logger.error("Não foi possível ler o arquivo {}. {}", nomeImagem, e.getMessage());
-            throw new SiscapImagemException("Não foi possível ler o arquivo " + nomeImagem);
-        }
-    }
+	public Resource buscar(String nomeImagem) {
+		try {
+			if (nomeImagem == null)
+				return null;
+			logger.info("Buscar imagem {}.", nomeImagem);
+			Path caminhoImagem = load(nomeImagem);
+			Resource resource = new UrlResource(caminhoImagem.toUri());
+			if (resource.exists() || resource.isReadable()) {
+				logger.info("Imagem {} encontrada.", nomeImagem);
+			} else {
+				logger.error("Imagem {} não encontrada no diretório de imagens.", nomeImagem);
+			}
 
-    public void apagar(String nomeImagem) {
-        try {
-            if (nomeImagem == null)
-                return;
-            logger.info("Remover imagem {}.", nomeImagem);
-            Path caminhoImagem = load(nomeImagem);
-            Files.delete(caminhoImagem);
-            logger.info("Imagem removida com sucesso!");
-        } catch (IOException e) {
-            logger.info("Imagem não excluída pois não foi encontrado arquivo com a referência {}", nomeImagem);
-        }
-    }
+			return resource;
+		} catch (MalformedURLException e) {
+			logger.error("Não foi possível ler o arquivo {}. {}", nomeImagem, e.getMessage());
+			throw new SiscapImagemException("Não foi possível ler o arquivo " + nomeImagem);
+		}
+	}
 
-    public String atualizar(String imagemAntiga, MultipartFile imagemNova) {
-        if (imagemAntiga != null)
-            apagar(imagemAntiga);
-        return salvar(imagemNova);
-    }
+	public void apagar(String nomeImagem) {
+		try {
+			if (nomeImagem == null)
+				return;
+			logger.info("Remover imagem {}.", nomeImagem);
+			Path caminhoImagem = load(nomeImagem);
+			Files.delete(caminhoImagem);
+			logger.info("Imagem removida com sucesso!");
+		} catch (IOException e) {
+			logger.info("Imagem não excluída pois não foi encontrado arquivo com a referência {}", nomeImagem);
+		}
+	}
 
-    private Path load(String filename) {
-        return diretorioPadrao.resolve(filename).normalize();
-    }
+	public String atualizar(String imagemAntiga, MultipartFile imagemNova) {
+		if (imagemAntiga != null)
+			apagar(imagemAntiga);
+		return salvar(imagemNova);
+	}
+
+	private Path load(String filename) {
+		return diretorioPadrao.resolve(filename).normalize();
+	}
 
 }
