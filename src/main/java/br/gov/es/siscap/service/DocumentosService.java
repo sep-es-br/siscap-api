@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,7 +52,7 @@ public class DocumentosService {
 		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento + extensaoArquivo);
 
 		try {
-			Files.write(caminhoDocumento, corpo.getBytes());
+			Files.writeString(caminhoDocumento, corpo);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			throw new RuntimeException("Erro ao salvar corpo da carta de consulta");
@@ -64,7 +65,7 @@ public class DocumentosService {
 		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento + extensaoArquivo);
 
 		try {
-			Files.write(caminhoDocumento, corpo.getBytes());
+			Files.writeString(caminhoDocumento, corpo);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			throw new RuntimeException("Erro ao atualizar corpo da carta de consulta");
