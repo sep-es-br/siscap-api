@@ -65,7 +65,7 @@ public class DocumentosService {
 		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento + extensaoArquivo);
 
 		try {
-			Files.write(caminhoDocumento, corpo.getBytes());
+			Files.writeString(caminhoDocumento, corpo);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			throw new RuntimeException("Erro ao atualizar corpo da carta de consulta");
