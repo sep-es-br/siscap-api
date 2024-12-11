@@ -47,7 +47,7 @@ public class TokenService {
 
 	public String buscarDataExpiracaoToken(String token) {
 		LocalDateTime dataExpiracao = LocalDateTime.ofInstant(JWT.decode(token).getExpiresAt().toInstant(), ZoneOffset.of("-03:00"));
-		return FormatadorData.formatar(dataExpiracao, FormatoDataEnum.COMPLETO);
+		return FormatadorData.format(dataExpiracao, FormatoDataEnum.COMPLETO);
 	}
 
 	private Instant getDataExpiracao() {

@@ -32,9 +32,16 @@ public class ProjetoController {
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
 				@PageableDefault(size = 15, sort = "sigla") Pageable pageable,
-				@RequestParam(required = false, defaultValue = "") String search
+				@RequestParam(required = false) String sigla,
+				@RequestParam(required = false) String titulo,
+				@RequestParam(required = false) Long idOrganizacao,
+				@RequestParam(required = false) String status,
+				@RequestParam(required = false) String dataPeriodoInicio,
+				@RequestParam(required = false) String dataPeriodoFim
+//				@RequestParam(required = false, defaultValue = "") String search,
 	) {
-		return service.listarTodos(pageable, search);
+//		return service.listarTodos(pageable, search);
+		return service.testePaginacaoAvancada(pageable, sigla, titulo, idOrganizacao, status, dataPeriodoInicio, dataPeriodoFim);
 	}
 
 	@GetMapping("/opcoes")

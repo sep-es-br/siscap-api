@@ -14,6 +14,7 @@ import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.repository.ProjetoRepository;
+import br.gov.es.siscap.utils.FormatadorData;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +46,46 @@ public class ProjetoService {
 		logger.info("Buscando todos os projetos");
 
 		return repository.paginarProjetosPorFiltroPesquisaSimples(search, pageable)
+					.map(projeto -> {
+						Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
+
+						ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+
+						return new ProjetoListaDto(projeto, valorDto.quantia());
+					});
+	}
+
+	// FUNCIONOU
+	// PREPARAR CONTROLLER PRA RECEBER REQUESTPARAMS
+	// ALTERAR METODO listarTodos DESSE SERVICO OU CRIAR OUTRO METODO
+
+	//	sigla: '',
+//	titulo: '',
+//	idOrganizacao: 0,
+//	status: 'Todos',
+//	dataPeriodoInicio: '',
+//	dataPeriodoFim: '',
+
+	public Page<ProjetoListaDto> testePaginacaoAvancada(
+				Pageable pageable,
+				String sigla,
+				String titulo,
+				Long idOrganizacao,
+				String status,
+				String dataPeriodoInicio,
+				String dataPeriodoFim) {
+
+		LocalDateTime inicio = FormatadorData.parseSimples(dataPeriodoInicio.isEmpty() ? FormatadorData.DATA_MINIMA : dataPeriodoInicio);
+		LocalDateTime fim = FormatadorData.parseSimples(dataPeriodoFim.isEmpty() ? FormatadorData.DATA_MAXIMA : dataPeriodoFim);
+
+		return repository.paginarProjetosPorFiltroPesquisaAvancada(
+								pageable,
+								sigla,
+								titulo,
+								idOrganizacao,
+								status,
+								inicio,
+								fim)
 					.map(projeto -> {
 						Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 
