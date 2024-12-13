@@ -14,6 +14,7 @@ import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.repository.ProjetoRepository;
+import br.gov.es.siscap.specification.ProjetoSpecification;
 import br.gov.es.siscap.utils.FormatadorData;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,50 +44,26 @@ public class ProjetoService {
 	private final OrganizacaoService organizacaoService;
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
-	public Page<ProjetoListaDto> listarTodos(Pageable pageable, String search) {
-		logger.info("Buscando todos os projetos");
-
-		return repository.paginarProjetosPorFiltroPesquisaSimples(search, pageable)
-					.map(projeto -> {
-						Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
-
-						ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
-
-						return new ProjetoListaDto(projeto, valorDto.quantia());
-					});
-	}
-
-	// FUNCIONOU
-	// PREPARAR CONTROLLER PRA RECEBER REQUESTPARAMS
-	// ALTERAR METODO listarTodos DESSE SERVICO OU CRIAR OUTRO METODO
-
-	//	sigla: '',
-//	titulo: '',
-//	idOrganizacao: 0,
-//	status: 'Todos',
-//	dataPeriodoInicio: '',
-//	dataPeriodoFim: '',
-
-	public Page<ProjetoListaDto> testePaginacaoAvancada(
+	public Page<ProjetoListaDto> listarTodos(
 				Pageable pageable,
-				String sigla,
-				String titulo,
+				String siglaOuTitulo,
 				Long idOrganizacao,
 				String status,
 				String dataPeriodoInicio,
 				String dataPeriodoFim) {
 
-		LocalDateTime inicio = FormatadorData.parseSimples(dataPeriodoInicio.isEmpty() ? FormatadorData.DATA_MINIMA : dataPeriodoInicio);
-		LocalDateTime fim = FormatadorData.parseSimples(dataPeriodoFim.isEmpty() ? FormatadorData.DATA_MAXIMA : dataPeriodoFim);
+		Specification<Projeto> especificacaoSiglaTitulo = siglaOuTitulo.isBlank() ? null : ProjetoSpecification.filtroSiglaTitulo(siglaOuTitulo);
+		Specification<Projeto> especificacaoIdOrganizacao = idOrganizacao == 0 ? null : ProjetoSpecification.filtroIdOrganizacao(idOrganizacao);
+		Specification<Projeto> especificacaoStatus = status.equals("Todos") ? null : ProjetoSpecification.filtroStatus(status);
+		Specification<Projeto> especificacaoData = ProjetoSpecification.filtroData(dataPeriodoInicio, dataPeriodoFim);
 
-		return repository.paginarProjetosPorFiltroPesquisaAvancada(
-								pageable,
-								sigla,
-								titulo,
-								idOrganizacao,
-								status,
-								inicio,
-								fim)
+		Specification<Projeto> filtroPesquisa = Specification
+					.where(especificacaoSiglaTitulo)
+					.and(especificacaoIdOrganizacao)
+					.and(especificacaoStatus)
+					.and(especificacaoData);
+
+		return repository.findAll(filtroPesquisa, pageable)
 					.map(projeto -> {
 						Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 

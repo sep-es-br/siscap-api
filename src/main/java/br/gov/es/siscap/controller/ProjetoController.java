@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,17 +32,14 @@ public class ProjetoController {
 
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
-				@PageableDefault(size = 15, sort = "sigla") Pageable pageable,
-				@RequestParam(required = false) String sigla,
-				@RequestParam(required = false) String titulo,
+				@PageableDefault(size = 15, sort = "criadoEm", direction = Sort.Direction.DESC) Pageable pageable,
+				@RequestParam(required = false) String siglaOuTitulo,
 				@RequestParam(required = false) Long idOrganizacao,
 				@RequestParam(required = false) String status,
 				@RequestParam(required = false) String dataPeriodoInicio,
 				@RequestParam(required = false) String dataPeriodoFim
-//				@RequestParam(required = false, defaultValue = "") String search,
 	) {
-//		return service.listarTodos(pageable, search);
-		return service.testePaginacaoAvancada(pageable, sigla, titulo, idOrganizacao, status, dataPeriodoInicio, dataPeriodoFim);
+		return service.listarTodos(pageable, siglaOuTitulo, idOrganizacao, status, dataPeriodoInicio, dataPeriodoFim);
 	}
 
 	@GetMapping("/opcoes")
