@@ -25,4 +25,6 @@ public interface OrganizacaoRepository extends JpaRepository<Organizacao, Long> 
 	List<Organizacao> findAllByTipoOrganizacao(TipoOrganizacao tipoOrganizacao, Sort sort);
 
 	boolean existsByCnpj(String cnpj);
+
+	Organizacao findByCnpj(String cnpj);
 }

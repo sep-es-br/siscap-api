@@ -1,4 +1,4 @@
-package br.gov.es.siscap.dto;
+package br.gov.es.siscap.dto.acessocidadaoapi;
 
 import java.util.HashSet;
 import java.util.List;
