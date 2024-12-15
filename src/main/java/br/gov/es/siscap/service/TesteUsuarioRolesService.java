@@ -15,6 +15,10 @@ public class TesteUsuarioRolesService {
 	private final AcessoCidadaoService acessoCidadaoService;
 	private final OrganogramaService organogramaService;
 
+	public String buscarSubAgentePublicoPorCpf(String cpf) {
+		return acessoCidadaoService.buscarSubAgentePublicoPorCpf(cpf);
+	}
+
 	public List<ACAgentePublicoPapelDto> listarPapeisAgentePublicoPorSub(String sub) {
 		return acessoCidadaoService.listarPapeisAgentePublicoPorSub(sub);
 	}

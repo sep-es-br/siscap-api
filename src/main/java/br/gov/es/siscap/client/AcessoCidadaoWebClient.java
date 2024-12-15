@@ -23,9 +23,6 @@ public interface AcessoCidadaoWebClient {
 	AgentePublicoACDto.AgentePublicoACResponseDto buscarAgentePublicoPorSub(@RequestHeader Map<String, Object> headers,
 	                                                                        @PathVariable String sub);
 
-	@GetMapping("/api/agentepublico/{sub}/grupos?tipo={tipo}")
-	List<GrupoACDto> buscarGruposAgentePublicoPorSub(@RequestHeader Map<String, Object> headers, @PathVariable String sub, @PathVariable String tipo);
-
 	@GetMapping("/api/agentepublico/{sub}/papeis")
 	List<ACAgentePublicoPapelDto> buscarPapeisAgentePublicoPorSub(@RequestHeader Map<String, Object> headers, @PathVariable String sub);
 

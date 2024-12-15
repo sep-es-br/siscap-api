@@ -34,6 +34,14 @@ public class PessoaOrganizacaoService {
 	}
 
 	@Transactional
+	public Set<PessoaOrganizacao> salvarPessoaOrganizacaoSetAutenticacaoUsuario(Set<PessoaOrganizacao> pessoaOrganizacaoSet) {
+
+		List<PessoaOrganizacao> pessoaOrganizacaoList = pessoaOrganizacaoRepository.saveAllAndFlush(pessoaOrganizacaoSet);
+
+		return new HashSet<>(pessoaOrganizacaoList);
+	}
+
+	@Transactional
 	public Set<PessoaOrganizacao> cadastrarPorPessoa(Pessoa pessoa, Set<Long> idOrganizacoes) {
 		logger.info("Cadastrando vinculo entre Pessoa e Organizacao(oes) da Pessoa com id: {}", pessoa.getId());
 
@@ -92,7 +100,7 @@ public class PessoaOrganizacaoService {
 
 		PessoaOrganizacao pessoaOrganizacao = this.buscarPorOrganizacao(organizacao);
 
-		if(pessoaOrganizacao == null) {
+		if (pessoaOrganizacao == null) {
 			logger.info("MEDIDA PROVISORIA ATE TODAS AS ORGANIZACOES POSSUIREM UM RESPONSAVEL");
 			return this.cadastrarPorOrganizacao(organizacao, idPessoaResponsavel);
 		}

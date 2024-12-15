@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/test-user-roles")
@@ -18,6 +20,16 @@ import java.util.List;
 public class TesteUsuarioRolesController {
 
 	private final TesteUsuarioRolesService service;
+
+	@GetMapping("/sub/{cpf}")
+	public Map<String, String> buscarSubAgentePublicoPorCpf(@PathVariable String cpf) {
+
+		Map<String, String> response = new HashMap<>();
+
+		response.put("sub", service.buscarSubAgentePublicoPorCpf(cpf));
+
+		return response;
+	}
 
 	@GetMapping("/papeis/{sub}")
 	public List<ACAgentePublicoPapelDto> listarPapeisAgentePublicoPorSub(@PathVariable String sub) {

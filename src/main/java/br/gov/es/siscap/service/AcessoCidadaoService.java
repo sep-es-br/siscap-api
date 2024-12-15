@@ -24,9 +24,8 @@ public class AcessoCidadaoService {
 		return buscarAgentePublicoPorSub(sub);
 	}
 
-	public List<GrupoACDto> buscarGruposPessoaPorCpf(String cpf) {
-		String sub = buscarSubPorCpf(cpf);
-		return buscarGruposAgentePublicoPorSub(sub);
+	public String buscarSubAgentePublicoPorCpf(String cpf) {
+		return buscarSubPorCpf(cpf);
 	}
 
 	public ACUserInfoDto buscarInformacoesUsuario(String accessToken) {
@@ -45,27 +44,11 @@ public class AcessoCidadaoService {
 		return new AgentePublicoACDto(ACWebClient.buscarAgentePublicoPorSub(ACAuthService.getAuthorizationHeader(), sub));
 	}
 
-	public List<GrupoACDto> buscarGruposAgentePublicoPorSub(String sub) {
-		return ACWebClient.buscarGruposAgentePublicoPorSub(ACAuthService.getAuthorizationHeader(), sub, "Todos");
-	}
-
 	private ACUserInfoDto buscarAcessoCidadaoUserInfo(String accessToken) {
 		return ACUserInfoClient.buscarUserInfoAcessoCidadao(ACAuthService.getAccessTokenAuthorizationHeader(accessToken));
 	}
 
-	/*
-	   INTUITO ERA TRAZER A LISTA DE PAPEIS DE UM AGENTE PUBLICO, MAPEAR POR "LotacaoGuid"
-	   E PROCURAR ESSAS LOTACOES NO ORGANOGRAMA, TRAZENDO AS ORGANIZACOES
-
-	   IDEIA: CRIAR COLUNA "guid" NAS ORGANIZACOES E VINCULAR COM "LotacaoGuid"
-	   |-> PROBLEMA E COMO VINCULAR ORGANIZACAO DO BANCO DO SISCAP COM RETORNO DA API DO ORGANOGRAMA!
-	       ex: "SEP" DENTRO DO BANCO E "SEP" DO ORGANOGRAMA -> VINCULAR POR SIGLA? CNPJ?
-	            ORG NAO EXISTENTE NO BANCO -> CRIAR NO BANCO? E SE POR ALGUM BUG REPETIR?
-	*/
-
 	private List<ACAgentePublicoPapelDto> buscarPapeisAgentePublicoPorSub(String sub) {
 		return ACWebClient.buscarPapeisAgentePublicoPorSub(ACAuthService.getAuthorizationHeader(), sub);
 	}
-
-
 }
