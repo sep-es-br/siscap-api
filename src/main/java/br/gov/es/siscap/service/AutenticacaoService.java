@@ -64,7 +64,7 @@ public class AutenticacaoService {
 		boolean isProponente = usuario.getPapeis().size() == 1 && usuario.getPapeis().contains("PROPONENTE");
 
 		return new UsuarioDto(token, usuario.getPessoa().getNome(), getEmailUserInfo(userInfo), usuario.getSub(),
-					imagemPerfil, permissoes, idOrganizacoes, isProponente);
+					imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente);
 	}
 
 	private Usuario buscarOuCriarUsuario(ACUserInfoDto userInfo, String accessToken) {
