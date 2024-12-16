@@ -118,15 +118,17 @@ public class AutenticacaoService {
 
 		if (usuarioPapeis != null && !usuarioPapeis.isEmpty()) return usuarioPapeis;
 
+		Set<String> usuarioPapeisNovo = new HashSet<>();
+
 		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(sub);
 
 		if (papeisLotacaoGuidSet.contains(LOTACAOGUID_SUBCAP)) {
-			usuarioPapeis.add("SUBCAP");
+			usuarioPapeisNovo.add("SUBCAP");
 		} else {
-			usuarioPapeis.add("PROPONENTE");
+			usuarioPapeisNovo.add("PROPONENTE");
 		}
 
-		return usuarioPapeis;
+		return usuarioPapeisNovo;
 	}
 
 	private byte[] construirImagemPerfilUsuario(String nomeImagem) {
@@ -173,8 +175,14 @@ public class AutenticacaoService {
 
 	private Set<PessoaOrganizacao> vincularPessoaOrganizacoes(Pessoa pessoa, String subNovo) {
 		Set<PessoaOrganizacao> pessoaOrganizacaoSet = new HashSet<>();
-		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
 		Set<Organizacao> organizacoes = new HashSet<>();
+
+		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
+
+		if (papeisLotacaoGuidSet.size() == 1 && papeisLotacaoGuidSet.iterator().next().isBlank()) {
+			logger.info("Papeis do usuário não possuem GUID de Lotação.");
+			return pessoaOrganizacaoSet;
+		}
 
 		for (String lotacaoGuid : papeisLotacaoGuidSet) {
 			String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
@@ -198,7 +206,7 @@ public class AutenticacaoService {
 
 	private Set<String> listarPapeisLotacaoGuid(String subNovo) {
 		return acessoCidadaoService.listarPapeisAgentePublicoPorSub(subNovo).stream()
-					.map(ACAgentePublicoPapelDto::LotacaoGuid)
+					.map(papel -> papel.LotacaoGuid() != null ? papel.LotacaoGuid() : "")
 					.map(String::toLowerCase)
 					.collect(Collectors.toSet());
 	}
