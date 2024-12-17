@@ -1,6 +1,5 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.UsuarioDto;
 import br.gov.es.siscap.enums.Permissoes;

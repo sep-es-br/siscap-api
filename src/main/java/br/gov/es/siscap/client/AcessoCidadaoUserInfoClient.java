@@ -11,5 +11,5 @@ import java.util.Map;
 public interface AcessoCidadaoUserInfoClient {
 
 	@GetMapping
-	ACUserInfoDto buscarUserInfoAcessoCidadao(@RequestHeader Map<String, Object> headers);
+	ACUserInfoDto.ACUserInfoDtoStringRole buscarUserInfoAcessoCidadao(@RequestHeader Map<String, Object> headers);
 }
