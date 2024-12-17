@@ -29,7 +29,7 @@ public record ACUserInfoDto(
 					userInfo.email(),
 					userInfo.emailCorporativo(),
 					userInfo.sub(),
-					new HashSet<>(List.of(userInfo.role()))
+					new HashSet<>(userInfo.role() != null ? List.of(userInfo.role()) : List.of())
 		);
 	}
 
