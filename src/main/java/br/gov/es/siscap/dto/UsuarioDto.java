@@ -11,6 +11,9 @@ public record UsuarioDto(
 			String email,
 			String subNovo,
 			byte[] imagemPerfil,
-			Set<Permissoes> permissoes
+			Set<Permissoes> permissoes,
+			Set<Long> idOrganizacoes,
+			Long idPessoa,
+			boolean isProponente
 ) {
 }

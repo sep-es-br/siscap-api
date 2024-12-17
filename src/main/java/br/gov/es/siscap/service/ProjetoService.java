@@ -4,6 +4,7 @@ import br.gov.es.siscap.dto.*;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
+import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
@@ -13,12 +14,14 @@ import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.repository.ProjetoRepository;
+import br.gov.es.siscap.specification.ProjetoSpecification;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,17 +42,32 @@ public class ProjetoService {
 	private final OrganizacaoService organizacaoService;
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
-	public Page<ProjetoListaDto> listarTodos(Pageable pageable, String search) {
-		logger.info("Buscando todos os projetos");
+	public Page<ProjetoListaDto> listarTodos(
+				Pageable pageable,
+				String siglaOuTitulo,
+				Long idOrganizacao,
+				String status,
+				String dataPeriodoInicio,
+				String dataPeriodoFim) {
 
-		return repository.paginarProjetosPorFiltroPesquisaSimples(search, pageable)
+		Specification<Projeto> especificacaoSiglaTitulo = siglaOuTitulo.isBlank() ? null : ProjetoSpecification.filtroSiglaTitulo(siglaOuTitulo);
+		Specification<Projeto> especificacaoIdOrganizacao = idOrganizacao == 0 ? null : ProjetoSpecification.filtroIdOrganizacao(idOrganizacao);
+		Specification<Projeto> especificacaoStatus = status.equals("Todos") ? null : ProjetoSpecification.filtroStatus(status);
+		Specification<Projeto> especificacaoData = ProjetoSpecification.filtroData(dataPeriodoInicio, dataPeriodoFim);
+
+		Specification<Projeto> filtroPesquisa = Specification
+					.where(especificacaoSiglaTitulo)
+					.and(especificacaoIdOrganizacao)
+					.and(especificacaoStatus)
+					.and(especificacaoData);
+
+		return repository.findAll(filtroPesquisa, pageable)
 					.map(projeto -> {
 						Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 
-						List<String> nomesLocalidadesRateio = localidadeQuantiaService.listarNomesLocalidadesRateio(localidadeQuantiaSet);
 						ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
-						return new ProjetoListaDto(projeto, valorDto, nomesLocalidadesRateio);
+						return new ProjetoListaDto(projeto, valorDto.quantia());
 					});
 	}
 
@@ -84,13 +102,23 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public ProjetoDto cadastrar(ProjetoForm form) {
+	public ProjetoDto cadastrar(ProjetoForm form, boolean rascunho) {
 		logger.info("Cadastrando novo projeto");
 		logger.info("Dados: {}", form);
 
 		this.validarProjeto(form, true);
 
-		Projeto projeto = repository.save(new Projeto(form));
+		Projeto tempProjeto = new Projeto(form);
+
+		if (rascunho) {
+			tempProjeto.setRascunho(true);
+			tempProjeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
+		} else {
+			tempProjeto.setRascunho(false);
+			tempProjeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
+		}
+
+		Projeto projeto = repository.save(tempProjeto);
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.cadastrar(projeto, form.idResponsavelProponente(), form.equipeElaboracao());
 
@@ -106,7 +134,7 @@ public class ProjetoService {
 
 
 	@Transactional
-	public ProjetoDto atualizar(Long id, ProjetoForm form) {
+	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho) {
 		logger.info("Atualizando projeto com id: {}", id);
 		logger.info("Dados: {}", form);
 
@@ -114,6 +142,15 @@ public class ProjetoService {
 
 		Projeto projeto = this.buscar(id);
 		projeto.atualizarProjeto(form);
+
+		if (rascunho) {
+			projeto.setRascunho(true);
+			projeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
+		} else {
+			projeto.setRascunho(false);
+			projeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
+		}
+
 		Projeto projetoResult = repository.save(projeto);
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.atualizar(projetoResult, form.idResponsavelProponente(), form.equipeElaboracao());

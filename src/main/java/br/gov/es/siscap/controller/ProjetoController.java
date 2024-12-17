@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,10 +32,14 @@ public class ProjetoController {
 
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
-				@PageableDefault(size = 15, sort = "sigla") Pageable pageable,
-				@RequestParam(required = false, defaultValue = "") String search
+				@PageableDefault(size = 15, sort = "criadoEm", direction = Sort.Direction.DESC) Pageable pageable,
+				@RequestParam(required = false) String siglaOuTitulo,
+				@RequestParam(required = false) Long idOrganizacao,
+				@RequestParam(required = false) String status,
+				@RequestParam(required = false) String dataPeriodoInicio,
+				@RequestParam(required = false) String dataPeriodoFim
 	) {
-		return service.listarTodos(pageable, search);
+		return service.listarTodos(pageable, siglaOuTitulo, idOrganizacao, status, dataPeriodoInicio, dataPeriodoFim);
 	}
 
 	@GetMapping("/opcoes")
@@ -48,13 +53,13 @@ public class ProjetoController {
 	}
 
 	@PostMapping
-	public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form) {
-		return new ResponseEntity<>(service.cadastrar(form), HttpStatus.CREATED);
+	public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form, @RequestParam(required = false, defaultValue = "false") boolean rascunho) {
+		return new ResponseEntity<>(service.cadastrar(form, rascunho), HttpStatus.CREATED);
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id, @Valid @RequestBody ProjetoForm form) {
-		return ResponseEntity.ok(service.atualizar(id, form));
+	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id, @Valid @RequestBody ProjetoForm form, @RequestParam(required = false, defaultValue = "false") boolean rascunho) {
+		return ResponseEntity.ok(service.atualizar(id, form, rascunho));
 	}
 
 	@DeleteMapping("/{id}")
