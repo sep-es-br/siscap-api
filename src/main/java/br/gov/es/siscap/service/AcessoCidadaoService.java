@@ -1,11 +1,9 @@
 package br.gov.es.siscap.service;
 
-
 import br.gov.es.siscap.client.AcessoCidadaoUserInfoClient;
 import br.gov.es.siscap.client.AcessoCidadaoWebClient;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
-import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDtoStringRole;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,8 +24,7 @@ public class AcessoCidadaoService {
 	}
 
 	public ACUserInfoDto buscarInformacoesUsuario(String accessToken) {
-		ACUserInfoDtoStringRole userInfoDtoStringRole = buscarAcessoCidadaoUserInfo(accessToken);
-		return new ACUserInfoDto(userInfoDtoStringRole);
+		return buscarAcessoCidadaoUserInfo(accessToken);
 	}
 
 	public List<ACAgentePublicoPapelDto> listarPapeisAgentePublicoPorSub(String sub) {
@@ -42,8 +39,8 @@ public class AcessoCidadaoService {
 		return new AgentePublicoACDto(ACWebClient.buscarAgentePublicoPorSub(ACAuthService.getAuthorizationHeader(), sub));
 	}
 
-	private ACUserInfoDtoStringRole buscarAcessoCidadaoUserInfo(String accessToken) {
-		return ACUserInfoClient.buscarUserInfoAcessoCidadao(ACAuthService.getAccessTokenAuthorizationHeader(accessToken));
+	private ACUserInfoDto buscarAcessoCidadaoUserInfo(String accessToken) {
+		return new ACUserInfoDto(ACUserInfoClient.buscarUserInfoAcessoCidadao(ACAuthService.getAccessTokenAuthorizationHeader(accessToken)));
 	}
 
 	private List<ACAgentePublicoPapelDto> buscarPapeisAgentePublicoPorSub(String sub) {

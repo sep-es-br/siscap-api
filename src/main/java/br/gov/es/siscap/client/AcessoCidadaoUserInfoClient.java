@@ -1,7 +1,6 @@
 package br.gov.es.siscap.client;
 
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
-import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDtoStringRole;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -12,5 +11,5 @@ import java.util.Map;
 public interface AcessoCidadaoUserInfoClient {
 
 	@GetMapping
-	ACUserInfoDtoStringRole buscarUserInfoAcessoCidadao(@RequestHeader Map<String, Object> headers);
+	ACUserInfoDto.ACUserInfoDtoStringRole buscarUserInfoAcessoCidadao(@RequestHeader Map<String, Object> headers);
 }
