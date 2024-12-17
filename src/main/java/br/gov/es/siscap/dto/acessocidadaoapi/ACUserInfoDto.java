@@ -32,4 +32,19 @@ public record ACUserInfoDto(
 					new HashSet<>(List.of(userInfo.role()))
 		);
 	}
+
+	public record ACUserInfoDtoStringRole(
+
+				String apelido,
+				Boolean cpfValidado,
+				Boolean verificada,
+				String verificacaoTipo,
+				String subNovo,
+				Boolean agentepublico,
+				String email,
+				String sub,
+				String role,
+				String emailCorporativo
+	) {
+	}
 }

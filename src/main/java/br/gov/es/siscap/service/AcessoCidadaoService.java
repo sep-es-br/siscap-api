@@ -1,6 +1,5 @@
 package br.gov.es.siscap.service;
 
-
 import br.gov.es.siscap.client.AcessoCidadaoUserInfoClient;
 import br.gov.es.siscap.client.AcessoCidadaoWebClient;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
@@ -41,7 +40,7 @@ public class AcessoCidadaoService {
 	}
 
 	private ACUserInfoDto buscarAcessoCidadaoUserInfo(String accessToken) {
-		return ACUserInfoClient.buscarUserInfoAcessoCidadao(ACAuthService.getAccessTokenAuthorizationHeader(accessToken));
+		return new ACUserInfoDto(ACUserInfoClient.buscarUserInfoAcessoCidadao(ACAuthService.getAccessTokenAuthorizationHeader(accessToken)));
 	}
 
 	private List<ACAgentePublicoPapelDto> buscarPapeisAgentePublicoPorSub(String sub) {
