@@ -13,6 +13,7 @@ public record UsuarioDto(
 			byte[] imagemPerfil,
 			Set<Permissoes> permissoes,
 			Set<Long> idOrganizacoes,
+			Long idPessoa,
 			boolean isProponente
 ) {
 }

@@ -46,6 +46,15 @@ public class Projeto extends ControleHistorico {
 	@JoinColumn(name = "id_tipo_status", nullable = false)
 	private TipoStatus tipoStatus;
 
+	@Column(name = "status", nullable = false)
+	private String status;
+
+	@Column(name = "fase", nullable = false)
+	private String fase;
+
+	@Column(name = "rascunho", nullable = false)
+	private boolean rascunho;
+
 	@ManyToOne
 	@JoinColumn(name = "id_organizacao", nullable = false)
 	@SQLJoinTableRestriction("apagado = FALSE")
@@ -127,5 +136,6 @@ public class Projeto extends ControleHistorico {
 		this.setSolucoesPropostas(form.solucoesPropostas());
 		this.setImpactos(form.impactos());
 		this.setArranjosInstitucionais(form.arranjosInstitucionais());
+		this.setFase("DIC");
 	}
 }
