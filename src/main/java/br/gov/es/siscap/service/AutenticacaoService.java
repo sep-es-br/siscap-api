@@ -174,7 +174,7 @@ public class AutenticacaoService {
 
 	private Set<PessoaOrganizacao> vincularPessoaOrganizacoes(Pessoa pessoa, String subNovo) {
 		Set<PessoaOrganizacao> pessoaOrganizacaoSet = new HashSet<>();
-		Set<Organizacao> organizacoes = new HashSet<>();
+		Set<Organizacao> organizacoesSet = new HashSet<>();
 
 		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
 
@@ -189,18 +189,19 @@ public class AutenticacaoService {
 
 			try {
 				Organizacao organizacao = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
-				organizacoes.add(organizacao);
+				organizacoesSet.add(organizacao);
 			} catch (Exception e) {
 				logger.info("Organização não encontrada para o CNPJ fornecido.");
 			}
 		}
 
-		for (Organizacao organizacao : organizacoes) {
+		for (Organizacao organizacao : organizacoesSet) {
 			PessoaOrganizacao pessoaOrganizacao = new PessoaOrganizacao(pessoa, organizacao);
 			pessoaOrganizacaoSet.add(pessoaOrganizacao);
 		}
 
-		return pessoaOrganizacaoService.salvarPessoaOrganizacaoSetAutenticacaoUsuario(pessoaOrganizacaoSet);
+
+		return pessoaOrganizacaoSet.isEmpty() ? pessoaOrganizacaoSet : pessoaOrganizacaoService.salvarPessoaOrganizacaoSetAutenticacaoUsuario(pessoaOrganizacaoSet);
 	}
 
 	private Set<String> listarPapeisLotacaoGuid(String subNovo) {
