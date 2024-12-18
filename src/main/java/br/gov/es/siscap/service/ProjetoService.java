@@ -46,20 +46,16 @@ public class ProjetoService {
 				Pageable pageable,
 				String siglaOuTitulo,
 				Long idOrganizacao,
-				String status,
-				String dataPeriodoInicio,
-				String dataPeriodoFim) {
+				String status) {
 
 		Specification<Projeto> especificacaoSiglaTitulo = siglaOuTitulo.isBlank() ? null : ProjetoSpecification.filtroSiglaTitulo(siglaOuTitulo);
 		Specification<Projeto> especificacaoIdOrganizacao = idOrganizacao == 0 ? null : ProjetoSpecification.filtroIdOrganizacao(idOrganizacao);
-		Specification<Projeto> especificacaoStatus = status.equals("Todos") ? null : ProjetoSpecification.filtroStatus(status);
-		Specification<Projeto> especificacaoData = ProjetoSpecification.filtroData(dataPeriodoInicio, dataPeriodoFim);
+		Specification<Projeto> especificacaoStatus = status.equals("Status") ? null : ProjetoSpecification.filtroStatus(status);
 
 		Specification<Projeto> filtroPesquisa = Specification
 					.where(especificacaoSiglaTitulo)
 					.and(especificacaoIdOrganizacao)
-					.and(especificacaoStatus)
-					.and(especificacaoData);
+					.and(especificacaoStatus);
 
 		return repository.findAll(filtroPesquisa, pageable)
 					.map(projeto -> {

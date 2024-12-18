@@ -35,11 +35,9 @@ public class ProjetoController {
 				@PageableDefault(size = 15, sort = "criadoEm", direction = Sort.Direction.DESC) Pageable pageable,
 				@RequestParam(required = false) String siglaOuTitulo,
 				@RequestParam(required = false) Long idOrganizacao,
-				@RequestParam(required = false) String status,
-				@RequestParam(required = false) String dataPeriodoInicio,
-				@RequestParam(required = false) String dataPeriodoFim
+				@RequestParam(required = false) String status
 	) {
-		return service.listarTodos(pageable, siglaOuTitulo, idOrganizacao, status, dataPeriodoInicio, dataPeriodoFim);
+		return service.listarTodos(pageable, siglaOuTitulo, idOrganizacao, status);
 	}
 
 	@GetMapping("/opcoes")
