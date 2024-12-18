@@ -8,6 +8,7 @@ import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
 @Service
@@ -40,7 +41,8 @@ public class AcessoCidadaoService {
 	}
 
 	private ACUserInfoDto buscarAcessoCidadaoUserInfo(String accessToken) {
-		return new ACUserInfoDto(ACUserInfoClient.buscarUserInfoAcessoCidadao(ACAuthService.getAccessTokenAuthorizationHeader(accessToken)));
+		LinkedHashMap<String, Object> userInfoObj = ACUserInfoClient.buscarUserInfoAcessoCidadao(ACAuthService.getAccessTokenAuthorizationHeader(accessToken));
+		return new ACUserInfoDto(userInfoObj);
 	}
 
 	private List<ACAgentePublicoPapelDto> buscarPapeisAgentePublicoPorSub(String sub) {
