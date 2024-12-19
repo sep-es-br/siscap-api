@@ -17,7 +17,7 @@ public record CartaConsultaListaDto(
 					cartaConsulta.getId(),
 					cartaConsulta.getTipoOperacao().getTipo(),
 					cartaConsulta.getCartaConsultaObjeto().nome(),
-					FormatadorData.formatar(cartaConsulta.getCriadoEm(), FormatoDataEnum.SIMPLES)
+					FormatadorData.format(cartaConsulta.getCriadoEm(), FormatoDataEnum.SIMPLES)
 		);
 	}
 }

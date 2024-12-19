@@ -23,7 +23,7 @@ public record ProspeccaoListaDto(
 					prospeccao.getCartaConsulta().getCartaConsultaObjeto().nome(),
 					prospeccao.getTipoProspeccao(),
 					prospeccao.getStatusProspeccao(),
-					prospeccao.getDataProspeccao() != null ? FormatadorData.formatar(prospeccao.getDataProspeccao(), FormatoDataEnum.SIMPLES) : null
+					prospeccao.getDataProspeccao() != null ? FormatadorData.format(prospeccao.getDataProspeccao(), FormatoDataEnum.SIMPLES) : null
 		);
 	}
 }
