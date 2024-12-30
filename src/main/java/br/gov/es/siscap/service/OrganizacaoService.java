@@ -133,7 +133,7 @@ public class OrganizacaoService {
 		return repository.existsById(id);
 	}
 
-	public Organizacao buscarPorCnpj(String cnpj) {
+	public Optional<Organizacao> buscarPorCnpj(String cnpj) {
 		return repository.findByCnpj(cnpj);
 	}
 
