@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -187,11 +188,34 @@ public class AutenticacaoService {
 			String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
 			String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
 
-			try {
-				Organizacao organizacao = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
-				organizacoesSet.add(organizacao);
-			} catch (Exception e) {
-				logger.info("Organização não encontrada para o CNPJ fornecido.");
+			/*
+				30/12/2024
+
+				PROBLEMA:
+					METODO organizacaoService.buscarPorCnpj TRAZIA ENTIDADE Organizacao
+					|-> NAO CONTEMPLAVA CASO DE NAO ENCONTRAR ORGANIZACAO COM O CNPJ FORNECIDO (TRAZIA Organizacao = null)
+
+				ABORDAGEM:
+					METODO AGORA TRAZ Optional<Organizacao> E TRATA CASO DE ORGANIZACAO AUSENTE
+					DENTRO DESTE METODO
+					|-> SEM throw new RunTimeException PARA EVITAR DE IMPEDIR ACESSO DO USUARIO
+
+				OBSERVACAO:
+					ABORDAGEM CORRETA SERIA PREENCHER O CNPJ DAS ORGANIZACOES APROPRIADAMENTE
+					DE ACORDO COM O RETORNO DA API DO ORGANOGRAMA
+					|-> LEVANTA QUESTAO SINCRONIA DO BANCO DO SISCAP COM A API:
+							* MELHOR SERIA A ABORDAGEM DO VAGNER DE TRAZER OS DADOS
+							  DA(S) ORGANIZACAO(OES) DIRETO DE UMA REQUISICAO
+							  PRA API DO ORGANOGRAMA
+								|-> POREM SEM TEMPO
+			*/
+
+			Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
+
+			if (organizacaoOptional.isPresent()) {
+				organizacoesSet.add(organizacaoOptional.get());
+			} else {
+				logger.info("Organização não encontrada para o CNPJ fornecido: [{}].", cnpjOrganizacao);
 			}
 		}
 
