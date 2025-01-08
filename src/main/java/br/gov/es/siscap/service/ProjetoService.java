@@ -15,6 +15,7 @@ import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import br.gov.es.siscap.specification.ProjetoSpecification;
+import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -105,6 +107,8 @@ public class ProjetoService {
 		this.validarProjeto(form, true);
 
 		Projeto tempProjeto = new Projeto(form);
+
+		tempProjeto.setCountAno(this.buscarCountAnoFormatado());
 
 		if (rascunho) {
 			tempProjeto.setRascunho(true);
@@ -248,8 +252,7 @@ public class ProjetoService {
 		String cnpj = this.formatarCnpj(projeto.getOrganizacao().getCnpj());
 
 		return "PROJETO n. " +
-					projeto.getId() + "/" +
-					projeto.getCriadoEm().getYear() + "-" +
+					projeto.getCountAno() + "-" +
 					projeto.getOrganizacao().getNomeFantasia() + "-" +
 					cnpj;
 	}
@@ -287,6 +290,10 @@ public class ProjetoService {
 
 	private String formatarCnpj(String cnpj) {
 		return cnpj.replaceAll("^(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})$", "$1.$2.$3/$4-$5");
+	}
+
+	private String buscarCountAnoFormatado() {
+		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
 	}
 
 	private void validarProjeto(ProjetoForm form, boolean isSalvar) {

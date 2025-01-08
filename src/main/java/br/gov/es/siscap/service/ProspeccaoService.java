@@ -8,6 +8,7 @@ import br.gov.es.siscap.dto.listagem.ProspeccaoListaDto;
 import br.gov.es.siscap.form.ProspeccaoForm;
 import br.gov.es.siscap.models.Prospeccao;
 import br.gov.es.siscap.repository.ProspeccaoRepository;
+import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -62,7 +63,11 @@ public class ProspeccaoService {
 		logger.info("Cadastrando nova prospeccao");
 		logger.info("Dados: {}", form);
 
-		Prospeccao prospeccao = repository.save(new Prospeccao(form));
+		Prospeccao tempProspeccao = new Prospeccao(form);
+
+		tempProspeccao.setCountAno(buscarCountAnoFormatado());
+
+		Prospeccao prospeccao = repository.save(tempProspeccao);
 
 		List<InteressadoDto> interessadoDtoList = prospeccaoInteressadoService.cadastrar(prospeccao, form.interessadosList());
 
@@ -105,5 +110,9 @@ public class ProspeccaoService {
 	private Prospeccao buscar(Long id) {
 		return repository.findById(id)
 					.orElseThrow(() -> new RuntimeException("Prospeccao não encontrada"));
+	}
+
+	private String buscarCountAnoFormatado() {
+		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
 	}
 }
