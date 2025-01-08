@@ -92,6 +92,9 @@ public class Projeto extends ControleHistorico {
 	@Column(name = "data_registro")
 	private LocalDateTime dataRegistro;
 
+	@Column(name = "count_ano", nullable = false)
+	private String countAno;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}

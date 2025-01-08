@@ -16,4 +16,7 @@ public interface ProgramaRepository extends JpaRepository<Programa, Long> {
 				"(lower(p.sigla) like lower(concat('%', :search ,'%')) or " +
 				"lower(p.titulo) like lower(concat('%', :search , '%')))")
 	Page<Programa> paginarProgramasPorFiltroPesquisaSimples(String search, Pageable pageable);
+
+	@Query("select count(p) from Programa p where year(p.criadoEm) = year(current_date)")
+	int contagemAnoAtual();
 }

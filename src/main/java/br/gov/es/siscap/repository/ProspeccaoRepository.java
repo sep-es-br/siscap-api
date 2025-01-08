@@ -15,4 +15,7 @@ public interface ProspeccaoRepository extends JpaRepository<Prospeccao, Long> {
 				"(lower(p.organizacaoProspectada.nomeFantasia) like lower(concat('%', :search, '%')) or " +
 				"lower(p.organizacaoProspectada.nome) like lower(concat('%', :search, '%')))")
 	Page<Prospeccao> paginarProspeccoesPorFiltroPesquisaSimples(String search, Pageable pageable);
+
+	@Query("select count(p) from Prospeccao p where year(p.criadoEm) = year(current_date)")
+	int contagemAnoAtual();
 }
