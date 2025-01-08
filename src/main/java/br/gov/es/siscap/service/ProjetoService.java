@@ -108,6 +108,8 @@ public class ProjetoService {
 
 		Projeto tempProjeto = new Projeto(form);
 
+		tempProjeto.setCountAno(this.buscarCountAnoFormatado());
+
 		if (rascunho) {
 			tempProjeto.setRascunho(true);
 			tempProjeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
@@ -250,8 +252,7 @@ public class ProjetoService {
 		String cnpj = this.formatarCnpj(projeto.getOrganizacao().getCnpj());
 
 		return "PROJETO n. " +
-					projeto.getId() + "/" +
-					projeto.getCriadoEm().getYear() + "-" +
+					projeto.getCountAno() + "-" +
 					projeto.getOrganizacao().getNomeFantasia() + "-" +
 					cnpj;
 	}
@@ -291,8 +292,6 @@ public class ProjetoService {
 		return cnpj.replaceAll("^(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})$", "$1.$2.$3/$4-$5");
 	}
 
-	// UTILIZAR PARA SETTAR COLUNA NOVA DE PROJETOS "count_ano"
-	// CHAMAR EM service.cadastrar()
 	private String buscarCountAnoFormatado() {
 		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
 	}
