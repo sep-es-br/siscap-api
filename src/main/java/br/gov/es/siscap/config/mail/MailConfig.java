@@ -21,8 +21,8 @@ public class MailConfig {
 	@Value("${spring.mail.username}")
 	private String USERNAME;
 
-	@Value("${spring.mail.password}")
-	private String PASSWORD;
+//	@Value("${spring.mail.password}")
+//	private String PASSWORD;
 
 	@Value("${spring.mail.properties.mail.smtp.auth}")
 	private String AUTH;
@@ -36,7 +36,7 @@ public class MailConfig {
 		javaMailSenderImpl.setHost(HOST);
 		javaMailSenderImpl.setPort(Integer.parseInt(PORT));
 		javaMailSenderImpl.setUsername(USERNAME);
-		javaMailSenderImpl.setPassword(PASSWORD);
+//		javaMailSenderImpl.setPassword(PASSWORD);
 		javaMailSenderImpl.setDefaultEncoding("UTF-8");
 
 		Properties props = javaMailSenderImpl.getJavaMailProperties();
