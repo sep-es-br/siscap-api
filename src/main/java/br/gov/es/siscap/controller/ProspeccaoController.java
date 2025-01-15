@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.ProspeccaoDto;
 import br.gov.es.siscap.dto.listagem.ProspeccaoListaDto;
 import br.gov.es.siscap.form.ProspeccaoForm;
 import br.gov.es.siscap.service.ProspeccaoService;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -58,5 +59,11 @@ public class ProspeccaoController {
 	public ResponseEntity<String> excluir(@NotNull @Positive @PathVariable Long id) {
 		service.excluir(id);
 		return ResponseEntity.ok("Prospecção excluída com sucesso!");
+	}
+
+	@PostMapping("/{id}/prospectar")
+	public ResponseEntity<String> enviarEmailProspeccao(@NotNull @Positive @PathVariable Long id) throws MessagingException {
+		service.enviarEmailProspeccao(id);
+		return ResponseEntity.ok("E-mail(s) de prospecção enviado(s) com sucesso!");
 	}
 }
