@@ -31,6 +31,12 @@ public class ProspeccaoInteressadoService {
 					.toList();
 	}
 
+	public List<String> buscarEmailsInteressadosPorPropeccao(Prospeccao prospeccao) {
+		return this.buscar(prospeccao).stream()
+					.map(prospeccaoInteressado -> prospeccaoInteressado.getPessoa().getEmail())
+					.toList();
+	}
+
 	@Transactional
 	public List<InteressadoDto> cadastrar(Prospeccao prospeccao, List<InteressadoDto> interessadosList) {
 		logger.info("Cadastrando interessados na prospeccao com id: {}", prospeccao.getId());

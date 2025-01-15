@@ -9,6 +9,7 @@ import br.gov.es.siscap.form.ProspeccaoForm;
 import br.gov.es.siscap.models.Prospeccao;
 import br.gov.es.siscap.repository.ProspeccaoRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +28,7 @@ public class ProspeccaoService {
 	private final ProspeccaoRepository repository;
 	private final ProspeccaoInteressadoService prospeccaoInteressadoService;
 	private final CartaConsultaService cartaConsultaService;
+	private final EmailService emailService;
 
 	private final Logger logger = LogManager.getLogger(ProspeccaoService.class);
 
@@ -105,6 +107,14 @@ public class ProspeccaoService {
 		prospeccaoInteressadoService.excluir(prospeccao);
 
 		logger.info("Prospeccao excluída com sucesso");
+	}
+
+	public void enviarEmailProspeccao(Long id) throws MessagingException {
+		ProspeccaoDetalhesDto prospeccaoDetalhesDto = this.buscarDetalhesPorId(id);
+
+		List<String> emailsInteressadosList = prospeccaoInteressadoService.buscarEmailsInteressadosPorPropeccao(this.buscar(id));
+
+		emailService.enviarEmail(prospeccaoDetalhesDto, emailsInteressadosList);
 	}
 
 	private Prospeccao buscar(Long id) {
