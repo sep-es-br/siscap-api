@@ -2,6 +2,7 @@ package br.gov.es.siscap.models;
 
 import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
 import br.gov.es.siscap.form.CartaConsultaForm;
+import br.gov.es.siscap.utils.PreencherZerosEsquerda;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -42,6 +43,9 @@ public class CartaConsulta extends ControleHistorico {
 	@JoinColumn(name = "id_operacao", nullable = false)
 	private TipoOperacao tipoOperacao;
 
+	@Column(name = "prospectado", nullable = false)
+	private boolean prospectado;
+
 	public CartaConsulta(Long id) {
 		this.setId(id);
 	}
@@ -49,6 +53,7 @@ public class CartaConsulta extends ControleHistorico {
 	public CartaConsulta(CartaConsultaForm form) {
 		this.setCartaConsultaObjeto(form.objeto());
 		this.setTipoOperacao(new TipoOperacao(form.operacao()));
+		this.setProspectado(false);
 	}
 
 	public void atualizarCartaConsulta(CartaConsultaForm form) {
@@ -59,6 +64,10 @@ public class CartaConsulta extends ControleHistorico {
 
 	public void apagarCartaConsulta() {
 		super.apagarHistorico();
+	}
+
+	public String gerarCodigoCartaConsulta() {
+		return PreencherZerosEsquerda.preencher(this.getId().toString());
 	}
 
 	public String formatarCartaConsultaNomeOpcaoDto() {
