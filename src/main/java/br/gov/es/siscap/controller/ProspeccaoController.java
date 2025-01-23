@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
+
 @RestController
 @RequestMapping("/prospeccoes")
 @RequiredArgsConstructor
@@ -62,7 +64,7 @@ public class ProspeccaoController {
 	}
 
 	@PostMapping("/{id}/prospectar")
-	public ResponseEntity<String> enviarEmailProspeccao(@NotNull @Positive @PathVariable Long id) throws MessagingException {
+	public ResponseEntity<String> enviarEmailProspeccao(@NotNull @Positive @PathVariable Long id) throws MessagingException, UnsupportedEncodingException {
 		service.enviarEmailProspeccao(id);
 		return ResponseEntity.ok("E-mail(s) de prospecção enviado(s) com sucesso!");
 	}

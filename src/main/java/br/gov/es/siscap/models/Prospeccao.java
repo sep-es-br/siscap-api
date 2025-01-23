@@ -84,6 +84,11 @@ public class Prospeccao extends ControleHistorico {
 		super.apagarHistorico();
 	}
 
+	public void alterarDadosProspeccaoEnvioEmail() {
+		this.setStatusProspeccao(StatusProspeccaoEnum.PROSPECTADO.getValue());
+		this.setDataProspeccao(LocalDateTime.now());
+	}
+
 	private void setDadosObrigatorios(ProspeccaoForm form) {
 		this.setCartaConsulta(new CartaConsulta(form.idCartaConsulta()));
 		this.setOrganizacaoProspectora(new Organizacao(form.idOrganizacaoProspectora()));
