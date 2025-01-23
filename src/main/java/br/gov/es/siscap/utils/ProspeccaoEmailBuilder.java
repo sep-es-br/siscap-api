@@ -18,10 +18,10 @@ public abstract class ProspeccaoEmailBuilder {
 	private static final String CAMPO_VALOR_ESTIMADO_TITULO = "Valor Estimado:";
 
 	public static String montarAssuntoEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto) {
-		String idCartaConsultaPreenchido = PreencherZerosEsquerda.preencher(prospeccaoDetalhesDto.cartaConsultaDetalhes().id().toString());
+		String codigoCartaConsulta = prospeccaoDetalhesDto.cartaConsultaDetalhes().codigoCartaConsulta();
 		String nomeObjetoCartaConsulta = prospeccaoDetalhesDto.cartaConsultaDetalhes().objeto().nome();
 
-		return "Carta Consulta " + idCartaConsultaPreenchido + " - " + nomeObjetoCartaConsulta;
+		return "Carta Consulta " + codigoCartaConsulta + " - " + nomeObjetoCartaConsulta;
 	}
 
 	public static String montarCorpoEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto) {

@@ -6,6 +6,7 @@ import br.gov.es.siscap.dto.ProspeccaoDetalhesDto;
 import br.gov.es.siscap.dto.ProspeccaoDto;
 import br.gov.es.siscap.dto.listagem.ProspeccaoListaDto;
 import br.gov.es.siscap.form.ProspeccaoForm;
+import br.gov.es.siscap.models.CartaConsulta;
 import br.gov.es.siscap.models.Prospeccao;
 import br.gov.es.siscap.repository.ProspeccaoRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 @Service
@@ -109,12 +111,18 @@ public class ProspeccaoService {
 		logger.info("Prospeccao excluída com sucesso");
 	}
 
-	public void enviarEmailProspeccao(Long id) throws MessagingException {
+	@Transactional
+	public void enviarEmailProspeccao(Long id) throws MessagingException, UnsupportedEncodingException {
 		ProspeccaoDetalhesDto prospeccaoDetalhesDto = this.buscarDetalhesPorId(id);
 
 		List<String> emailsInteressadosList = prospeccaoInteressadoService.buscarEmailsInteressadosPorPropeccao(this.buscar(id));
 
-		emailService.enviarEmail(prospeccaoDetalhesDto, emailsInteressadosList);
+		boolean confirmacaoEnvioEmail = emailService.enviarEmail(prospeccaoDetalhesDto, emailsInteressadosList);
+
+		if (confirmacaoEnvioEmail) {
+			this.alterarDadosProspeccaoEnvioEmail(id);
+			logger.info("Email enviado com sucesso");
+		}
 	}
 
 	private Prospeccao buscar(Long id) {
@@ -124,5 +132,14 @@ public class ProspeccaoService {
 
 	private String buscarCountAnoFormatado() {
 		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
+	}
+
+	protected void alterarDadosProspeccaoEnvioEmail(Long id) {
+		Prospeccao prospeccao = this.buscar(id);
+		prospeccao.alterarDadosProspeccaoEnvioEmail();
+		repository.saveAndFlush(prospeccao);
+
+		CartaConsulta prospeccao_cartaConsulta = prospeccao.getCartaConsulta();
+		cartaConsultaService.alterarCartaConsultaProspectado(prospeccao_cartaConsulta);
 	}
 }

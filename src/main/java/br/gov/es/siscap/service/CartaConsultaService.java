@@ -64,13 +64,13 @@ public class CartaConsultaService {
 
 		CartaConsulta cartaConsulta = this.buscarCartaConsulta(id);
 
-		String corpo = documentosService.buscarCartaConsultaCorpo(cartaConsulta.getNomeDocumento());
-
 		List<OpcoesDto> projetosPropostos = this.construirProjetosPropostosList(cartaConsulta);
 
 		ValorDto valor = this.construirValorDto(cartaConsulta);
 
-		return new CartaConsultaDetalhesDto(cartaConsulta.getId(), cartaConsulta.getCartaConsultaObjeto(), projetosPropostos, valor, corpo);
+		String corpo = documentosService.buscarCartaConsultaCorpo(cartaConsulta.getNomeDocumento());
+
+		return new CartaConsultaDetalhesDto(cartaConsulta, projetosPropostos, valor, corpo);
 	}
 
 	@Transactional
@@ -106,6 +106,13 @@ public class CartaConsultaService {
 		cartaConsulta.apagarCartaConsulta();
 
 		documentosService.excluirCartaConsultaCorpo(cartaConsulta.getNomeDocumento());
+
+		repository.save(cartaConsulta);
+	}
+
+	@Transactional
+	public void alterarCartaConsultaProspectado(CartaConsulta cartaConsulta) {
+		cartaConsulta.setProspectado(true);
 
 		repository.save(cartaConsulta);
 	}
