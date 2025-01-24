@@ -18,4 +18,7 @@ public interface ProspeccaoRepository extends JpaRepository<Prospeccao, Long> {
 
 	@Query("select count(p) from Prospeccao p where year(p.criadoEm) = year(current_date)")
 	int contagemAnoAtual();
+
+	@Query("select count(p) from Prospeccao p where p.cartaConsulta.id = :idCartaConsulta")
+	int contagemPorCartaConsulta(Long idCartaConsulta);
 }

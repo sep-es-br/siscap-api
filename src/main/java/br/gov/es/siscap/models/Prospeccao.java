@@ -63,8 +63,11 @@ public class Prospeccao extends ControleHistorico {
 	@Column(name = "data_prospeccao")
 	private LocalDateTime dataProspeccao;
 
-	@Column(name = "count_ano", nullable = false)
-	private String countAno;
+//	@Column(name = "count_ano", nullable = false)
+//	private String countAno;
+
+	@Column(name = "contagem_cc", nullable = false)
+	private String contagemCartaConsulta;
 
 	@OneToMany(mappedBy = "prospeccao")
 	private Set<ProspeccaoInteressado> prospeccaoInteressadoSet;

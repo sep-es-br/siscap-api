@@ -19,7 +19,7 @@ public record ProspeccaoListaDto(
 	public ProspeccaoListaDto(Prospeccao prospeccao) {
 		this(
 					prospeccao.getId(),
-					(prospeccao.getCartaConsulta().gerarCodigoCartaConsulta() + '-' + prospeccao.getCountAno()),
+					(prospeccao.getCartaConsulta().gerarCodigoCartaConsulta() + '-' + prospeccao.getContagemCartaConsulta()),
 					(prospeccao.getOrganizacaoProspectada().getNomeFantasia() + " - " + prospeccao.getOrganizacaoProspectada().getNome()),
 					prospeccao.getCartaConsulta().getTipoOperacao().getTipo(),
 					prospeccao.getCartaConsulta().getCartaConsultaObjeto().nome(),

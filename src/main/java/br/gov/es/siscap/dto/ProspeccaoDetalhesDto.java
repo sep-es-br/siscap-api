@@ -20,7 +20,7 @@ public record ProspeccaoDetalhesDto(
 	public ProspeccaoDetalhesDto(Prospeccao prospeccao, List<String> nomesInteressados, CartaConsultaDetalhesDto cartaConsultaDetalhesDto) {
 		this(
 					prospeccao.getId(),
-					(prospeccao.getCartaConsulta().gerarCodigoCartaConsulta() + '-' + prospeccao.getCountAno()),
+					(prospeccao.getCartaConsulta().gerarCodigoCartaConsulta() + '-' + prospeccao.getContagemCartaConsulta()),
 					prospeccao.getStatusProspeccao(),
 					new ProspeccaoPessoaDetalhesDto(prospeccao.getPessoaProspectora(), prospeccao.getOrganizacaoProspectora()),
 					new ProspeccaoOrganizacaoDetalhesDto(prospeccao.getOrganizacaoProspectora()),

@@ -69,14 +69,16 @@ public class ProspeccaoService {
 
 		Prospeccao tempProspeccao = new Prospeccao(form);
 
-		tempProspeccao.setCountAno(buscarCountAnoFormatado());
+//		tempProspeccao.setCountAno(buscarCountAnoFormatado());
 
-		Prospeccao prospeccao = repository.save(tempProspeccao);
+		tempProspeccao.setContagemCartaConsulta(buscarContagemPorCartaConsulta(form.idCartaConsulta()));
 
-		List<InteressadoDto> interessadoDtoList = prospeccaoInteressadoService.cadastrar(prospeccao, form.interessadosList());
+//		Prospeccao prospeccao = repository.save(tempProspeccao);
+
+//		List<InteressadoDto> interessadoDtoList = prospeccaoInteressadoService.cadastrar(prospeccao, form.interessadosList());
 
 		logger.info("Prospeccao cadastrada com sucesso");
-		return new ProspeccaoDto(prospeccao, interessadoDtoList);
+		return new ProspeccaoDto(tempProspeccao, List.of());
 	}
 
 	@Transactional
@@ -130,9 +132,28 @@ public class ProspeccaoService {
 					.orElseThrow(() -> new RuntimeException("Prospeccao não encontrada"));
 	}
 
-	private String buscarCountAnoFormatado() {
-		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
+	/*
+		IGNORA PROSPECCOES APAGADAS!
+
+		EXEMPLO:
+			- CADASTRO DE CARTA CONSULTA = 0046
+			- CADASTRO DE PROSPECCAO = 0046-0001/2025
+			- [ PROSPECCAO É APAGADA ]
+			- CADASTRO DE PROSPECCAO = 0046-0001/2025
+
+		DIAGNOSTICO:
+			METODO buscarContagemPorCartaConsulta CONTA SOMENTE PROSPECCOES
+			NAO EXCLUIDAS LOGICAMENTE (p.apagado = false)
+
+		VALIDAR ISSO! RISCO DE DUPLICIDADE DE PROSPECCAO!
+	*/
+	private String buscarContagemPorCartaConsulta(Long idCartaConsulta) {
+		return FormatadorCountAno.formatar(repository.contagemPorCartaConsulta(idCartaConsulta));
 	}
+
+//	private String buscarCountAnoFormatado() {
+//		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
+//	}
 
 	protected void alterarDadosProspeccaoEnvioEmail(Long id) {
 		Prospeccao prospeccao = this.buscar(id);
