@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/projetos")
@@ -66,6 +67,11 @@ public class ProjetoController {
 		return ResponseEntity.ok().body("Projeto excluído com sucesso!");
 	}
 
+	@PutMapping("/{id}/status")
+	public ResponseEntity<String> alterarStatusProjeto(@PathVariable @NotNull Long id, @RequestBody Map<String, String> status) {
+		service.alterarStatusProjeto(id, status.get("status"));
+		return ResponseEntity.ok().body("Status do projeto alterado com sucesso!");
+	}
 
 	@GetMapping("/dic/{idProjeto}")
 	public ResponseEntity<Resource> gerarDIC(@PathVariable Integer idProjeto) {

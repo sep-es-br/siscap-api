@@ -82,9 +82,13 @@ public class Pessoa extends ControleHistorico {
 	}
 
 	public Pessoa(PessoaForm form, String nomeImagem) {
+		this.setCpf(null);
+		this.setGenero(null);
+		this.setEndereco(null);
+
 		this.setDadosObrigatorios(form);
 		this.setDadosOpcionais(form);
-		this.criarEndereco(form.endereco());
+//		this.criarEndereco(form.endereco());
 		this.atualizarImagemPerfil(nomeImagem);
 		this.setSub(form.sub());
 	}
@@ -92,7 +96,7 @@ public class Pessoa extends ControleHistorico {
 	public void atualizarPessoa(PessoaForm form) {
 		this.setDadosObrigatorios(form);
 		this.setDadosOpcionais(form);
-		this.atualizarEndereco(form.endereco());
+//		this.atualizarEndereco(form.endereco());
 		super.atualizarHistorico();
 	}
 
@@ -112,32 +116,32 @@ public class Pessoa extends ControleHistorico {
 		this.setNome(form.nome());
 		this.setEmail(form.email());
 		this.setNacionalidade(form.nacionalidade());
-		this.setGenero(form.genero());
+//		this.setGenero(form.genero());
 	}
 
 	private void setDadosOpcionais(PessoaForm form) {
 		this.setNomeSocial(form.nomeSocial());
-		this.setCpf(form.cpf());
+//		this.setCpf(form.cpf());
 		this.setTelefoneComercial(form.telefoneComercial());
 		this.setTelefonePessoal(form.telefonePessoal());
 		this.setAreasAtuacao(form.idAreasAtuacao() != null ?
 					form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet()) : null);
 	}
 
-	private void criarEndereco(EnderecoForm enderecoForm) {
-		this.setEndereco(enderecoForm != null ? new Endereco(enderecoForm) : null);
-	}
+//	private void criarEndereco(EnderecoForm enderecoForm) {
+//		this.setEndereco(enderecoForm != null ? new Endereco(enderecoForm) : null);
+//	}
 
-	private void atualizarEndereco(EnderecoForm enderecoForm) {
-		if (enderecoForm != null) {
-			if (this.getEndereco() == null) {
-				this.setEndereco(new Endereco(enderecoForm));
-			} else {
-				this.getEndereco().atualizarEndereco(enderecoForm);
-			}
-		} else if (this.getEndereco() != null) {
-			this.getEndereco().apagarEndereco();
-			this.setEndereco(null);
-		}
-	}
+//	private void atualizarEndereco(EnderecoForm enderecoForm) {
+//		if (enderecoForm != null) {
+//			if (this.getEndereco() == null) {
+//				this.setEndereco(new Endereco(enderecoForm));
+//			} else {
+//				this.getEndereco().atualizarEndereco(enderecoForm);
+//			}
+//		} else if (this.getEndereco() != null) {
+//			this.getEndereco().apagarEndereco();
+//			this.setEndereco(null);
+//		}
+//	}
 }
