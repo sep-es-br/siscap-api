@@ -181,6 +181,15 @@ public class ProjetoService {
 		logger.info("Projeto excluido com sucesso");
 	}
 
+	@Transactional
+	public void alterarStatusProjeto(Long id, String status) {
+		Projeto projeto = this.buscar(id);
+
+		projeto.setStatus(status);
+
+		repository.save(projeto);
+	}
+
 	public List<Long> buscarIdProjetoPropostoList(Programa programa) {
 		logger.info("Buscando projetos vinculados ao programa com id: {}", programa.getId());
 
