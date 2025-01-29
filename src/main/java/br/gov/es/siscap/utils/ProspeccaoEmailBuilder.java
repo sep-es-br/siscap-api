@@ -3,6 +3,8 @@ package br.gov.es.siscap.utils;
 import br.gov.es.siscap.dto.ProspeccaoDetalhesDto;
 import br.gov.es.siscap.dto.ProspeccaoOrganizacaoDetalhesDto;
 import br.gov.es.siscap.dto.ProspeccaoPessoaDetalhesDto;
+import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -38,7 +40,7 @@ public abstract class ProspeccaoEmailBuilder {
 		String campoOperacaoConteudo = montarCampoOperacaoConteudo(prospeccaoDetalhesDto.tipoOperacao());
 
 		String campoObjetoTitulo = montarElementoTitulo(CAMPO_OBJETO_TITULO);
-		String campoObjetoConteudo = montarCampoObjetoConteudo(prospeccaoDetalhesDto.cartaConsultaDetalhes().objeto().nome());
+		String campoObjetoConteudo = montarCampoObjetoConteudo(prospeccaoDetalhesDto.cartaConsultaDetalhes().objeto().nome(), prospeccaoDetalhesDto.cartaConsultaDetalhes().projetosPropostos());
 
 		String campoValorEstimadoTitulo = montarElementoTitulo(CAMPO_VALOR_ESTIMADO_TITULO);
 		String campoValorEstimadoConteudo = montarCampoValorEstimadoConteudo(prospeccaoDetalhesDto.cartaConsultaDetalhes().valor().quantia());
@@ -109,6 +111,10 @@ public abstract class ProspeccaoEmailBuilder {
 		return "<span>" + conteudo + "</span><br/>";
 	}
 
+	private static String montarProjetoPropostoElementoConteudo(String conteudo) {
+		return "<span style='margin-left: 8px; color: #0d6efd'>" + conteudo + "</span><br/>";
+	}
+
 	private static String montarCampoOrganizacaoDetalhesConteudo(ProspeccaoOrganizacaoDetalhesDto detalhesOrganizacao) {
 		String nomeFantasia = detalhesOrganizacao.nomeFantasia();
 		String nome = detalhesOrganizacao.nome();
@@ -137,8 +143,21 @@ public abstract class ProspeccaoEmailBuilder {
 		return montarElementoConteudo(tipoOperacao);
 	}
 
-	private static String montarCampoObjetoConteudo(String nomeObjeto) {
-		return montarElementoConteudo(nomeObjeto);
+	private static String montarCampoObjetoConteudo(String nomeObjeto, List<OpcoesDto> projetosPropostosList) {
+
+		String objetoConteudo = montarElementoConteudo(nomeObjeto);
+
+		if (!projetosPropostosList.isEmpty()) {
+			StringBuilder projetosPropostosSB = new StringBuilder();
+
+			for (OpcoesDto projetoProposto : projetosPropostosList) {
+				projetosPropostosSB.append(montarProjetoPropostoElementoConteudo(projetoProposto.nome()));
+			}
+
+			objetoConteudo += projetosPropostosSB.toString();
+		}
+
+		return objetoConteudo;
 	}
 
 	private static String montarCampoValorEstimadoConteudo(BigDecimal valorEstimado) {
