@@ -28,4 +28,6 @@ public interface OrganizacaoRepository extends JpaRepository<Organizacao, Long> 
 	boolean existsByCnpj(String cnpj);
 
 	Optional<Organizacao> findByCnpj(String cnpj);
+
+	Optional<Organizacao> findByCnpjOrNomeFantasia(String cnpj, String nomeFantasia);
 }
