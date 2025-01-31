@@ -1,5 +1,6 @@
 package br.gov.es.siscap.utils;
 
+import br.gov.es.siscap.dto.CartaConsultaDetalhesDto;
 import br.gov.es.siscap.dto.ProspeccaoDetalhesDto;
 import br.gov.es.siscap.dto.ProspeccaoOrganizacaoDetalhesDto;
 import br.gov.es.siscap.dto.ProspeccaoPessoaDetalhesDto;
@@ -40,7 +41,7 @@ public abstract class ProspeccaoEmailBuilder {
 		String campoOperacaoConteudo = montarCampoOperacaoConteudo(prospeccaoDetalhesDto.tipoOperacao());
 
 		String campoObjetoTitulo = montarElementoTitulo(CAMPO_OBJETO_TITULO);
-		String campoObjetoConteudo = montarCampoObjetoConteudo(prospeccaoDetalhesDto.cartaConsultaDetalhes().objeto().nome(), prospeccaoDetalhesDto.cartaConsultaDetalhes().projetosPropostos());
+		String campoObjetoConteudo = montarCampoObjetoConteudo(prospeccaoDetalhesDto.cartaConsultaDetalhes());
 
 		String campoValorEstimadoTitulo = montarElementoTitulo(CAMPO_VALOR_ESTIMADO_TITULO);
 		String campoValorEstimadoConteudo = montarCampoValorEstimadoConteudo(prospeccaoDetalhesDto.cartaConsultaDetalhes().valor().quantia());
@@ -112,7 +113,7 @@ public abstract class ProspeccaoEmailBuilder {
 	}
 
 	private static String montarProjetoPropostoElementoConteudo(String conteudo) {
-		return "<span style='margin-left: 8px; color: #0d6efd'>" + conteudo + "</span><br/>";
+		return "<span style='margin-left: 8px;'>" + conteudo + "</span><br/>";
 	}
 
 	private static String montarCampoOrganizacaoDetalhesConteudo(ProspeccaoOrganizacaoDetalhesDto detalhesOrganizacao) {
@@ -143,9 +144,17 @@ public abstract class ProspeccaoEmailBuilder {
 		return montarElementoConteudo(tipoOperacao);
 	}
 
-	private static String montarCampoObjetoConteudo(String nomeObjeto, List<OpcoesDto> projetosPropostosList) {
+	private static String montarCampoObjetoConteudo(CartaConsultaDetalhesDto cartaConsultaDetalhesDto) {
 
-		String objetoConteudo = montarElementoConteudo(nomeObjeto);
+		String objetoConteudo = "";
+
+		ObjetoOpcoesDto cartaConsultaObjeto = cartaConsultaDetalhesDto.objeto();
+
+		objetoConteudo += cartaConsultaObjeto.tipo().equals("Projeto")
+					? montarProjetoPropostoElementoConteudo(cartaConsultaObjeto.nome())
+					: montarElementoConteudo(cartaConsultaObjeto.nome());
+
+		List<OpcoesDto> projetosPropostosList = cartaConsultaDetalhesDto.projetosPropostos();
 
 		if (!projetosPropostosList.isEmpty()) {
 			StringBuilder projetosPropostosSB = new StringBuilder();
