@@ -18,11 +18,11 @@ public class MailConfig {
 	@Value("${spring.mail.port}")
 	private String PORT;
 
-//	@Value("${spring.mail.username}")
-//	private String USERNAME;
-//
-//	@Value("${spring.mail.password}")
-//	private String PASSWORD;
+	@Value("${spring.mail.username}")
+	private String USERNAME;
+
+	@Value("${spring.mail.password}")
+	private String PASSWORD;
 
 	@Value("${spring.mail.properties.mail.smtp.auth}")
 	private String AUTH;

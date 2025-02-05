@@ -11,6 +11,7 @@ import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.TipoOrganizacao;
 import br.gov.es.siscap.repository.OrganizacaoRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,6 +31,7 @@ import java.util.*;
 public class OrganizacaoService {
 
 	private final OrganizacaoRepository repository;
+	private final OrganogramaService organogramaService;
 	private final ImagemPerfilService imagemPerfilService;
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final CidadeService cidadeService;
@@ -37,6 +39,29 @@ public class OrganizacaoService {
 	private final PaisService paisService;
 	private final TipoOrganizacaoService tipoOrganizacaoService;
 	private final Logger logger = LogManager.getLogger(OrganizacaoService.class);
+
+	@PostConstruct
+	protected void init() {
+
+		/*
+			31/01/2025
+			TODO: SINCRONIZAR RESPONSAVEL DA ORGANIZACAO NO BANCO DE DADOS COM OS DADOS VINDOS DA API ACESSOCIDADAO
+
+			- UTILIZAR GUID DA ORGANIZACAO PARA ALIMENTAR CHAMADA DA API ACESSO CIDADAO (ENDPOINT: /api/conjunto/{guid}/gestornovo/papel)
+			- UTILIZAR SUB DO AGENTE PUBLICO (PROPRIEDADE: AgentePublicoSub) PARA BUSCAR DADOS DO USUARIO NA API ACESSO CIDADAO (ACUserInfoDto)
+			- UTILIZAR SUB OU NOME DA PESSOA PARA BUSCAR ENTIDADE "PESSOA" NO BANCO
+			- VINCULAR PESSOA COM ORGANIZACAO COMO RESPONSAVEL (PessoaOrganizacao)
+
+			* PROBLEMAS:
+			  |-> ALGUMAS ENTIDADES "PESSOA" NO BANCO NAO POSSUEM SUB
+			      |-> FALHA AO BUSCAR "PESSOA" POR SUB
+			  |-> ALGUMAS ENTIDADES "PESSOA" NO BANCO ESTAO COM O NOME ~ERRADO~
+			      |-> ACUserInfoDto ATUALMENTE TRAZ PROPRIEDADE 'apelido' AO INVES DO NOME COMPLETO [REQUER LIBERACAO DA PRODEST PARA ACESSAR O SCOPE 'nome' NA AUTENTICACAO DE USUARIO]
+			        |-> FALHA AO BUSCAR "PESSOA" POR NOME
+		*/
+
+		this.sincronizarOrganizacoesBancoComOrganogramaAPI();
+	}
 
 	public Page<OrganizacaoListaDto> listarTodos(Pageable pageable, String search) {
 		logger.info("Buscando todas as organizacoes");
@@ -191,5 +216,58 @@ public class OrganizacaoService {
 			erros.forEach(logger::warn);
 			throw new ValidacaoSiscapException(erros);
 		}
+	}
+
+	@Transactional
+	protected void sincronizarOrganizacoesBancoComOrganogramaAPI() {
+		logger.info("Sincronizando dados de Organizacao do banco de dados da aplicacao com os dados da API Organograma");
+
+		List<Organizacao> organizacaoOrganogramaAPIList = organogramaService.listarOrganizacoesFilhasGOVES()
+					.stream()
+					.map(Organizacao::new)
+					.toList();
+
+		List<Organizacao> organizacaoBancoList = new ArrayList<>();
+
+		organizacaoOrganogramaAPIList.forEach(
+					orgAPI -> {
+						Optional<Organizacao> orgBancoOpt = repository.findByCnpjOrNomeFantasia(orgAPI.getCnpj(), orgAPI.getNomeFantasia());
+
+						if (orgBancoOpt.isPresent()) {
+							Organizacao orgBanco = this.atualizarDadosOrganizacaoBancoPorOrganogramaOrganizacaoDTO(orgBancoOpt.get(), orgAPI);
+							organizacaoBancoList.add(orgBanco);
+						} else {
+							organizacaoBancoList.add(orgAPI);
+						}
+					}
+		);
+
+		repository.saveAllAndFlush(organizacaoBancoList);
+		logger.info("Dados de Organizacao sincronizados com sucesso");
+	}
+
+	private Organizacao atualizarDadosOrganizacaoBancoPorOrganogramaOrganizacaoDTO(Organizacao orgBanco, Organizacao orgAPI) {
+
+		if (orgBanco.getGuid() == null) {
+			orgBanco.setGuid(orgAPI.getGuid());
+		}
+
+		if (!(orgBanco.getCnpj().equals(orgAPI.getCnpj()))) {
+			orgBanco.setCnpj(orgAPI.getCnpj());
+		}
+
+		if (!(orgBanco.getTipoOrganizacao().getId().equals(orgAPI.getTipoOrganizacao().getId()))) {
+			orgBanco.setTipoOrganizacao(orgAPI.getTipoOrganizacao());
+		}
+
+		if (orgBanco.getPais() == null || !(orgBanco.getPais().getId().equals(orgAPI.getPais().getId()))) {
+			orgBanco.setPais(orgAPI.getPais());
+		}
+
+		if (orgBanco.getEstado() == null || !(orgBanco.getEstado().getId().equals(orgAPI.getEstado().getId()))) {
+			orgBanco.setEstado(orgAPI.getEstado());
+		}
+
+		return orgBanco;
 	}
 }
