@@ -24,4 +24,7 @@ public interface AcessoCidadaoWebClient {
 
 	@GetMapping("/api/agentepublico/{sub}/papeis")
 	List<ACAgentePublicoPapelDto> buscarPapeisAgentePublicoPorSub(@RequestHeader Map<String, Object> headers, @PathVariable String sub);
+
+	@GetMapping("/api/conjunto/{guid}/gestornovo/papel")
+	ACAgentePublicoPapelDto buscarGestorNovoConjuntoPorGuidOrganizacao(@RequestHeader Map<String, Object> headers, @PathVariable String guid);
 }

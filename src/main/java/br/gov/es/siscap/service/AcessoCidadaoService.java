@@ -32,6 +32,10 @@ public class AcessoCidadaoService {
 		return buscarPapeisAgentePublicoPorSub(sub);
 	}
 
+	public ACAgentePublicoPapelDto buscarGestorNovoConjuntoPorGuidOrganizacao(String guid) {
+		return ACWebClient.buscarGestorNovoConjuntoPorGuidOrganizacao(ACAuthService.getAuthorizationHeader(), guid);
+	}
+
 	private String buscarSubPorCpf(String cpf) {
 		return ACWebClient.buscarSubPorCpf(ACAuthService.getAuthorizationHeader(), cpf).sub();
 	}
