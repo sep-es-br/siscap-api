@@ -1,9 +1,15 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
+import br.gov.es.siscap.enums.TipoOrganizacaoEnum;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.PessoaOrganizacao;
+import br.gov.es.siscap.models.TipoOrganizacao;
+import br.gov.es.siscap.repository.OrganizacaoRepository;
 import br.gov.es.siscap.repository.PessoaOrganizacaoRepository;
+import br.gov.es.siscap.repository.PessoaRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,7 +28,15 @@ import java.util.stream.Collectors;
 public class PessoaOrganizacaoService {
 
 	private final PessoaOrganizacaoRepository pessoaOrganizacaoRepository;
+	private final OrganizacaoRepository organizacaoRepository;
+	private final PessoaRepository pessoaRepository;
+	private final AcessoCidadaoService acessoCidadaoService;
 	private final Logger logger = LogManager.getLogger(PessoaOrganizacaoService.class);
+
+	@PostConstruct
+	public void init() {
+		this.sincronizarResponsaveisOrganizacoesBancoComAcessoCidadaoAPI();
+	}
 
 	public Set<PessoaOrganizacao> buscarPorPessoa(Pessoa pessoa) {
 		logger.info("Buscando vinculo entre Pessoa e Organizacao(oes) da Pessoa com id: {}", pessoa.getId());
@@ -183,5 +198,87 @@ public class PessoaOrganizacaoService {
 		});
 
 		return pessoaOrganizacaoIncluirSet;
+	}
+
+	@Transactional
+	protected void sincronizarResponsaveisOrganizacoesBancoComAcessoCidadaoAPI() {
+		logger.info("Sincronizando dados de Pessoa e PessoaOrganizacao (Responsavel) do banco da aplicacao com os dados da API Acesso Cidadao");
+
+		Set<Organizacao> organizacaoSet = organizacaoRepository.findAllByGuidNotNullAndTipoOrganizacao(new TipoOrganizacao(TipoOrganizacaoEnum.SECRETARIA.getValue()));
+
+		Set<PessoaOrganizacao> pessoaOrganizacaoSet = new HashSet<>();
+
+		organizacaoSet.forEach((organizacao) -> {
+
+			try {
+				ACAgentePublicoPapelDto gestorConjunto = acessoCidadaoService.buscarGestorNovoConjuntoPorGuidOrganizacao(organizacao.getGuid());
+				Optional<Pessoa> pessoaResponsavelOpt = pessoaRepository.buscarPorSubOuNomeTratado(gestorConjunto.AgentePublicoSub(), gestorConjunto.AgentePublicoNome());
+
+				pessoaResponsavelOpt.ifPresentOrElse(
+							(pessoa) -> {
+								Pessoa pessoaAtualizada = this.atualizarDadosPessoaBancoPorAcessoCidadaoAPI(pessoa, gestorConjunto);
+								pessoaOrganizacaoSet.addAll(this.validarResponsavelOrganizacaoComPessoa(pessoaAtualizada, organizacao));
+							},
+							() -> {
+								Pessoa novaPessoa = this.cadastrarNovaPessoaBancoPorAcessoCidadaoAPI(gestorConjunto);
+								pessoaOrganizacaoSet.addAll(this.validarResponsavelOrganizacaoComPessoa(novaPessoa, organizacao));
+							}
+				);
+			} catch (Exception e) {
+				logger.error("Erro ao buscar papel do gestor do conjunto [guid: {}, nome: {}]", organizacao.getGuid(), organizacao.getNome());
+			}
+		});
+
+		if (!(pessoaOrganizacaoSet.isEmpty())) {
+			pessoaOrganizacaoRepository.saveAllAndFlush(pessoaOrganizacaoSet);
+		}
+
+		logger.info("Dados de Pessoa e PessoaOrganizacao (Responsavel) sincronizados com sucesso");
+	}
+
+	@Transactional
+	protected Pessoa atualizarDadosPessoaBancoPorAcessoCidadaoAPI(Pessoa pessoa, ACAgentePublicoPapelDto gestorConjunto) {
+		logger.info("Atualizando dados de Pessoa do banco de dados da aplicacao com os dados da API Acesso Cidadao (contexto papel do gestor do conjunto)");
+
+		if (pessoa.getSub() == null)
+			pessoa.setSub(gestorConjunto.AgentePublicoSub());
+
+		return pessoaRepository.saveAndFlush(pessoa);
+	}
+
+	@Transactional
+	protected Pessoa cadastrarNovaPessoaBancoPorAcessoCidadaoAPI(ACAgentePublicoPapelDto gestorConjunto) {
+		logger.info("Cadastrando nova Pessoa do banco de dados da aplicacao com os dados da API Acesso Cidadao (contexto papel do gestor do conjunto)");
+
+		Pessoa tempPessoa = new Pessoa();
+		tempPessoa.setNome(gestorConjunto.AgentePublicoNome());
+		tempPessoa.setSub(gestorConjunto.AgentePublicoSub());
+
+		return pessoaRepository.saveAndFlush(tempPessoa);
+	}
+
+	private Set<PessoaOrganizacao> validarResponsavelOrganizacaoComPessoa(Pessoa pessoa, Organizacao organizacao) {
+
+		Set<PessoaOrganizacao> pessoaOrganizacaoSet = new HashSet<>();
+
+		PessoaOrganizacao responsavelBanco = this.buscarPorOrganizacao(organizacao);
+
+		PessoaOrganizacao responsavelAPI = new PessoaOrganizacao(pessoa, organizacao);
+		responsavelAPI.setIsResponsavel(true);
+
+		if (responsavelBanco == null) {
+
+			pessoaOrganizacaoSet.add(responsavelAPI);
+			return pessoaOrganizacaoSet;
+		}
+
+		if (!(responsavelBanco.getPessoa().getId().equals(responsavelAPI.getPessoa().getId()))) {
+
+			responsavelBanco.setIsResponsavel(false);
+			pessoaOrganizacaoSet.add(responsavelBanco);
+			pessoaOrganizacaoSet.add(responsavelAPI);
+		}
+
+		return pessoaOrganizacaoSet;
 	}
 }
