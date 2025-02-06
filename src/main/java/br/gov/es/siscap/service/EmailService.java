@@ -43,7 +43,7 @@ public class EmailService {
 		String assuntoEmail = ProspeccaoEmailBuilder.montarAssuntoEmail(prospeccaoDetalhesDto);
 		String corpoEmail = ProspeccaoEmailBuilder.montarCorpoEmail(prospeccaoDetalhesDto);
 
-//		helper.setFrom(REMETENTE_ENDERECO, REMETENTE_APELIDO);
+		helper.setFrom(REMETENTE_ENDERECO, REMETENTE_APELIDO);
 		helper.setSubject(assuntoEmail);
 		helper.setText(corpoEmail, true);
 		this.anexarRelatorios(helper, prospeccaoDetalhesDto.cartaConsultaDetalhes());

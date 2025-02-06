@@ -4,6 +4,8 @@ import java.util.*;
 
 public record ACUserInfoDto(
 
+			String nome,
+			Boolean nomeVerificado,
 			String apelido,
 			Boolean cpfValidado,
 			Boolean verificada,
@@ -25,6 +27,8 @@ public record ACUserInfoDto(
 	*/
 	public ACUserInfoDto(LinkedHashMap<String, Object> userInfoHashMap) {
 		this(
+					(String) userInfoHashMap.get("nome"),
+					Boolean.valueOf((String) userInfoHashMap.get("nomeVerificado")),
 					(String) userInfoHashMap.get("apelido"),
 					Boolean.valueOf((String) userInfoHashMap.get("cpfValidado")),
 					Boolean.valueOf((String) userInfoHashMap.get("verificada")),

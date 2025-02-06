@@ -27,12 +27,12 @@ public class PessoaOrganizacao extends ControleHistorico {
 	private Long id;
 
 	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "id_pessoa", nullable = false)
 	private Pessoa pessoa;
 
 	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "id_organizacao", nullable = false)
 	private Organizacao organizacao;
 
