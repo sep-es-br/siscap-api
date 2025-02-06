@@ -40,7 +40,7 @@ public class AutenticacaoService {
 	private final UsuarioRepository usuarioRepository;
 	private final Roles roles;
 
-	private final String LOTACAOGUID_SUBCAP = "515685f7-2aeb-4cc4-a311-8b793297f8fb";
+//	private final String LOTACAOGUID_SUBCAP = "515685f7-2aeb-4cc4-a311-8b793297f8fb";
 
 	public UsuarioDto autenticar(String accessToken) {
 		logger.info("Autenticar usuário SisCap.");
@@ -71,10 +71,14 @@ public class AutenticacaoService {
 		Usuario usuario = (Usuario) usuarioRepository.findBySub(userInfo.subNovo());
 		if (usuario != null) {
 			pessoaService.validarSub(userInfo.subNovo(), usuario.getPessoa().getId());
+
+			atualizarNomeNomeSocialPessoa(usuario.getPessoa(), userInfo);
+
 			logger.info("Usuário já existente, procedendo com atualizações de papeis e token.");
 			usuario.setAccessToken(accessToken);
 			usuario.setPapeis(validarPapeisUsuario(userInfo));
 			usuarioRepository.saveAndFlush(usuario);
+
 			logger.info("Usuário atualizado com sucesso.");
 			return usuario;
 		}
@@ -84,6 +88,7 @@ public class AutenticacaoService {
 		try {
 			pessoa = pessoaService.buscarPorSub(userInfo.subNovo());
 			logger.info("Foi encontrado uma pessoa com este sub, procedendo para criação de usuário para essa pessoa.");
+			pessoa = atualizarNomeNomeSocialPessoa(pessoa, userInfo);
 		} catch (PessoaNaoEncontradoException e) {
 			pessoa = criarPessoa(userInfo);
 		}
@@ -101,7 +106,8 @@ public class AutenticacaoService {
 		Pessoa pessoa;
 		logger.info("Pessoa não encontrada, procedendo para criação de uma nova pessoa.");
 		pessoa = new Pessoa();
-		pessoa.setNome(userInfo.apelido());
+		pessoa.setNome(userInfo.nome());
+		pessoa.setNomeSocial(userInfo.apelido());
 		pessoa.setEmail(getEmailUserInfo(userInfo));
 		pessoa.setSub(userInfo.subNovo());
 		pessoa.setApagado(false);
@@ -109,6 +115,13 @@ public class AutenticacaoService {
 		pessoa = pessoaService.salvarNovaPessoaAcessoCidadao(pessoa);
 		logger.info("Pessoa criada com sucesso.");
 		return pessoa;
+	}
+
+	private Pessoa atualizarNomeNomeSocialPessoa(Pessoa pessoa, ACUserInfoDto userInfo) {
+		logger.info("Atualizando nome e nomeSocial da pessoa vinculada ao usuário.");
+		pessoa.setNome(userInfo.nome());
+		pessoa.setNomeSocial(userInfo.apelido());
+		return pessoaService.salvarNovaPessoaAcessoCidadao(pessoa);
 	}
 
 	private Set<String> validarPapeisUsuario(ACUserInfoDto userInfo) {
@@ -120,13 +133,15 @@ public class AutenticacaoService {
 
 		Set<String> usuarioPapeisNovo = new HashSet<>();
 
-		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(sub);
+		usuarioPapeisNovo.add("PROPONENTE");
 
-		if (papeisLotacaoGuidSet.contains(LOTACAOGUID_SUBCAP)) {
-			usuarioPapeisNovo.add("SUBCAP");
-		} else {
-			usuarioPapeisNovo.add("PROPONENTE");
-		}
+//		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(sub);
+//
+//		if (papeisLotacaoGuidSet.contains(LOTACAOGUID_SUBCAP)) {
+//			usuarioPapeisNovo.add("SUBCAP");
+//		} else {
+//			usuarioPapeisNovo.add("PROPONENTE");
+//		}
 
 		return usuarioPapeisNovo;
 	}
