@@ -5,6 +5,7 @@ import br.gov.es.siscap.models.Organizacao;
 public record OrganizacaoDto(
 
 			Long id,
+			String guid,
 			String nome,
 			String abreviatura,
 			String telefone,
@@ -24,6 +25,7 @@ public record OrganizacaoDto(
 	public OrganizacaoDto(Organizacao organizacao, byte[] imagemPerfil, Long idPessoaResponsavel) {
 		this(
 					organizacao.getId(),
+					organizacao.getGuid(),
 					organizacao.getNome(),
 					organizacao.getNomeFantasia(),
 					organizacao.getTelefone(),

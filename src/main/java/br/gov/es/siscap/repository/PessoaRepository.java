@@ -20,6 +20,15 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 	)
 	Page<Pessoa> paginarPessoasPorFiltroPesquisaSimples(String search, Pageable pageable);
 
+	@Query(value = "select p.* from Pessoa p " +
+				"where " +
+				" p.apagado = false and " +
+				" (public.comparar_nome_pessoa(p.nome, :nome) or " +
+				" p.sub = :sub)",
+				nativeQuery = true
+	)
+	Optional<Pessoa> buscarPorSubOuNomeTratado(String sub, String nome);
+
 	Optional<Pessoa> findBySub(String sub);
 
 	boolean existsByEmail(String email);
