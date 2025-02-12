@@ -117,6 +117,10 @@ public class CartaConsultaService {
 		repository.save(cartaConsulta);
 	}
 
+	public Integer buscarQuantidadeCartasConsulta() {
+		return Integer.parseInt(String.valueOf((repository.count())));
+	}
+
 	private CartaConsulta buscarCartaConsulta(Long id) {
 		return repository.findById(id).orElseThrow(() -> new RuntimeException("Carta de consulta não encontrada"));
 	}
