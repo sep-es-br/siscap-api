@@ -105,6 +105,10 @@ public class ProgramaService {
 		logger.info("Programa excluído com sucesso");
 	}
 
+	public Integer buscarQuantidadeProgramas() {
+		return Integer.parseInt(String.valueOf((repository.count())));
+	}
+
 	private Programa buscar(Long id) {
 		return repository.findById(id).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
 	}
