@@ -1,7 +1,21 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+
 import br.gov.es.siscap.dto.UsuarioDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.enums.Permissoes;
 import br.gov.es.siscap.exception.UsuarioSemAutorizacaoException;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
@@ -12,18 +26,6 @@ import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +42,9 @@ public class AutenticacaoService {
 	private final UsuarioRepository usuarioRepository;
 	private final Roles roles;
 
-//	private final String LOTACAOGUID_SUBCAP = "515685f7-2aeb-4cc4-a311-8b793297f8fb";
+
+
+	private final String LOTACAOGUID_SUBCAP = "515685f7-2aeb-4cc4-a311-8b793297f8fb";
 
 	public UsuarioDto autenticar(String accessToken) {
 		logger.info("Autenticar usuário SisCap.");
@@ -133,15 +137,16 @@ public class AutenticacaoService {
 
 		Set<String> usuarioPapeisNovo = new HashSet<>();
 
-		usuarioPapeisNovo.add("PROPONENTE");
+		// usuarioPapeisNovo.add("PROPONENTE");
+		// usuarioPapeisNovo.add("SUBCAP");
 
-//		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(sub);
+		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(sub);
 //
-//		if (papeisLotacaoGuidSet.contains(LOTACAOGUID_SUBCAP)) {
-//			usuarioPapeisNovo.add("SUBCAP");
-//		} else {
-//			usuarioPapeisNovo.add("PROPONENTE");
-//		}
+		if (papeisLotacaoGuidSet.contains(LOTACAOGUID_SUBCAP)) {
+			usuarioPapeisNovo.add("SUBCAP");
+		} else {
+			usuarioPapeisNovo.add("PROPONENTE");
+		}
 
 		return usuarioPapeisNovo;
 	}
@@ -174,11 +179,61 @@ public class AutenticacaoService {
 	private Set<Long> construirIdOrganizacoesSet(Pessoa usuarioPessoa, String subNovo) {
 		logger.info("Buscando organizações do usuário.");
 
+		// busca todos as organizações da pessoa no banco
 		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorPessoa(usuarioPessoa);
 
 		if (pessoaOrganizacaoSet != null && !pessoaOrganizacaoSet.isEmpty()) {
 			logger.info("Organizações do usuário encontradas com sucesso.");
-			return pessoaOrganizacaoSet.stream().map(PessoaOrganizacao::getOrganizacao).map(Organizacao::getId).collect(Collectors.toSet());
+
+			// busca as organizações segundo acesso cidadão que estão no banco
+			Set<Organizacao> organizacoesAc = getOrganizacoesDaPessoaAC(usuarioPessoa, subNovo);
+
+			// busca as organizações segundo o banco atual
+			Set<PessoaOrganizacao> organizacoesBanco = pessoaOrganizacaoService.buscarPorPessoa(usuarioPessoa);
+
+			// desvincular as organizacoes que estão sobrando no banco
+			Set<PessoaOrganizacao> organizacoesSobrando = organizacoesBanco.stream()
+															.filter(o -> {
+																return o.getOrganizacao().getGuid() != null &&
+																		!o.getOrganizacao().getGuid().isBlank() &&
+																		!organizacoesAc.stream()
+																		.map(Organizacao::getGuid)
+																		.toList().contains(o.getOrganizacao().getGuid());
+															}).collect(Collectors.toSet());
+			
+			pessoaOrganizacaoService.excluirTodosPorId(organizacoesSobrando.stream().map(PessoaOrganizacao::getId).toList());
+			
+            final Set<PessoaOrganizacao> organizacoesBancoFinal = organizacoesBanco;
+
+			// vincular as organizações que estão faltando
+			Set<Organizacao> organizacoesFaltando = organizacoesAc.stream()
+														.filter(organizacao -> {
+															return !organizacoesBancoFinal.stream()
+																.map(PessoaOrganizacao::getOrganizacao)
+																.map(Organizacao::getGuid)
+																.toList().contains(organizacao.getGuid());
+														}).collect(Collectors.toSet());
+		
+														
+			HashSet<PessoaOrganizacao> pessoaOrganizacaosFaltando = new HashSet<>();	
+			for (Organizacao organizacao : organizacoesFaltando) {
+				PessoaOrganizacao pessoaOrganizacao = new PessoaOrganizacao(usuarioPessoa, organizacao);
+				pessoaOrganizacaosFaltando.add(pessoaOrganizacao);
+			}
+
+
+			pessoaOrganizacaosFaltando = new HashSet<>(pessoaOrganizacaoService.salvarPessoaOrganizacaoSetAutenticacaoUsuario(pessoaOrganizacaosFaltando));
+
+			// vinculo do banco menos os que foram removidos
+			
+			organizacoesBanco = new HashSet<>(organizacoesBanco.stream()
+								.filter(oBanco -> !organizacoesSobrando.stream().map(PessoaOrganizacao::getId).toList().contains(oBanco.getId()))
+								.toList());
+			
+			// mais o que estavam faltando
+			organizacoesBanco.addAll(pessoaOrganizacaosFaltando);
+
+			return organizacoesBanco.stream().map(PessoaOrganizacao::getOrganizacao).map(Organizacao::getId).collect(Collectors.toSet());
 		} else {
 			logger.info("Usuário não está vinculado a nenhuma organizacao.");
 			logger.info("Iniciando processo de vinculação de usuário a organizações.");
@@ -186,6 +241,63 @@ public class AutenticacaoService {
 			logger.info("Vínculo entre pessoa e organizações realizado com sucesso.");
 			return pessoaOrganizacaoSetNovo.stream().map(PessoaOrganizacao::getOrganizacao).map(Organizacao::getId).collect(Collectors.toSet());
 		}
+
+
+		
+	}
+
+	private Set<Organizacao> getOrganizacoesDaPessoaAC(Pessoa pessoa, String subNovo){
+		Set<Organizacao> organizacoesSet = new HashSet<>();
+
+		Set<ACAgentePublicoPapelDto> papeisSet = listarPapeis(subNovo);
+
+		if(papeisSet.isEmpty()) {
+			logger.info("Usuario [sub: {1}] não possui papel", subNovo);
+			return organizacoesSet;
+		}
+
+		if (papeisSet.size() == 1 && papeisSet.iterator().next().LotacaoGuid().isBlank()) {
+			logger.info("O papel do usuário [{1}] não possui GUID de Lotação.", subNovo);
+			return organizacoesSet;
+		}
+
+		for (String lotacaoGuid : papeisSet.stream().filter(p -> !p.LotacaoGuid().isBlank()).map(p -> p.LotacaoGuid()).toList()) {
+			String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
+			String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
+
+			/*
+				30/12/2024
+
+				PROBLEMA:
+					METODO organizacaoService.buscarPorCnpj TRAZIA ENTIDADE Organizacao
+					|-> NAO CONTEMPLAVA CASO DE NAO ENCONTRAR ORGANIZACAO COM O CNPJ FORNECIDO (TRAZIA Organizacao = null)
+
+				ABORDAGEM:
+					METODO AGORA TRAZ Optional<Organizacao> E TRATA CASO DE ORGANIZACAO AUSENTE
+					DENTRO DESTE METODO
+					|-> SEM throw new RunTimeException PARA EVITAR DE IMPEDIR ACESSO DO USUARIO
+
+				OBSERVACAO:
+					ABORDAGEM CORRETA SERIA PREENCHER O CNPJ DAS ORGANIZACOES APROPRIADAMENTE
+					DE ACORDO COM O RETORNO DA API DO ORGANOGRAMA
+					|-> LEVANTA QUESTAO SINCRONIA DO BANCO DO SISCAP COM A API:
+							* MELHOR SERIA A ABORDAGEM DO VAGNER DE TRAZER OS DADOS
+							  DA(S) ORGANIZACAO(OES) DIRETO DE UMA REQUISICAO
+							  PRA API DO ORGANOGRAMA
+								|-> POREM SEM TEMPO
+			*/
+
+			Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
+
+			if (organizacaoOptional.isPresent()) {
+				organizacoesSet.add(organizacaoOptional.get());
+			} else {
+				logger.info("Organização não encontrada no banco para o CNPJ fornecido: [{}].", cnpjOrganizacao);
+			}
+		}
+
+		return organizacoesSet;
+
 	}
 
 	private Set<PessoaOrganizacao> vincularPessoaOrganizacoes(Pessoa pessoa, String subNovo) {
@@ -248,6 +360,10 @@ public class AutenticacaoService {
 					.map(papel -> papel.LotacaoGuid() != null ? papel.LotacaoGuid() : "")
 					.map(String::toLowerCase)
 					.collect(Collectors.toSet());
+	}
+
+	private Set<ACAgentePublicoPapelDto> listarPapeis(String subNovo) {
+		return new HashSet<ACAgentePublicoPapelDto>(acessoCidadaoService.listarPapeisAgentePublicoPorSub(subNovo));
 	}
 
 	private static String getEmailUserInfo(ACUserInfoDto userInfo) {
