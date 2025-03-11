@@ -42,7 +42,9 @@ public class AutenticacaoService {
 	private final UsuarioRepository usuarioRepository;
 	private final Roles roles;
 
-//	private final String LOTACAOGUID_SUBCAP = "515685f7-2aeb-4cc4-a311-8b793297f8fb";
+
+
+	private final String LOTACAOGUID_SUBCAP = "515685f7-2aeb-4cc4-a311-8b793297f8fb";
 
 	public UsuarioDto autenticar(String accessToken) {
 		logger.info("Autenticar usuário SisCap.");
@@ -136,15 +138,15 @@ public class AutenticacaoService {
 		Set<String> usuarioPapeisNovo = new HashSet<>();
 
 		// usuarioPapeisNovo.add("PROPONENTE");
-		usuarioPapeisNovo.add("SUBCAP");
+		// usuarioPapeisNovo.add("SUBCAP");
 
 		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(sub);
 //
-//		if (papeisLotacaoGuidSet.contains(LOTACAOGUID_SUBCAP)) {
-//			usuarioPapeisNovo.add("SUBCAP");
-//		} else {
-//			usuarioPapeisNovo.add("PROPONENTE");
-//		}
+		if (papeisLotacaoGuidSet.contains(LOTACAOGUID_SUBCAP)) {
+			usuarioPapeisNovo.add("SUBCAP");
+		} else {
+			usuarioPapeisNovo.add("PROPONENTE");
+		}
 
 		return usuarioPapeisNovo;
 	}
@@ -201,11 +203,12 @@ public class AutenticacaoService {
 			
 			pessoaOrganizacaoService.excluirTodosPorId(organizacoesSobrando.stream().map(PessoaOrganizacao::getId).toList());
 			
+            final Set<PessoaOrganizacao> organizacoesBancoFinal = organizacoesBanco;
 
 			// vincular as organizações que estão faltando
 			Set<Organizacao> organizacoesFaltando = organizacoesAc.stream()
 														.filter(organizacao -> {
-															return !organizacoesBanco.stream()
+															return !organizacoesBancoFinal.stream()
 																.map(PessoaOrganizacao::getOrganizacao)
 																.map(Organizacao::getGuid)
 																.toList().contains(organizacao.getGuid());
@@ -258,7 +261,7 @@ public class AutenticacaoService {
 			return organizacoesSet;
 		}
 
-		for (String lotacaoGuid : papeisSet.stream().filter(p -> !p.LotacaoGuid().isBlank()).map(p -> p.Guid()).toList()) {
+		for (String lotacaoGuid : papeisSet.stream().filter(p -> !p.LotacaoGuid().isBlank()).map(p -> p.LotacaoGuid()).toList()) {
 			String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
 			String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
 
