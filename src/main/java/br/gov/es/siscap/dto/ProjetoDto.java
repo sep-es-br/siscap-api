@@ -42,7 +42,8 @@ public record ProjetoDto(
 					projeto.getArranjosInstitucionais(),
 					rateio,
 					idResponsavelProponente,
-					equipeElaboracao
+					equipeElaboracao,
+					projeto.isRascunho()
 		);
 	}
 }
