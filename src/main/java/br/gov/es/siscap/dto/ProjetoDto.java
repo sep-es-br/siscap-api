@@ -21,7 +21,8 @@ public record ProjetoDto(
 			String arranjosInstitucionais,
 			List<RateioDto> rateio,
 			Long idResponsavelProponente,
-			List<EquipeDto> equipeElaboracao
+			List<EquipeDto> equipeElaboracao,
+			Boolean rascunho
 ) {
 
 	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao) {

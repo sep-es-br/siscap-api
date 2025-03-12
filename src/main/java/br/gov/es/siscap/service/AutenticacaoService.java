@@ -256,44 +256,54 @@ public class AutenticacaoService {
 			return organizacoesSet;
 		}
 
-		if (papeisSet.size() == 1 && papeisSet.iterator().next().LotacaoGuid().isBlank()) {
-			logger.info("O papel do usuário [{1}] não possui GUID de Lotação.", subNovo);
-			return organizacoesSet;
+		ACAgentePublicoPapelDto papel;
+
+		if (papeisSet.size() == 1){
+			papel = papeisSet.iterator().next();
+			if(papel.LotacaoGuid().isBlank()) {
+				logger.info("O papel do usuário [{1}] não possui GUID de Lotação.", subNovo);
+				return organizacoesSet;
+			} 
+		} else {
+			papeisSet = papeisSet.stream().filter(p -> p.Prioritario()).collect(Collectors.toSet());
+			if(papeisSet.isEmpty()) {
+				return new HashSet<>();
+			} else {
+				papel = papeisSet.iterator().next();
+			}
 		}
 
-		for (String lotacaoGuid : papeisSet.stream().filter(p -> !p.LotacaoGuid().isBlank()).map(p -> p.LotacaoGuid()).toList()) {
-			String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
-			String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
+		String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(papel.LotacaoGuid()).guidOrganizacao();
+		String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
 
-			/*
-				30/12/2024
+		/*
+			30/12/2024
 
-				PROBLEMA:
-					METODO organizacaoService.buscarPorCnpj TRAZIA ENTIDADE Organizacao
-					|-> NAO CONTEMPLAVA CASO DE NAO ENCONTRAR ORGANIZACAO COM O CNPJ FORNECIDO (TRAZIA Organizacao = null)
+			PROBLEMA:
+				METODO organizacaoService.buscarPorCnpj TRAZIA ENTIDADE Organizacao
+				|-> NAO CONTEMPLAVA CASO DE NAO ENCONTRAR ORGANIZACAO COM O CNPJ FORNECIDO (TRAZIA Organizacao = null)
 
-				ABORDAGEM:
-					METODO AGORA TRAZ Optional<Organizacao> E TRATA CASO DE ORGANIZACAO AUSENTE
-					DENTRO DESTE METODO
-					|-> SEM throw new RunTimeException PARA EVITAR DE IMPEDIR ACESSO DO USUARIO
+			ABORDAGEM:
+				METODO AGORA TRAZ Optional<Organizacao> E TRATA CASO DE ORGANIZACAO AUSENTE
+				DENTRO DESTE METODO
+				|-> SEM throw new RunTimeException PARA EVITAR DE IMPEDIR ACESSO DO USUARIO
 
-				OBSERVACAO:
-					ABORDAGEM CORRETA SERIA PREENCHER O CNPJ DAS ORGANIZACOES APROPRIADAMENTE
-					DE ACORDO COM O RETORNO DA API DO ORGANOGRAMA
-					|-> LEVANTA QUESTAO SINCRONIA DO BANCO DO SISCAP COM A API:
-							* MELHOR SERIA A ABORDAGEM DO VAGNER DE TRAZER OS DADOS
-							  DA(S) ORGANIZACAO(OES) DIRETO DE UMA REQUISICAO
-							  PRA API DO ORGANOGRAMA
-								|-> POREM SEM TEMPO
-			*/
+			OBSERVACAO:
+				ABORDAGEM CORRETA SERIA PREENCHER O CNPJ DAS ORGANIZACOES APROPRIADAMENTE
+				DE ACORDO COM O RETORNO DA API DO ORGANOGRAMA
+				|-> LEVANTA QUESTAO SINCRONIA DO BANCO DO SISCAP COM A API:
+						* MELHOR SERIA A ABORDAGEM DO VAGNER DE TRAZER OS DADOS
+							DA(S) ORGANIZACAO(OES) DIRETO DE UMA REQUISICAO
+							PRA API DO ORGANOGRAMA
+							|-> POREM SEM TEMPO
+		*/
 
-			Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
+		Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
 
-			if (organizacaoOptional.isPresent()) {
-				organizacoesSet.add(organizacaoOptional.get());
-			} else {
-				logger.info("Organização não encontrada no banco para o CNPJ fornecido: [{}].", cnpjOrganizacao);
-			}
+		if (organizacaoOptional.isPresent()) {
+			organizacoesSet.add(organizacaoOptional.get());
+		} else {
+			logger.info("Organização não encontrada no banco para o CNPJ fornecido: [{}].", cnpjOrganizacao);
 		}
 
 		return organizacoesSet;
