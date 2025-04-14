@@ -41,34 +41,39 @@ public class AutenticacaoService {
 	private final TokenService tokenService;
 	private final UsuarioRepository usuarioRepository;
 	private final Roles roles;
-
-
-
-	private final String LOTACAOGUID_SUBCAP = "515685f7-2aeb-4cc4-a311-8b793297f8fb";
-
+	
 	public UsuarioDto autenticar(String accessToken) {
 		logger.info("Autenticar usuário SisCap.");
 
 		ACUserInfoDto userInfo = acessoCidadaoService.buscarInformacoesUsuario(accessToken);
 
-		if (!userInfo.agentepublico() && (userInfo.role() == null || userInfo.role().isEmpty()))
+		logger.info("Informações do usuario : {}", userInfo );
+						
+		if ( Boolean.FALSE.equals(userInfo.agentepublico() ) && ( userInfo.role() == null || userInfo.role().isEmpty() ) )
 			throw new UsuarioSemAutorizacaoException();
+
+		Set<ACAgentePublicoPapelDto> papeisSet = listarPapeis(userInfo.subNovo());
+		
+		boolean isProponente = papeisSet.stream().anyMatch( p -> p.Prioritario());
+
+		if ( Boolean.FALSE.equals(isProponente) && ( userInfo.role() == null || userInfo.role().isEmpty() ) )
+			throw new UsuarioSemAutorizacaoException();
+
+		logger.info("Perfis do usuario : {}", userInfo.role() );
 
 		Usuario usuario = buscarOuCriarUsuario(userInfo, accessToken);
 		String token = tokenService.gerarToken(usuario);
 		logger.info("Token JWT gerado.");
-
 
 		byte[] imagemPerfil = construirImagemPerfilUsuario(usuario.getPessoa().getNomeImagem());
 
 		Set<Permissoes> permissoes = construirPermissoesSet(usuario.getPapeis());
 
 		Set<Long> idOrganizacoes = construirIdOrganizacoesSet(usuario.getPessoa(), usuario.getSub());
-
-		boolean isProponente = usuario.getPapeis().size() == 1 && usuario.getPapeis().contains("PROPONENTE");
-
+				
 		return new UsuarioDto(token, usuario.getPessoa().getNome(), getEmailUserInfo(userInfo), usuario.getSub(),
-					imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente);
+			imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente );
+
 	}
 
 	private Usuario buscarOuCriarUsuario(ACUserInfoDto userInfo, String accessToken) {
@@ -129,26 +134,9 @@ public class AutenticacaoService {
 	}
 
 	private Set<String> validarPapeisUsuario(ACUserInfoDto userInfo) {
-
-		String sub = userInfo.subNovo();
 		Set<String> usuarioPapeis = userInfo.role();
-
 		if (usuarioPapeis != null && !usuarioPapeis.isEmpty()) return usuarioPapeis;
-
-		Set<String> usuarioPapeisNovo = new HashSet<>();
-
-		// usuarioPapeisNovo.add("PROPONENTE");
-		// usuarioPapeisNovo.add("SUBCAP");
-
-		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(sub);
-//
-		if (papeisLotacaoGuidSet.contains(LOTACAOGUID_SUBCAP)) {
-			usuarioPapeisNovo.add("SUBCAP");
-		} else {
-			usuarioPapeisNovo.add("PROPONENTE");
-		}
-
-		return usuarioPapeisNovo;
+		return new HashSet<>();
 	}
 
 	private byte[] construirImagemPerfilUsuario(String nomeImagem) {

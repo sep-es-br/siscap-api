@@ -1,19 +1,101 @@
 spring:
-  application:
-    name: SISCAP
-    version: 1.0.0
-  profiles:
-    active: dev
+  datasource:
+    url: jdbc:postgresql://10.243.135.48:5432/siscap
+    username: postgres
+    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+
+  mail:
+    host: sistemas.mail.dcpr.es.gov.br
+    port: 25
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  flyway:
+    url: jdbc:postgresql://10.243.135.48:5432/siscap
+    user: postgres
+    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
+    enabled: true
+
+  security:
+    oauth2:
+      client:
+        provider:
+          acessocidadao:
+            issuer-uri: https://acessocidadao.es.gov.br/is
+        registration:
+          acessocidadao:
+            client-name: siscap
+            client-id: 54e0c69a-b488-459f-a411-51d22d115c90
+            client-secret: UdBSIIAAH1erVfkVr2xZ1Viog$qp1e
+            authorization-grant-type: authorization_code
+            redirect-uri: https://siscap.hom.sep.local/siscap/acesso-cidadao-response.html
+            scope:
+              - openid
+              - profile
+              - nome
+              - agentepublico
+              - email
+              - roles
+              - permissoes
+              - emailCorporativo
+      resourceserver:
+        jwt:
+          issuer-uri: https://acessocidadao.es.gov.br/is
+
+api:
+  acessocidadao:
+    uri:
+      token: https://acessocidadao.es.gov.br/is/connect/token
+      webapi: https://sistemas.es.gov.br/prodest/acessocidadao.webapi
+      userinfo: https://acessocidadao.es.gov.br/is/connect/userinfo
+    client-id: 6c57c6f5-c356-4a3e-b54b-6c629e3b1dcb
+    client-secret: 2oNXhRHmVDpKQmABFE1ypixM4V22cs
+    grant_type: client_credentials
+    scope: ApiAcessoCidadao ApiOrganograma api-acessocidadao-cpf api-acessocidadao-base api-organograma api-acessocidadao-servidores
+  organograma:
+    uri:
+      webapi: https://api.organograma.es.gov.br
+
+frontend:
+  host: https://siscap.hom.sep.local
+
+raiz:
+  imagens: C:/siscap/api/arquivos/imagens
+  relatorios: C:/siscap/api/arquivos/relatorios
+  documentos: C:/siscap/api/arquivos/documentos
+
+authorities:
+  file: C:/siscap/api/authorities-mapping.json
+
+token:
+  secret: eXEuFkMDTTEX24UtGF2UQsCdylQVrjHxqe16DYdiSgo8oclXXqyAroPJjiE0OE95
+
+email:
+  remetente:
+    endereco: captacao@sep.es.gov.br
+    apelido: Governo do Estado do Espirito Santo
+    
+guidGOVES: "fe88eb2a-a1f3-4cb1-a684-87317baf5a57"
 
 server:
+  ssl:
+    enabled: false
   port: 8080
   servlet:
     context-path: /siscap
 
-log4j:
-  skipJansi: false
-
-raiz:
-  imagens: C:/projetos/siscap/img
-  relatorios: C:/projetos/siscap/relatorios
-  documentos: C:/projetos/siscap/documentos
+logging:
+  level:
+    root: warn
+  file:
+    name: api-error.log
