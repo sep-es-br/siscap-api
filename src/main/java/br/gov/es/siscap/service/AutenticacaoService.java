@@ -53,11 +53,14 @@ public class AutenticacaoService {
 			throw new UsuarioSemAutorizacaoException();
 
 		Set<ACAgentePublicoPapelDto> papeisSet = listarPapeis(userInfo.subNovo());
-		
-		boolean isProponente = papeisSet.stream().anyMatch( p -> p.Prioritario());
+				
+		boolean isProponente = papeisSet.stream().anyMatch( p -> p.Prioritario()) && ( userInfo.role() == null || userInfo.role().isEmpty() );
 
 		if ( Boolean.FALSE.equals(isProponente) && ( userInfo.role() == null || userInfo.role().isEmpty() ) )
 			throw new UsuarioSemAutorizacaoException();
+
+		if ( isProponente )
+			userInfo.role().add("PROPONENTE");
 
 		logger.info("Perfis do usuario : {}", userInfo.role() );
 
@@ -66,7 +69,7 @@ public class AutenticacaoService {
 		logger.info("Token JWT gerado.");
 
 		byte[] imagemPerfil = construirImagemPerfilUsuario(usuario.getPessoa().getNomeImagem());
-
+		
 		Set<Permissoes> permissoes = construirPermissoesSet(usuario.getPapeis());
 
 		Set<Long> idOrganizacoes = construirIdOrganizacoesSet(usuario.getPessoa(), usuario.getSub());
