@@ -1,7 +1,9 @@
 package br.gov.es.siscap.controller;
 
+import br.gov.es.siscap.dto.OrganizacaoDto;
 import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.dto.opcoes.ResponsavelProponenteOpcoesDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.form.PessoaForm;
@@ -9,6 +11,7 @@ import br.gov.es.siscap.service.PessoaService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -20,12 +23,15 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 
+import br.gov.es.siscap.service.OrganizacaoService;
+
 @RestController
 @RequestMapping("/pessoas")
 @RequiredArgsConstructor
 public class PessoaController {
 
 	private final PessoaService service;
+	private final OrganizacaoService organizacaoService;
 
 	@GetMapping
 	public Page<PessoaListaDto> listarTodos(
@@ -86,4 +92,11 @@ public class PessoaController {
 				throws IOException {
 		return ResponseEntity.ok(service.atualizar(id, form, auth));
 	}
+
+	@GetMapping("/opcoes/{orgId}")
+	public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownOrganizacao(@NotNull @PathVariable Long orgId) throws IOException { 
+		OrganizacaoDto organizacao = organizacaoService.buscarPorId(orgId);
+		return service.listarOpcoesDropdownOrganizacao(organizacao.guid());
+	}
+
 }

@@ -1,9 +1,27 @@
 package br.gov.es.siscap.service;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.gov.es.siscap.dto.PessoaDto;
-import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.dto.opcoes.ResponsavelProponenteOpcoesDto;
 import br.gov.es.siscap.exception.OrganizacaoSemResponsavelException;
 import br.gov.es.siscap.exception.UsuarioSemAutorizacaoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
@@ -16,22 +34,6 @@ import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.PessoaRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -254,4 +256,9 @@ public class PessoaService {
 			throw new ValidacaoSiscapException(erros);
 		}
 	}
+
+    public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownOrganizacao(String unidadeGuid) {
+		return acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(unidadeGuid);
+    }
+
 }
