@@ -26,6 +26,10 @@ public class AcessoCidadaoService {
         return buscarAgentePublicoPorSub(sub);
     }
 
+    public AgentePublicoACDto buscarPessoaPorSub(String sub) {
+        return buscarAgentePublicoPorSub(sub);
+    }
+
     public ACUserInfoDto buscarInformacoesUsuario(String accessToken) {
         return buscarAcessoCidadaoUserInfo(accessToken);
     }
@@ -62,7 +66,8 @@ public class AcessoCidadaoService {
 			.map( dto -> new ResponsavelProponenteOpcoesDto(
 				0L, 
 				dto.AgentePublicoNome(), 
-				dto.Nome()  
+				dto.Nome(),
+                dto.AgentePublicoSub()
 			))
 			.collect(Collectors.toList());
     }

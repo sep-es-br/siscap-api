@@ -7,11 +7,14 @@ import br.gov.es.siscap.dto.opcoes.ResponsavelProponenteOpcoesDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.form.PessoaForm;
+import br.gov.es.siscap.models.Pessoa;
+import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.service.PessoaService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -20,9 +23,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
+
+import br.gov.es.siscap.service.AcessoCidadaoService;
+import br.gov.es.siscap.service.AutenticacaoService;
 import br.gov.es.siscap.service.OrganizacaoService;
 
 @RestController
@@ -30,8 +40,10 @@ import br.gov.es.siscap.service.OrganizacaoService;
 @RequiredArgsConstructor
 public class PessoaController {
 
+	private final Logger logger = LogManager.getLogger(AutenticacaoService.class);
 	private final PessoaService service;
 	private final OrganizacaoService organizacaoService;
+	private final AcessoCidadaoService acessoCidadaoService;
 
 	@GetMapping
 	public Page<PessoaListaDto> listarTodos(
@@ -49,6 +61,33 @@ public class PessoaController {
 	@GetMapping("/{id}")
 	public ResponseEntity<PessoaDto> buscarPorId(@NotNull @PathVariable Long id) throws IOException {
 		return ResponseEntity.ok(service.buscarPorId(id));
+	}
+
+	@GetMapping("/sub/{sub}")
+	public ResponseEntity<String> buscarPorSub(@NotNull @PathVariable String sub) {
+		return ResponseEntity.ok(service.buscarIdPorSub(sub));
+	}
+
+	@PostMapping("/syncPorSub/{sub}")
+	public ResponseEntity<String> sincronizarPessoaPorSub(@NotNull @PathVariable String sub) 
+		throws IOException {
+		String id = service.buscarIdPorSub(sub);
+		if( id.isBlank() ){
+			AgentePublicoACDto dados = acessoCidadaoService.buscarPessoaPorSub(sub);
+			Pessoa pessoa;
+			logger.info("Pessoa não encontrada na base do SISCAP, procedendo para criação de uma nova pessoa.");
+			pessoa = new Pessoa();
+			pessoa.setNome(dados.nome());
+			pessoa.setNomeSocial(dados.apelido());
+			pessoa.setEmail(dados.email());
+			pessoa.setSub(dados.sub());
+			pessoa.setApagado(false);
+			pessoa.setCriadoEm(LocalDateTime.now());
+			pessoa = service.salvarNovaPessoaAcessoCidadao(pessoa);
+			logger.info("Pessoa criada com sucesso.");
+			id = pessoa.getId().toString();
+        };
+    	return  ResponseEntity.ok(id);
 	}
 
 	@PostMapping

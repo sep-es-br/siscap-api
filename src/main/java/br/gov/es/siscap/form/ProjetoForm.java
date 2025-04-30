@@ -59,5 +59,6 @@ public record ProjetoForm(
 
 			@NotEmpty
 			List<EquipeDto> equipeElaboracao
+
 ) {
 }

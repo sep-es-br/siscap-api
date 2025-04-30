@@ -96,7 +96,7 @@ public class ProjetoService {
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
-		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
+		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet),this.buscarSubResponsavelProponente(projetoPessoaSet));
 	}
 
 	@Transactional
@@ -129,7 +129,7 @@ public class ProjetoService {
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		logger.info("Projeto cadastrado com sucesso");
-		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
+		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet), this.buscarSubResponsavelProponente(projetoPessoaSet));
 	}
 
 
@@ -162,7 +162,7 @@ public class ProjetoService {
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		logger.info("Projeto atualizado com sucesso");
-		return new ProjetoDto(projetoResult, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
+		return new ProjetoDto(projetoResult, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet), this.buscarSubResponsavelProponente(projetoPessoaSet));
 	}
 
 	@Transactional
@@ -283,6 +283,14 @@ public class ProjetoService {
 					.filter(ProjetoPessoa::isResponsavelProponente)
 					.findFirst()
 					.map(projetoPessoa -> projetoPessoa.getPessoa().getId())
+					.orElse(null);
+	}
+
+	private String buscarSubResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
+		return projetoPessoaSet.stream()
+					.filter(ProjetoPessoa::isResponsavelProponente)
+					.findFirst()
+					.map(projetoPessoa -> projetoPessoa.getPessoa().getSub())
 					.orElse(null);
 	}
 

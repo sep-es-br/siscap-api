@@ -55,9 +55,7 @@ public class AutenticacaoService {
 		Set<ACAgentePublicoPapelDto> papeisSet = listarPapeis(userInfo.subNovo());
 				
 		boolean isProponente = papeisSet.stream().anyMatch( p -> p.Prioritario()) && ( userInfo.role() == null || userInfo.role().isEmpty() );
-
-		isProponente = true ; 
-
+		
 		if ( Boolean.FALSE.equals(isProponente) && ( userInfo.role() == null || userInfo.role().isEmpty() ) )
 			throw new UsuarioSemAutorizacaoException();
 
