@@ -248,13 +248,9 @@ public class PessoaService {
 		List<String> erros = new ArrayList<>();
 
 		boolean checkPessoaExistePorEmail = repository.existsByEmail(form.email());
-//		boolean checkFormCpfNotNullPessoaExistePorCpf = form.cpf() != null && repository.existsByCpf(form.cpf());
 
 		if (checkPessoaExistePorEmail)
 			erros.add("Já existe uma pessoa cadastrada com esse email.");
-
-//		if (checkFormCpfNotNullPessoaExistePorCpf)
-//			erros.add("Já existe uma pessoa cadastrada com esse cpf.");
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);

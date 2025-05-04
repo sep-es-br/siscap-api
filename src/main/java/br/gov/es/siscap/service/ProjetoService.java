@@ -10,6 +10,7 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.models.LocalidadeQuantia;
+import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
@@ -17,6 +18,7 @@ import br.gov.es.siscap.repository.ProjetoRepository;
 import br.gov.es.siscap.specification.ProjetoSpecification;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
@@ -27,11 +29,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +46,8 @@ public class ProjetoService {
 	private final ProjetoPessoaService projetoPessoaService;
 	private final LocalidadeQuantiaService localidadeQuantiaService;
 	private final OrganizacaoService organizacaoService;
+	private final PessoaService pessoaService;
+	private final AcessoCidadaoService acessoCidadaoService;
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
 	public Page<ProjetoListaDto> listarTodos(
@@ -118,9 +124,17 @@ public class ProjetoService {
 			tempProjeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
 		}
 
-		Projeto projeto = repository.save(tempProjeto);
+		Projeto projeto = repository.save(tempProjeto); 
 
-		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.cadastrar(projeto, form.idResponsavelProponente(), form.equipeElaboracao());
+		Set<ProjetoPessoa> projetoPessoaSet;
+
+		List<EquipeDto> equipeParaGravar = form.equipeElaboracao();
+		List<EquipeDto> equipeElaboracaoValidada = this.validarEquipeElaboracao(form);
+		if (!new HashSet<>(form.equipeElaboracao()).equals(new HashSet<>(equipeElaboracaoValidada))) {
+			equipeParaGravar = equipeElaboracaoValidada;
+		}
+
+		projetoPessoaSet = projetoPessoaService.cadastrar( projeto, form.idResponsavelProponente(), equipeParaGravar );
 
 		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(), form.rateio());
 
@@ -136,7 +150,6 @@ public class ProjetoService {
 	@Transactional
 	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho) {
 		logger.info("Atualizando projeto com id: {}", id);
-		logger.info("Dados: {}", form);
 
 		this.validarProjeto(form, false);
 
@@ -153,7 +166,14 @@ public class ProjetoService {
 
 		Projeto projetoResult = repository.save(projeto);
 
-		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.atualizar(projetoResult, form.idResponsavelProponente(), form.equipeElaboracao());
+		Set<ProjetoPessoa> projetoPessoaSet;
+		
+		List<EquipeDto> equipeParaGravar = form.equipeElaboracao();
+		List<EquipeDto> equipeElaboracaoValidada = this.validarEquipeElaboracao(form);
+		if (!new HashSet<>(form.equipeElaboracao()).equals(new HashSet<>(equipeElaboracaoValidada))) {
+			equipeParaGravar = equipeElaboracaoValidada;
+		}
+		projetoPessoaSet = projetoPessoaService.atualizar(projeto, form.idResponsavelProponente(), equipeParaGravar);
 
 		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
 
@@ -330,4 +350,30 @@ public class ProjetoService {
 			throw new ValidacaoSiscapException(erros);
 		}
 	}
+	
+	private List<EquipeDto> validarEquipeElaboracao(ProjetoForm form) {
+		List<EquipeDto> equipe = new ArrayList<>();
+		for (EquipeDto membro : form.equipeElaboracao()) {
+			String sub = membro.subPessoa();
+			String id = pessoaService.buscarIdPorSub(sub);
+			if (id.isBlank()) {
+				logger.info("Pessoa com sub [{}] não encontrada na base do SISCAP, procedendo para criação.", sub);
+				var dados = acessoCidadaoService.buscarPessoaPorSub(sub);
+				Pessoa pessoa = new Pessoa();
+				pessoa.setNome(dados.nome());
+				pessoa.setNomeSocial(dados.apelido());
+				pessoa.setEmail(dados.email());
+				pessoa.setSub(dados.sub());
+				pessoa.setApagado(false);
+				pessoa.setCriadoEm(LocalDateTime.now());
+				pessoa = pessoaService.salvarNovaPessoaAcessoCidadao(pessoa);
+				logger.info("Pessoa [{}] criada com sucesso. ID: {}", pessoa.getNome(), pessoa.getId());
+				id = pessoa.getId().toString();
+			}
+			EquipeDto novoMembro = new EquipeDto( Long.valueOf(id), membro.idPapel(), membro.idStatus(), membro.justificativa(), membro.subPessoa() );
+			equipe.add(novoMembro);
+		}
+		return equipe;
+	}
+
 }
