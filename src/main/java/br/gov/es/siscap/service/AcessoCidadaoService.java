@@ -1,10 +1,12 @@
 package br.gov.es.siscap.service;
 
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+
 import br.gov.es.siscap.client.AcessoCidadaoUserInfoClient;
 import br.gov.es.siscap.client.AcessoCidadaoWebClient;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
@@ -69,6 +71,7 @@ public class AcessoCidadaoService {
 				dto.Nome(),
                 dto.AgentePublicoSub()
 			))
+            .sorted((a, b) -> a.nome().compareToIgnoreCase(b.nome()))
 			.collect(Collectors.toList());
     }
 }

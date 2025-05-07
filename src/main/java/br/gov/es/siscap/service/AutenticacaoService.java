@@ -76,6 +76,8 @@ public class AutenticacaoService {
 		Set<Permissoes> permissoes = construirPermissoesSet(usuario.getPapeis());
 
 		Set<Long> idOrganizacoes = construirIdOrganizacoesSet(usuario.getPessoa(), usuario.getSub());
+
+		logger.info( "Tamanho lista organizacoes : {} " , idOrganizacoes.size() );
 				
 		return new UsuarioDto(token, usuario.getPessoa().getNome(), getEmailUserInfo(userInfo), usuario.getSub(),
 			imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente );
@@ -194,7 +196,7 @@ public class AutenticacaoService {
 																		.map(Organizacao::getGuid)
 																		.toList().contains(o.getOrganizacao().getGuid());
 															}).collect(Collectors.toSet());
-			
+
 			pessoaOrganizacaoService.excluirTodosPorId(organizacoesSobrando.stream().map(PessoaOrganizacao::getId).toList());
 			
             final Set<PessoaOrganizacao> organizacoesBancoFinal = organizacoesBanco;
@@ -207,19 +209,16 @@ public class AutenticacaoService {
 																.map(Organizacao::getGuid)
 																.toList().contains(organizacao.getGuid());
 														}).collect(Collectors.toSet());
-		
-														
-			HashSet<PessoaOrganizacao> pessoaOrganizacaosFaltando = new HashSet<>();	
+															
+			HashSet<PessoaOrganizacao> pessoaOrganizacaosFaltando = new HashSet<>();
 			for (Organizacao organizacao : organizacoesFaltando) {
 				PessoaOrganizacao pessoaOrganizacao = new PessoaOrganizacao(usuarioPessoa, organizacao);
 				pessoaOrganizacaosFaltando.add(pessoaOrganizacao);
 			}
 
-
 			pessoaOrganizacaosFaltando = new HashSet<>(pessoaOrganizacaoService.salvarPessoaOrganizacaoSetAutenticacaoUsuario(pessoaOrganizacaosFaltando));
 
 			// vinculo do banco menos os que foram removidos
-			
 			organizacoesBanco = new HashSet<>(organizacoesBanco.stream()
 								.filter(oBanco -> !organizacoesSobrando.stream().map(PessoaOrganizacao::getId).toList().contains(oBanco.getId()))
 								.toList());
@@ -228,6 +227,7 @@ public class AutenticacaoService {
 			organizacoesBanco.addAll(pessoaOrganizacaosFaltando);
 
 			return organizacoesBanco.stream().map(PessoaOrganizacao::getOrganizacao).map(Organizacao::getId).collect(Collectors.toSet());
+		
 		} else {
 			logger.info("Usuário não está vinculado a nenhuma organizacao.");
 			logger.info("Iniciando processo de vinculação de usuário a organizações.");
@@ -236,68 +236,32 @@ public class AutenticacaoService {
 			return pessoaOrganizacaoSetNovo.stream().map(PessoaOrganizacao::getOrganizacao).map(Organizacao::getId).collect(Collectors.toSet());
 		}
 
-
-		
 	}
 
 	private Set<Organizacao> getOrganizacoesDaPessoaAC(Pessoa pessoa, String subNovo){
+				
 		Set<Organizacao> organizacoesSet = new HashSet<>();
 
-		Set<ACAgentePublicoPapelDto> papeisSet = listarPapeis(subNovo);
+		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
 
-		if(papeisSet.isEmpty()) {
-			logger.info("Usuario [sub: {1}] não possui papel", subNovo);
+		if (papeisLotacaoGuidSet.size() == 1 && papeisLotacaoGuidSet.iterator().next().isBlank()) {
+			logger.info("Papeis do usuário não possuem GUID de Lotação.");
 			return organizacoesSet;
 		}
 
-		ACAgentePublicoPapelDto papel;
+		for (String lotacaoGuid : papeisLotacaoGuidSet) {
 
-		if (papeisSet.size() == 1){
-			papel = papeisSet.iterator().next();
-			if(papel.LotacaoGuid().isBlank()) {
-				logger.info("O papel do usuário [{1}] não possui GUID de Lotação.", subNovo);
-				return organizacoesSet;
-			} 
-		} else {
-			papeisSet = papeisSet.stream().filter(p -> p.Prioritario()).collect(Collectors.toSet());
-			if(papeisSet.isEmpty()) {
-				return new HashSet<>();
+			String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
+			String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
+			
+			Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
+			
+			if (organizacaoOptional.isPresent()) {
+				organizacoesSet.add(organizacaoOptional.get());
 			} else {
-				papel = papeisSet.iterator().next();
+				logger.info("Organização não encontrada para o CNPJ fornecido: [{}].", cnpjOrganizacao);
 			}
-		}
 
-		String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(papel.LotacaoGuid()).guidOrganizacao();
-		String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
-
-		/*
-			30/12/2024
-
-			PROBLEMA:
-				METODO organizacaoService.buscarPorCnpj TRAZIA ENTIDADE Organizacao
-				|-> NAO CONTEMPLAVA CASO DE NAO ENCONTRAR ORGANIZACAO COM O CNPJ FORNECIDO (TRAZIA Organizacao = null)
-
-			ABORDAGEM:
-				METODO AGORA TRAZ Optional<Organizacao> E TRATA CASO DE ORGANIZACAO AUSENTE
-				DENTRO DESTE METODO
-				|-> SEM throw new RunTimeException PARA EVITAR DE IMPEDIR ACESSO DO USUARIO
-
-			OBSERVACAO:
-				ABORDAGEM CORRETA SERIA PREENCHER O CNPJ DAS ORGANIZACOES APROPRIADAMENTE
-				DE ACORDO COM O RETORNO DA API DO ORGANOGRAMA
-				|-> LEVANTA QUESTAO SINCRONIA DO BANCO DO SISCAP COM A API:
-						* MELHOR SERIA A ABORDAGEM DO VAGNER DE TRAZER OS DADOS
-							DA(S) ORGANIZACAO(OES) DIRETO DE UMA REQUISICAO
-							PRA API DO ORGANOGRAMA
-							|-> POREM SEM TEMPO
-		*/
-
-		Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
-
-		if (organizacaoOptional.isPresent()) {
-			organizacoesSet.add(organizacaoOptional.get());
-		} else {
-			logger.info("Organização não encontrada no banco para o CNPJ fornecido: [{}].", cnpjOrganizacao);
 		}
 
 		return organizacoesSet;
@@ -305,6 +269,7 @@ public class AutenticacaoService {
 	}
 
 	private Set<PessoaOrganizacao> vincularPessoaOrganizacoes(Pessoa pessoa, String subNovo) {
+
 		Set<PessoaOrganizacao> pessoaOrganizacaoSet = new HashSet<>();
 		Set<Organizacao> organizacoesSet = new HashSet<>();
 
@@ -316,6 +281,7 @@ public class AutenticacaoService {
 		}
 
 		for (String lotacaoGuid : papeisLotacaoGuidSet) {
+
 			String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
 			String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
 
@@ -348,6 +314,7 @@ public class AutenticacaoService {
 			} else {
 				logger.info("Organização não encontrada para o CNPJ fornecido: [{}].", cnpjOrganizacao);
 			}
+
 		}
 
 		for (Organizacao organizacao : organizacoesSet) {
@@ -355,8 +322,8 @@ public class AutenticacaoService {
 			pessoaOrganizacaoSet.add(pessoaOrganizacao);
 		}
 
-
 		return pessoaOrganizacaoSet.isEmpty() ? pessoaOrganizacaoSet : pessoaOrganizacaoService.salvarPessoaOrganizacaoSetAutenticacaoUsuario(pessoaOrganizacaoSet);
+
 	}
 
 	private Set<String> listarPapeisLotacaoGuid(String subNovo) {
