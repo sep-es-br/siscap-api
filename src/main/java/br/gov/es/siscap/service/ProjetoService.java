@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import br.gov.es.siscap.models.ProjetoIndicador;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -48,6 +50,8 @@ public class ProjetoService {
 	private final OrganizacaoService organizacaoService;
 	private final PessoaService pessoaService;
 	private final AcessoCidadaoService acessoCidadaoService;
+	private final ProjetoIndicadorService projetoIndicadorService;
+
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
 	public Page<ProjetoListaDto> listarTodos(
@@ -102,11 +106,24 @@ public class ProjetoService {
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
-		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet),this.buscarSubResponsavelProponente(projetoPessoaSet));
+		Set<ProjetoIndicador> indicadores = projetoIndicadorService.buscarPorProjeto(projeto);
+
+		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet),
+			this.buscarEquipeElaboracao(projetoPessoaSet),
+			this.buscarSubResponsavelProponente(projetoPessoaSet),
+			this.buscarIndicadores(indicadores));
+
+	}
+
+	private List<ProjetoIndicadorDto> buscarIndicadores(Set<ProjetoIndicador> projetoPessoaSet) {
+		return projetoPessoaSet.stream()
+			.map(ProjetoIndicadorDto::new)
+			.toList();
 	}
 
 	@Transactional
 	public ProjetoDto cadastrar(ProjetoForm form, boolean rascunho) {
+		
 		logger.info("Cadastrando novo projeto");
 		logger.info("Dados: {}", form);
 
@@ -142,13 +159,20 @@ public class ProjetoService {
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
+		List<ProjetoIndicadorDto> indicadores = form.indicadoresProjeto();
+
 		logger.info("Projeto cadastrado com sucesso");
-		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet), this.buscarSubResponsavelProponente(projetoPessoaSet));
+
+		return new ProjetoDto(projeto, valorDto, rateio, 
+			this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet), 
+			this.buscarSubResponsavelProponente(projetoPessoaSet) ,
+			indicadores);
 	}
 
 
 	@Transactional
 	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho) {
+
 		logger.info("Atualizando projeto com id: {}", id);
 
 		this.validarProjeto(form, false);
@@ -167,13 +191,16 @@ public class ProjetoService {
 		Projeto projetoResult = repository.save(projeto);
 
 		Set<ProjetoPessoa> projetoPessoaSet;
-		
 		List<EquipeDto> equipeParaGravar = form.equipeElaboracao();
 		List<EquipeDto> equipeElaboracaoValidada = this.validarEquipeElaboracao(form);
 		if (!new HashSet<>(form.equipeElaboracao()).equals(new HashSet<>(equipeElaboracaoValidada))) {
 			equipeParaGravar = equipeElaboracaoValidada;
 		}
 		projetoPessoaSet = projetoPessoaService.atualizar(projeto, form.idResponsavelProponente(), equipeParaGravar);
+
+		List<ProjetoIndicadorDto> projetoIndicadoresDto = form.indicadoresProjeto();
+
+		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projeto, projetoIndicadoresDto);
 
 		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
 
@@ -182,7 +209,13 @@ public class ProjetoService {
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		logger.info("Projeto atualizado com sucesso");
-		return new ProjetoDto(projetoResult, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet), this.buscarSubResponsavelProponente(projetoPessoaSet));
+
+		return new ProjetoDto(projetoResult, valorDto, rateio, 
+			this.buscarIdResponsavelProponente(projetoPessoaSet), 
+			this.buscarEquipeElaboracao(projetoPessoaSet), 
+			this.buscarSubResponsavelProponente(projetoPessoaSet),
+			this.buscarIndicadores(projetoIndicadoresSet));
+
 	}
 
 	@Transactional

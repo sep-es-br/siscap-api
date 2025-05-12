@@ -112,7 +112,7 @@ public class ProjetoPessoaService {
 
 
 	private ProjetoPessoa buscarResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
-
+		projetoPessoaSet.stream().forEach(ps -> logger.info( "Tipo papel busca responsavel : {} ", ps.getTipoPapel() )  );
 		return projetoPessoaSet
 					.stream()
 					.filter(ProjetoPessoa::isResponsavelProponente)

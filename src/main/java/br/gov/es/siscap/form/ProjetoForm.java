@@ -3,6 +3,7 @@ package br.gov.es.siscap.form;
 import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.dto.ValorDto;
+import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
@@ -58,7 +59,10 @@ public record ProjetoForm(
 			Long idResponsavelProponente,
 
 			@NotEmpty
-			List<EquipeDto> equipeElaboracao
+			List<EquipeDto> equipeElaboracao,
+
+			@NotEmpty
+			List<ProjetoIndicadorDto> indicadoresProjeto
 
 ) {
 }

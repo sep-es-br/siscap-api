@@ -95,6 +95,9 @@ public class Projeto extends ControleHistorico {
 	@Column(name = "count_ano", nullable = false)
 	private String countAno;
 
+	@OneToMany(mappedBy = "projeto")
+	private Set<ProjetoIndicador> projetoIndicadorSet;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
