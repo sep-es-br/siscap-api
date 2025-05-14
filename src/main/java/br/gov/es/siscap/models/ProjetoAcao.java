@@ -32,7 +32,7 @@ public class ProjetoAcao extends ControleHistorico {
     private Projeto projeto;
 
     @Column(name = "acao_principal", nullable = false, length = 2000)
-    private String acaoPrincipal;
+    private String descricaoAcaoPrincipal;
 
     @Column(name = "valor_estimado", nullable = false, precision = 14, scale = 2)
     private java.math.BigDecimal valorEstimado;
@@ -46,9 +46,9 @@ public class ProjetoAcao extends ControleHistorico {
 
     public ProjetoAcao(Projeto projeto, ProjetoAcaoDto acao) {
 		this.setProjeto(projeto);
-		this.setAcaoPrincipal(acao.acaoPrincipal());
+		this.setDescricaoAcaoPrincipal(acao.descricaoAcaoPrincipal());
 		this.setDescricaoAcoesSecundarias(acao.descricaoAcoesSecundarias());
-        this.setValorEstimado(acao.valorEstimado());
+        this.setValorEstimado(acao.valorEstimadoAcaoPrincipal());
 	}
 
 }

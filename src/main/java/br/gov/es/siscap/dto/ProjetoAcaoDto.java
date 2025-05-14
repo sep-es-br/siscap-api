@@ -6,15 +6,16 @@ import br.gov.es.siscap.models.ProjetoAcao;
 
 public record ProjetoAcaoDto(
 	Integer idAcao,
-	String acaoPrincipal,
-	BigDecimal valorEstimado,
+	String descricaoAcaoPrincipal,
+	BigDecimal valorEstimadoAcaoPrincipal,
     String descricaoAcoesSecundarias ){
-		
+
 	public ProjetoAcaoDto(ProjetoAcao projetoAcao) {
 		this(
-			projetoIndicador.getIdAcao(),
-			projetoIndicador.getDescricaoA(),
-			projetoIndicador.getMetaIndicador()
+			projetoAcao.getId(),
+			projetoAcao.getDescricaoAcaoPrincipal(),
+			projetoAcao.getValorEstimado(),
+			projetoAcao.getDescricaoAcoesSecundarias()
 		);
 	}
 

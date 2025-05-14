@@ -1,6 +1,7 @@
 package br.gov.es.siscap.form;
 
 import br.gov.es.siscap.dto.EquipeDto;
+import br.gov.es.siscap.dto.ProjetoAcaoDto;
 import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.dto.ValorDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorDto;
@@ -62,7 +63,10 @@ public record ProjetoForm(
 			List<EquipeDto> equipeElaboracao,
 
 			@NotEmpty
-			List<ProjetoIndicadorDto> indicadoresProjeto
+			List<ProjetoIndicadorDto> indicadoresProjeto,
+
+			@NotEmpty
+			List<ProjetoAcaoDto> acoesProjeto
 
 ) {
 }
