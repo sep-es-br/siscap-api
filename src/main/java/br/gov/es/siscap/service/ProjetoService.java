@@ -108,15 +108,17 @@ public class ProjetoService {
 
 		Set<ProjetoIndicador> indicadores = projetoIndicadorService.buscarPorProjeto(projeto);
 
-		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet),
-			this.buscarEquipeElaboracao(projetoPessoaSet),
-			this.buscarSubResponsavelProponente(projetoPessoaSet),
-			this.buscarIndicadores(indicadores));
+		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet),
+		this.buscarEquipeElaboracao(projetoPessoaSet),
+		this.buscarSubResponsavelProponente(projetoPessoaSet),
+		this.buscarIndicadores(indicadores));
+
+		return projetoDtoRetorno;
 
 	}
 
-	private List<ProjetoIndicadorDto> buscarIndicadores(Set<ProjetoIndicador> projetoPessoaSet) {
-		return projetoPessoaSet.stream()
+	private List<ProjetoIndicadorDto> buscarIndicadores(Set<ProjetoIndicador> projetoIndicadorSet) {
+		return projetoIndicadorSet.stream()
 			.map(ProjetoIndicadorDto::new)
 			.toList();
 	}
@@ -125,6 +127,7 @@ public class ProjetoService {
 	public ProjetoDto cadastrar(ProjetoForm form, boolean rascunho) {
 		
 		logger.info("Cadastrando novo projeto");
+
 		logger.info("Dados: {}", form);
 
 		this.validarProjeto(form, true);
@@ -159,14 +162,16 @@ public class ProjetoService {
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
-		List<ProjetoIndicadorDto> indicadores = form.indicadoresProjeto();
+		List<ProjetoIndicadorDto> indicadoresProjetoParaGravar = form.indicadoresProjeto();
+		
+		projetoIndicadorService.cadastrar( projeto, indicadoresProjetoParaGravar );
 
 		logger.info("Projeto cadastrado com sucesso");
 
 		return new ProjetoDto(projeto, valorDto, rateio, 
 			this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet), 
 			this.buscarSubResponsavelProponente(projetoPessoaSet) ,
-			indicadores);
+			indicadoresProjetoParaGravar );
 	}
 
 

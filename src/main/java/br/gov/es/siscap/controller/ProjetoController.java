@@ -9,6 +9,9 @@ import br.gov.es.siscap.service.RelatoriosService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +34,8 @@ public class ProjetoController {
 	private final ProjetoService service;
 	private final RelatoriosService relatoriosService;
 
+	private final Logger logger = LogManager.getLogger(ProjetoService.class);
+
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
 				@PageableDefault(size = 15, sort = "criadoEm", direction = Sort.Direction.DESC) Pageable pageable,
@@ -48,7 +53,7 @@ public class ProjetoController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<ProjetoDto> buscarPorId(@PathVariable @NotNull Long id) {
-		return ResponseEntity.ok(service.buscarPorId(id));
+		return ResponseEntity.ok( service.buscarPorId(id) );
 	}
 
 	@PostMapping

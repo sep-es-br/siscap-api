@@ -1,8 +1,10 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoIndicador;
+import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.repository.ProjetoIndicadorRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,35 +31,35 @@ public class ProjetoIndicadorService {
 	}
 
 	@Transactional
-	public Set<ProjetoIndicador> cadastrar(Projeto projeto, List<ProjetoIndicadorDto> ProjetoIndicadorDtoList) {
+	public Set<ProjetoIndicador> cadastrar(Projeto projeto, List<ProjetoIndicadorDto> projetoIndicadorDtoList) {
 		logger.info("Cadastrando indicadores do Projeto com id: {}", projeto.getId());
+		
 		Set<ProjetoIndicador> ProjetoIndicadorSet = new HashSet<>();
-		/*
-		ProjetoIndicador responsavelProponente = new ProjetoIndicador(projeto, idResponsavelProponente);
-		ProjetoIndicadorSet.add(responsavelProponente);
-		ProjetoIndicadorDtoList.forEach(ProjetoIndicadorDto -> {
-			ProjetoIndicador ProjetoIndicador = new ProjetoIndicador(projeto, ProjetoIndicadorDto);
-			ProjetoIndicadorSet.add(ProjetoIndicador);
-		});*/
+
+		logger.info("Lista de indicadores vindas do front : {}", projetoIndicadorDtoList);
+		
+		projetoIndicadorDtoList.forEach( indicadorDto -> {
+			ProjetoIndicador indicadorProjeto = new ProjetoIndicador(projeto, indicadorDto);
+			ProjetoIndicadorSet.add(indicadorProjeto);
+		});
+
 		List<ProjetoIndicador> ProjetoIndicadorList = projetoIndicadorRepository.saveAll(ProjetoIndicadorSet);
 		logger.info("Equipe do projeto cadastrada com sucesso");
 		return new HashSet<>(ProjetoIndicadorList);
 	}
 
 	@Transactional
-	public Set<ProjetoIndicador> atualizar(Projeto projeto, List<ProjetoIndicadorDto> ProjetoIndicadorDtoList) {
+	public Set<ProjetoIndicador> atualizar(Projeto projeto, List<ProjetoIndicadorDto> projetoIndicadorDtoList) {
 		logger.info("Alterando dados de indicadores do Projeto com id: {}", projeto.getId());
-		/*Set<ProjetoIndicador> ProjetoIndicadorSet = this.buscarPorProjeto(projeto);
-		ProjetoIndicador responsavelProponente = this.buscarResponsavelProponente(ProjetoIndicadorSet);
-		if (!this.compararIdsResponsavelProponente(responsavelProponente.getPessoa().getId(), idResponsavelProponente)) {
-			responsavelProponente.atualizarResponsavelProponente(TipoStatusEnum.INATIVO.getValue());
-			ProjetoIndicadorRepository.save(responsavelProponente);
-			ProjetoIndicadorRepository.save(new ProjetoIndicador(projeto, idResponsavelProponente));
-		}
-		Set<ProjetoIndicador> membrosEquipeSet = this.buscarMembrosEquipe(ProjetoIndicadorSet);
-		Set<ProjetoIndicador> membrosEquipeAtualizarSet = this.atualizarMembrosEquipe(projeto, membrosEquipeSet, ProjetoIndicadorDtoList);
-		ProjetoIndicadorRepository.saveAllAndFlush(membrosEquipeAtualizarSet);*/
-		logger.info("Equipe do projeto alterada com sucesso");
+		
+		Set<ProjetoIndicador> projetoIndicadorSet = this.buscarPorProjeto(projeto);
+		
+		Set<ProjetoIndicador> indicadoresProjetoAtualizarSet = this.atualizarIndicadoresProjeto( projeto, projetoIndicadorSet, projetoIndicadorDtoList );
+
+		projetoIndicadorRepository.saveAllAndFlush(indicadoresProjetoAtualizarSet);
+		
+		logger.info("Indicadores do projeto alterados com sucesso");
+		
 		return this.buscarPorProjeto(projeto);
 	}
 
@@ -68,5 +72,31 @@ public class ProjetoIndicadorService {
 		ProjetoIndicadorRepository.deleteAll(ProjetoIndicadorList);*/
 		logger.info("Equipe do projeto excluida com sucesso");
 	}
+	
+    private Set<ProjetoIndicador> atualizarIndicadoresProjeto( Projeto projeto,  Set<ProjetoIndicador> indicadoresExistentes, List<ProjetoIndicadorDto> dtoList) {
+
+		Map<Integer, ProjetoIndicador> indicadoresExistentesMap = indicadoresExistentes.stream()
+			.filter(ind -> ind.getId() != null)
+			.collect(Collectors.toMap(ProjetoIndicador::getId, Function.identity()));
+
+		// Processa os DTOs
+		return dtoList.stream()
+			.map(dto -> {
+				ProjetoIndicador indicador;
+				if (dto.idIndicador() != null && indicadoresExistentesMap.containsKey(dto.idIndicador())) {
+					indicador = indicadoresExistentesMap.get(dto.idIndicador());
+					indicador.setId(dto.idIndicador());
+					indicador.setTipoIndicador(dto.tipoIndicador());
+					indicador.setDescricaoIndicador(dto.descricaoIndicador());
+					indicador.setMetaIndicador(dto.metaIndicador());
+				} else {
+					indicador = new ProjetoIndicador(projeto, dto);
+				}
+				return indicador;
+			})
+			.collect(Collectors.toSet());
+
+	}
+
 
 }

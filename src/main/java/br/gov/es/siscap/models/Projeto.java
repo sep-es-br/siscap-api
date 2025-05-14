@@ -144,4 +144,5 @@ public class Projeto extends ControleHistorico {
 		this.setArranjosInstitucionais(form.arranjosInstitucionais());
 		this.setFase("DIC");
 	}
+
 }

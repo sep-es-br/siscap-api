@@ -1,17 +1,18 @@
 package br.gov.es.siscap.models;
 
-import br.gov.es.siscap.enums.TipoEquipeEnum;
-import br.gov.es.siscap.enums.TipoIndicadorEnum;
-import br.gov.es.siscap.enums.TipoPapelEnum;
-import br.gov.es.siscap.enums.TipoStatusEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+
+import br.gov.es.siscap.dto.EquipeDto;
+import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 
 
 @Entity
@@ -43,11 +44,12 @@ public class ProjetoIndicador extends ControleHistorico {
 	@Column(name = "meta_indicador", nullable = false, length = 2000)
 	private String metaIndicador;
 
-	public ProjetoIndicador(Projeto projeto) {
+	public ProjetoIndicador(Projeto projeto, ProjetoIndicadorDto indicador) {
 		this.setProjeto(projeto);
-		this.setTipoIndicador(tipoIndicador);
-		this.setDescricaoIndicador(descricaoIndicador);
-		this.setMetaIndicador(metaIndicador);
+		this.setId(indicador.idIndicador());
+		this.setTipoIndicador(indicador.tipoIndicador());
+		this.setDescricaoIndicador(indicador.descricaoIndicador());
+		this.setMetaIndicador(indicador.metaIndicador());
 	}
 
 }
