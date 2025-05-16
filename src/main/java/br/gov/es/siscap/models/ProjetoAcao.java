@@ -62,7 +62,7 @@ public class ProjetoAcao extends ControleHistorico {
     public void atualizarAcaoProjeto(ProjetoAcaoDto acaoDto) {
 		if (!Objects.equals(acaoDto.idStatus(), TipoStatusEnum.ATIVO.getValue())) {
             this.setDescricaoAcoesSecundarias(acaoDto.descricaoAcoesSecundarias());
-            this.descricaoAcaoPrincipal(acaoDto.descricaoAcaoPrincipal());
+            this.setDescricaoAcaoPrincipal(acaoDto.descricaoAcaoPrincipal());
             this.setValorEstimado(acaoDto.valorEstimadoAcaoPrincipal());
 			this.setDataFim(LocalDateTime.now());
 			super.atualizarHistorico();
