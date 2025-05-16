@@ -29,46 +29,72 @@ public class ProjetoAcaoService {
 
 	@Transactional
 	public Set<ProjetoAcao> cadastrar(Projeto projeto, List<ProjetoAcaoDto> ProjetoAcaoDtoList) {
-		/*
-        logger.info("Cadastrando acoes do Projeto com id: {}", projeto.getId());
+        
+		logger.info("Cadastrando acoes do Projeto com id: {}", projeto.getId());
+
 		Set<ProjetoAcao> ProjetoAcaoSet = new HashSet<>();
+
 		ProjetoAcaoDtoList.forEach( acaoDto -> {
 			ProjetoAcao acaoProjeto = new ProjetoAcao(projeto, acaoDto);
 			ProjetoAcaoSet.add(acaoProjeto);
 		});
+
 		List<ProjetoAcao> ProjetoAcaoList = projetoAcapRepository.saveAll(ProjetoAcaoSet);
+
 		logger.info("Ações do projeto cadastradas com sucesso");
+
 		return new HashSet<>(ProjetoAcaoList);
-        */
-        return null;
+
 	}
 
 	@Transactional
 	public Set<ProjetoAcao> atualizar(Projeto projeto, List<ProjetoAcaoDto> ProjetoAcaoDtoList) {
-		logger.info("Alterando dados de indicadores do Projeto com id: {}", projeto.getId());
-		
-		/*Set<ProjetoAcao> ProjetoAcaoSet = this.buscarPorProjeto(projeto);
-		ProjetoAcao responsavelProponente = this.buscarResponsavelProponente(ProjetoAcaoSet);
-		if (!this.compararIdsResponsavelProponente(responsavelProponente.getPessoa().getId(), idResponsavelProponente)) {
-			responsavelProponente.atualizarResponsavelProponente(TipoStatusEnum.INATIVO.getValue());
-			projetoAcapRepository.save(responsavelProponente);
-			projetoAcapRepository.save(new ProjetoAcao(projeto, idResponsavelProponente));
-		}
-		Set<ProjetoAcao> membrosEquipeSet = this.buscarMembrosEquipe(ProjetoAcaoSet);
-		Set<ProjetoAcao> membrosEquipeAtualizarSet = this.atualizarMembrosEquipe(projeto, membrosEquipeSet, ProjetoAcaoDtoList);
-		projetoAcapRepository.saveAllAndFlush(membrosEquipeAtualizarSet);*/
-		logger.info("Equipe do projeto alterada com sucesso");
+		logger.info("Alterando dados de acões do Projeto com id: {}", projeto.getId());
+		Set<ProjetoAcao> ProjetoAcaoSet = this.buscarPorProjeto(projeto);
+		// Set<ProjetoAcao> membrosEquipeSet = this.buscarMembrosEquipe(ProjetoAcaoSet);
+		Set<ProjetoAcao> acoesProjetoAtualizarSet = this.atualizarAcoesProjeto(projeto, ProjetoAcaoSet, ProjetoAcaoDtoList);
+		projetoAcapRepository.saveAllAndFlush(acoesProjetoAtualizarSet);
+		logger.info("Ações do projeto alterada com sucesso");
 		return this.buscarPorProjeto(projeto);
 	}
 
 	@Transactional
 	public void excluirPorProjeto(Projeto projeto) {
-		logger.info("Excluindo equipe do Projeto com id: {}", projeto.getId());
-		/*Set<ProjetoAcao> ProjetoAcaoSet = this.buscarPorProjeto(projeto);
-		ProjetoAcaoSet.forEach(ProjetoAcao -> ProjetoAcao.apagar("Projeto excluido"));
+
+		logger.info("Excluindo ações do Projeto com id: {}", projeto.getId());
+		
+		Set<ProjetoAcao> ProjetoAcaoSet = this.buscarPorProjeto(projeto);
+		
+		// ProjetoAcaoSet.forEach(ProjetoAcao -> ProjetoAcao.apagar("Projeto excluido"));
+		
 		List<ProjetoAcao> ProjetoAcaoList = projetoAcapRepository.saveAllAndFlush(ProjetoAcaoSet);
-		projetoAcapRepository.deleteAll(ProjetoAcaoList);*/
-		logger.info("Equipe do projeto excluida com sucesso");
+		
+		projetoAcapRepository.deleteAll(ProjetoAcaoList);
+
+		logger.info("Ações do projeto excluida com sucesso");
+
+	}
+
+	private Set<ProjetoAcao> atualizarAcoesProjeto( Projeto projeto, Set<ProjetoAcao> acoesProjetoSet, List<ProjetoAcaoDto> acoesProjetoDtoList ) {
+		Set<ProjetoAcao> acoesProjetoAlterarSet = new HashSet<>();
+		Set<ProjetoAcao> acoesProjetoAdicionarSet = new HashSet<>();
+		acoesProjetoDtoList.forEach( acaoDto -> {
+			acoesProjetoSet
+						.stream()
+						.filter( projetoAcao -> projetoAcao.compararIdAcaoComAcaoDto(acaoDto) )
+						.findFirst()
+						.ifPresentOrElse(
+									(projetoAcao) -> {
+										projetoAcao.atualizarAcaoProjeto(acaoDto);
+										acoesProjetoAlterarSet.add(projetoAcao);
+									},
+									() -> {
+										acoesProjetoAdicionarSet.add(new ProjetoAcao(projeto, acaoDto));
+									}
+						);
+		});
+		acoesProjetoAdicionarSet.addAll(acoesProjetoAlterarSet);
+		return acoesProjetoAdicionarSet;
 	}
 
 }

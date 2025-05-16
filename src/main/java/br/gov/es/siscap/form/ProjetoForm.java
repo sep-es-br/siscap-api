@@ -65,7 +65,6 @@ public record ProjetoForm(
 			@NotEmpty
 			List<ProjetoIndicadorDto> indicadoresProjeto,
 
-			@NotEmpty
 			List<ProjetoAcaoDto> acoesProjeto
 
 ) {

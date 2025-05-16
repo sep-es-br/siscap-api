@@ -98,6 +98,9 @@ public class Projeto extends ControleHistorico {
 	@OneToMany(mappedBy = "projeto")
 	private Set<ProjetoIndicador> projetoIndicadorSet;
 
+	@OneToMany(mappedBy = "projeto")
+	private Set<ProjetoAcao> projetoAcoesSet;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}

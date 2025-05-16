@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoIndicador;
 
 @Service
@@ -51,6 +52,8 @@ public class ProjetoService {
 	private final PessoaService pessoaService;
 	private final AcessoCidadaoService acessoCidadaoService;
 	private final ProjetoIndicadorService projetoIndicadorService;
+
+	private final ProjetoAcaoService projetoAcaoService;
 
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
@@ -108,10 +111,13 @@ public class ProjetoService {
 
 		Set<ProjetoIndicador> indicadores = projetoIndicadorService.buscarPorProjeto(projeto);
 
+		Set<ProjetoAcao> acoes = projetoAcaoService.buscarPorProjeto(projeto);
+
 		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet),
 		this.buscarEquipeElaboracao(projetoPessoaSet),
 		this.buscarSubResponsavelProponente(projetoPessoaSet),
-		this.buscarIndicadores(indicadores));
+		this.buscarIndicadores(indicadores),
+		this.buscarAcoes(acoes));
 
 		return projetoDtoRetorno;
 
@@ -120,6 +126,12 @@ public class ProjetoService {
 	private List<ProjetoIndicadorDto> buscarIndicadores(Set<ProjetoIndicador> projetoIndicadorSet) {
 		return projetoIndicadorSet.stream()
 			.map(ProjetoIndicadorDto::new)
+			.toList();
+	}
+
+	private List<ProjetoAcaoDto> buscarAcoes(Set<ProjetoAcao> projetoAcaoSet) {
+		return projetoAcaoSet.stream()
+			.map(ProjetoAcaoDto::new)
 			.toList();
 	}
 
@@ -166,12 +178,18 @@ public class ProjetoService {
 		
 		projetoIndicadorService.cadastrar( projeto, indicadoresProjetoParaGravar );
 
+		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
+
+		projetoAcaoService.cadastrar( projeto, acoesProjetoParaGravar );
+
 		logger.info("Projeto cadastrado com sucesso");
 
 		return new ProjetoDto(projeto, valorDto, rateio, 
-			this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet), 
+			this.buscarIdResponsavelProponente(projetoPessoaSet), 
+			this.buscarEquipeElaboracao(projetoPessoaSet), 
 			this.buscarSubResponsavelProponente(projetoPessoaSet) ,
-			indicadoresProjetoParaGravar );
+			indicadoresProjetoParaGravar,
+			acoesProjetoParaGravar);
 	}
 
 
@@ -204,14 +222,15 @@ public class ProjetoService {
 		projetoPessoaSet = projetoPessoaService.atualizar(projeto, form.idResponsavelProponente(), equipeParaGravar);
 
 		List<ProjetoIndicadorDto> projetoIndicadoresDto = form.indicadoresProjeto();
-
 		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projeto, projetoIndicadoresDto);
 
 		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
-
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
+
+		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesProjeto();
+		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar( projeto, projetoAcoesDto);
 
 		logger.info("Projeto atualizado com sucesso");
 
@@ -219,7 +238,8 @@ public class ProjetoService {
 			this.buscarIdResponsavelProponente(projetoPessoaSet), 
 			this.buscarEquipeElaboracao(projetoPessoaSet), 
 			this.buscarSubResponsavelProponente(projetoPessoaSet),
-			this.buscarIndicadores(projetoIndicadoresSet));
+			this.buscarIndicadores(projetoIndicadoresSet),
+			this.buscarAcoes(projetoAcoesSet));
 
 	}
 
@@ -333,6 +353,7 @@ public class ProjetoService {
 	}
 
 	private Projeto buscar(Long id) {
+		Projeto resultado = repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 		return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 	}
 

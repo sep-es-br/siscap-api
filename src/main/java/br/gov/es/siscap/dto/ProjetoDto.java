@@ -23,11 +23,12 @@ public record ProjetoDto(
 	List<EquipeDto> equipeElaboracao,
 	Boolean rascunho,
 	String subResponsavelProponente,
-	List<ProjetoIndicadorDto> indicadoresProjeto
+	List<ProjetoIndicadorDto> indicadoresProjeto,
+	List<ProjetoAcaoDto> acoesProjeto
 ) {
 
 	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao, 
-		String subResponsavelProponente, List<ProjetoIndicadorDto> indicadoresProjeto ) {
+		String subResponsavelProponente, List<ProjetoIndicadorDto> indicadoresProjeto, List<ProjetoAcaoDto> acoesProjeto ) {
 		this(projeto.getId(),
 			projeto.getSigla(),
 			projeto.getTitulo(),
@@ -46,7 +47,8 @@ public record ProjetoDto(
 			equipeElaboracao,
 			projeto.isRascunho(),
 			subResponsavelProponente,
-			indicadoresProjeto
+			indicadoresProjeto,
+			acoesProjeto
 		);
 	}
 

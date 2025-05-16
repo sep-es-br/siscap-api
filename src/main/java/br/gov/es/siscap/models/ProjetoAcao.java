@@ -6,10 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.Objects;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import br.gov.es.siscap.dto.ProjetoAcaoDto;
+import br.gov.es.siscap.enums.TipoStatusEnum;
 
 @Entity
 @Table(name = "projeto_acao")
@@ -50,6 +54,32 @@ public class ProjetoAcao extends ControleHistorico {
 		this.setDescricaoAcoesSecundarias(acao.descricaoAcoesSecundarias());
         this.setValorEstimado(acao.valorEstimadoAcaoPrincipal());
 	}
+
+    public boolean compararIdAcaoComAcaoDto(ProjetoAcaoDto acaoDto) {
+        return Objects.equals( this.id , acaoDto.idAcao() );
+    }
+
+    /*
+    public void atualizarMembroEquipe(EquipeDto equipeDto) {
+		this.setTipoPapel(new TipoPapel(equipeDto.idPapel()));
+		if (!Objects.equals(equipeDto.idStatus(), TipoStatusEnum.ATIVO.getValue())) {
+			this.setTipoStatus(new TipoStatus(equipeDto.idStatus()));
+			this.setJustificativa(equipeDto.justificativa());
+			this.setDataFim(LocalDateTime.now());
+			super.atualizarHistorico();
+		}
+	}
+    */
+
+    public void atualizarAcaoProjeto(ProjetoAcaoDto acaoDto) {
+		if (!Objects.equals(acaoDto.idStatus(), TipoStatusEnum.ATIVO.getValue())) {
+            this.setDescricaoAcoesSecundarias(acaoDto.descricaoAcoesSecundarias())
+            this.descricaoAcaoPrincipal(acaoDto.descricaoAcaoPrincipal())
+            this.setValorEstimado(acaoDto.valorEstimadoAcaoPrincipal());
+			this.setDataFim(LocalDateTime.now());
+			super.atualizarHistorico();
+		}
+    }
 
 }
 

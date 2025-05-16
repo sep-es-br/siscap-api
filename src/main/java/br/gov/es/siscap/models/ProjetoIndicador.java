@@ -6,12 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Objects;
-
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
-import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 
 

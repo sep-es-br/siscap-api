@@ -8,14 +8,16 @@ public record ProjetoAcaoDto(
 	Integer idAcao,
 	String descricaoAcaoPrincipal,
 	BigDecimal valorEstimadoAcaoPrincipal,
-    String descricaoAcoesSecundarias ){
+    String descricaoAcoesSecundarias,
+	Long idStatus ){
 
 	public ProjetoAcaoDto(ProjetoAcao projetoAcao) {
 		this(
 			projetoAcao.getId(),
 			projetoAcao.getDescricaoAcaoPrincipal(),
 			projetoAcao.getValorEstimado(),
-			projetoAcao.getDescricaoAcoesSecundarias()
+			projetoAcao.getDescricaoAcoesSecundarias(),
+			projetoAcao.getProjeto().getTipoStatus().getId()
 		);
 	}
 
