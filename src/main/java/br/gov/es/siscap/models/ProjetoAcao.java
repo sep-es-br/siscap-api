@@ -59,22 +59,10 @@ public class ProjetoAcao extends ControleHistorico {
         return Objects.equals( this.id , acaoDto.idAcao() );
     }
 
-    /*
-    public void atualizarMembroEquipe(EquipeDto equipeDto) {
-		this.setTipoPapel(new TipoPapel(equipeDto.idPapel()));
-		if (!Objects.equals(equipeDto.idStatus(), TipoStatusEnum.ATIVO.getValue())) {
-			this.setTipoStatus(new TipoStatus(equipeDto.idStatus()));
-			this.setJustificativa(equipeDto.justificativa());
-			this.setDataFim(LocalDateTime.now());
-			super.atualizarHistorico();
-		}
-	}
-    */
-
     public void atualizarAcaoProjeto(ProjetoAcaoDto acaoDto) {
 		if (!Objects.equals(acaoDto.idStatus(), TipoStatusEnum.ATIVO.getValue())) {
-            this.setDescricaoAcoesSecundarias(acaoDto.descricaoAcoesSecundarias())
-            this.descricaoAcaoPrincipal(acaoDto.descricaoAcaoPrincipal())
+            this.setDescricaoAcoesSecundarias(acaoDto.descricaoAcoesSecundarias());
+            this.descricaoAcaoPrincipal(acaoDto.descricaoAcaoPrincipal());
             this.setValorEstimado(acaoDto.valorEstimadoAcaoPrincipal());
 			this.setDataFim(LocalDateTime.now());
 			super.atualizarHistorico();
