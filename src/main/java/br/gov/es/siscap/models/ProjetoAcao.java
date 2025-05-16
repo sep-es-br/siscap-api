@@ -64,7 +64,6 @@ public class ProjetoAcao extends ControleHistorico {
             this.setDescricaoAcoesSecundarias(acaoDto.descricaoAcoesSecundarias());
             this.setDescricaoAcaoPrincipal(acaoDto.descricaoAcaoPrincipal());
             this.setValorEstimado(acaoDto.valorEstimadoAcaoPrincipal());
-			this.setDataFim(LocalDateTime.now());
 			super.atualizarHistorico();
 		}
     }
