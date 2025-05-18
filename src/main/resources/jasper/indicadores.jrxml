@@ -1,0 +1,47 @@
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<jasperReport name="indicadores" language="java" columnCount="1" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="8baf0ff5-1924-4eb3-b5af-c470ff35e5dd">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="pg_siscap_dev"/>
+	<parameter name="idProjeto" class="java.lang.Integer"/>
+	<query language="SQL"><![CDATA[select distinct
+pi.descricao_indicador as descricaoIndicador,
+pi.meta_indicador as metaIndicador,
+pi.id_Tipo_indicador as tipoIndicador
+from projeto proj
+right join projeto_indicador pi on pi.id_projeto = proj.id
+where pi.apagado = false and 
+proj.id_tipo_status = 1 and proj.id = $P{idProjeto} ]]></query>
+	<field name="descricaoindicador" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="descricaoindicador"/>
+		<property name="com.jaspersoft.studio.field.label" value="descricaoindicador"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto_indicador"/>
+	</field>
+	<field name="metaindicador" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="metaindicador"/>
+		<property name="com.jaspersoft.studio.field.label" value="metaindicador"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto_indicador"/>
+	</field>
+	<field name="tipoindicador" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="tipoindicador"/>
+		<property name="com.jaspersoft.studio.field.label" value="tipoindicador"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto_indicador"/>
+	</field>
+	<background splitType="Stretch"/>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<element kind="textField" uuid="ed7698d5-aac8-47c7-82a3-be3849c18c24" x="11" y="3" width="100" height="15" vTextAlign="Middle">
+				<expression><![CDATA[$F{tipoindicador}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="edcc9754-feaf-40d2-ad48-a504973c7d50" x="115" y="3" width="191" height="15" vTextAlign="Middle">
+				<expression><![CDATA[$F{descricaoindicador}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="c137e521-f2b4-4799-a077-d36cb66b272e" x="306" y="3" width="270" height="15" vTextAlign="Middle">
+				<expression><![CDATA[$F{metaindicador}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</detail>
+</jasperReport>

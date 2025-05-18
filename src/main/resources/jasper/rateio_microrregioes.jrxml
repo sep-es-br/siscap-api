@@ -1,0 +1,117 @@
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<jasperReport name="rateio" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="0381e3be-37a4-4d7c-9ff2-6086efdb852d">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="pg_siscap_dev"/>
+	<parameter name="idProjeto" class="java.lang.Integer"/>
+	<parameter name="pathRelatorios" class="java.lang.String"/>
+	<query language="plsql"><![CDATA[with total as (select
+	sum(lq.quantia) as total
+	from localidade_quantia lq
+	where lq.apagado = false and lq.id_projeto = $P{idProjeto}
+), rateio as (select
+	loc.id as id_localidade,
+	loc.nome as nome_localidade,
+	loc.tipo as tipo_localidade,
+	loc.localidade_pai as id_pai_localidade,
+	lq.quantia as quantia_localidade,
+	(lq.quantia / total) * 100 as percentual_localidade
+	from localidade_quantia lq
+	join total on true
+	inner join localidade loc on lq.id_localidade = loc.id
+	where lq.apagado = false and lq.id_projeto = $P{idProjeto})
+select * from rateio
+union
+select
+	loc.id,
+	loc.nome,
+	loc.tipo,
+	loc.localidade_pai,
+	case r.tipo_localidade
+		when 'Estado' then r.quantia_localidade
+		when 'Microrregiao' then (r.quantia_localidade / (select count(*) from localidade loc where loc.localidade_pai = r.id_localidade))
+		when 'Municipio' then (select sum(r.quantia_localidade) from rateio r where r.id_pai_localidade = loc.id)
+	end,
+	case r.tipo_localidade
+		when 'Estado' then r.percentual_localidade
+		when 'Microrregiao' then (r.percentual_localidade / (select count(*) from localidade loc where loc.localidade_pai = r.id_localidade))
+		when 'Municipio' then (select sum(r.percentual_localidade) from rateio r where r.id_pai_localidade = loc.id)
+	end
+from localidade loc
+inner join rateio r on 
+	case 
+		when (r.tipo_localidade = 'Microrregiao' and r.id_localidade <> 1) then loc.localidade_pai = r.id_localidade
+		when (r.tipo_localidade = 'Municipio') then loc.id = r.id_pai_localidade
+	end
+order by
+	id_localidade
+]]></query>
+	<field name="id_localidade" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="id_localidade"/>
+		<property name="com.jaspersoft.studio.field.label" value="id_localidade"/>
+	</field>
+	<field name="nome_localidade" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="nome_localidade"/>
+		<property name="com.jaspersoft.studio.field.label" value="nome_localidade"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="cidade"/>
+	</field>
+	<field name="tipo_localidade" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="tipo_localidade"/>
+		<property name="com.jaspersoft.studio.field.label" value="tipo_localidade"/>
+	</field>
+	<field name="id_pai_localidade" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="id_pai_localidade"/>
+		<property name="com.jaspersoft.studio.field.label" value="id_pai_localidade"/>
+	</field>
+	<field name="quantia_localidade" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="quantia_localidade"/>
+		<property name="com.jaspersoft.studio.field.label" value="quantia_localidade"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto_cidade"/>
+	</field>
+	<field name="percentual_localidade" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="percentual_localidade"/>
+		<property name="com.jaspersoft.studio.field.label" value="percentual_localidade"/>
+	</field>
+	<filterExpression><![CDATA[OR(EQUALS($F{tipo_localidade},"Microrregiao"),EQUALS($F{tipo_localidade},"Estado"))]]></filterExpression>
+	<background splitType="Stretch"/>
+	<detail>
+		<band height="25">
+			<element kind="textField" uuid="fa4a8112-a52d-4c93-b2bb-8b2ec48f7460" x="0" y="0" width="267" height="20" forecolor="#0A588F">
+				<expression><![CDATA["9.1." + $V{REPORT_COUNT} + "  " + (EQUALS($F{tipo_localidade}, "Estado") ? "Todo o Estado" : $F{nome_localidade})]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="textField" uuid="be14b82a-fe29-404d-ad56-ea1f5d161a60" x="267" y="0" width="178" height="20" forecolor="#0A588F">
+				<expression><![CDATA[TEXT($F{quantia_localidade}, "¤ #,##0.00;¤ -#,##0.00")]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="textField" uuid="4c8c7985-df72-4692-ba06-b3ba3df29c3a" x="445" y="0" width="89" height="20" forecolor="#0A588F" hTextAlign="Right">
+				<expression><![CDATA[TEXT($F{percentual_localidade}, "###,##0.00'%'")]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="line" uuid="f0088b54-e0da-47f0-ba52-6013127c2e39" x="0" y="20" width="535" height="1" forecolor="rgba(178, 178, 178, 0.627451)">
+				<pen lineWidth="1.0"/>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+		<band height="35">
+			<element kind="subreport" uuid="b4c9c430-f1d1-4968-b63e-4a85611fb1da" x="0" y="0" width="535" height="20">
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<expression><![CDATA[$P{pathRelatorios} + "/rateio_cidades.jasper"]]></expression>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<parameter name="idProjeto">
+					<expression><![CDATA[$P{idProjeto}]]></expression>
+				</parameter>
+				<parameter name="idMicrorregiao">
+					<expression><![CDATA[$F{id_localidade}]]></expression>
+				</parameter>
+				<parameter name="microrregiaoCount">
+					<expression><![CDATA[$V{REPORT_COUNT}]]></expression>
+				</parameter>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</detail>
+</jasperReport>

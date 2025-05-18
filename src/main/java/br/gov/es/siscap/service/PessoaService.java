@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -53,6 +54,9 @@ public class PessoaService {
 	private final ProjetoPessoaService projetoPessoaService;
 	private final ProgramaPessoaService programaPessoaService;
 	private final Logger logger = LogManager.getLogger(PessoaService.class);
+
+	@Value("${guidGOVES}")
+	private String GUID_GOVES;
 
 	public Page<PessoaListaDto> listarTodos(Pageable pageable, String search) {
 		logger.info("Buscando todas as pessoas.");
@@ -266,6 +270,11 @@ public class PessoaService {
 		return repository.findBySub(sub)
 			.map(p -> String.valueOf(p.getId()))
 			.orElse("");
+	}
+
+	public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownTodosAgentesGoves() {
+		logger.info("Valor do GuidES : {}" , GUID_GOVES);
+		return acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(GUID_GOVES);
 	}
 
 }

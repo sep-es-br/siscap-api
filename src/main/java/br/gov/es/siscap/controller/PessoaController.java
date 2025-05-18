@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +45,9 @@ public class PessoaController {
 	private final PessoaService service;
 	private final OrganizacaoService organizacaoService;
 	private final AcessoCidadaoService acessoCidadaoService;
+
+	@Value("${guidGOVES}")
+	private String GUID_GOVES;
 
 	@GetMapping
 	public Page<PessoaListaDto> listarTodos(
@@ -136,6 +140,12 @@ public class PessoaController {
 	public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownOrganizacao(@NotNull @PathVariable Long orgId) throws IOException { 
 		OrganizacaoDto organizacao = organizacaoService.buscarPorId(orgId);
 		return service.listarOpcoesDropdownOrganizacao(organizacao.guid());
+	}
+
+	@GetMapping("/opcoes/agentesGoves")
+	public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownAgentesGoves() throws IOException { 
+		logger.info("PASSOU AQUI!!");
+		return service.listarOpcoesDropdownTodosAgentesGoves();
 	}
 
 }

@@ -4,7 +4,7 @@ import br.gov.es.siscap.models.ProjetoIndicador;
 
 public record ProjetoIndicadorDto(
 	Integer idIndicador,
-	Integer tipoIndicador,
+	String tipoIndicador,
 	String descricaoIndicador,
 	String metaIndicador ){
 		

@@ -1,0 +1,56 @@
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<jasperReport name="acoes" language="java" columnCount="1" pageWidth="595" pageHeight="842" orientation="Landscape" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="bde258b0-8ddd-4c22-b04f-aadc78c9abf1">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="pg_siscap_dev"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="IdProjeto" class="java.lang.Integer"/>
+	<query language="SQL"><![CDATA[select distinct 
+pa.acao_principal as descricaoAcaoPrincipal, 
+pa.valor_estimado as valorEstimado, 
+pa.descricao_acoes_secundarias as descricaoAcoesSecundarias
+from projeto proj
+right join projeto_acao pa on pa.id_projeto = proj.id
+where pa.apagado = false and 
+proj.id_tipo_status = 1 and 
+proj.id = $P{IdProjeto}]]></query>
+	<field name="descricaoacaoprincipal" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="descricaoacaoprincipal"/>
+		<property name="com.jaspersoft.studio.field.label" value="descricaoacaoprincipal"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto_acao"/>
+	</field>
+	<field name="valorestimado" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="valorestimado"/>
+		<property name="com.jaspersoft.studio.field.label" value="valorestimado"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto_acao"/>
+	</field>
+	<field name="descricaoacoessecundarias" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="descricaoacoessecundarias"/>
+		<property name="com.jaspersoft.studio.field.label" value="descricaoacoessecundarias"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto_acao"/>
+	</field>
+	<background splitType="Stretch"/>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<element kind="textField" uuid="379dffb6-2a1b-47f5-b6a4-abda6af7b4f2" x="0" y="0" width="180" height="20" hTextAlign="Justified" vTextAlign="Middle">
+				<expression><![CDATA[$F{descricaoacaoprincipal}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="c556db42-1992-4417-b7aa-e6ee47378adc" x="180" y="0" width="100" height="20" pattern="¤#,##0.##;¤-#,##0.##" hTextAlign="Right" vTextAlign="Middle">
+				<expression><![CDATA[$F{valorestimado}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="cda575cd-c94e-4b6d-8a14-67a2aeee1677" x="286" y="0" width="280" height="20" hTextAlign="Justified" vTextAlign="Middle">
+				<expression><![CDATA[$F{descricaoacoessecundarias}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+		</band>
+	</detail>
+</jasperReport>

@@ -40,12 +40,14 @@ public class RelatoriosService {
 	}
 
 	private InputStream recuperarArquivo(String nomeArquivo) {
-		try {
-			return Files.newInputStream(Path.of(raizRelatorios + "/" + nomeArquivo + ".jasper"));
-		} catch (IOException e) {
+		//try {
+			String caminhoHardcoded = "jasper/" + nomeArquivo + ".jasper";
+			InputStream inputStream = getClass().getClassLoader().getResourceAsStream(caminhoHardcoded);
+			return inputStream; //Files.newInputStream(Path.of( raizRelatorios + "/" + nomeArquivo + ".jasper"));
+		/* } catch (IOException e) {
 			logger.info("Erro ao encontrar o arquivo {}.jasper", nomeArquivo);
 			throw new SiscapServiceException(List.of("Erro ao encontrar o arquivo " + nomeArquivo + ".jasper"));
-		}
+		}*/
 	}
 
 	private JasperPrint preencherArquivo(InputStream relatorio, Integer idProjeto) {
