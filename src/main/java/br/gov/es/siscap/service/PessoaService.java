@@ -273,8 +273,16 @@ public class PessoaService {
 	}
 
 	public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownTodosAgentesGoves() {
-		logger.info("Valor do GuidES : {}" , GUID_GOVES);
 		return acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(GUID_GOVES);
 	}
+
+    public List<ResponsavelProponenteOpcoesDto> filtrarAgentesGovesPorTermo(String termo, CacheAgentesGovesService cacheService) {
+		String termoLower = termo.toLowerCase();
+		return cacheService.getCache().stream()
+        .filter(agente -> 
+            agente.nome().toLowerCase().contains(termoLower)
+        )
+        .collect(Collectors.toList());
+    }
 
 }

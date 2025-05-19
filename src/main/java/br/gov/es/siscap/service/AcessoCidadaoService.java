@@ -76,6 +76,7 @@ public class AcessoCidadaoService {
             dto.AgentePublicoSub()
         ))
         .sorted((a, b) -> a.nome().compareToIgnoreCase(b.nome()))
+        .limit(10)
         .collect(Collectors.toList());
 
         long duration = System.currentTimeMillis() - startTime;

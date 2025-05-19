@@ -32,7 +32,7 @@ public class ProjetoIndicador extends ControleHistorico {
 	@JoinColumn(name = "id_projeto", nullable = false)
 	private Projeto projeto;
 	
-	@Column(name = "id_tipo_indicador", nullable = false)
+	@Column(name = "tipo_indicador", nullable = false)
 	private String tipoIndicador;
 
 	@Column(name = "descricao_indicador", nullable = false, length = 2000)

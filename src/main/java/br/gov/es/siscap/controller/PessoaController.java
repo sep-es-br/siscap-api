@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -28,12 +29,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import br.gov.es.siscap.service.AcessoCidadaoService;
 import br.gov.es.siscap.service.AutenticacaoService;
+import br.gov.es.siscap.service.CacheAgentesGovesService;
 import br.gov.es.siscap.service.OrganizacaoService;
 
 @RestController
@@ -45,6 +50,9 @@ public class PessoaController {
 	private final PessoaService service;
 	private final OrganizacaoService organizacaoService;
 	private final AcessoCidadaoService acessoCidadaoService;
+
+	@Autowired
+    private CacheAgentesGovesService cacheService; 
 
 	@Value("${guidGOVES}")
 	private String GUID_GOVES;
@@ -142,10 +150,27 @@ public class PessoaController {
 		return service.listarOpcoesDropdownOrganizacao(organizacao.guid());
 	}
 
-	@GetMapping("/opcoes/agentesGoves")
-	public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownAgentesGoves() throws IOException { 
-		logger.info("PASSOU AQUI!!");
-		return service.listarOpcoesDropdownTodosAgentesGoves();
+	@PostMapping("/opcoes/agentesGoves")
+	public ResponseEntity<Map<String, Object>> listarOpcoesDropdownAgentesGoves() throws IOException { 
+		logger.info("passou aqui papai");
+		cacheService.carregarCache( service.listarOpcoesDropdownTodosAgentesGoves() );
+		return ResponseEntity.ok(Map.of(
+        "message", "Dados carregados em cache",
+        "count", cacheService.getCache().size() ,
+        "timestamp", Instant.now()
+    	));
+	}
+
+	@GetMapping("/opcoes/agentesGoves/filtrar/{termo}")
+	public List<ResponsavelProponenteOpcoesDto> filtrarAgentesGoves(@NotNull @PathVariable String termo) {
+
+		// 3. Obtenção e verificação do cache
+		List<ResponsavelProponenteOpcoesDto> cache = cacheService.getCache();
+		if (cache == null || cache.isEmpty()) {
+			logger.error("Cache vazio ou não inicializado");
+		}
+
+		return service.filtrarAgentesGovesPorTermo(termo, cacheService);
 	}
 
 }
