@@ -151,8 +151,7 @@ public class PessoaController {
 	}
 
 	@PostMapping("/opcoes/agentesGoves")
-	public ResponseEntity<Map<String, Object>> listarOpcoesDropdownAgentesGoves() throws IOException { 
-		logger.info("passou aqui papai");
+	public ResponseEntity<Map<String, Object>> listarOpcoesDropdownAgentesGoves() throws IOException { 		
 		cacheService.carregarCache( service.listarOpcoesDropdownTodosAgentesGoves() );
 		return ResponseEntity.ok(Map.of(
         "message", "Dados carregados em cache",
@@ -163,14 +162,17 @@ public class PessoaController {
 
 	@GetMapping("/opcoes/agentesGoves/filtrar/{termo}")
 	public List<ResponsavelProponenteOpcoesDto> filtrarAgentesGoves(@NotNull @PathVariable String termo) {
+		List<ResponsavelProponenteOpcoesDto> cache = cacheService.getCache();
+		return service.filtrarAgentesGovesPorTermo(termo, cacheService);
+	}
 
-		// 3. Obtenção e verificação do cache
+	@GetMapping("/opcoes/agentesGoves/sub/{sub}")
+	public ResponsavelProponenteOpcoesDto buscarAgentesGovesPorSub(@NotNull @PathVariable String sub) {
 		List<ResponsavelProponenteOpcoesDto> cache = cacheService.getCache();
 		if (cache == null || cache.isEmpty()) {
 			logger.error("Cache vazio ou não inicializado");
 		}
-
-		return service.filtrarAgentesGovesPorTermo(termo, cacheService);
+		return service.buscarAgentesGovesPorSub(sub, cacheService);
 	}
 
 }

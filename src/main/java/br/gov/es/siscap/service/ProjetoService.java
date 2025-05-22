@@ -429,7 +429,7 @@ public class ProjetoService {
 				logger.info("Pessoa [{}] criada com sucesso. ID: {}", pessoa.getNome(), pessoa.getId());
 				id = pessoa.getId().toString();
 			}
-			EquipeDto novoMembro = new EquipeDto( Long.valueOf(id), membro.idPapel(), membro.idStatus(), membro.justificativa(), membro.subPessoa() );
+			EquipeDto novoMembro = new EquipeDto( Long.valueOf(id), membro.idPapel(), membro.idStatus(), membro.justificativa(), membro.subPessoa(), membro.nome() );
 			equipe.add(novoMembro);
 		}
 		return equipe;

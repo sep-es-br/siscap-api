@@ -39,14 +39,14 @@ public class ProjetoIndicador extends ControleHistorico {
 	private String descricaoIndicador;
 
 	@Column(name = "meta_indicador", nullable = false, length = 2000)
-	private String metaIndicador;
+	private String descricaoMeta;
 
 	public ProjetoIndicador(Projeto projeto, ProjetoIndicadorDto indicador) {
 		this.setProjeto(projeto);
 		this.setId(indicador.idIndicador());
 		this.setTipoIndicador(indicador.tipoIndicador());
 		this.setDescricaoIndicador(indicador.descricaoIndicador());
-		this.setMetaIndicador(indicador.metaIndicador());
+		this.setDescricaoMeta(indicador.descricaoMeta());
 	}
 
 }

@@ -34,12 +34,12 @@ public class ProjetoPessoa extends ControleHistorico {
 	private Integer id;
 
 	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne()
 	@JoinColumn(name = "id_projeto", nullable = false)
 	private Projeto projeto;
 
 	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne()
 	@JoinColumn(name = "id_pessoa", nullable = false)
 	private Pessoa pessoa;
 
@@ -51,7 +51,7 @@ public class ProjetoPessoa extends ControleHistorico {
 	@JoinColumn(name = "id_tipo_equipe")
 	private TipoEquipe tipoEquipe;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne()
 	@JoinColumn(name = "id_tipo_status")
 	private TipoStatus tipoStatus;
 

@@ -8,7 +8,8 @@ public record EquipeDto(
 			Long idPapel,
 			Long idStatus,
 			String justificativa,
-			String subPessoa
+			String subPessoa,
+			String nome
 ) {
 	
 	public EquipeDto(ProjetoPessoa projetoPessoa) {
@@ -17,7 +18,8 @@ public record EquipeDto(
 			projetoPessoa.getTipoPapel().getId(),
 			projetoPessoa.getTipoStatus().getId(),
 			projetoPessoa.getJustificativa(),
-			projetoPessoa.getPessoa().getSub()
+			projetoPessoa.getPessoa().getSub(),
+			projetoPessoa.getPessoa().getNome()
 		);
 	}
 
@@ -27,7 +29,8 @@ public record EquipeDto(
 			programaPessoa.getTipoPapel().getId(),
 			programaPessoa.getTipoStatus().getId(),
 			programaPessoa.getJustificativa(),
-			programaPessoa.getPessoa().getSub()
+			programaPessoa.getPessoa().getSub(),
+			programaPessoa.getPessoa().getNome()
 		);
 	}
 }

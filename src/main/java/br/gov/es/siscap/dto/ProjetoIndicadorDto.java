@@ -6,14 +6,14 @@ public record ProjetoIndicadorDto(
 	Integer idIndicador,
 	String tipoIndicador,
 	String descricaoIndicador,
-	String metaIndicador ){
+	String descricaoMeta ){
 		
 	public ProjetoIndicadorDto(ProjetoIndicador projetoIndicador) {
 		this(
 			projetoIndicador.getId(),
 			projetoIndicador.getTipoIndicador(),
 			projetoIndicador.getDescricaoIndicador(),
-			projetoIndicador.getMetaIndicador()
+			projetoIndicador.getDescricaoMeta()
 		);
 	}
 

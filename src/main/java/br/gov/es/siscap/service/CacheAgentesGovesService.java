@@ -13,12 +13,10 @@ public class CacheAgentesGovesService {
     private List<ResponsavelProponenteOpcoesDto> cache = new ArrayList<>();
 
     public void carregarCache(List<ResponsavelProponenteOpcoesDto> dados) {
-        System.out.println(">>>> Carregando cache com " + dados.size() + " itens"); // 👈
         this.cache = dados;
     }
 
     public List<ResponsavelProponenteOpcoesDto> getCache() {
-        System.out.println(">>>> Acessando cache com " + cache.size() + " itens"); // 👈
         return this.cache;
     }
 

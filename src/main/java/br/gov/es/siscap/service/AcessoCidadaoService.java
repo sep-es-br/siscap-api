@@ -62,10 +62,6 @@ public class AcessoCidadaoService {
     }
 
     public List<ResponsavelProponenteOpcoesDto> buscarPessoasUnidadePapelPrioritario(String unidadeGuid) {
-        
-        System.out.println("Iniciando busca..."); // 👈
-        long startTime = System.currentTimeMillis();
-
         List<ResponsavelProponenteOpcoesDto> result = ACWebClient.buscarAgentesPublicosPapeisPorGuidUnidade(ACAuthService.getAuthorizationHeader(), unidadeGuid)
         .stream()
         .filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
@@ -76,14 +72,8 @@ public class AcessoCidadaoService {
             dto.AgentePublicoSub()
         ))
         .sorted((a, b) -> a.nome().compareToIgnoreCase(b.nome()))
-        .limit(10)
         .collect(Collectors.toList());
-
-        long duration = System.currentTimeMillis() - startTime;
-        System.out.println("Busca concluída em " + duration + "ms. Itens: " + result.size()); // 👈
-
         return result;
-
     }
 
 }

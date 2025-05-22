@@ -6,6 +6,7 @@ import br.gov.es.siscap.exception.EquipeSemResponsavelProponenteException;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
+import br.gov.es.siscap.repository.PessoaRepository;
 import br.gov.es.siscap.repository.ProjetoPessoaRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 public class ProjetoPessoaService {
 
 	private final ProjetoPessoaRepository projetoPessoaRepository;
+	private final PessoaRepository pessoaRepository;
+
 	private final Logger logger = LogManager.getLogger(ProjetoPessoa.class);
 
 	public Set<ProjetoPessoa> buscarPorProjeto(Projeto projeto) {

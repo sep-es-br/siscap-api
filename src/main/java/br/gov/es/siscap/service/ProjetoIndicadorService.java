@@ -79,7 +79,6 @@ public class ProjetoIndicadorService {
 			.filter(ind -> ind.getId() != null)
 			.collect(Collectors.toMap(ProjetoIndicador::getId, Function.identity()));
 
-		// Processa os DTOs
 		return dtoList.stream()
 			.map(dto -> {
 				ProjetoIndicador indicador;
@@ -88,7 +87,7 @@ public class ProjetoIndicadorService {
 					indicador.setId(dto.idIndicador());
 					indicador.setTipoIndicador(dto.tipoIndicador());
 					indicador.setDescricaoIndicador(dto.descricaoIndicador());
-					indicador.setMetaIndicador(dto.metaIndicador());
+					indicador.setDescricaoMeta(dto.descricaoMeta());
 				} else {
 					indicador = new ProjetoIndicador(projeto, dto);
 				}

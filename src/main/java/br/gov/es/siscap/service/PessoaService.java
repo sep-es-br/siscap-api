@@ -285,4 +285,27 @@ public class PessoaService {
         .collect(Collectors.toList());
     }
 
+	public ResponsavelProponenteOpcoesDto buscarAgentesGovesPorSub(String sub, CacheAgentesGovesService cacheService) {
+		
+		try {
+			Pessoa pessoaBanco = buscarPorSub(sub);
+			return new ResponsavelProponenteOpcoesDto(
+				pessoaBanco.getId(), 
+				pessoaBanco.getNome(), 
+				pessoaBanco.getNomeSocial(),
+				sub );
+
+		} catch (PessoaNaoEncontradoException e) {
+			logger.debug("Agente não encontrado no banco, buscando no cache...");
+		}
+		
+		return cacheService.getCache().stream()
+        .filter(agente -> 
+            agente.agentePublicoSub().contains(sub)
+        )
+        .findFirst()
+		.orElse(null);
+
+    }
+
 }

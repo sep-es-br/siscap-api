@@ -74,7 +74,7 @@ public class Pessoa extends ControleHistorico {
 	@Column(name = "sub")
 	private String sub;
 
-	@ManyToMany(fetch = FetchType.LAZY)
+	@ManyToMany()
 	@JoinTable(name = "pessoa_area_atuacao",
 				joinColumns = {@JoinColumn(name = "id_pessoa")},
 				inverseJoinColumns = @JoinColumn(name = "id_area_atuacao", nullable = false))
