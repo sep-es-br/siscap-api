@@ -12,6 +12,7 @@ import java.util.Objects;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProjetoAcaoDto;
 import br.gov.es.siscap.enums.TipoStatusEnum;
 
@@ -21,7 +22,7 @@ import br.gov.es.siscap.enums.TipoStatusEnum;
 @Getter
 @Setter
 @SQLDelete(sql = "UPDATE projeto_acao SET apagado = true WHERE id=?")
-@SQLRestriction("apagado = FALSE")
+@SQLRestriction("apagado = FALSE and id_tipo_status = 1")
 public class ProjetoAcao extends ControleHistorico {
 
     @Id
@@ -44,6 +45,10 @@ public class ProjetoAcao extends ControleHistorico {
     @Column(name = "descricao_acoes_secundarias", length = 2000)
     private String descricaoAcaoSecundaria;
 
+    @ManyToOne()
+	@JoinColumn(name = "id_tipo_status")
+	private TipoStatus tipoStatus;
+
     public ProjetoAcao(Projeto projeto) {
         this.setProjeto(projeto);
     }
@@ -53,20 +58,22 @@ public class ProjetoAcao extends ControleHistorico {
 		this.setDescricaoAcaoPrincipal(acao.descricaoAcaoPrincipal());
 		this.setDescricaoAcaoSecundaria(acao.descricaoAcaoSecundaria());
         this.setValorEstimado(acao.valorEstimadoAcaoPrincipal());
+        this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
 	}
 
     public boolean compararIdAcaoComAcaoDto(ProjetoAcaoDto acaoDto) {
-        return Objects.equals( this.id , acaoDto.idAcao() );
+        return Objects.equals(this.getId(), acaoDto.idAcao());
     }
 
-    public void atualizarAcaoProjeto(ProjetoAcaoDto acaoDto) {
-		if (!Objects.equals(acaoDto.idStatus(), TipoStatusEnum.ATIVO.getValue())) {
-            this.setDescricaoAcaoSecundaria(acaoDto.descricaoAcaoSecundaria());
-            this.setDescricaoAcaoPrincipal(acaoDto.descricaoAcaoPrincipal());
-            this.setValorEstimado(acaoDto.valorEstimadoAcaoPrincipal());
+    public void atualizarAcao(ProjetoAcaoDto acaoDtoDto) {
+        this.setDescricaoAcaoPrincipal(acaoDtoDto.descricaoAcaoPrincipal());
+        this.setDescricaoAcaoSecundaria(acaoDtoDto.descricaoAcaoSecundaria());
+        this.setValorEstimado(acaoDtoDto.valorEstimadoAcaoPrincipal());
+		if (!Objects.equals( acaoDtoDto.idStatus(), TipoStatusEnum.ATIVO.getValue() ) ) {
+			this.setTipoStatus(new TipoStatus(acaoDtoDto.idStatus()));
 			super.atualizarHistorico();
 		}
-    }
+	}
 
 }
 

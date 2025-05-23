@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoIndicador;
 import br.gov.es.siscap.models.ProjetoPessoa;
+import br.gov.es.siscap.models.TipoStatus;
 import br.gov.es.siscap.repository.ProjetoIndicadorRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -65,12 +66,15 @@ public class ProjetoIndicadorService {
 
 	@Transactional
 	public void excluirPorProjeto(Projeto projeto) {
-		logger.info("Excluindo equipe do Projeto com id: {}", projeto.getId());
-		/*Set<ProjetoIndicador> ProjetoIndicadorSet = this.buscarPorProjeto(projeto);
-		ProjetoIndicadorSet.forEach(ProjetoIndicador -> ProjetoIndicador.apagar("Projeto excluido"));
-		List<ProjetoIndicador> ProjetoIndicadorList = ProjetoIndicadorRepository.saveAllAndFlush(ProjetoIndicadorSet);
-		ProjetoIndicadorRepository.deleteAll(ProjetoIndicadorList);*/
-		logger.info("Equipe do projeto excluida com sucesso");
+		logger.info("Excluindo indicadores do Projeto com id: {}", projeto.getId());
+		
+		Set<ProjetoIndicador> projetoIndicadorSet = this.buscarPorProjeto(projeto);
+		
+		List<ProjetoIndicador> projetoIndicadorList = projetoIndicadorRepository.saveAllAndFlush(projetoIndicadorSet);
+		
+		projetoIndicadorRepository.deleteAll(projetoIndicadorList);
+		
+		logger.info("Indicadores do projeto excluídos com sucesso" );
 	}
 	
     private Set<ProjetoIndicador> atualizarIndicadoresProjeto( Projeto projeto,  Set<ProjetoIndicador> indicadoresExistentes, List<ProjetoIndicadorDto> dtoList) {
@@ -88,6 +92,7 @@ public class ProjetoIndicadorService {
 					indicador.setTipoIndicador(dto.tipoIndicador());
 					indicador.setDescricaoIndicador(dto.descricaoIndicador());
 					indicador.setDescricaoMeta(dto.descricaoMeta());
+					indicador.setTipoStatus( new TipoStatus(dto.idStatus()) );
 				} else {
 					indicador = new ProjetoIndicador(projeto, dto);
 				}

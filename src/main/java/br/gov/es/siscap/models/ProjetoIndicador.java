@@ -10,6 +10,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import br.gov.es.siscap.dto.ProjetoIndicadorDto;
+import br.gov.es.siscap.enums.TipoStatusEnum;
 
 
 @Entity
@@ -18,7 +19,7 @@ import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 @Getter
 @Setter
 @SQLDelete(sql = "update projeto_indicador set apagado = true where id=?")
-@SQLRestriction("apagado = FALSE ")
+@SQLRestriction("apagado = FALSE and id_tipo_status = 1")
 public class ProjetoIndicador extends ControleHistorico {
 
 	@Id
@@ -41,12 +42,17 @@ public class ProjetoIndicador extends ControleHistorico {
 	@Column(name = "meta_indicador", nullable = false, length = 2000)
 	private String descricaoMeta;
 
+	@ManyToOne()
+	@JoinColumn(name = "id_tipo_status")
+	private TipoStatus tipoStatus;
+
 	public ProjetoIndicador(Projeto projeto, ProjetoIndicadorDto indicador) {
 		this.setProjeto(projeto);
 		this.setId(indicador.idIndicador());
 		this.setTipoIndicador(indicador.tipoIndicador());
 		this.setDescricaoIndicador(indicador.descricaoIndicador());
 		this.setDescricaoMeta(indicador.descricaoMeta());
+		this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
 	}
 
 }

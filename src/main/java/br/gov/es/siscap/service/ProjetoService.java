@@ -192,7 +192,6 @@ public class ProjetoService {
 			acoesProjetoParaGravar);
 	}
 
-
 	@Transactional
 	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho) {
 
@@ -239,7 +238,8 @@ public class ProjetoService {
 			this.buscarEquipeElaboracao(projetoPessoaSet), 
 			this.buscarSubResponsavelProponente(projetoPessoaSet),
 			this.buscarIndicadores(projetoIndicadoresSet),
-			this.buscarAcoes(projetoAcoesSet));
+			this.buscarAcoes(projetoAcoesSet)
+			);
 
 	}
 
@@ -254,7 +254,12 @@ public class ProjetoService {
 		repository.deleteById(id);
 
 		projetoPessoaService.excluirPorProjeto(projeto);
+		
 		localidadeQuantiaService.excluir(projeto);
+
+		projetoIndicadorService.excluirPorProjeto(projeto);
+
+		projetoAcaoService.excluirPorProjeto(projeto);
 
 		logger.info("Projeto excluido com sucesso");
 	}

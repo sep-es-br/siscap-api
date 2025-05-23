@@ -1,5 +1,6 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProjetoAcaoDto;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProjetoAcaoRepository;
@@ -15,6 +16,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import br.gov.es.siscap.models.ProjetoAcao;
+import br.gov.es.siscap.models.ProjetoPessoa;
+import br.gov.es.siscap.models.TipoStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -81,6 +84,7 @@ public class ProjetoAcaoService {
 
 	}
 
+	/*
 	private Set<ProjetoAcao> atualizarAcoesProjeto( Projeto projeto, Set<ProjetoAcao> acoesProjetoExistentes, List<ProjetoAcaoDto> acoesProjetoDtoList ) {
 			
 		Map<Integer, ProjetoAcao> acoesExistentesMap = acoesProjetoExistentes.stream()
@@ -96,6 +100,7 @@ public class ProjetoAcaoService {
 					acao.setDescricaoAcaoPrincipal(acaoDto.descricaoAcaoPrincipal());
 					acao.setDescricaoAcaoSecundaria(acaoDto.descricaoAcaoSecundaria());
 					acao.setValorEstimado(acaoDto.valorEstimadoAcaoPrincipal());
+					acao.setTipoStatus(new TipoStatus(acaoDto.idStatus()));
 				} else {
 					acao = new ProjetoAcao(projeto, acaoDto);	
 				}
@@ -103,6 +108,34 @@ public class ProjetoAcaoService {
 			})
 			.collect(Collectors.toSet());
 
+	}
+	*/
+
+	private Set<ProjetoAcao> atualizarAcoesProjeto( Projeto projeto, Set<ProjetoAcao> acoesProjetoExistentes, List<ProjetoAcaoDto> acoesProjetoDtoList ) {
+
+		Set<ProjetoAcao> acoesAlterarSet = new HashSet<>();
+
+		Set<ProjetoAcao> acoesAdicionarSet = new HashSet<>();
+
+		acoesProjetoDtoList.forEach( acaoDto -> {
+			acoesProjetoExistentes
+						.stream()
+						.filter( projetoAcao -> projetoAcao.compararIdAcaoComAcaoDto(acaoDto) )
+						.findFirst()
+						.ifPresentOrElse(
+									(projetoAcao) -> {
+										projetoAcao.atualizarAcao(acaoDto);
+										acoesAlterarSet.add(projetoAcao);
+									},
+									() -> {
+										acoesAdicionarSet.add(new ProjetoAcao(projeto, acaoDto));
+									}
+						);
+		});
+
+		acoesAdicionarSet.addAll(acoesAlterarSet);
+
+		return acoesAdicionarSet;
 	}
 
 }

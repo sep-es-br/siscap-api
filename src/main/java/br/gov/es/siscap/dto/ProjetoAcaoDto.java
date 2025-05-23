@@ -11,8 +11,6 @@ public record ProjetoAcaoDto(
     String descricaoAcaoSecundaria,
 	Long idStatus ){
 
-		
-
 	public ProjetoAcaoDto(ProjetoAcao projetoAcao) {
 		this(
 			projetoAcao.getId(),
