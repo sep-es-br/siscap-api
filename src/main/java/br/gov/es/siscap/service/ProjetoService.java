@@ -138,9 +138,9 @@ public class ProjetoService {
 	@Transactional
 	public ProjetoDto cadastrar(ProjetoForm form, boolean rascunho) {
 		
-		logger.debug("Cadastrando novo projeto");
+		logger.info("Cadastrando novo projeto");
 
-		logger.debug("Dados: {}", form);
+		logger.info("Dados: {}", form);
 
 		this.validarProjeto(form, true);
 
@@ -168,19 +168,11 @@ public class ProjetoService {
 
 		projetoPessoaSet = projetoPessoaService.cadastrar( projeto, form.idResponsavelProponente(), equipeParaGravar );
 
-		logger.debug("Preparacao localidadeQuantia");
-
 		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(), form.rateio());
-
-		logger.debug("Montando valor..");
 
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
-		logger.debug("Montou valor..");
-
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
-
-		logger.debug("Montou lista..");
 
 		List<ProjetoIndicadorDto> indicadoresProjetoParaGravar = form.indicadoresProjeto();
 		
@@ -258,9 +250,7 @@ public class ProjetoService {
 		Projeto projeto = this.buscar(id);
 
 		projeto.apagarProjeto();
-		repository.saveAndFlush(projeto);
-		repository.deleteById(id);
-
+		
 		projetoPessoaService.excluirPorProjeto(projeto);
 		
 		localidadeQuantiaService.excluir(projeto);
@@ -268,6 +258,10 @@ public class ProjetoService {
 		projetoIndicadorService.excluirPorProjeto(projeto);
 
 		projetoAcaoService.excluirPorProjeto(projeto);
+
+		repository.saveAndFlush(projeto);
+		
+		repository.deleteById(id);
 
 		logger.info("Projeto excluido com sucesso");
 	}
