@@ -138,9 +138,9 @@ public class ProjetoService {
 	@Transactional
 	public ProjetoDto cadastrar(ProjetoForm form, boolean rascunho) {
 		
-		logger.info("Cadastrando novo projeto");
+		logger.debug("Cadastrando novo projeto");
 
-		logger.info("Dados: {}", form);
+		logger.debug("Dados: {}", form);
 
 		this.validarProjeto(form, true);
 
@@ -168,11 +168,19 @@ public class ProjetoService {
 
 		projetoPessoaSet = projetoPessoaService.cadastrar( projeto, form.idResponsavelProponente(), equipeParaGravar );
 
+		logger.debug("Preparacao localidadeQuantia");
+
 		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(), form.rateio());
+
+		logger.debug("Montando valor..");
 
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
+		logger.debug("Montou valor..");
+
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
+
+		logger.debug("Montou lista..");
 
 		List<ProjetoIndicadorDto> indicadoresProjetoParaGravar = form.indicadoresProjeto();
 		
