@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
 <jasperReport name="equipe" language="java" pageWidth="535" pageHeight="842" columnWidth="535" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="2bfdc504-f570-4eac-a5fc-bf5f558882ae">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="pg_siscap_dev"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
@@ -24,19 +24,19 @@ where
 	<background splitType="Stretch"/>
 	<detail>
 		<band height="20" splitType="Stretch">
-			<element kind="textField" uuid="9a1e969f-8bf0-4f07-9eaa-321336b0caf9" x="0" y="0" width="214" height="20">
-				<expression><![CDATA["10.1." + $V{REPORT_COUNT} + " " + $F{nome}]]></expression>
+			<element kind="textField" uuid="9a1e969f-8bf0-4f07-9eaa-321336b0caf9" x="0" y="0" width="214" height="20" forecolor="#0A588F">
+				<expression><![CDATA["12.1." + $V{REPORT_COUNT} + " " + $F{nome}]]></expression>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="textField" uuid="17ea13b5-8cf9-4680-8d13-96ef690911aa" x="214" y="0" width="214" height="20">
+			<element kind="textField" uuid="17ea13b5-8cf9-4680-8d13-96ef690911aa" x="214" y="0" width="214" height="20" forecolor="#0A588F">
 				<expression><![CDATA[$F{entidade}]]></expression>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="textField" uuid="d717e196-fcdc-45ca-9172-119066b7ac6e" x="428" y="0" width="107" height="20">
+			<element kind="textField" uuid="d717e196-fcdc-45ca-9172-119066b7ac6e" x="428" y="0" width="107" height="20" forecolor="#0A588F">
 				<expression><![CDATA[$F{papel}]]></expression>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>

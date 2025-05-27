@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Projects\SiscapDataAdapter.jrdax"/>
@@ -6,7 +6,7 @@
 		<defaultValueExpression><![CDATA[3]]></defaultValueExpression>
 	</parameter>
 	<parameter name="pathRelatorios" class="java.lang.String">
-		<defaultValueExpression><![CDATA["C:/projetos/siscap/relatorios"]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA["jasper"]]></defaultValueExpression>
 	</parameter>
 	<query language="sql"><![CDATA[select
 	proj.id as id_projeto,
@@ -132,11 +132,14 @@ group by
 	<background splitType="Stretch"/>
 	<pageHeader height="86" splitType="Stretch">
 		<element kind="textField" uuid="2d626a4e-c647-42a2-b888-682538d04d1f" x="0" y="40" width="310" height="20" forecolor="#0A588F" fontName="SansSerif" fontSize="10.0" bold="true">
-			<expression><![CDATA["PROJETO n. " + $F{contagem_anual_projeto} + "-" +$F{abreviatura_organizacao} + "-" + String.valueOf($F{cnpj_organizacao}).substring(0,2) + "." +
-String.valueOf($F{cnpj_organizacao}).substring(2,5) + "." +
-String.valueOf($F{cnpj_organizacao}).substring(5,8) + "/" +
-String.valueOf($F{cnpj_organizacao}).substring(8,12) + "-" +
-String.valueOf($F{cnpj_organizacao}).substring(12)]]></expression>
+			<expression><![CDATA["PROJETO n. " + $F{contagem_anual_projeto} + "-" + $F{abreviatura_organizacao} + "-" + 
+($F{cnpj_organizacao} != null && $F{cnpj_organizacao}.length() >= 14 ? 
+ String.valueOf($F{cnpj_organizacao}).substring(0,2) + "." +
+ String.valueOf($F{cnpj_organizacao}).substring(2,5) + "." +
+ String.valueOf($F{cnpj_organizacao}).substring(5,8) + "/" +
+ String.valueOf($F{cnpj_organizacao}).substring(8,12) + "-" +
+ String.valueOf($F{cnpj_organizacao}).substring(12) 
+ : "CNPJ INVÁLIDO" )]]></expression>
 		</element>
 		<element kind="textField" uuid="3f9938f6-ce89-450b-81f5-42ecd3b4bdda" x="-10" y="0" width="50" height="30" forecolor="#838383" fontName="SansSerif" hTextAlign="Right">
 			<expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
@@ -150,7 +153,7 @@ String.valueOf($F{cnpj_organizacao}).substring(12)]]></expression>
 	</pageHeader>
 	<detail>
 		<band height="91">
-			<element kind="staticText" uuid="3a32ca85-421c-48f9-8fc2-b6ed11deb489" x="0" y="0" width="80" height="20" forecolor="#FA130F" fontName="SansSerif" removeLineWhenBlank="true" bold="true" hTextAlign="Left">
+			<element kind="staticText" uuid="3a32ca85-421c-48f9-8fc2-b6ed11deb489" x="0" y="0" width="80" height="20" forecolor="#000000" fontName="SansSerif" removeLineWhenBlank="true" bold="true" hTextAlign="Left">
 				<text><![CDATA[Proponente:]]></text>
 			</element>
 			<element kind="textField" uuid="5a66b220-3e62-4c8b-bbc5-9f1ded02f704" x="90" y="0" width="260" height="20" fontName="SansSerif">
@@ -214,23 +217,34 @@ String.valueOf($F{cnpj_organizacao}).substring(12)]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
 		</band>
-		<band height="57">
+		<band height="80">
 			<element kind="staticText" uuid="59dcd36d-3f62-4a6a-880e-ba979b86ed65" x="1" y="1" width="270" height="20" forecolor="#000000" fontName="SansSerif" bold="true">
 				<text><![CDATA[5.0 Indicadores]]></text>
 			</element>
 			<element kind="line" uuid="9899737b-9db3-4791-b032-ec43f44c7b25" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
-			<element kind="subreport" uuid="c0388444-b20e-4d9c-9d08-74a13cf7da05" x="0" y="29" width="536" height="20">
+			<element kind="subreport" uuid="dd3620bd-97ca-4c6c-9c3f-8f4fd9d44e1e" x="-2" y="56" width="536" height="20">
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<expression><![CDATA[$P{pathRelatorios} + "/indicadores.jasper"]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				<parameter name="idProjeto">
 					<expression><![CDATA[$P{idProjeto}]]></expression>
 				</parameter>
 				<parameter name="pathRelatorios">
 					<expression><![CDATA[$P{pathRelatorios}]]></expression>
 				</parameter>
+			</element>
+			<element kind="staticText" uuid="01d813d2-b573-42f7-9213-591d3d775577" x="0" y="30" width="170" height="20" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
+				<text><![CDATA[5.1 Tipo Indicador]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="staticText" uuid="cfcf949e-15f2-4d43-99a3-02c76c0a1b3c" x="180" y="30" width="180" height="20" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
+				<text><![CDATA[Indicador]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="staticText" uuid="397bd0ea-dcf0-499c-bac2-f2d5a66df7ae" x="370" y="30" width="164" height="20" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
+				<text><![CDATA[Meta]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
@@ -302,11 +316,11 @@ String.valueOf($F{cnpj_organizacao}).substring(12)]]></expression>
 				</parameter>
 			</element>
 		</band>
-		<band height="47">
-			<element kind="staticText" uuid="7d16269f-8022-46c7-a7a1-eada7346c657" x="2" y="0" width="468" height="20" fontName="SansSerif" bold="true">
+		<band height="80">
+			<element kind="staticText" uuid="7d16269f-8022-46c7-a7a1-eada7346c657" x="1" y="0" width="532" height="20" fontName="SansSerif" bold="true">
 				<text><![CDATA[11.0 Ações]]></text>
 			</element>
-			<element kind="subreport" uuid="4d5c6129-4c34-4dd1-83e9-db8d83bcb782" x="0" y="24" width="536" height="20">
+			<element kind="subreport" uuid="4d5c6129-4c34-4dd1-83e9-db8d83bcb782" x="0" y="44" width="536" height="20">
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<expression><![CDATA[$P{pathRelatorios} + "/acoes.jasper"]]></expression>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -317,6 +331,18 @@ String.valueOf($F{cnpj_organizacao}).substring(12)]]></expression>
 				<parameter name="pathRelatorios">
 					<expression><![CDATA[$P{pathRelatorios}]]></expression>
 				</parameter>
+			</element>
+			<element kind="staticText" uuid="f3accc1a-66e2-4038-82d3-6d19dadbdf66" x="0" y="24" width="210" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[11.1 Ação Principal]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="staticText" uuid="4ac9dde6-1d6b-49bd-a2ac-780dcc77dd4a" x="214" y="24" width="114" height="20" fontName="SansSerif" bold="true" hTextAlign="Right" vTextAlign="Middle">
+				<text><![CDATA[Valor Estimado  ]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="staticText" uuid="ee271e7b-a68a-47f2-953d-528fd6d0083c" x="340" y="24" width="195" height="20" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
+				<text><![CDATA[Ações Secundárias]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
 		</band>
 		<band height="100">
@@ -343,6 +369,7 @@ String.valueOf($F{cnpj_organizacao}).substring(12)]]></expression>
 				<text><![CDATA[Papel]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
+			<element kind="line" uuid="e090a4bb-fea7-426a-b59c-9bdfd130ef53" x="-1" y="-59" width="535" height="1" forecolor="#B2B2B2"/>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<property name="com.jaspersoft.studio.layout"/>
 		</band>
