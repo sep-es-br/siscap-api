@@ -47,8 +47,8 @@ public class RelatoriosService {
 		try {
 			return new ClassPathResource(raizRelatorios + "/" + nomeArquivo + ".jasper").getInputStream();
 		} catch (IOException e) {
-			logger.info("Erro ao encontrar o arquivo {}.jasper", nomeArquivo);
-			throw new SiscapServiceException(List.of("Erro ao encontrar o arquivo " + nomeArquivo + ".jasper"));
+			logger.info("Erro ao encontrar o arquivo {}.jasper, local {}", nomeArquivo, raizRelatorios);
+			throw new SiscapServiceException(List.of("Erro ao encontrar o arquivo " + nomeArquivo + ".jasper" + " local do arquivo : " + raizRelatorios ));
 		}
 	}
 
