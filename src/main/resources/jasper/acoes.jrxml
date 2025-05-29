@@ -1,5 +1,5 @@
 <!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
-<jasperReport name="acoes" language="java" columnCount="1" pageWidth="595" pageHeight="842" orientation="Landscape" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="bde258b0-8ddd-4c22-b04f-aadc78c9abf1">
+<jasperReport name="acoes" language="java" columnCount="1" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="bde258b0-8ddd-4c22-b04f-aadc78c9abf1">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="pg_siscap_dev"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
@@ -38,19 +38,19 @@ proj.id = $P{IdProjeto}]]></query>
 	</field>
 	<background splitType="Stretch"/>
 	<detail>
-		<band height="20" splitType="Stretch">
-			<element kind="textField" uuid="379dffb6-2a1b-47f5-b6a4-abda6af7b4f2" x="0" y="0" width="214" height="20" forecolor="#0A588F" hTextAlign="Justified" vTextAlign="Middle">
-				<expression><![CDATA["11.1." + $V{REPORT_COUNT} + " " + $F{descricaoacaoprincipal}]]></expression>
+		<band height="20">
+			<element kind="textField" uuid="379dffb6-2a1b-47f5-b6a4-abda6af7b4f2" x="10" y="0" width="160" height="20" forecolor="#0A588F" textAdjust="StretchHeight" bold="false" hTextAlign="Justified" vTextAlign="Middle">
+				<expression><![CDATA["9.1." + $V{REPORT_COUNT} + " " + $F{descricaoacaoprincipal}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
-			<element kind="textField" uuid="c556db42-1992-4417-b7aa-e6ee47378adc" x="214" y="0" width="116" height="20" forecolor="#0A588F" pattern="¤#,##0.##;¤-#,##0.##" hTextAlign="Right" vTextAlign="Middle">
+			<element kind="textField" uuid="c556db42-1992-4417-b7aa-e6ee47378adc" x="173" y="0" width="116" height="20" forecolor="#0A588F" textAdjust="StretchHeight" pattern="¤#,##0.##;¤-#,##0.##" hTextAlign="Right" vTextAlign="Middle">
 				<expression><![CDATA[$F{valorestimado}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="textField" uuid="cda575cd-c94e-4b6d-8a14-67a2aeee1677" x="340" y="0" width="240" height="20" forecolor="#0A588F" hTextAlign="Justified" vTextAlign="Middle">
+			<element kind="textField" uuid="cda575cd-c94e-4b6d-8a14-67a2aeee1677" x="300" y="0" width="230" height="20" forecolor="#0A588F" textAdjust="StretchHeight" linkType="None" linkTarget="Self" hTextAlign="Justified" vTextAlign="Middle">
 				<expression><![CDATA[$F{descricaoacoessecundarias}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
