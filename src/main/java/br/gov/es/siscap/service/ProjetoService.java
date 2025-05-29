@@ -35,8 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoIndicador;
 
@@ -221,7 +219,7 @@ public class ProjetoService {
 		projetoPessoaSet = projetoPessoaService.atualizar(projeto, form.idResponsavelProponente(), equipeParaGravar);
 
 		List<ProjetoIndicadorDto> projetoIndicadoresDto = form.indicadoresProjeto();
-		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projeto, projetoIndicadoresDto);
+		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projetoResult, projetoIndicadoresDto);
 
 		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
@@ -229,7 +227,8 @@ public class ProjetoService {
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesProjeto();
-		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar( projeto, projetoAcoesDto);
+		
+		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar( projetoResult, projetoAcoesDto, rascunho );
 
 		logger.info("Projeto atualizado com sucesso");
 
@@ -404,19 +403,20 @@ public class ProjetoService {
 
 		boolean checkFormIdOrganizacaoExistePorId = !organizacaoService.existePorId(form.idOrganizacao());
 		boolean checkProjetoExistePorSigla = repository.existsBySigla(form.sigla()) && isSalvar;
-
+		
 		if (checkFormIdOrganizacaoExistePorId)
 			erros.add("Erro ao encontrar Organização com id " + form.idOrganizacao());
 
 		if (checkProjetoExistePorSigla)
 			erros.add("Já existe um projeto cadastrado com essa sigla.");
-
+		
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
 		}
+
 	}
-	
+		
 	private List<EquipeDto> validarEquipeElaboracao(ProjetoForm form) {
 		List<EquipeDto> equipe = new ArrayList<>();
 		for (EquipeDto membro : form.equipeElaboracao()) {

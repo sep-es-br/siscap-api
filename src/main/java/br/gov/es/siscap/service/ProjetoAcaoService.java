@@ -1,7 +1,7 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProjetoAcaoDto;
+import br.gov.es.siscap.exception.ValorEstimadoIncompativelAcoesProjetoException;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProjetoAcaoRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,13 +11,12 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import br.gov.es.siscap.models.LocalidadeQuantia;
 import br.gov.es.siscap.models.ProjetoAcao;
-import br.gov.es.siscap.models.ProjetoPessoa;
-import br.gov.es.siscap.models.TipoStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -53,19 +52,46 @@ public class ProjetoAcaoService {
 	}
 
 	@Transactional
-	public Set<ProjetoAcao> atualizar(Projeto projeto, List<ProjetoAcaoDto> ProjetoAcaoDtoList) {
+	public Set<ProjetoAcao> atualizar(Projeto projeto, List<ProjetoAcaoDto> ProjetoAcaoDtoList, boolean isSalvar) {
 		
 		logger.info("Alterando dados de acões do Projeto com id: {}", projeto.getId());
 
 		Set<ProjetoAcao> ProjetoAcaoSet = this.buscarPorProjeto(projeto);
 
 		Set<ProjetoAcao> acoesProjetoAtualizarSet = this.atualizarAcoesProjeto( projeto, ProjetoAcaoSet, ProjetoAcaoDtoList );
+		
+		if(!isSalvar)
+			if ( this.validarValorEstimadoProjetoAcoes( projeto, acoesProjetoAtualizarSet, isSalvar ) )
+				throw new ValorEstimadoIncompativelAcoesProjetoException();
 
 		projetoAcapRepository.saveAllAndFlush(acoesProjetoAtualizarSet);
 
 		logger.info("Ações do projeto alterada com sucesso");
 
 		return this.buscarPorProjeto(projeto);
+
+	}
+
+	private boolean validarValorEstimadoProjetoAcoes( Projeto projeto, Set<ProjetoAcao> projetoAcaoSet, boolean isSalvar ) {
+						
+		BigDecimal totalValorEstimadoAcoes = projetoAcaoSet.stream()
+			.map(ProjetoAcao::getValorEstimado)
+			.filter(Objects::nonNull)
+			.collect(Collectors.reducing(
+				BigDecimal.ZERO,
+				BigDecimal::add
+			));
+
+			BigDecimal totalValorEstimadoProjeto = projeto.getLocalidadeQuantiaSet()
+			.stream()
+			.map(LocalidadeQuantia::getQuantia)
+			.filter(Objects::nonNull)
+			.collect(Collectors.reducing(
+				BigDecimal.ZERO,
+				BigDecimal::add
+			));
+
+		return totalValorEstimadoAcoes.compareTo(totalValorEstimadoProjeto) != 0;
 
 	}
 
@@ -83,33 +109,6 @@ public class ProjetoAcaoService {
 		logger.info("Ações do projeto excluida com sucesso");
 
 	}
-
-	/*
-	private Set<ProjetoAcao> atualizarAcoesProjeto( Projeto projeto, Set<ProjetoAcao> acoesProjetoExistentes, List<ProjetoAcaoDto> acoesProjetoDtoList ) {
-			
-		Map<Integer, ProjetoAcao> acoesExistentesMap = acoesProjetoExistentes.stream()
-			.filter( acao -> acao.getId() != null)
-			.collect( Collectors.toMap( ProjetoAcao::getId, Function.identity()) );
-
-		return acoesProjetoDtoList.stream()
-			.map( acaoDto -> {
-				ProjetoAcao acao = null;
-				if ( acaoDto.idAcao() != null && acoesExistentesMap.containsKey(acaoDto.idAcao()) ) {
-					acao = acoesExistentesMap.get(acaoDto.idAcao());
-					acao.setId(acaoDto.idAcao());
-					acao.setDescricaoAcaoPrincipal(acaoDto.descricaoAcaoPrincipal());
-					acao.setDescricaoAcaoSecundaria(acaoDto.descricaoAcaoSecundaria());
-					acao.setValorEstimado(acaoDto.valorEstimadoAcaoPrincipal());
-					acao.setTipoStatus(new TipoStatus(acaoDto.idStatus()));
-				} else {
-					acao = new ProjetoAcao(projeto, acaoDto);	
-				}
-				return acao;
-			})
-			.collect(Collectors.toSet());
-
-	}
-	*/
 
 	private Set<ProjetoAcao> atualizarAcoesProjeto( Projeto projeto, Set<ProjetoAcao> acoesProjetoExistentes, List<ProjetoAcaoDto> acoesProjetoDtoList ) {
 

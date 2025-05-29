@@ -24,7 +24,8 @@ public record ProjetoDto(
 	Boolean rascunho,
 	String subResponsavelProponente,
 	List<ProjetoIndicadorDto> indicadoresProjeto,
-	List<ProjetoAcaoDto> acoesProjeto
+	List<ProjetoAcaoDto> acoesProjeto,
+	String pecasPlanejamento
 ) {
 
 	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao, 
@@ -48,7 +49,8 @@ public record ProjetoDto(
 			projeto.isRascunho(),
 			subResponsavelProponente,
 			indicadoresProjeto,
-			acoesProjeto
+			acoesProjeto,
+			projeto.getPecasPlanejamento()
 		);
 	}
 

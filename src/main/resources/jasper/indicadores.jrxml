@@ -29,17 +29,17 @@ proj.id_tipo_status = 1 and proj.id = $P{idProjeto} ]]></query>
 	<background splitType="Stretch"/>
 	<detail>
 		<band height="20" splitType="Stretch">
-			<element kind="textField" uuid="ed7698d5-aac8-47c7-82a3-be3849c18c24" x="11" y="3" width="128" height="15" forecolor="#0A588F" vTextAlign="Middle">
+			<element kind="textField" uuid="ed7698d5-aac8-47c7-82a3-be3849c18c24" stretchType="ElementGroupHeight" x="11" y="3" width="159" height="15" forecolor="#0A588F" vTextAlign="Middle">
 				<expression><![CDATA["5.1." + $V{REPORT_COUNT} + " " + $F{tipoindicador}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
-			<element kind="textField" uuid="edcc9754-feaf-40d2-ad48-a504973c7d50" x="180" y="3" width="180" height="15" forecolor="#0A588F" vTextAlign="Middle">
+			<element kind="textField" uuid="edcc9754-feaf-40d2-ad48-a504973c7d50" stretchType="ElementGroupHeight" x="180" y="3" width="180" height="15" forecolor="#0A588F" vTextAlign="Middle">
 				<expression><![CDATA[$F{descricaoindicador}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
-			<element kind="textField" uuid="c137e521-f2b4-4799-a077-d36cb66b272e" x="370" y="3" width="164" height="15" forecolor="#0A588F" vTextAlign="Middle">
+			<element kind="textField" uuid="c137e521-f2b4-4799-a077-d36cb66b272e" stretchType="ElementGroupHeight" x="370" y="3" width="210" height="15" forecolor="#0A588F" vTextAlign="Middle">
 				<expression><![CDATA[$F{metaindicador}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>

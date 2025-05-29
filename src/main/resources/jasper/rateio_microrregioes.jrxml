@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
 <jasperReport name="rateio" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="0381e3be-37a4-4d7c-9ff2-6086efdb852d">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="pg_siscap_dev"/>
@@ -76,7 +76,7 @@ order by
 	<detail>
 		<band height="25">
 			<element kind="textField" uuid="fa4a8112-a52d-4c93-b2bb-8b2ec48f7460" x="0" y="0" width="267" height="20" forecolor="#0A588F">
-				<expression><![CDATA["9.1." + $V{REPORT_COUNT} + "  " + (EQUALS($F{tipo_localidade}, "Estado") ? "Todo o Estado" : $F{nome_localidade})]]></expression>
+				<expression><![CDATA["8.1." + $V{REPORT_COUNT} + "  " + (EQUALS($F{tipo_localidade}, "Estado") ? "Todo o Estado" : $F{nome_localidade})]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>

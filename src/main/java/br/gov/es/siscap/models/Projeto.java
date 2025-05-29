@@ -101,6 +101,9 @@ public class Projeto extends ControleHistorico {
 	@OneToMany(mappedBy = "projeto")
 	private Set<ProjetoAcao> projetoAcoesSet;
 
+	@Column(name = "pecas_planejamento", nullable = false, length = 2000)
+	private String pecasPlanejamento;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
@@ -146,6 +149,7 @@ public class Projeto extends ControleHistorico {
 		this.setImpactos(form.impactos());
 		this.setArranjosInstitucionais(form.arranjosInstitucionais());
 		this.setFase("DIC");
+		this.setPecasPlanejamento(form.pecasPlanejamento());;
 	}
 
 }

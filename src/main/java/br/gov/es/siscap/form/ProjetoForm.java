@@ -66,7 +66,11 @@ public record ProjetoForm(
 			List<ProjetoIndicadorDto> indicadoresProjeto,
 			
 			@NotEmpty
-			List<ProjetoAcaoDto> acoesProjeto
+			List<ProjetoAcaoDto> acoesProjeto,
+
+			@NotBlank
+			@Size(max = 2000)
+			String pecasPlanejamento
 
 ) {
 }
