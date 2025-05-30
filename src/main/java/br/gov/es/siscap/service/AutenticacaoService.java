@@ -226,14 +226,14 @@ public class AutenticacaoService {
 			// mais o que estavam faltando
 			organizacoesBanco.addAll(pessoaOrganizacaosFaltando);
 
-			return organizacoesBanco.stream().map(PessoaOrganizacao::getOrganizacao).map(Organizacao::getId).collect(Collectors.toSet());
+			return organizacoesBanco.stream().map(PessoaOrganizacao::getOrganizacao).sorted((a, b) -> a.getNome().compareToIgnoreCase(b.getNome())).map(Organizacao::getId).collect(Collectors.toSet());
 		
 		} else {
 			logger.info("Usuário não está vinculado a nenhuma organizacao.");
 			logger.info("Iniciando processo de vinculação de usuário a organizações.");
 			Set<PessoaOrganizacao> pessoaOrganizacaoSetNovo = vincularPessoaOrganizacoes(usuarioPessoa, subNovo);
 			logger.info("Vínculo entre pessoa e organizações realizado com sucesso.");
-			return pessoaOrganizacaoSetNovo.stream().map(PessoaOrganizacao::getOrganizacao).map(Organizacao::getId).collect(Collectors.toSet());
+			return pessoaOrganizacaoSetNovo.stream().map(PessoaOrganizacao::getOrganizacao).sorted((a, b) -> a.getNome().compareToIgnoreCase(b.getNome())).map(Organizacao::getId).collect(Collectors.toSet());
 		}
 
 	}

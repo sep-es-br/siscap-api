@@ -4,9 +4,11 @@ import br.gov.es.siscap.dto.OrganizacaoDto;
 import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ResponsavelProponenteOpcoesDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.form.PessoaForm;
+import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.service.PessoaService;
@@ -32,14 +34,19 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import br.gov.es.siscap.service.AcessoCidadaoService;
 import br.gov.es.siscap.service.AutenticacaoService;
 import br.gov.es.siscap.service.CacheAgentesGovesService;
 import br.gov.es.siscap.service.OrganizacaoService;
+import br.gov.es.siscap.service.OrganogramaService;
+import br.gov.es.siscap.service.PessoaOrganizacaoService;
 
 @RestController
 @RequestMapping("/pessoas")
@@ -50,6 +57,8 @@ public class PessoaController {
 	private final PessoaService service;
 	private final OrganizacaoService organizacaoService;
 	private final AcessoCidadaoService acessoCidadaoService;
+	private final OrganogramaService organogramaService;
+	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 
 	@Autowired
     private CacheAgentesGovesService cacheService; 
@@ -80,14 +89,41 @@ public class PessoaController {
 		return ResponseEntity.ok(service.buscarIdPorSub(sub));
 	}
 
+	/*
 	@PostMapping("/syncPorSub/{sub}")
 	public ResponseEntity<String> sincronizarPessoaPorSub(@NotNull @PathVariable String sub) 
 		throws IOException {
 		String id = service.buscarIdPorSub(sub);
 		if( id.isBlank() ){
-			AgentePublicoACDto dados = acessoCidadaoService.buscarPessoaPorSub(sub);
-			Pessoa pessoa;
+
 			logger.info("Pessoa não encontrada na base do SISCAP, procedendo para criação de uma nova pessoa.");
+
+			Set<Organizacao> organizacoesSet = new HashSet<>();
+			AgentePublicoACDto dados = acessoCidadaoService.buscarPessoaPorSub(sub);
+
+			String lotacaoGuidPrioritariaAP = acessoCidadaoService.listarPapeisAgentePublicoPorSub(sub)
+				.stream()
+				.filter( agente -> Boolean.TRUE.equals( agente.Prioritario() ) )
+				.findFirst()
+				.map( agenteFiltrado -> agenteFiltrado.LotacaoGuid() )
+				.orElse("");
+
+			if( !"".equals(lotacaoGuidPrioritariaAP) ){
+								
+				String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuidPrioritariaAP).guidOrganizacao();
+				String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
+
+				Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
+			
+				if (organizacaoOptional.isPresent()) {
+					organizacoesSet.add(organizacaoOptional.get());
+				} else {
+					logger.info("Organização não encontrada para o CNPJ fornecido: [{}].", cnpjOrganizacao);
+				}
+
+			}
+						
+			Pessoa pessoa;
 			pessoa = new Pessoa();
 			pessoa.setNome(dados.nome());
 			pessoa.setNomeSocial(dados.apelido());
@@ -95,11 +131,35 @@ public class PessoaController {
 			pessoa.setSub(dados.sub());
 			pessoa.setApagado(false);
 			pessoa.setCriadoEm(LocalDateTime.now());
+			pessoa.setPessoaOrganizacao(organizacoesSet);
 			pessoa = service.salvarNovaPessoaAcessoCidadao(pessoa);
+			
 			logger.info("Pessoa criada com sucesso.");
+
 			id = pessoa.getId().toString();
+
+			Set<Long> idsOrganizacoes = organizacoesSet.stream()
+    					.map(Organizacao::getId)  
+    					.collect(Collectors.toSet());
+
+			pessoaOrganizacaoService.cadastrarPorPessoa(pessoa, idsOrganizacoes );
+
         };
     	return  ResponseEntity.ok(id);
+	}
+	*/
+
+	@PostMapping("/syncPorSub/{sub}")
+	public ResponseEntity<String> sincronizarPessoaPorSub(@NotNull @PathVariable String sub) throws IOException {
+		
+		String id = service.buscarIdPorSub(sub);
+		
+		if (id.isBlank()) {
+			logger.info("Pessoa não encontrada na base do SISCAP, procedendo para criação de uma nova pessoa.");
+			id = service.sincronizarAgenteCidadaoPessoaSiscap(sub);
+		}
+		
+		return ResponseEntity.ok(id);
 	}
 
 	@PostMapping

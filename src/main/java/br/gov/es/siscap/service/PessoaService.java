@@ -1,9 +1,12 @@
 package br.gov.es.siscap.service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.gov.es.siscap.dto.PessoaDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
@@ -48,6 +52,8 @@ public class PessoaService {
 	private final AcessoCidadaoService acessoCidadaoService;
 	private final ProjetoPessoaService projetoPessoaService;
 	private final ProgramaPessoaService programaPessoaService;
+	private final OrganogramaService organogramaService;
+	private final OrganizacaoService organizacaoService;
 	private final Logger logger = LogManager.getLogger(PessoaService.class);
 
 	@Value("${guidGOVES}")
@@ -302,5 +308,73 @@ public class PessoaService {
 		.orElse(null);
 
     }
+
+	@Transactional
+	public String sincronizarAgenteCidadaoPessoaSiscap( String sub ) {
+
+		logger.info("Inicio sincronizar pessoa Acesso Cidadao com base do SISCAP.");
+
+		AgentePublicoACDto dados = acessoCidadaoService.buscarPessoaPorSub(sub);
+
+		Set<Organizacao> organizacoes = buscarOrganizacoesAssociadas(sub);
+		
+		Pessoa pessoa = construirPessoa(dados);
+		
+		pessoa = this.salvarNovaPessoaAcessoCidadao(pessoa);
+		
+		associarOrganizacoesAPessoa(pessoa, organizacoes);
+
+		logger.info("Pessoa criada com sucesso.");
+
+		return pessoa.getId().toString();
+
+	}
+	
+	private Pessoa construirPessoa(AgentePublicoACDto dados) {
+		Pessoa pessoa = new Pessoa();
+		pessoa.setNome(dados.nome().toUpperCase());
+		pessoa.setNomeSocial(dados.apelido());
+		pessoa.setEmail(dados.email());
+		pessoa.setSub(dados.sub());
+		pessoa.setApagado(false);
+		pessoa.setCriadoEm(LocalDateTime.now());
+		return pessoa;
+	}
+
+	private Set<Organizacao> buscarOrganizacoesAssociadas(String sub) {
+		Set<Organizacao> organizacoes = new HashSet<>();
+		String lotacaoGuidPrioritaria = buscarLotacaoGuidPrioritaria(sub);
+		if (!lotacaoGuidPrioritaria.isEmpty()) {
+			buscarOrganizacaoPorLotacao(lotacaoGuidPrioritaria)
+				.ifPresentOrElse(
+					organizacoes::add,
+					() -> logger.info("Organização não encontrada para o CNPJ fornecido.")
+				);
+		}
+		return organizacoes;
+	}
+
+	private void associarOrganizacoesAPessoa(Pessoa pessoa, Set<Organizacao> organizacoes) {
+    	Set<Long> idsOrganizacoes = organizacoes.stream()
+            .map(Organizacao::getId)
+            .collect(Collectors.toSet());
+    	pessoaOrganizacaoService.cadastrarPorPessoa(pessoa, idsOrganizacoes);
+	}
+
+	private String buscarLotacaoGuidPrioritaria(String sub) {
+		return acessoCidadaoService.listarPapeisAgentePublicoPorSub(sub)
+				.stream()
+				.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
+				.findFirst()
+				.map(ACAgentePublicoPapelDto::LotacaoGuid)
+				.orElse("");
+	}
+
+	private Optional<Organizacao> buscarOrganizacaoPorLotacao(String lotacaoGuid) {
+    	String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
+    	String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
+    	return organizacaoService.buscarPorCnpj(cnpjOrganizacao);
+	}
+
 
 }

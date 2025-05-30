@@ -10,6 +10,7 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.models.LocalidadeQuantia;
+import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
@@ -424,17 +425,7 @@ public class ProjetoService {
 			String id = pessoaService.buscarIdPorSub(sub);
 			if (id.isBlank()) {
 				logger.info("Pessoa com sub [{}] não encontrada na base do SISCAP, procedendo para criação.", sub);
-				var dados = acessoCidadaoService.buscarPessoaPorSub(sub);
-				Pessoa pessoa = new Pessoa();
-				pessoa.setNome(dados.nome());
-				pessoa.setNomeSocial(dados.apelido());
-				pessoa.setEmail(dados.email());
-				pessoa.setSub(dados.sub());
-				pessoa.setApagado(false);
-				pessoa.setCriadoEm(LocalDateTime.now());
-				pessoa = pessoaService.salvarNovaPessoaAcessoCidadao(pessoa);
-				logger.info("Pessoa [{}] criada com sucesso. ID: {}", pessoa.getNome(), pessoa.getId());
-				id = pessoa.getId().toString();
+				id = pessoaService.sincronizarAgenteCidadaoPessoaSiscap(sub);
 			}
 			EquipeDto novoMembro = new EquipeDto( Long.valueOf(id), membro.idPapel(), membro.idStatus(), membro.justificativa(), membro.subPessoa(), membro.nome() );
 			equipe.add(novoMembro);
