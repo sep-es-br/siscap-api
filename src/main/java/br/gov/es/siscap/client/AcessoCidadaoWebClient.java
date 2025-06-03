@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto.AgentePublicoACResponseDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.SubResponseDto;
 
 @FeignClient(name = "acessoCidadaoWeb", url = "${api.acessocidadao.uri.webapi}")
@@ -35,5 +36,7 @@ public interface AcessoCidadaoWebClient {
 	@GetMapping("/api/conjunto/{guid}/papeis")
 	List<ACAgentePublicoPapelDto> buscarAgentesPublicosPapeisPorGuidUnidade(@RequestHeader Map<String, Object> headers, @PathVariable String guid);
 
+	@GetMapping("/api/conjunto/{guid}/gestor")
+	AgentePublicoACResponseDto buscarGestorPorGuidUnidade(@RequestHeader Map<String, Object> headers, @PathVariable String guid);
 
 }

@@ -1,17 +1,22 @@
 package br.gov.es.siscap.service;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 import br.gov.es.siscap.client.AcessoCidadaoUserInfoClient;
 import br.gov.es.siscap.client.AcessoCidadaoWebClient;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto.AgentePublicoACResponseDto;
 import br.gov.es.siscap.dto.opcoes.ResponsavelProponenteOpcoesDto;
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +27,7 @@ public class AcessoCidadaoService {
     private final AcessoCidadaoAutorizacaoService ACAuthService;
     private final AcessoCidadaoWebClient ACWebClient;
     private final AcessoCidadaoUserInfoClient ACUserInfoClient;
+    private final Logger logger = LogManager.getLogger(AcessoCidadaoService.class);
 
     public AgentePublicoACDto buscarPessoaPorCpf(String cpf) {
         String sub = buscarSubPorCpf(cpf);
@@ -74,6 +80,29 @@ public class AcessoCidadaoService {
         .sorted((a, b) -> a.nome().compareToIgnoreCase(b.nome()))
         .collect(Collectors.toList());
         return result;
+    }
+
+    List<ResponsavelProponenteOpcoesDto> buscarGestorPorGuidUnidade(String unidadeGuid) {
+        
+        try {
+            
+            AgentePublicoACResponseDto gestorUnidade = ACWebClient.buscarGestorPorGuidUnidade(
+                ACAuthService.getAuthorizationHeader(), unidadeGuid
+            );
+            return Collections.singletonList(
+                new ResponsavelProponenteOpcoesDto(0L, gestorUnidade.Nome(), "", gestorUnidade.Sub())
+            );
+
+        } catch (HttpClientErrorException.NotFound e) {
+            return Collections.emptyList();
+
+        } catch (Exception e) {
+            logger.error("Erro ao buscar gestor da unidade [guid: {}] - devolver lista de agentes publicos da unidade para seleção manual.", unidadeGuid );
+            
+        }
+
+        return Collections.emptyList();
+
     }
 
 }

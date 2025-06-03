@@ -264,7 +264,16 @@ public class PessoaService {
 	}
 
     public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownOrganizacao(String unidadeGuid) {
-		return acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(unidadeGuid);
+		
+		List<ResponsavelProponenteOpcoesDto> listaResponsavelOrganizacao;
+		
+		listaResponsavelOrganizacao = acessoCidadaoService.buscarGestorPorGuidUnidade(unidadeGuid);
+		
+		if( listaResponsavelOrganizacao.isEmpty() )
+			listaResponsavelOrganizacao = acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(unidadeGuid);
+
+		return listaResponsavelOrganizacao;
+
     }
 
 	public String buscarIdPorSub(String sub) {

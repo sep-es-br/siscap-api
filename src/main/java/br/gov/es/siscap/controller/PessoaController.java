@@ -89,66 +89,6 @@ public class PessoaController {
 		return ResponseEntity.ok(service.buscarIdPorSub(sub));
 	}
 
-	/*
-	@PostMapping("/syncPorSub/{sub}")
-	public ResponseEntity<String> sincronizarPessoaPorSub(@NotNull @PathVariable String sub) 
-		throws IOException {
-		String id = service.buscarIdPorSub(sub);
-		if( id.isBlank() ){
-
-			logger.info("Pessoa não encontrada na base do SISCAP, procedendo para criação de uma nova pessoa.");
-
-			Set<Organizacao> organizacoesSet = new HashSet<>();
-			AgentePublicoACDto dados = acessoCidadaoService.buscarPessoaPorSub(sub);
-
-			String lotacaoGuidPrioritariaAP = acessoCidadaoService.listarPapeisAgentePublicoPorSub(sub)
-				.stream()
-				.filter( agente -> Boolean.TRUE.equals( agente.Prioritario() ) )
-				.findFirst()
-				.map( agenteFiltrado -> agenteFiltrado.LotacaoGuid() )
-				.orElse("");
-
-			if( !"".equals(lotacaoGuidPrioritariaAP) ){
-								
-				String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuidPrioritariaAP).guidOrganizacao();
-				String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
-
-				Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
-			
-				if (organizacaoOptional.isPresent()) {
-					organizacoesSet.add(organizacaoOptional.get());
-				} else {
-					logger.info("Organização não encontrada para o CNPJ fornecido: [{}].", cnpjOrganizacao);
-				}
-
-			}
-						
-			Pessoa pessoa;
-			pessoa = new Pessoa();
-			pessoa.setNome(dados.nome());
-			pessoa.setNomeSocial(dados.apelido());
-			pessoa.setEmail(dados.email());
-			pessoa.setSub(dados.sub());
-			pessoa.setApagado(false);
-			pessoa.setCriadoEm(LocalDateTime.now());
-			pessoa.setPessoaOrganizacao(organizacoesSet);
-			pessoa = service.salvarNovaPessoaAcessoCidadao(pessoa);
-			
-			logger.info("Pessoa criada com sucesso.");
-
-			id = pessoa.getId().toString();
-
-			Set<Long> idsOrganizacoes = organizacoesSet.stream()
-    					.map(Organizacao::getId)  
-    					.collect(Collectors.toSet());
-
-			pessoaOrganizacaoService.cadastrarPorPessoa(pessoa, idsOrganizacoes );
-
-        };
-    	return  ResponseEntity.ok(id);
-	}
-	*/
-
 	@PostMapping("/syncPorSub/{sub}")
 	public ResponseEntity<String> sincronizarPessoaPorSub(@NotNull @PathVariable String sub) throws IOException {
 		
