@@ -314,7 +314,8 @@ public class PessoaService {
 				pessoaBanco.getId(), 
 				pessoaBanco.getNome(), 
 				pessoaBanco.getNomeSocial(),
-				sub );
+				sub,
+				false );
 
 		} catch (PessoaNaoEncontradoException e) {
 			logger.debug("Agente não encontrado no banco, buscando no cache...");
