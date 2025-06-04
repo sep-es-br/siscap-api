@@ -4,13 +4,9 @@ import br.gov.es.siscap.dto.OrganizacaoDto;
 import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ResponsavelProponenteOpcoesDto;
-import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.form.PessoaForm;
-import br.gov.es.siscap.models.Organizacao;
-import br.gov.es.siscap.models.Pessoa;
-import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.service.PessoaService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -32,15 +27,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import br.gov.es.siscap.service.AcessoCidadaoService;
 import br.gov.es.siscap.service.AutenticacaoService;
 import br.gov.es.siscap.service.CacheAgentesGovesService;

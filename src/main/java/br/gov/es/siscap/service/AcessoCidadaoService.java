@@ -75,34 +75,24 @@ public class AcessoCidadaoService {
             0L, 
             dto.AgentePublicoNome(), 
             dto.Nome(),
-            dto.AgentePublicoSub()
+            dto.AgentePublicoSub(),
+            false
         ))
         .sorted((a, b) -> a.nome().compareToIgnoreCase(b.nome()))
         .collect(Collectors.toList());
         return result;
     }
 
-    List<ResponsavelProponenteOpcoesDto> buscarGestorPorGuidUnidade(String unidadeGuid) {
-        
+    public String buscarGestorPorGuidUnidade(String unidadeGuid) {
         try {
-            
             AgentePublicoACResponseDto gestorUnidade = ACWebClient.buscarGestorPorGuidUnidade(
                 ACAuthService.getAuthorizationHeader(), unidadeGuid
             );
-            return Collections.singletonList(
-                new ResponsavelProponenteOpcoesDto(0L, gestorUnidade.Nome(), "", gestorUnidade.Sub())
-            );
-
-        } catch (HttpClientErrorException.NotFound e) {
-            return Collections.emptyList();
-
+            return gestorUnidade.Sub();
         } catch (Exception e) {
             logger.error("Erro ao buscar gestor da unidade [guid: {}] - devolver lista de agentes publicos da unidade para seleção manual.", unidadeGuid );
-            
         }
-
-        return Collections.emptyList();
-
+        return "";
     }
 
 }

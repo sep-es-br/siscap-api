@@ -267,10 +267,21 @@ public class PessoaService {
 		
 		List<ResponsavelProponenteOpcoesDto> listaResponsavelOrganizacao;
 		
-		listaResponsavelOrganizacao = acessoCidadaoService.buscarGestorPorGuidUnidade(unidadeGuid);
+		String subGestorOrganizacao = acessoCidadaoService.buscarGestorPorGuidUnidade(unidadeGuid);
 		
-		if( listaResponsavelOrganizacao.isEmpty() )
-			listaResponsavelOrganizacao = acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(unidadeGuid);
+		listaResponsavelOrganizacao = acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(unidadeGuid);
+
+		List<ResponsavelProponenteOpcoesDto> listaAtualizada = listaResponsavelOrganizacao.stream()
+																.map(p -> new ResponsavelProponenteOpcoesDto(
+																p.id(),
+																p.nome(),
+																p.papelPrioritario(),
+																p.agentePublicoSub(),
+																subGestorOrganizacao.equals(p.agentePublicoSub()) // seta true se for o gestor
+															))
+															.collect(Collectors.toList());
+		
+		listaResponsavelOrganizacao = listaAtualizada ;
 
 		return listaResponsavelOrganizacao;
 
