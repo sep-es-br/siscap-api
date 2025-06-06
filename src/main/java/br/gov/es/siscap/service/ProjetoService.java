@@ -112,7 +112,8 @@ public class ProjetoService {
 
 		Set<ProjetoAcao> acoes = projetoAcaoService.buscarPorProjeto(projeto);
 
-		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet),
+		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
+		this.buscarIdResponsavelProponente(projetoPessoaSet),
 		this.buscarEquipeElaboracao(projetoPessoaSet),
 		this.buscarSubResponsavelProponente(projetoPessoaSet),
 		this.buscarIndicadores(indicadores),
