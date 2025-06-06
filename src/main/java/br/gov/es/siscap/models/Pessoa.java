@@ -1,17 +1,29 @@
 package br.gov.es.siscap.models;
 
-import br.gov.es.siscap.form.EnderecoForm;
-import br.gov.es.siscap.form.PessoaForm;
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
 
-import java.util.Set;
-import java.util.stream.Collectors;
+import br.gov.es.siscap.form.PessoaForm;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "pessoa")
@@ -62,7 +74,7 @@ public class Pessoa extends ControleHistorico {
 	@Column(name = "sub")
 	private String sub;
 
-	@ManyToMany(fetch = FetchType.LAZY)
+	@ManyToMany()
 	@JoinTable(name = "pessoa_area_atuacao",
 				joinColumns = {@JoinColumn(name = "id_pessoa")},
 				inverseJoinColumns = @JoinColumn(name = "id_area_atuacao", nullable = false))
@@ -82,9 +94,13 @@ public class Pessoa extends ControleHistorico {
 	}
 
 	public Pessoa(PessoaForm form, String nomeImagem) {
+		this.setCpf(null);
+		this.setGenero(null);
+		this.setEndereco(null);
+
 		this.setDadosObrigatorios(form);
 		this.setDadosOpcionais(form);
-		this.criarEndereco(form.endereco());
+//		this.criarEndereco(form.endereco());
 		this.atualizarImagemPerfil(nomeImagem);
 		this.setSub(form.sub());
 	}
@@ -92,7 +108,7 @@ public class Pessoa extends ControleHistorico {
 	public void atualizarPessoa(PessoaForm form) {
 		this.setDadosObrigatorios(form);
 		this.setDadosOpcionais(form);
-		this.atualizarEndereco(form.endereco());
+//		this.atualizarEndereco(form.endereco());
 		super.atualizarHistorico();
 	}
 
@@ -112,32 +128,32 @@ public class Pessoa extends ControleHistorico {
 		this.setNome(form.nome());
 		this.setEmail(form.email());
 		this.setNacionalidade(form.nacionalidade());
-		this.setGenero(form.genero());
+//		this.setGenero(form.genero());
 	}
 
 	private void setDadosOpcionais(PessoaForm form) {
 		this.setNomeSocial(form.nomeSocial());
-		this.setCpf(form.cpf());
+//		this.setCpf(form.cpf());
 		this.setTelefoneComercial(form.telefoneComercial());
 		this.setTelefonePessoal(form.telefonePessoal());
 		this.setAreasAtuacao(form.idAreasAtuacao() != null ?
 					form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet()) : null);
 	}
 
-	private void criarEndereco(EnderecoForm enderecoForm) {
-		this.setEndereco(enderecoForm != null ? new Endereco(enderecoForm) : null);
-	}
+//	private void criarEndereco(EnderecoForm enderecoForm) {
+//		this.setEndereco(enderecoForm != null ? new Endereco(enderecoForm) : null);
+//	}
 
-	private void atualizarEndereco(EnderecoForm enderecoForm) {
-		if (enderecoForm != null) {
-			if (this.getEndereco() == null) {
-				this.setEndereco(new Endereco(enderecoForm));
-			} else {
-				this.getEndereco().atualizarEndereco(enderecoForm);
-			}
-		} else if (this.getEndereco() != null) {
-			this.getEndereco().apagarEndereco();
-			this.setEndereco(null);
-		}
-	}
+//	private void atualizarEndereco(EnderecoForm enderecoForm) {
+//		if (enderecoForm != null) {
+//			if (this.getEndereco() == null) {
+//				this.setEndereco(new Endereco(enderecoForm));
+//			} else {
+//				this.getEndereco().atualizarEndereco(enderecoForm);
+//			}
+//		} else if (this.getEndereco() != null) {
+//			this.getEndereco().apagarEndereco();
+//			this.setEndereco(null);
+//		}
+//	}
 }

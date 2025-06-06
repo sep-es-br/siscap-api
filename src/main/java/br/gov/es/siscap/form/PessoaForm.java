@@ -18,11 +18,10 @@ public record PessoaForm(
 			@NotBlank
 			String nacionalidade,
 
-			@NotBlank
-			String genero,
+//			String genero,
 
-			@Size(max = 11, min = 11)
-			String cpf,
+//			@Size(max = 11, min = 11)
+//			String cpf,
 
 			@Email
 			@NotBlank
@@ -32,8 +31,8 @@ public record PessoaForm(
 
 			String telefonePessoal,
 
-			@Valid
-			EnderecoForm endereco,
+//			@Valid
+//			EnderecoForm endereco,
 
 			Set<Long> idOrganizacoes,
 

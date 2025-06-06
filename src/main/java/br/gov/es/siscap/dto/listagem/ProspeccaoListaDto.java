@@ -7,6 +7,7 @@ import br.gov.es.siscap.utils.FormatadorData;
 public record ProspeccaoListaDto(
 
 			Long id,
+			String codigoProspeccao,
 			String nomeOrganizacaoProspectada,
 			String tipoOperacao,
 			String objetoCartaConsulta,
@@ -18,12 +19,13 @@ public record ProspeccaoListaDto(
 	public ProspeccaoListaDto(Prospeccao prospeccao) {
 		this(
 					prospeccao.getId(),
+					(prospeccao.getCartaConsulta().gerarCodigoCartaConsulta() + '-' + prospeccao.getCountAno()),
 					(prospeccao.getOrganizacaoProspectada().getNomeFantasia() + " - " + prospeccao.getOrganizacaoProspectada().getNome()),
 					prospeccao.getCartaConsulta().getTipoOperacao().getTipo(),
 					prospeccao.getCartaConsulta().getCartaConsultaObjeto().nome(),
 					prospeccao.getTipoProspeccao(),
 					prospeccao.getStatusProspeccao(),
-					prospeccao.getDataProspeccao() != null ? FormatadorData.formatar(prospeccao.getDataProspeccao(), FormatoDataEnum.SIMPLES) : null
+					prospeccao.getDataProspeccao() != null ? FormatadorData.format(prospeccao.getDataProspeccao(), FormatoDataEnum.SIMPLES) : null
 		);
 	}
 }

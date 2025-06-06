@@ -4,29 +4,40 @@ import br.gov.es.siscap.dto.*;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
+import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.models.LocalidadeQuantia;
+import br.gov.es.siscap.models.Organizacao;
+import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.repository.ProjetoRepository;
+import br.gov.es.siscap.specification.ProjetoSpecification;
+import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import br.gov.es.siscap.models.ProjetoAcao;
+import br.gov.es.siscap.models.ProjetoIndicador;
 
 @Service
 @RequiredArgsConstructor
@@ -37,19 +48,36 @@ public class ProjetoService {
 	private final ProjetoPessoaService projetoPessoaService;
 	private final LocalidadeQuantiaService localidadeQuantiaService;
 	private final OrganizacaoService organizacaoService;
+	private final PessoaService pessoaService;
+	private final AcessoCidadaoService acessoCidadaoService;
+	private final ProjetoIndicadorService projetoIndicadorService;
+
+	private final ProjetoAcaoService projetoAcaoService;
+
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
-	public Page<ProjetoListaDto> listarTodos(Pageable pageable, String search) {
-		logger.info("Buscando todos os projetos");
+	public Page<ProjetoListaDto> listarTodos(
+				Pageable pageable,
+				String siglaOuTitulo,
+				Long idOrganizacao,
+				String status) {
 
-		return repository.paginarProjetosPorFiltroPesquisaSimples(search, pageable)
+		Specification<Projeto> especificacaoSiglaTitulo = siglaOuTitulo.isBlank() ? null : ProjetoSpecification.filtroSiglaTitulo(siglaOuTitulo);
+		Specification<Projeto> especificacaoIdOrganizacao = idOrganizacao == 0 ? null : ProjetoSpecification.filtroIdOrganizacao(idOrganizacao);
+		Specification<Projeto> especificacaoStatus = status.equals("Status") ? null : ProjetoSpecification.filtroStatus(status);
+
+		Specification<Projeto> filtroPesquisa = Specification
+					.where(especificacaoSiglaTitulo)
+					.and(especificacaoIdOrganizacao)
+					.and(especificacaoStatus);
+
+		return repository.findAll(filtroPesquisa, pageable)
 					.map(projeto -> {
 						Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 
-						List<String> nomesLocalidadesRateio = localidadeQuantiaService.listarNomesLocalidadesRateio(localidadeQuantiaSet);
 						ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
-						return new ProjetoListaDto(projeto, valorDto, nomesLocalidadesRateio);
+						return new ProjetoListaDto(projeto, valorDto.quantia());
 					});
 	}
 
@@ -80,19 +108,65 @@ public class ProjetoService {
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
-		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
+		Set<ProjetoIndicador> indicadores = projetoIndicadorService.buscarPorProjeto(projeto);
+
+		Set<ProjetoAcao> acoes = projetoAcaoService.buscarPorProjeto(projeto);
+
+		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
+		this.buscarIdResponsavelProponente(projetoPessoaSet),
+		this.buscarEquipeElaboracao(projetoPessoaSet),
+		this.buscarSubResponsavelProponente(projetoPessoaSet),
+		this.buscarIndicadores(indicadores),
+		this.buscarAcoes(acoes));
+
+		return projetoDtoRetorno;
+
+	}
+
+	private List<ProjetoIndicadorDto> buscarIndicadores(Set<ProjetoIndicador> projetoIndicadorSet) {
+		return projetoIndicadorSet.stream()
+			.map(ProjetoIndicadorDto::new)
+			.toList();
+	}
+
+	private List<ProjetoAcaoDto> buscarAcoes(Set<ProjetoAcao> projetoAcaoSet) {
+		return projetoAcaoSet.stream()
+			.map(ProjetoAcaoDto::new)
+			.toList();
 	}
 
 	@Transactional
-	public ProjetoDto cadastrar(ProjetoForm form) {
+	public ProjetoDto cadastrar(ProjetoForm form, boolean rascunho) {
+		
 		logger.info("Cadastrando novo projeto");
+
 		logger.info("Dados: {}", form);
 
 		this.validarProjeto(form, true);
 
-		Projeto projeto = repository.save(new Projeto(form));
+		Projeto tempProjeto = new Projeto(form);
 
-		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.cadastrar(projeto, form.idResponsavelProponente(), form.equipeElaboracao());
+		tempProjeto.setCountAno(this.buscarCountAnoFormatado());
+
+		if (rascunho) {
+			tempProjeto.setRascunho(true);
+			tempProjeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
+		} else {
+			tempProjeto.setRascunho(false);
+			tempProjeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
+		}
+
+		Projeto projeto = repository.save(tempProjeto); 
+
+		Set<ProjetoPessoa> projetoPessoaSet;
+
+		List<EquipeDto> equipeParaGravar = form.equipeElaboracao();
+		List<EquipeDto> equipeElaboracaoValidada = this.validarEquipeElaboracao(form);
+		if (!new HashSet<>(form.equipeElaboracao()).equals(new HashSet<>(equipeElaboracaoValidada))) {
+			equipeParaGravar = equipeElaboracaoValidada;
+		}
+
+		projetoPessoaSet = projetoPessoaService.cadastrar( projeto, form.idResponsavelProponente(), equipeParaGravar );
 
 		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(), form.rateio());
 
@@ -100,32 +174,74 @@ public class ProjetoService {
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
+		List<ProjetoIndicadorDto> indicadoresProjetoParaGravar = form.indicadoresProjeto();
+		
+		projetoIndicadorService.cadastrar( projeto, indicadoresProjetoParaGravar );
+
+		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
+
+		projetoAcaoService.cadastrar( projeto, acoesProjetoParaGravar );
+
 		logger.info("Projeto cadastrado com sucesso");
-		return new ProjetoDto(projeto, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
+
+		return new ProjetoDto(projeto, valorDto, rateio, 
+			this.buscarIdResponsavelProponente(projetoPessoaSet), 
+			this.buscarEquipeElaboracao(projetoPessoaSet), 
+			this.buscarSubResponsavelProponente(projetoPessoaSet) ,
+			indicadoresProjetoParaGravar,
+			acoesProjetoParaGravar);
 	}
 
-
 	@Transactional
-	public ProjetoDto atualizar(Long id, ProjetoForm form) {
+	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho) {
+
 		logger.info("Atualizando projeto com id: {}", id);
-		logger.info("Dados: {}", form);
 
 		this.validarProjeto(form, false);
 
 		Projeto projeto = this.buscar(id);
 		projeto.atualizarProjeto(form);
+
+		if (rascunho) {
+			projeto.setRascunho(true);
+			projeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
+		} else {
+			projeto.setRascunho(false);
+			projeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
+		}
+
 		Projeto projetoResult = repository.save(projeto);
 
-		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.atualizar(projetoResult, form.idResponsavelProponente(), form.equipeElaboracao());
+		Set<ProjetoPessoa> projetoPessoaSet;
+		List<EquipeDto> equipeParaGravar = form.equipeElaboracao();
+		List<EquipeDto> equipeElaboracaoValidada = this.validarEquipeElaboracao(form);
+		if (!new HashSet<>(form.equipeElaboracao()).equals(new HashSet<>(equipeElaboracaoValidada))) {
+			equipeParaGravar = equipeElaboracaoValidada;
+		}
+		projetoPessoaSet = projetoPessoaService.atualizar(projeto, form.idResponsavelProponente(), equipeParaGravar);
+
+		List<ProjetoIndicadorDto> projetoIndicadoresDto = form.indicadoresProjeto();
+		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projetoResult, projetoIndicadoresDto);
 
 		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
-
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
+		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesProjeto();
+		
+		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar( projetoResult, projetoAcoesDto, rascunho );
+
 		logger.info("Projeto atualizado com sucesso");
-		return new ProjetoDto(projetoResult, valorDto, rateio, this.buscarIdResponsavelProponente(projetoPessoaSet), this.buscarEquipeElaboracao(projetoPessoaSet));
+
+		return new ProjetoDto(projetoResult, valorDto, rateio, 
+			this.buscarIdResponsavelProponente(projetoPessoaSet), 
+			this.buscarEquipeElaboracao(projetoPessoaSet), 
+			this.buscarSubResponsavelProponente(projetoPessoaSet),
+			this.buscarIndicadores(projetoIndicadoresSet),
+			this.buscarAcoes(projetoAcoesSet)
+			);
+
 	}
 
 	@Transactional
@@ -135,13 +251,29 @@ public class ProjetoService {
 		Projeto projeto = this.buscar(id);
 
 		projeto.apagarProjeto();
-		repository.saveAndFlush(projeto);
-		repository.deleteById(id);
-
+		
 		projetoPessoaService.excluirPorProjeto(projeto);
+		
 		localidadeQuantiaService.excluir(projeto);
 
+		projetoIndicadorService.excluirPorProjeto(projeto);
+
+		projetoAcaoService.excluirPorProjeto(projeto);
+
+		repository.saveAndFlush(projeto);
+		
+		repository.deleteById(id);
+
 		logger.info("Projeto excluido com sucesso");
+	}
+
+	@Transactional
+	public void alterarStatusProjeto(Long id, String status) {
+		Projeto projeto = this.buscar(id);
+
+		projeto.setStatus(status);
+
+		repository.save(projeto);
 	}
 
 	public List<Long> buscarIdProjetoPropostoList(Programa programa) {
@@ -215,8 +347,7 @@ public class ProjetoService {
 		String cnpj = this.formatarCnpj(projeto.getOrganizacao().getCnpj());
 
 		return "PROJETO n. " +
-					projeto.getId() + "/" +
-					projeto.getCriadoEm().getYear() + "-" +
+					projeto.getCountAno() + "-" +
 					projeto.getOrganizacao().getNomeFantasia() + "-" +
 					cnpj;
 	}
@@ -230,6 +361,7 @@ public class ProjetoService {
 	}
 
 	private Projeto buscar(Long id) {
+		Projeto resultado = repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 		return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 	}
 
@@ -238,6 +370,14 @@ public class ProjetoService {
 					.filter(ProjetoPessoa::isResponsavelProponente)
 					.findFirst()
 					.map(projetoPessoa -> projetoPessoa.getPessoa().getId())
+					.orElse(null);
+	}
+
+	private String buscarSubResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
+		return projetoPessoaSet.stream()
+					.filter(ProjetoPessoa::isResponsavelProponente)
+					.findFirst()
+					.map(projetoPessoa -> projetoPessoa.getPessoa().getSub())
 					.orElse(null);
 	}
 
@@ -256,21 +396,42 @@ public class ProjetoService {
 		return cnpj.replaceAll("^(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})$", "$1.$2.$3/$4-$5");
 	}
 
+	private String buscarCountAnoFormatado() {
+		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
+	}
+
 	private void validarProjeto(ProjetoForm form, boolean isSalvar) {
 		List<String> erros = new ArrayList<>();
 
 		boolean checkFormIdOrganizacaoExistePorId = !organizacaoService.existePorId(form.idOrganizacao());
 		boolean checkProjetoExistePorSigla = repository.existsBySigla(form.sigla()) && isSalvar;
-
+		
 		if (checkFormIdOrganizacaoExistePorId)
 			erros.add("Erro ao encontrar Organização com id " + form.idOrganizacao());
 
 		if (checkProjetoExistePorSigla)
 			erros.add("Já existe um projeto cadastrado com essa sigla.");
-
+		
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
 		}
+
 	}
+		
+	private List<EquipeDto> validarEquipeElaboracao(ProjetoForm form) {
+		List<EquipeDto> equipe = new ArrayList<>();
+		for (EquipeDto membro : form.equipeElaboracao()) {
+			String sub = membro.subPessoa();
+			String id = pessoaService.buscarIdPorSub(sub);
+			if (id.isBlank()) {
+				logger.info("Pessoa com sub [{}] não encontrada na base do SISCAP, procedendo para criação.", sub);
+				id = pessoaService.sincronizarAgenteCidadaoPessoaSiscap(sub);
+			}
+			EquipeDto novoMembro = new EquipeDto( Long.valueOf(id), membro.idPapel(), membro.idStatus(), membro.justificativa(), membro.subPessoa(), membro.nome() );
+			equipe.add(novoMembro);
+		}
+		return equipe;
+	}
+
 }

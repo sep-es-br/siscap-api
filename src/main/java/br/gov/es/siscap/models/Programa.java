@@ -75,6 +75,9 @@ public class Programa extends ControleHistorico {
 	@Column(name = "moeda")
 	private String moeda;
 
+	@Column(name = "count_ano", nullable = false)
+	private String countAno;
+
 	public Programa(Long id) {
 		this.setId(id);
 	}

@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface OrganizacaoRepository extends JpaRepository<Organizacao, Long> {
@@ -25,4 +27,10 @@ public interface OrganizacaoRepository extends JpaRepository<Organizacao, Long> 
 	List<Organizacao> findAllByTipoOrganizacao(TipoOrganizacao tipoOrganizacao, Sort sort);
 
 	boolean existsByCnpj(String cnpj);
+
+	Optional<Organizacao> findByCnpj(String cnpj);
+
+	Optional<Organizacao> findByCnpjOrNomeFantasia(String cnpj, String nomeFantasia);
+
+	Set<Organizacao> findAllByGuidNotNullAndTipoOrganizacao(TipoOrganizacao tipoOrganizacao);
 }

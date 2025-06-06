@@ -9,12 +9,14 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+
 
 @Entity
 @Table(name = "projeto_pessoa")
@@ -32,12 +34,12 @@ public class ProjetoPessoa extends ControleHistorico {
 	private Integer id;
 
 	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne()
 	@JoinColumn(name = "id_projeto", nullable = false)
 	private Projeto projeto;
 
 	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne()
 	@JoinColumn(name = "id_pessoa", nullable = false)
 	private Pessoa pessoa;
 
@@ -49,7 +51,7 @@ public class ProjetoPessoa extends ControleHistorico {
 	@JoinColumn(name = "id_tipo_equipe")
 	private TipoEquipe tipoEquipe;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne()
 	@JoinColumn(name = "id_tipo_status")
 	private TipoStatus tipoStatus;
 
@@ -107,8 +109,10 @@ public class ProjetoPessoa extends ControleHistorico {
 	}
 
 	public boolean isResponsavelProponente() {
-		return Objects.equals(this.getTipoPapel().getId(), TipoPapelEnum.RESPONSAVEL_PROPONENTE.getValue());
+		return this.getTipoPapel() != null &&
+			   Objects.equals(this.getTipoPapel().getId(), TipoPapelEnum.RESPONSAVEL_PROPONENTE.getValue());
 	}
+	
 
 	public boolean compararIdPessoaComEquipeDto(EquipeDto equipeDto) {
 		return Objects.equals(this.getPessoa().getId(), equipeDto.idPessoa());

@@ -6,8 +6,11 @@ import br.gov.es.siscap.dto.ProspeccaoDetalhesDto;
 import br.gov.es.siscap.dto.ProspeccaoDto;
 import br.gov.es.siscap.dto.listagem.ProspeccaoListaDto;
 import br.gov.es.siscap.form.ProspeccaoForm;
+import br.gov.es.siscap.models.CartaConsulta;
 import br.gov.es.siscap.models.Prospeccao;
 import br.gov.es.siscap.repository.ProspeccaoRepository;
+import br.gov.es.siscap.utils.FormatadorCountAno;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 @Service
@@ -26,6 +30,7 @@ public class ProspeccaoService {
 	private final ProspeccaoRepository repository;
 	private final ProspeccaoInteressadoService prospeccaoInteressadoService;
 	private final CartaConsultaService cartaConsultaService;
+	private final EmailService emailService;
 
 	private final Logger logger = LogManager.getLogger(ProspeccaoService.class);
 
@@ -62,7 +67,11 @@ public class ProspeccaoService {
 		logger.info("Cadastrando nova prospeccao");
 		logger.info("Dados: {}", form);
 
-		Prospeccao prospeccao = repository.save(new Prospeccao(form));
+		Prospeccao tempProspeccao = new Prospeccao(form);
+
+		tempProspeccao.setCountAno(buscarCountAnoFormatado());
+
+		Prospeccao prospeccao = repository.save(tempProspeccao);
 
 		List<InteressadoDto> interessadoDtoList = prospeccaoInteressadoService.cadastrar(prospeccao, form.interessadosList());
 
@@ -102,8 +111,35 @@ public class ProspeccaoService {
 		logger.info("Prospeccao excluída com sucesso");
 	}
 
+	@Transactional
+	public void enviarEmailProspeccao(Long id) throws MessagingException, UnsupportedEncodingException {
+		ProspeccaoDetalhesDto prospeccaoDetalhesDto = this.buscarDetalhesPorId(id);
+
+		List<String> emailsInteressadosList = prospeccaoInteressadoService.buscarEmailsInteressadosPorPropeccao(this.buscar(id));
+
+		boolean confirmacaoEnvioEmail = emailService.enviarEmail(prospeccaoDetalhesDto, emailsInteressadosList);
+
+		if (confirmacaoEnvioEmail) {
+			this.alterarDadosProspeccaoEnvioEmail(id);
+			logger.info("Email enviado com sucesso");
+		}
+	}
+
 	private Prospeccao buscar(Long id) {
 		return repository.findById(id)
 					.orElseThrow(() -> new RuntimeException("Prospeccao não encontrada"));
+	}
+
+	private String buscarCountAnoFormatado() {
+		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
+	}
+
+	protected void alterarDadosProspeccaoEnvioEmail(Long id) {
+		Prospeccao prospeccao = this.buscar(id);
+		prospeccao.alterarDadosProspeccaoEnvioEmail();
+		repository.saveAndFlush(prospeccao);
+
+		CartaConsulta prospeccao_cartaConsulta = prospeccao.getCartaConsulta();
+		cartaConsultaService.alterarCartaConsultaProspectado(prospeccao_cartaConsulta);
 	}
 }

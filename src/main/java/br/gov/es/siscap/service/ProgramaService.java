@@ -7,11 +7,13 @@ import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.repository.ProgramaRepository;
+import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,7 +57,11 @@ public class ProgramaService {
 		logger.info("Cadastrando novo programa");
 		logger.info("Dados: {}", form);
 
-		Programa programa = repository.save(new Programa(form));
+		Programa tempPrograma = new Programa(form);
+
+		tempPrograma.setCountAno(buscarCountAnoFormatado());
+
+		Programa programa = repository.save(tempPrograma);
 
 		List<EquipeDto> equipeCaptacao = programaPessoaService.cadastrar(programa, form.equipeCaptacao());
 
@@ -99,8 +105,15 @@ public class ProgramaService {
 		logger.info("Programa excluído com sucesso");
 	}
 
+	public Integer buscarQuantidadeProgramas() {
+		return Integer.parseInt(String.valueOf((repository.count())));
+	}
 
 	private Programa buscar(Long id) {
 		return repository.findById(id).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
+	}
+
+	private String buscarCountAnoFormatado() {
+		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
 	}
 }

@@ -1,9 +1,32 @@
 package br.gov.es.siscap.service;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.gov.es.siscap.dto.PessoaDto;
-import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.dto.opcoes.ResponsavelProponenteOpcoesDto;
 import br.gov.es.siscap.exception.OrganizacaoSemResponsavelException;
 import br.gov.es.siscap.exception.UsuarioSemAutorizacaoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
@@ -16,22 +39,6 @@ import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.PessoaRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +52,12 @@ public class PessoaService {
 	private final AcessoCidadaoService acessoCidadaoService;
 	private final ProjetoPessoaService projetoPessoaService;
 	private final ProgramaPessoaService programaPessoaService;
+	private final OrganogramaService organogramaService;
+	private final OrganizacaoService organizacaoService;
 	private final Logger logger = LogManager.getLogger(PessoaService.class);
+
+	@Value("${guidGOVES}")
+	private String GUID_GOVES;
 
 	public Page<PessoaListaDto> listarTodos(Pageable pageable, String search) {
 		logger.info("Buscando todas as pessoas.");
@@ -241,17 +253,149 @@ public class PessoaService {
 		List<String> erros = new ArrayList<>();
 
 		boolean checkPessoaExistePorEmail = repository.existsByEmail(form.email());
-		boolean checkFormCpfNotNullPessoaExistePorCpf = form.cpf() != null && repository.existsByCpf(form.cpf());
 
 		if (checkPessoaExistePorEmail)
 			erros.add("Já existe uma pessoa cadastrada com esse email.");
-
-		if (checkFormCpfNotNullPessoaExistePorCpf)
-			erros.add("Já existe uma pessoa cadastrada com esse cpf.");
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
 		}
 	}
+
+    public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownOrganizacao(String unidadeGuid) {
+		
+		List<ResponsavelProponenteOpcoesDto> listaResponsavelOrganizacao;
+		
+		String subGestorOrganizacao = acessoCidadaoService.buscarGestorPorGuidUnidade(unidadeGuid);
+		
+		listaResponsavelOrganizacao = acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(unidadeGuid);
+
+		List<ResponsavelProponenteOpcoesDto> listaAtualizada = listaResponsavelOrganizacao.stream()
+																.map(p -> new ResponsavelProponenteOpcoesDto(
+																p.id(),
+																p.nome(),
+																p.papelPrioritario(),
+																p.agentePublicoSub(),
+																subGestorOrganizacao.equals(p.agentePublicoSub()) // seta true se for o gestor
+															))
+															.collect(Collectors.toList());
+		
+		listaResponsavelOrganizacao = listaAtualizada ;
+
+		return listaResponsavelOrganizacao;
+
+    }
+
+	public String buscarIdPorSub(String sub) {
+		return repository.findBySub(sub)
+			.map(p -> String.valueOf(p.getId()))
+			.orElse("");
+	}
+
+	public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownTodosAgentesGoves() {
+		return acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(GUID_GOVES);
+	}
+
+    public List<ResponsavelProponenteOpcoesDto> filtrarAgentesGovesPorTermo(String termo, CacheAgentesGovesService cacheService) {
+		String termoLower = termo.toLowerCase();
+		return cacheService.getCache().stream()
+        .filter(agente -> 
+            agente.nome().toLowerCase().contains(termoLower)
+        )
+        .collect(Collectors.toList());
+    }
+
+	public ResponsavelProponenteOpcoesDto buscarAgentesGovesPorSub(String sub, CacheAgentesGovesService cacheService) {
+		
+		try {
+			Pessoa pessoaBanco = buscarPorSub(sub);
+			return new ResponsavelProponenteOpcoesDto(
+				pessoaBanco.getId(), 
+				pessoaBanco.getNome(), 
+				pessoaBanco.getNomeSocial(),
+				sub,
+				false );
+
+		} catch (PessoaNaoEncontradoException e) {
+			logger.debug("Agente não encontrado no banco, buscando no cache...");
+		}
+		
+		return cacheService.getCache().stream()
+        .filter(agente -> 
+            agente.agentePublicoSub().contains(sub)
+        )
+        .findFirst()
+		.orElse(null);
+
+    }
+
+	@Transactional
+	public String sincronizarAgenteCidadaoPessoaSiscap( String sub ) {
+
+		logger.info("Inicio sincronizar pessoa Acesso Cidadao com base do SISCAP.");
+
+		AgentePublicoACDto dados = acessoCidadaoService.buscarPessoaPorSub(sub);
+
+		Set<Organizacao> organizacoes = buscarOrganizacoesAssociadas(sub);
+		
+		Pessoa pessoa = construirPessoa(dados);
+		
+		pessoa = this.salvarNovaPessoaAcessoCidadao(pessoa);
+		
+		associarOrganizacoesAPessoa(pessoa, organizacoes);
+
+		logger.info("Pessoa criada com sucesso.");
+
+		return pessoa.getId().toString();
+
+	}
+	
+	private Pessoa construirPessoa(AgentePublicoACDto dados) {
+		Pessoa pessoa = new Pessoa();
+		pessoa.setNome(dados.nome().toUpperCase());
+		pessoa.setNomeSocial(dados.apelido());
+		pessoa.setEmail(dados.email());
+		pessoa.setSub(dados.sub());
+		pessoa.setApagado(false);
+		pessoa.setCriadoEm(LocalDateTime.now());
+		return pessoa;
+	}
+
+	private Set<Organizacao> buscarOrganizacoesAssociadas(String sub) {
+		Set<Organizacao> organizacoes = new HashSet<>();
+		String lotacaoGuidPrioritaria = buscarLotacaoGuidPrioritaria(sub);
+		if (!lotacaoGuidPrioritaria.isEmpty()) {
+			buscarOrganizacaoPorLotacao(lotacaoGuidPrioritaria)
+				.ifPresentOrElse(
+					organizacoes::add,
+					() -> logger.info("Organização não encontrada para o CNPJ fornecido.")
+				);
+		}
+		return organizacoes;
+	}
+
+	private void associarOrganizacoesAPessoa(Pessoa pessoa, Set<Organizacao> organizacoes) {
+    	Set<Long> idsOrganizacoes = organizacoes.stream()
+            .map(Organizacao::getId)
+            .collect(Collectors.toSet());
+    	pessoaOrganizacaoService.cadastrarPorPessoa(pessoa, idsOrganizacoes);
+	}
+
+	private String buscarLotacaoGuidPrioritaria(String sub) {
+		return acessoCidadaoService.listarPapeisAgentePublicoPorSub(sub)
+				.stream()
+				.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
+				.findFirst()
+				.map(ACAgentePublicoPapelDto::LotacaoGuid)
+				.orElse("");
+	}
+
+	private Optional<Organizacao> buscarOrganizacaoPorLotacao(String lotacaoGuid) {
+    	String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
+    	String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
+    	return organizacaoService.buscarPorCnpj(cnpjOrganizacao);
+	}
+
+
 }

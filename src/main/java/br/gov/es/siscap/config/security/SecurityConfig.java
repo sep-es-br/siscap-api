@@ -25,6 +25,8 @@ public class SecurityConfig {
 	private static final String PATH_PROGRAMAS = "/programas/**";
 	public static final String PATH_ORGANIZACOES = "/organizacoes/**";
 	private static final String PATH_CARTAS_CONSULTA = "/cartas-consulta/**";
+	private static final String PATH_PROSPECCOES = "/prospeccoes/**";
+
 
 	private final ClientRegistrationRepository clientRegistrationRepository;
 	private final SecurityFilter securityFilter;
@@ -58,6 +60,10 @@ public class SecurityConfig {
 						authConfig.requestMatchers(POST, PATH_CARTAS_CONSULTA).hasAnyAuthority(ADMIN_AUTH.name(), CARTA_CONSULTA_CADASTRAR.name());
 						authConfig.requestMatchers(PUT, PATH_CARTAS_CONSULTA).hasAnyAuthority(ADMIN_AUTH.name(), CARTA_CONSULTA_ATUALIZAR.name());
 						authConfig.requestMatchers(DELETE, PATH_CARTAS_CONSULTA).hasAnyAuthority(ADMIN_AUTH.name(), CARTA_CONSULTA_APAGAR.name());
+
+						authConfig.requestMatchers(POST, PATH_PROSPECCOES).hasAnyAuthority(ADMIN_AUTH.name(), PROSPECCAO_CADASTRAR.name());
+						authConfig.requestMatchers(PUT, PATH_PROSPECCOES).hasAnyAuthority(ADMIN_AUTH.name(), PROSPECCAO_ATUALIZAR.name());
+						authConfig.requestMatchers(DELETE, PATH_PROSPECCOES).hasAnyAuthority(ADMIN_AUTH.name(), PROSPECCAO_APAGAR.name());
 
 						authConfig.requestMatchers(HttpMethod.GET,
 									"/swagger-ui.html",

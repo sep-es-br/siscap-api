@@ -9,9 +9,13 @@ import br.gov.es.siscap.service.RelatoriosService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -20,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/projetos")
@@ -29,12 +34,16 @@ public class ProjetoController {
 	private final ProjetoService service;
 	private final RelatoriosService relatoriosService;
 
+	private final Logger logger = LogManager.getLogger(ProjetoService.class);
+
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
-				@PageableDefault(size = 15, sort = "sigla") Pageable pageable,
-				@RequestParam(required = false, defaultValue = "") String search
+				@PageableDefault(size = 15, sort = "criadoEm", direction = Sort.Direction.DESC) Pageable pageable,
+				@RequestParam(required = false) String siglaOuTitulo,
+				@RequestParam(required = false) Long idOrganizacao,
+				@RequestParam(required = false) String status
 	) {
-		return service.listarTodos(pageable, search);
+		return service.listarTodos(pageable, siglaOuTitulo, idOrganizacao, status);
 	}
 
 	@GetMapping("/opcoes")
@@ -44,17 +53,17 @@ public class ProjetoController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<ProjetoDto> buscarPorId(@PathVariable @NotNull Long id) {
-		return ResponseEntity.ok(service.buscarPorId(id));
+		return ResponseEntity.ok( service.buscarPorId(id) );
 	}
 
 	@PostMapping
-	public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form) {
-		return new ResponseEntity<>(service.cadastrar(form), HttpStatus.CREATED);
+	public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form, @RequestParam(required = false, defaultValue = "false") boolean rascunho) {
+		return new ResponseEntity<>(service.cadastrar(form, rascunho), HttpStatus.CREATED);
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id, @Valid @RequestBody ProjetoForm form) {
-		return ResponseEntity.ok(service.atualizar(id, form));
+	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id, @Valid @RequestBody ProjetoForm form, @RequestParam(required = false, defaultValue = "false") boolean rascunho) {
+		return ResponseEntity.ok(service.atualizar(id, form, rascunho));
 	}
 
 	@DeleteMapping("/{id}")
@@ -63,6 +72,11 @@ public class ProjetoController {
 		return ResponseEntity.ok().body("Projeto excluído com sucesso!");
 	}
 
+	@PutMapping("/{id}/status")
+	public ResponseEntity<String> alterarStatusProjeto(@PathVariable @NotNull Long id, @RequestBody Map<String, String> status) {
+		service.alterarStatusProjeto(id, status.get("status"));
+		return ResponseEntity.ok().body("Status do projeto alterado com sucesso!");
+	}
 
 	@GetMapping("/dic/{idProjeto}")
 	public ResponseEntity<Resource> gerarDIC(@PathVariable Integer idProjeto) {

@@ -2,11 +2,14 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.util.JRLoader;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +23,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Service
 public class RelatoriosService {
@@ -41,10 +45,10 @@ public class RelatoriosService {
 
 	private InputStream recuperarArquivo(String nomeArquivo) {
 		try {
-			return Files.newInputStream(Path.of(raizRelatorios + "/" + nomeArquivo + ".jasper"));
+			return new ClassPathResource(raizRelatorios + "/" + nomeArquivo + ".jasper").getInputStream();
 		} catch (IOException e) {
-			logger.info("Erro ao encontrar o arquivo {}.jasper", nomeArquivo);
-			throw new SiscapServiceException(List.of("Erro ao encontrar o arquivo " + nomeArquivo + ".jasper"));
+			logger.info("Erro ao encontrar o arquivo {}.jasper, local {}", nomeArquivo, raizRelatorios);
+			throw new SiscapServiceException(List.of("Erro ao encontrar o arquivo " + nomeArquivo + ".jasper" + " local do arquivo : " + raizRelatorios ));
 		}
 	}
 

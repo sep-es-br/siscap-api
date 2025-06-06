@@ -6,8 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "tipo_papel")
@@ -15,7 +15,6 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @Setter
 @SQLDelete(sql = "update tipo_papel set apagado = true where id=?")
-@SQLRestriction("apagado = FALSE")
 public class TipoPapel extends ControleHistorico {
 
 	@Id

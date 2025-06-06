@@ -1,5 +1,7 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.dto.organogramawebapi.OrganogramaOrganizacaoInfoEssencialDto;
+import br.gov.es.siscap.enums.TipoOrganizacaoEnum;
 import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.form.OrganizacaoForm;
 import jakarta.persistence.*;
@@ -47,6 +49,9 @@ public class Organizacao extends ControleHistorico {
 	@Column(name = "nome_imagem")
 	private String nomeImagem;
 
+	@Column(name = "guid")
+	private String guid;
+
 	@OneToOne
 	@JoinColumn(name = "organizacao_pai")
 	@SQLJoinTableRestriction("apagado = FALSE")
@@ -82,6 +87,21 @@ public class Organizacao extends ControleHistorico {
 
 	public Organizacao(Long id) {
 		this.setId(id);
+	}
+
+	public Organizacao(OrganogramaOrganizacaoInfoEssencialDto organogramaOrganizacaoInfoEssencialDto) {
+		this.setCnpj(organogramaOrganizacaoInfoEssencialDto.cnpj());
+		this.setNomeFantasia(organogramaOrganizacaoInfoEssencialDto.sigla());
+		this.setNome(organogramaOrganizacaoInfoEssencialDto.razaoSocial());
+		this.setPais(new Pais(1L)); // Brasil
+		this.setEstado(new Estado(18L)); // Espirito Santo
+		this.setTipoOrganizacao(
+					new TipoOrganizacao(
+								organogramaOrganizacaoInfoEssencialDto.razaoSocial().contains("SECRETARIA")
+											? TipoOrganizacaoEnum.SECRETARIA.getValue() : TipoOrganizacaoEnum.INSTITUICAO_PUBLICA.getValue()
+					)
+		);
+		this.setGuid(organogramaOrganizacaoInfoEssencialDto.guid());
 	}
 
 	public Organizacao(OrganizacaoForm form, String nomeImagem) {
