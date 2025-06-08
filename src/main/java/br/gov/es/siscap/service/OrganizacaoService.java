@@ -234,7 +234,7 @@ public class OrganizacaoService {
 			orgBanco.setGuid(orgAPI.getGuid());
 		}
 
-		if (!(orgBanco.getCnpj().equals(orgAPI.getCnpj()))) {
+		if (!( orgBanco.getCnpj() != null && orgBanco.getCnpj().equals(orgAPI.getCnpj()))) {
 			orgBanco.setCnpj(orgAPI.getCnpj());
 		}
 
