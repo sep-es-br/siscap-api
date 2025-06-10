@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -140,6 +141,8 @@ public class PessoaService {
 		logger.info("Pessoa atualizada com sucesso");
 		return new PessoaDto(pessoaResultado, getImagemNotNull(pessoa.getNomeImagem()), idOrganizacoes, idOrganizacaoResponsavel);
 	}
+
+	
 
 	@Transactional
 	public void excluir(Long id) {
@@ -350,6 +353,48 @@ public class PessoaService {
 		return pessoa.getId().toString();
 
 	}
+
+	public void sincronizarDadosAgentePessoaSiscap(Long idPessoaSiscap, String sub) {
+        
+		logger.info("Inicio sincronizar dados pessoa já existente com dados do Acesso Cidadao.");
+
+		AgentePublicoACDto dados = acessoCidadaoService.buscarPessoaPorSub(sub);
+				
+		this.atualizarPessoaDadosAcessoCidadao(idPessoaSiscap, dados);
+
+    }
+
+	@Transactional
+	private void atualizarPessoaDadosAcessoCidadao(Long idPessoaSiscap, AgentePublicoACDto acDtoDados) {
+		
+		boolean needsUpdate = false;
+
+		Pessoa pessoa = buscar(idPessoaSiscap);
+		if( pessoa != null && acDtoDados != null ) {
+			
+			// Atualização do nome
+			if (acDtoDados.nome() != null && !Objects.equals(pessoa.getNome(), acDtoDados.nome())) {
+				pessoa.setNome(acDtoDados.nome().toUpperCase());
+				needsUpdate = true;
+			}
+		
+			// Atualização do nome social
+			if (acDtoDados.apelido() != null && !Objects.equals(pessoa.getNomeSocial(), acDtoDados.apelido())) {
+				pessoa.setNomeSocial(acDtoDados.apelido().toUpperCase());
+				needsUpdate = true;
+			}
+
+			if( needsUpdate )
+				repository.save(pessoa);
+
+		}
+
+		if (needsUpdate) {
+			logger.info("Nome ou apelido da pessoa id {} foram atualizados com sucesso.", idPessoaSiscap );
+			repository.save(pessoa);
+		}
+
+	}
 	
 	private Pessoa construirPessoa(AgentePublicoACDto dados) {
 		Pessoa pessoa = new Pessoa();
@@ -362,7 +407,7 @@ public class PessoaService {
 		return pessoa;
 	}
 
-	private Set<Organizacao> buscarOrganizacoesAssociadas(String sub) {
+	public Set<Organizacao> buscarOrganizacoesAssociadas(String sub) {
 		Set<Organizacao> organizacoes = new HashSet<>();
 		String lotacaoGuidPrioritaria = buscarLotacaoGuidPrioritaria(sub);
 		if (!lotacaoGuidPrioritaria.isEmpty()) {
@@ -375,7 +420,7 @@ public class PessoaService {
 		return organizacoes;
 	}
 
-	private void associarOrganizacoesAPessoa(Pessoa pessoa, Set<Organizacao> organizacoes) {
+	public void associarOrganizacoesAPessoa(Pessoa pessoa, Set<Organizacao> organizacoes) {
     	Set<Long> idsOrganizacoes = organizacoes.stream()
             .map(Organizacao::getId)
             .collect(Collectors.toSet());
@@ -397,5 +442,6 @@ public class PessoaService {
     	return organizacaoService.buscarPorCnpj(cnpjOrganizacao);
 	}
 
+   
 
 }
