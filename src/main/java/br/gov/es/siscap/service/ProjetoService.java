@@ -12,6 +12,7 @@ import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.models.LocalidadeQuantia;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.Pessoa;
+import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
@@ -49,8 +50,8 @@ public class ProjetoService {
 	private final LocalidadeQuantiaService localidadeQuantiaService;
 	private final OrganizacaoService organizacaoService;
 	private final PessoaService pessoaService;
-	private final AcessoCidadaoService acessoCidadaoService;
 	private final ProjetoIndicadorService projetoIndicadorService;
+	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 
 	private final ProjetoAcaoService projetoAcaoService;
 
@@ -214,6 +215,7 @@ public class ProjetoService {
 
 		Set<ProjetoPessoa> projetoPessoaSet;
 		List<EquipeDto> equipeParaGravar = form.equipeElaboracao();
+
 		List<EquipeDto> equipeElaboracaoValidada = this.validarEquipeElaboracao(form);
 		if (!new HashSet<>(form.equipeElaboracao()).equals(new HashSet<>(equipeElaboracaoValidada))) {
 			equipeParaGravar = equipeElaboracaoValidada;
@@ -420,18 +422,38 @@ public class ProjetoService {
 	}
 		
 	private List<EquipeDto> validarEquipeElaboracao(ProjetoForm form) {
+		
 		List<EquipeDto> equipe = new ArrayList<>();
+		
 		for (EquipeDto membro : form.equipeElaboracao()) {
+			
 			String sub = membro.subPessoa();
+			
 			String id = pessoaService.buscarIdPorSub(sub);
 			if (id.isBlank()) {
 				logger.info("Pessoa com sub [{}] não encontrada na base do SISCAP, procedendo para criação.", sub);
 				id = pessoaService.sincronizarAgenteCidadaoPessoaSiscap(sub);
+			} else {
+				logger.info("Verificar se dados da pessoa com sub [{}] estão batendo com dados da tabela pessoa.", sub);
+				pessoaService.sincronizarDadosAgentePessoaSiscap(Long.valueOf(id), sub);
 			}
+			
 			EquipeDto novoMembro = new EquipeDto( Long.valueOf(id), membro.idPapel(), membro.idStatus(), membro.justificativa(), membro.subPessoa(), membro.nome() );
+			
 			equipe.add(novoMembro);
+
+			logger.info("Verificar se pessoa com id [{}] possui organizacao associada na base do SISCAP.", id);
+			List<PessoaOrganizacao> organizacoes = pessoaOrganizacaoService.buscarPorIds( List.of(Long.valueOf(id)) );
+			if( organizacoes.isEmpty() ) {
+				logger.info("Pessoa com sub [{}] não possui organizacao associada na base do SISCAP - proceder com atualizacao do AC.", sub );
+				Set<Organizacao> organizacoesAC = pessoaService.buscarOrganizacoesAssociadas(sub);
+				pessoaService.associarOrganizacoesAPessoa( pessoaService.buscarPorSub(sub), organizacoesAC );
+			}
+
 		}
+
 		return equipe;
+
 	}
 
 }

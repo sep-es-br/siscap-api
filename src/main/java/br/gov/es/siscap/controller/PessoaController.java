@@ -80,14 +80,17 @@ public class PessoaController {
 	@PostMapping("/syncPorSub/{sub}")
 	public ResponseEntity<String> sincronizarPessoaPorSub(@NotNull @PathVariable String sub) throws IOException {
 		
-		String id = service.buscarIdPorSub(sub);
+		String idPessoaSiscap = service.buscarIdPorSub(sub);
 		
-		if (id.isBlank()) {
+		if (idPessoaSiscap.isBlank()) {
 			logger.info("Pessoa não encontrada na base do SISCAP, procedendo para criação de uma nova pessoa.");
-			id = service.sincronizarAgenteCidadaoPessoaSiscap(sub);
+			idPessoaSiscap = service.sincronizarAgenteCidadaoPessoaSiscap(sub);
+		} else {
+			logger.info("Pessoa encontrada na base do SISCAP, procedendo atualizacao de dados caso necessário ID pessoa : {}." , idPessoaSiscap );
+			service.sincronizarDadosAgentePessoaSiscap(Long.valueOf(idPessoaSiscap),sub);
 		}
 		
-		return ResponseEntity.ok(id);
+		return ResponseEntity.ok(idPessoaSiscap);
 	}
 
 	@PostMapping
