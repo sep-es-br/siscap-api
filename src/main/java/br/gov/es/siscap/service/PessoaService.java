@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import java.io.IOException;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -301,12 +302,17 @@ public class PessoaService {
 	}
 
     public List<ResponsavelProponenteOpcoesDto> filtrarAgentesGovesPorTermo(String termo, CacheAgentesGovesService cacheService) {
-		String termoLower = termo.toLowerCase();
+		
+		String termoLower = Normalizer.normalize(termo, Normalizer.Form.NFD)
+							.replaceAll("[^\\p{ASCII}]", "")
+							.toLowerCase();
+
 		return cacheService.getCache().stream()
-        .filter(agente -> 
-            agente.nome().toLowerCase().contains(termoLower)
-        )
-        .collect(Collectors.toList());
+			.filter(agente -> 
+				agente.nome().toLowerCase().contains(termoLower)
+			)
+			.collect(Collectors.toList());
+
     }
 
 	public ResponsavelProponenteOpcoesDto buscarAgentesGovesPorSub(String sub, CacheAgentesGovesService cacheService) {

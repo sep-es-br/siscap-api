@@ -153,7 +153,6 @@ public class PessoaController {
 
 	@GetMapping("/opcoes/agentesGoves/filtrar/{termo}")
 	public List<ResponsavelProponenteOpcoesDto> filtrarAgentesGoves(@NotNull @PathVariable String termo) {
-		List<ResponsavelProponenteOpcoesDto> cache = cacheService.getCache();
 		return service.filtrarAgentesGovesPorTermo(termo, cacheService);
 	}
 
