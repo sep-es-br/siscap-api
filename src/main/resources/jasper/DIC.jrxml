@@ -314,17 +314,17 @@ group by
 					<expression><![CDATA[$P{pathRelatorios}]]></expression>
 				</parameter>
 			</element>
-			<element kind="staticText" uuid="f3accc1a-66e2-4038-82d3-6d19dadbdf66" x="10" y="22" width="160" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+			<element kind="staticText" uuid="f3accc1a-66e2-4038-82d3-6d19dadbdf66" x="10" y="22" width="220" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[9.1 Ação Principal]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="staticText" uuid="4ac9dde6-1d6b-49bd-a2ac-780dcc77dd4a" x="173" y="22" width="116" height="20" fontName="SansSerif" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<element kind="staticText" uuid="4ac9dde6-1d6b-49bd-a2ac-780dcc77dd4a" x="234" y="22" width="116" height="20" fontName="SansSerif" bold="true" hTextAlign="Right" vTextAlign="Middle">
 				<text><![CDATA[Valor Estimado  ]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="staticText" uuid="ee271e7b-a68a-47f2-953d-528fd6d0083c" x="300" y="22" width="230" height="20" forecolor="#000000" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
+			<element kind="staticText" uuid="ee271e7b-a68a-47f2-953d-528fd6d0083c" x="356" y="22" width="178" height="20" forecolor="#000000" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
 				<text><![CDATA[Ações Secundárias]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>

@@ -1,7 +1,6 @@
 package br.gov.es.siscap.dto;
 
 import br.gov.es.siscap.models.ProjetoIndicador;
-import br.gov.es.siscap.models.TipoStatus;
 
 public record ProjetoIndicadorDto(
 	Integer idIndicador,
