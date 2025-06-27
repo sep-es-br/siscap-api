@@ -2,8 +2,11 @@ package br.gov.es.siscap.service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -14,7 +17,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import br.gov.es.siscap.dto.UsuarioDto;
-import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.enums.Permissoes;
 import br.gov.es.siscap.exception.UsuarioSemAutorizacaoException;
@@ -51,8 +53,6 @@ public class AutenticacaoService {
 						
 		if ( Boolean.FALSE.equals(userInfo.agentepublico() ) && ( userInfo.role() == null || userInfo.role().isEmpty() ) )
 			throw new UsuarioSemAutorizacaoException();
-
-		Set<ACAgentePublicoPapelDto> papeisSet = listarPapeis(userInfo.subNovo());
 
 		boolean isProponente = false;
 
@@ -179,10 +179,16 @@ public class AutenticacaoService {
 		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorPessoa(usuarioPessoa);
 
 		if (pessoaOrganizacaoSet != null && !pessoaOrganizacaoSet.isEmpty()) {
+
 			logger.info("Organizações do usuário encontradas com sucesso.");
 
 			// busca as organizações segundo acesso cidadão que estão no banco
-			Set<Organizacao> organizacoesAc = getOrganizacoesDaPessoaAC(usuarioPessoa, subNovo);
+			Set<Map<String,Object>> organizacoesAc = getOrganizacoesDaPessoaAC( usuarioPessoa, subNovo );
+
+			Set<Long> idsPrioritarios = organizacoesAc.stream()
+				.filter(map -> Boolean.TRUE.equals(map.get("prioritario"))) // Só os prioritários
+				.map(map -> ( (Organizacao) map.get("organizacao")).getId()) // Extrai o ID
+				.collect(Collectors.toSet());
 
 			// busca as organizações segundo o banco atual
 			Set<PessoaOrganizacao> organizacoesBanco = pessoaOrganizacaoService.buscarPorPessoa(usuarioPessoa);
@@ -193,7 +199,8 @@ public class AutenticacaoService {
 																return o.getOrganizacao().getGuid() != null &&
 																		!o.getOrganizacao().getGuid().isBlank() &&
 																		!organizacoesAc.stream()
-																		.map(Organizacao::getGuid)
+																		.map( map -> (Organizacao) map.get("organizacao") )
+																		.map(Organizacao::getGuid) 
 																		.toList().contains(o.getOrganizacao().getGuid());
 															}).collect(Collectors.toSet());
 
@@ -203,7 +210,8 @@ public class AutenticacaoService {
 
 			// vincular as organizações que estão faltando
 			Set<Organizacao> organizacoesFaltando = organizacoesAc.stream()
-														.filter(organizacao -> {
+														.map( map -> (Organizacao) map.get("organizacao") )
+														.filter( organizacao -> {
 															return !organizacoesBancoFinal.stream()
 																.map(PessoaOrganizacao::getOrganizacao)
 																.map(Organizacao::getGuid)
@@ -226,40 +234,78 @@ public class AutenticacaoService {
 			// mais o que estavam faltando
 			organizacoesBanco.addAll(pessoaOrganizacaosFaltando);
 
-			return organizacoesBanco.stream().map(PessoaOrganizacao::getOrganizacao).sorted((a, b) -> a.getNome().compareToIgnoreCase(b.getNome())).map(Organizacao::getId).collect(Collectors.toSet());
-		
+			return organizacoesBanco.stream()
+				.map(PessoaOrganizacao::getOrganizacao)
+				.sorted((org1, org2) -> {
+					boolean isPrioritario1 = idsPrioritarios.contains(org1.getId());
+					boolean isPrioritario2 = idsPrioritarios.contains(org2.getId());
+					if (isPrioritario1 != isPrioritario2) {
+						return isPrioritario1 ? -1 : 1; // Prioritário vem antes
+					}
+					return org1.getNome().compareToIgnoreCase(org2.getNome());
+				})
+				.map(Organizacao::getId)
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+
 		} else {
 			logger.info("Usuário não está vinculado a nenhuma organizacao.");
 			logger.info("Iniciando processo de vinculação de usuário a organizações.");
 			Set<PessoaOrganizacao> pessoaOrganizacaoSetNovo = vincularPessoaOrganizacoes(usuarioPessoa, subNovo);
 			logger.info("Vínculo entre pessoa e organizações realizado com sucesso.");
-			return pessoaOrganizacaoSetNovo.stream().map(PessoaOrganizacao::getOrganizacao).sorted((a, b) -> a.getNome().compareToIgnoreCase(b.getNome())).map(Organizacao::getId).collect(Collectors.toSet());
+			return pessoaOrganizacaoSetNovo
+				.stream()
+				.map(PessoaOrganizacao::getOrganizacao)
+				.sorted((a, b) -> a.getNome()
+				.compareToIgnoreCase(b.getNome())).map(Organizacao::getId).collect(Collectors.toSet());
 		}
 
 	}
 
-	private Set<Organizacao> getOrganizacoesDaPessoaAC(Pessoa pessoa, String subNovo){
+	private Set<Map<String,Object>> getOrganizacoesDaPessoaAC(Pessoa pessoa, String subNovo){
 				
-		Set<Organizacao> organizacoesSet = new HashSet<>();
+		Set< Map< String, Object > > organizacoesSet = new HashSet<>();
 
-		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
+		Set<Map<String, Object>> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
+		
+		if (papeisLotacaoGuidSet != null && papeisLotacaoGuidSet.size() == 1) {
+			
+			boolean possuiLotacaoVazia = papeisLotacaoGuidSet.stream()
+				.anyMatch(registro -> {
+					Object guidObj = registro.get("lotacaoGuid");
+					String guid = (guidObj != null) ? guidObj.toString().trim() : "";
+					return guid.isEmpty();
+				});
+			
+			if (possuiLotacaoVazia) {
+				logger.info("Papeis do usuário não possuem GUID de Lotação.");
+				return organizacoesSet;
+			}
 
-		if (papeisLotacaoGuidSet.size() == 1 && papeisLotacaoGuidSet.iterator().next().isBlank()) {
-			logger.info("Papeis do usuário não possuem GUID de Lotação.");
-			return organizacoesSet;
 		}
 
-		for (String lotacaoGuid : papeisLotacaoGuidSet) {
+		if (papeisLotacaoGuidSet != null) {
+			
+			for ( Map<String, Object> papelMap : papeisLotacaoGuidSet ) {
 
-			String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
-			String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
-			
-			Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
-			
-			if (organizacaoOptional.isPresent()) {
-				organizacoesSet.add(organizacaoOptional.get());
-			} else {
-				logger.info("Organização não encontrada para o CNPJ fornecido: [{}].", cnpjOrganizacao);
+				String lotacaoGuid = papelMap.get("lotacaoGuid") != null 
+								? papelMap.get("lotacaoGuid").toString() 
+								: "";
+
+				String prioritario = papelMap.get("prioritario") != null 
+								? papelMap.get("prioritario").toString()
+								: "false";
+
+				String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
+				String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
+				
+				Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
+				
+				if (organizacaoOptional.isPresent()) {
+					organizacoesSet.add( Map.of( "organizacao", organizacaoOptional.get(), "prioritario", prioritario ) );
+				} else {
+					logger.info("Organização não encontrada para o CNPJ fornecido: [{}].", cnpjOrganizacao);
+				}
+
 			}
 
 		}
@@ -273,71 +319,89 @@ public class AutenticacaoService {
 		Set<PessoaOrganizacao> pessoaOrganizacaoSet = new HashSet<>();
 		Set<Organizacao> organizacoesSet = new HashSet<>();
 
-		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
+		Set<Map<String, Object>> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
 
-		if (papeisLotacaoGuidSet.size() == 1 && papeisLotacaoGuidSet.iterator().next().isBlank()) {
-			logger.info("Papeis do usuário não possuem GUID de Lotação.");
-			return pessoaOrganizacaoSet;
-		}
-
-		for (String lotacaoGuid : papeisLotacaoGuidSet) {
-
-			String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
-			String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
-
-			/*
-				30/12/2024
-
-				PROBLEMA:
-					METODO organizacaoService.buscarPorCnpj TRAZIA ENTIDADE Organizacao
-					|-> NAO CONTEMPLAVA CASO DE NAO ENCONTRAR ORGANIZACAO COM O CNPJ FORNECIDO (TRAZIA Organizacao = null)
-
-				ABORDAGEM:
-					METODO AGORA TRAZ Optional<Organizacao> E TRATA CASO DE ORGANIZACAO AUSENTE
-					DENTRO DESTE METODO
-					|-> SEM throw new RunTimeException PARA EVITAR DE IMPEDIR ACESSO DO USUARIO
-
-				OBSERVACAO:
-					ABORDAGEM CORRETA SERIA PREENCHER O CNPJ DAS ORGANIZACOES APROPRIADAMENTE
-					DE ACORDO COM O RETORNO DA API DO ORGANOGRAMA
-					|-> LEVANTA QUESTAO SINCRONIA DO BANCO DO SISCAP COM A API:
-							* MELHOR SERIA A ABORDAGEM DO VAGNER DE TRAZER OS DADOS
-							  DA(S) ORGANIZACAO(OES) DIRETO DE UMA REQUISICAO
-							  PRA API DO ORGANOGRAMA
-								|-> POREM SEM TEMPO
-			*/
-
-			Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
-
-			if (organizacaoOptional.isPresent()) {
-				organizacoesSet.add(organizacaoOptional.get());
-			} else {
-				logger.info("Organização não encontrada para o CNPJ fornecido: [{}].", cnpjOrganizacao);
+		if (papeisLotacaoGuidSet != null && papeisLotacaoGuidSet.size() == 1) {
+			
+			boolean possuiLotacaoVazia = papeisLotacaoGuidSet.stream()
+				.anyMatch(registro -> {
+					Object guidObj = registro.get("lotacaoGuid");
+					String guid = (guidObj != null) ? guidObj.toString().trim() : "";
+					return guid.isEmpty();
+				});
+			
+			if (possuiLotacaoVazia) {
+				logger.info("Papeis do usuário não possuem GUID de Lotação.");
+				return pessoaOrganizacaoSet;
 			}
 
 		}
 
-		for (Organizacao organizacao : organizacoesSet) {
-			PessoaOrganizacao pessoaOrganizacao = new PessoaOrganizacao(pessoa, organizacao);
-			pessoaOrganizacaoSet.add(pessoaOrganizacao);
-		}
+		if (papeisLotacaoGuidSet != null) {
 
+			//for ( String lotacaoGuid : papeisLotacaoGuidSet ) {
+			for ( Map<String, Object> papelMap : papeisLotacaoGuidSet ) {
+
+				String lotacaoGuid = papelMap.get("lotacaoGuid") != null 
+							? papelMap.get("lotacaoGuid").toString() 
+							: "";
+
+				String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
+				String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
+
+				/*
+					30/12/2024
+					PROBLEMA:
+						METODO organizacaoService.buscarPorCnpj TRAZIA ENTIDADE Organizacao
+						|-> NAO CONTEMPLAVA CASO DE NAO ENCONTRAR ORGANIZACAO COM O CNPJ FORNECIDO (TRAZIA Organizacao = null)
+					ABORDAGEM:
+						METODO AGORA TRAZ Optional<Organizacao> E TRATA CASO DE ORGANIZACAO AUSENTE
+						DENTRO DESTE METODO
+						|-> SEM throw new RunTimeException PARA EVITAR DE IMPEDIR ACESSO DO USUARIO
+					OBSERVACAO:
+						ABORDAGEM CORRETA SERIA PREENCHER O CNPJ DAS ORGANIZACOES APROPRIADAMENTE
+						DE ACORDO COM O RETORNO DA API DO ORGANOGRAMA
+						|-> LEVANTA QUESTAO SINCRONIA DO BANCO DO SISCAP COM A API:
+								* MELHOR SERIA A ABORDAGEM DO VAGNER DE TRAZER OS DADOS
+								DA(S) ORGANIZACAO(OES) DIRETO DE UMA REQUISICAO
+								PRA API DO ORGANOGRAMA
+									|-> POREM SEM TEMPO
+				*/
+
+				Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
+
+				if (organizacaoOptional.isPresent()) {
+					organizacoesSet.add(organizacaoOptional.get());
+				} else {
+					logger.info("Organização não encontrada para o CNPJ fornecido: [{}].", cnpjOrganizacao);
+				}
+
+			}
+
+			for (Organizacao organizacao : organizacoesSet) {
+				PessoaOrganizacao pessoaOrganizacao = new PessoaOrganizacao(pessoa, organizacao);
+				pessoaOrganizacaoSet.add(pessoaOrganizacao);
+			}
+
+		}
+		
 		return pessoaOrganizacaoSet.isEmpty() ? pessoaOrganizacaoSet : pessoaOrganizacaoService.salvarPessoaOrganizacaoSetAutenticacaoUsuario(pessoaOrganizacaoSet);
 
 	}
 
-	private Set<String> listarPapeisLotacaoGuid(String subNovo) {
+	private Set<Map<String, Object>> listarPapeisLotacaoGuid(String subNovo) {
 		return acessoCidadaoService.listarPapeisAgentePublicoPorSub(subNovo).stream()
-					.map(papel -> papel.LotacaoGuid() != null ? papel.LotacaoGuid() : "")
-					.map(String::toLowerCase)
-					.collect(Collectors.toSet());
+			.map( papel -> { 
+				Map<String, Object> orgInfo = new HashMap<>();
+				orgInfo.put("lotacaoGuid", papel.LotacaoGuid() != null ? papel.LotacaoGuid().toLowerCase() : "");
+				orgInfo.put("prioritario", papel.Prioritario() ? papel.Prioritario() : false );
+				return orgInfo;
+				}  )
+			.collect(Collectors.toSet());
 	}
-
-	private Set<ACAgentePublicoPapelDto> listarPapeis(String subNovo) {
-		return new HashSet<ACAgentePublicoPapelDto>(acessoCidadaoService.listarPapeisAgentePublicoPorSub(subNovo));
-	}
-
+	
 	private static String getEmailUserInfo(ACUserInfoDto userInfo) {
 		return userInfo.emailCorporativo() != null ? userInfo.emailCorporativo() : userInfo.email();
 	}
+
 }
