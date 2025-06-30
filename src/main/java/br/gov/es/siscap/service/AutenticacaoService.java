@@ -186,8 +186,8 @@ public class AutenticacaoService {
 			Set<Map<String,Object>> organizacoesAc = getOrganizacoesDaPessoaAC( usuarioPessoa, subNovo );
 
 			Set<Long> idsPrioritarios = organizacoesAc.stream()
-				.filter(map -> Boolean.TRUE.equals(map.get("prioritario"))) // Só os prioritários
-				.map(map -> ( (Organizacao) map.get("organizacao")).getId()) // Extrai o ID
+				.filter( map -> "true".equalsIgnoreCase((String) map.get("prioritario"))) // Boolean.TRUE.equals(map.get("prioritario"))) // Só os prioritários
+				.map( map -> ( (Organizacao) map.get("organizacao")).getId() ) // Extrai o ID
 				.collect(Collectors.toSet());
 
 			// busca as organizações segundo o banco atual
@@ -262,7 +262,7 @@ public class AutenticacaoService {
 	}
 
 	private Set<Map<String,Object>> getOrganizacoesDaPessoaAC(Pessoa pessoa, String subNovo){
-				
+						
 		Set< Map< String, Object > > organizacoesSet = new HashSet<>();
 
 		Set<Map<String, Object>> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
