@@ -11,6 +11,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,6 +22,8 @@ public class AcessoCidadaoAutorizacaoService {
 
 	public static final String AUTHORIZATION = "Authorization";
 	public static final String BEARER = "Bearer ";
+
+	private final ConcurrentMap<String, String> edocsTokenStore = new ConcurrentHashMap<>();
 
 	@Value("${api.acessocidadao.client-id}")
 	private String clientId;
@@ -76,4 +81,21 @@ public class AcessoCidadaoAutorizacaoService {
 		authorizationHeader.put(AUTHORIZATION, BEARER + token);
 		return authorizationHeader;
 	}
+
+    public void storeEdocsToken(String userId, String edocsToken) {
+        edocsTokenStore.put(userId, edocsToken);
+    }
+
+    public Optional<String> getEdocsToken(String userId) {
+        String token = edocsTokenStore.get(userId);
+        if (token == null) {
+            throw new IllegalStateException("Token do e-Docs não disponível para o usuário: " + userId);
+        }
+        return Optional.of(BEARER + token);
+    }
+
+    public void clearEdocsToken(String userId) {
+        edocsTokenStore.remove(userId);
+    }
+
 }

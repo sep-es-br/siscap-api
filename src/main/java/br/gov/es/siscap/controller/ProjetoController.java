@@ -4,6 +4,7 @@ import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.form.ProjetoForm;
+import br.gov.es.siscap.service.IntegraccaoEdocsService;
 import br.gov.es.siscap.service.ProjetoService;
 import br.gov.es.siscap.service.RelatoriosService;
 import jakarta.validation.Valid;
@@ -33,6 +34,7 @@ public class ProjetoController {
 
 	private final ProjetoService service;
 	private final RelatoriosService relatoriosService;
+	private final IntegraccaoEdocsService integracaoEdocsService;
 
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
@@ -90,4 +92,22 @@ public class ProjetoController {
 					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + ".pdf\"")
 					.body(resource);
 	}
+
+	@PostMapping("/dic/edocs/autuar/{idProjeto}")
+	public ResponseEntity<Resource> assinarAutuarDIC( @PathVariable Integer idProjeto ) {
+		
+		Resource resource = relatoriosService.gerarArquivo( "DIC", idProjeto );
+		String nomeArquivo = service.gerarNomeArquivo(idProjeto);
+
+		integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP( resource, nomeArquivo, idProjeto );
+		
+		String contentType = "application/pdf";
+		
+		return ResponseEntity.ok()
+					.contentType(MediaType.parseMediaType(contentType))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + ".pdf\"")
+					.body(resource);
+
+	}
+
 }
