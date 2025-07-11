@@ -28,6 +28,15 @@ public record SituacaoEventoDto(
     String idAto,
 
     @JsonProperty("idTermo")
-    String idTermo
+    String idTermo,
 
+    @JsonProperty("idEncaminhamento")
+    String idEncaminhamento,
+
+    @JsonProperty("idDocumento")
+    String idDocumento,
+
+    @JsonProperty("idProcesso")
+    String idProcesso
+    
     ) { }

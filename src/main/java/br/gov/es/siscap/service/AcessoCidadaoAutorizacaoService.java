@@ -3,6 +3,8 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.client.AcessoCidadaoTokenClient;
 import br.gov.es.siscap.dto.acessocidadaoapi.LoginACResponseDto;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -93,6 +95,12 @@ public class AcessoCidadaoAutorizacaoService {
         }
         return Optional.of(BEARER + token);
     }
+
+	public Mono<String> getEdocsTokenReativo(String tokenType) {
+		return Mono.fromCallable(() -> {
+			return edocsTokenStore.get(tokenType);
+		});
+	}
 
     public void clearEdocsToken(String userId) {
         edocsTokenStore.remove(userId);
