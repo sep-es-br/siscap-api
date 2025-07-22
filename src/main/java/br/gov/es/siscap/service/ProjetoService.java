@@ -19,10 +19,12 @@ import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import br.gov.es.siscap.specification.ProjetoSpecification;
 import br.gov.es.siscap.utils.FormatadorCountAno;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -30,11 +32,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import br.gov.es.siscap.models.ProjetoAcao;
@@ -52,10 +57,13 @@ public class ProjetoService {
 	private final PessoaService pessoaService;
 	private final ProjetoIndicadorService projetoIndicadorService;
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
-
+	private final EmailService emailService;
 	private final ProjetoAcaoService projetoAcaoService;
-
+	
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
+
+	@Value("${frontend.host}")
+	private String frontEndHost;
 
 	public Page<ProjetoListaDto> listarTodos(
 				Pageable pageable,
@@ -234,12 +242,27 @@ public class ProjetoService {
 		
 		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar( projetoResult, projetoAcoesDto, rascunho );
 
+		String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
+
+		String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
+
+		try {
+			if( form.enviarProjetoGestor() ) {
+				logger.info("Envio email para gestor");
+				this.enviarEmailGestorAvaliarDic( id, subResponsavelProponente, nomeProponente );
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (MessagingException e) {
+			e.printStackTrace();
+		}
+		
 		logger.info("Projeto atualizado com sucesso");
 
 		return new ProjetoDto(projetoResult, valorDto, rateio, 
 			this.buscarIdResponsavelProponente(projetoPessoaSet), 
 			this.buscarEquipeElaboracao(projetoPessoaSet), 
-			this.buscarSubResponsavelProponente(projetoPessoaSet),
+			subResponsavelProponente,
 			this.buscarIndicadores(projetoIndicadoresSet),
 			this.buscarAcoes(projetoAcoesSet)
 			);
@@ -339,8 +362,8 @@ public class ProjetoService {
 	}
 
 
-	public String gerarNomeArquivo(Integer idProjeto) {
-		Projeto projeto = this.buscar(Long.valueOf(idProjeto));
+	public String gerarNomeArquivo(Long idProjeto) {
+		Projeto projeto = this.buscar(idProjeto);
 
 		if (projeto.getOrganizacao().getCnpj() == null) {
 			throw new RelatorioNomeArquivoException("Organização não possui CNPJ.");
@@ -381,6 +404,14 @@ public class ProjetoService {
 					.findFirst()
 					.map(projetoPessoa -> projetoPessoa.getPessoa().getSub())
 					.orElse(null);
+	}
+
+	private String buscarNomeProponente(Set<ProjetoPessoa> projetoPessoaSet) {
+		return projetoPessoaSet.stream()
+					.filter(ProjetoPessoa::isProponente)
+					.findFirst()
+					.map(projetoPessoa -> projetoPessoa.getPessoa().getNome())
+					.orElse("");
 	}
 
 	private List<EquipeDto> buscarEquipeElaboracao(Set<ProjetoPessoa> projetoPessoaSet) {
@@ -453,6 +484,51 @@ public class ProjetoService {
 		}
 
 		return equipe;
+
+	}
+
+	@Transactional
+	public boolean enviarEmailGestorAvaliarDic(Long idProjeto, String subResponsavelProponente, String nomeProponente) throws MessagingException, UnsupportedEncodingException {
+				
+		Pessoa dadosResponsavelProponente = pessoaService.buscarPorSub(subResponsavelProponente);
+		
+		if( dadosResponsavelProponente == null ){
+			logger.info("Dados do responsavel proponente sub [{}] não foi encontrado.", subResponsavelProponente );
+			return false;
+		}
+
+		if(dadosResponsavelProponente.getEmail().isEmpty() || dadosResponsavelProponente.getEmail().isBlank() ){
+			logger.info("Responsavel proponente sub [{}] não possui email informado.", subResponsavelProponente );
+			return false;
+		}
+
+		List<String> emailsInteressadosList = Arrays.asList( dadosResponsavelProponente.getEmail() );
+
+		Optional<String> nomeOrganizacao = dadosResponsavelProponente.getPessoaOrganizacaoSet()
+			.stream()
+			.filter(o -> o.getIsResponsavel()) 
+			.findFirst() 
+			.map(o -> o.getOrganizacao().getNome());
+
+		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idProjeto;
+
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+			nomeProponente,
+			linkEdicao,
+			nomeOrganizacao.orElse(""),
+			dadosResponsavelProponente.getNome(),
+			emailsInteressadosList );
+
+		boolean confirmacaoEnvioEmail = emailService.enviarEmailAnaliseDIC( envioEmailDicDetalhesDto );
+
+		if (confirmacaoEnvioEmail) {
+		//	this.alterarDadosDicEnvioEmail(id); VAMOS GRAVAR ALGO ?
+			logger.info("Email enviado com sucesso");
+			return true;
+		}else{
+			logger.info("Email não foi enviado");
+			return true;
+		}
 
 	}
 

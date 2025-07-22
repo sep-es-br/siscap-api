@@ -1,6 +1,8 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.client.EdocsWebClient;
+import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.edocswebapi.*;
 import br.gov.es.siscap.enums.edocs.SituacaoEventoEdocsEnum;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class IntegraccaoEdocsService {
 
 	private final EdocsWebClient EdocsWebClient;
 	private final AcessoCidadaoAutorizacaoService AutorizacaoACService;
+	private final AcessoCidadaoService AcessoCidadaoService;
 	private final UploadS3Service UploadS3Service;
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
@@ -195,7 +198,15 @@ public class IntegraccaoEdocsService {
 
 		logger.info("Iniciar captura e assina DIC com dados do servidor/agente publico logado.");
 
-		String idPapelCapturadorAssinante = "fc4fb210-fb3a-4d51-845c-cfd6921e5aa6"; // TESTE - TEM QUE PEGAR DO USUARIO LOGADO
+		ACUserInfoDto userInfo = AcessoCidadaoService.buscarInformacoesUsuario(token);
+		List<ACAgentePublicoPapelDto> listaPapeisUsuario = AcessoCidadaoService.listarPapeisAgentePublicoPorSub(userInfo.subNovo());
+		String guidPapelUsuario = listaPapeisUsuario.stream()
+									.filter(papel -> papel.Prioritario() )  // Filtra os prioritários
+									.findFirst()                            // Pega o primeiro prioritário (se existir)
+									.orElseGet(() -> listaPapeisUsuario.stream().findFirst().orElse(null) )
+									.Guid() ; // Se não houver, pega o primeiro da lista original
+
+		String idPapelCapturadorAssinante = guidPapelUsuario ; //"fc4fb210-fb3a-4d51-845c-cfd6921e5aa6"; // TESTE - TEM QUE PEGAR DO USUARIO LOGADO
 		String idClasse = "6c6118eb-3129-4dfb-beaf-b16d3acf4ba6"; // TESTE - TEM QUE PEGAR DO USUARIO LOGADO
 		boolean credenciarCapturador = true;
 		RestricaoAcessoBodyDto restricaoAcessoBodyDto = new RestricaoAcessoBodyDto(true, null, null);
