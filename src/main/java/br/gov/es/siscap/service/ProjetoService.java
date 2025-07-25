@@ -252,9 +252,9 @@ public class ProjetoService {
 				this.enviarEmailGestorAvaliarDic( id, subResponsavelProponente, nomeProponente );
 			}
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		} catch (MessagingException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		}
 		
 		logger.info("Projeto atualizado com sucesso");
@@ -299,6 +299,59 @@ public class ProjetoService {
 		projeto.setStatus(status);
 
 		repository.save(projeto);
+	}
+
+	public void enviarSolicitacaoRevisaoProjeto( Long id, String justificativa ) {
+		
+		List<String> erros = new ArrayList<>();
+		
+		if( justificativa == null || justificativa.isEmpty() || justificativa.isBlank() ){
+			erros.add("Erro ao enviar solicitação de revisão do projeto id " + id + " justificativa não presente no pedido de envio.");
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		Projeto projeto = this.buscar(id);
+
+		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
+			.stream()
+			.filter( pessoa -> pessoa.isProponente() )
+			.findFirst()
+			.map( proponente -> proponente.getPessoa() );
+
+		if( responsavelProponenteProjeto.isPresent() ){
+
+			List<String> emailsInteressadosList = new ArrayList<String>();
+
+			emailsInteressadosList.add(responsavelProponenteProjeto.get().getEmail());
+			
+			boolean confirmacaoEnvioEmail;
+			try {
+				
+				confirmacaoEnvioEmail = emailService.enviarEmailRevisarProjeto( emailsInteressadosList, justificativa, responsavelProponenteProjeto.get().getNome() );
+			
+				if (confirmacaoEnvioEmail) {
+					logger.info("Email enviado com sucesso");
+				}else{
+					erros.add("Erro ao enviar solicitação de revisão do projeto id " + id);
+				}
+
+			} catch (UnsupportedEncodingException e) {
+				logger.error(e.getMessage());
+			} catch (MessagingException e) {
+				logger.error(e.getMessage());
+			}
+
+		}else{
+			erros.add("Não foi possível fazer o envio pois o proponente não foi encontrado - projeto id " + id);
+		}
+						
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		return;
+
 	}
 
 	public List<Long> buscarIdProjetoPropostoList(Programa programa) {
@@ -362,8 +415,8 @@ public class ProjetoService {
 	}
 
 
-	public String gerarNomeArquivo(Long idProjeto) {
-		Projeto projeto = this.buscar(idProjeto);
+	public String gerarNomeArquivo(Integer idProjeto) {
+		Projeto projeto = this.buscar(idProjeto.longValue());
 
 		if (projeto.getOrganizacao().getCnpj() == null) {
 			throw new RelatorioNomeArquivoException("Organização não possui CNPJ.");
@@ -386,7 +439,7 @@ public class ProjetoService {
 	}
 
 	private Projeto buscar(Long id) {
-		Projeto resultado = repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
+		//Projeto resultado = repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 		return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 	}
 

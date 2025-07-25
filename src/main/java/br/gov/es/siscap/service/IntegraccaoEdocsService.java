@@ -32,7 +32,7 @@ public class IntegraccaoEdocsService {
 	private final UploadS3Service UploadS3Service;
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
-	public void assinarAutuarDespacharDicProccessoSUBCAP( Resource arquivoDic, String nomeArquivo, Integer idProjeto ){
+	public void assinarAutuarDespacharDicProccessoSUBCAP( Resource arquivoDic, String nomeArquivo, Long idProjeto ){
 
 		logger.info("Iniciando processo para Autuacao/Despacho do projeto {} para SUBCAP..", idProjeto);
 		
@@ -46,7 +46,7 @@ public class IntegraccaoEdocsService {
 		
 	}
 
-	public Mono<String> uploadArquivoReativo(Integer idProjeto, Resource arquivo, String nomeArquivo) {
+	public Mono<String> uploadArquivoReativo(Long idProjeto, Resource arquivo, String nomeArquivo) {
 		
 		return FeignReativo.fromFeign(() -> { 
 				try {
@@ -196,9 +196,10 @@ public class IntegraccaoEdocsService {
 
 	private String capturarAssinarDocumento( String identificadorTemporarioArquivo, String nomeArquivo, String token  ){
 
-		logger.info("Iniciar captura e assina DIC com dados do servidor/agente publico logado.");
+		String tokenLimpo = token.replace("Bearer ", "").trim();
 
-		ACUserInfoDto userInfo = AcessoCidadaoService.buscarInformacoesUsuario(token);
+		ACUserInfoDto userInfo = AcessoCidadaoService.buscarInformacoesUsuario(tokenLimpo);
+
 		List<ACAgentePublicoPapelDto> listaPapeisUsuario = AcessoCidadaoService.listarPapeisAgentePublicoPorSub(userInfo.subNovo());
 		String guidPapelUsuario = listaPapeisUsuario.stream()
 									.filter(papel -> papel.Prioritario() )  // Filtra os prioritários
@@ -219,7 +220,7 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	private String autuarProcesso( Integer idProjeto, String token, String idDocumentoCapturado ){
+	private String autuarProcesso( Long idProjeto, String token, String idDocumentoCapturado ){
 		
 		logger.info("Iniciar autuacao do processo para o projeto id {} - documento id {}.", idProjeto, idDocumentoCapturado );
 				
@@ -227,6 +228,7 @@ public class IntegraccaoEdocsService {
 		String idPapelResponsavel = "fc4fb210-fb3a-4d51-845c-cfd6921e5aa6";
 		String idLocal = "d2ab305b-3f41-4802-b509-09f447ab3016";
 		String resumo = "Autuação testes uso de API do E-Docs - teste 03/07/2025 - DIC";
+		
 		List<String> idsAgentesInteressados = List.of( "e7942272-bb41-4d32-9c51-de3145ebcf21", "d2c2c928-ddcc-4f0a-b58d-0ffcab7f31e3" ) ;
 		List<String> idsDocumentosEntranhados = List.of( idDocumentoCapturado );
 
@@ -236,7 +238,7 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	private String despacharProcessoSUBCAP( Integer idProjeto, String token, String idProcessoEDocs ){
+	private String despacharProcessoSUBCAP( Long idProjeto, String token, String idProcessoEDocs ){
 		
 		logger.info("Iniciar depacho do processo para o projeto id {} para SUBCAP.", idProjeto );
 		

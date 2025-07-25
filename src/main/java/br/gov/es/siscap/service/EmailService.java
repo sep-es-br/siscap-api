@@ -6,6 +6,7 @@ import br.gov.es.siscap.dto.ProspeccaoDetalhesDto;
 import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.utils.EnvioAnaliseGestorDicEmailBuilder;
+import br.gov.es.siscap.utils.EnvioRevisaoDicEmailBuilder;
 import br.gov.es.siscap.utils.ProspeccaoEmailBuilder;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -113,6 +114,36 @@ public class EmailService {
 		}
 
 		return confirmacaoEnvioEmailList.stream().allMatch(Boolean::booleanValue);
+	}
+
+	public boolean enviarEmailRevisarProjeto( List<String> emailsInteressadosList, String justificativa, String nomeResponsavelEnvio ) 
+		throws MessagingException, UnsupportedEncodingException {
+
+		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
+
+		MimeMessage mensagem = this.sender.createMimeMessage();
+		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
+		
+		String assuntoEmail = EnvioRevisaoDicEmailBuilder.montarAssuntoEmail();
+		String corpoEmail = EnvioRevisaoDicEmailBuilder.montarCorpoEmail( nomeResponsavelEnvio, justificativa );
+		
+		helper.setFrom(REMETENTE_ENDERECO, REMETENTE_APELIDO);
+		helper.setSubject(assuntoEmail);
+		helper.setText(corpoEmail, true);
+		
+		for (String emailInteressado : emailsInteressadosList ) {
+			helper.setTo(emailInteressado);
+			try {
+				this.sender.send(helper.getMimeMessage());
+				confirmacaoEnvioEmailList.add(true);
+			} catch (MailException e) {
+				confirmacaoEnvioEmailList.add(false);
+				throw new RuntimeException(e);
+			}
+		}
+
+		return confirmacaoEnvioEmailList.stream().allMatch(Boolean::booleanValue);
+
 	}
 
 }
