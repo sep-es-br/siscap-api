@@ -4,6 +4,7 @@ import br.gov.es.siscap.dto.edocswebapi.AutuarProjetoDto;
 import br.gov.es.siscap.dto.edocswebapi.CapturaAssinaturaBodyDto;
 import br.gov.es.siscap.dto.edocswebapi.DespacharProjetoDto;
 import br.gov.es.siscap.dto.edocswebapi.GerarUrlUploadResponseDto;
+import br.gov.es.siscap.dto.edocswebapi.ProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.SituacaoEventoDto;
 import reactor.core.publisher.Mono;
 
@@ -39,5 +40,11 @@ public interface EdocsWebClient {
 	@PostMapping("/v2/processos/despachar")
 	String depacharProcesso( @RequestHeader("Authorization") String bearerToken,
 		@RequestBody DespacharProjetoDto request );
+
+	@GetMapping("/v2/processos/{idProcesso}")
+	ProcessoEdocsDto buscarDadosProcessoEdocs( @RequestHeader("Authorization") String bearerToken, 
+		@PathVariable String idProcesso );
+	
+		
 
 }

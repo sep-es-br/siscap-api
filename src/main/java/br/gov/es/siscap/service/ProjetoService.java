@@ -1,10 +1,13 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
+import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.enums.StatusProjetoEnum;
+import br.gov.es.siscap.enums.TipoPapelEnum;
+import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
@@ -16,11 +19,13 @@ import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
+import br.gov.es.siscap.models.TipoPapel;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import br.gov.es.siscap.specification.ProjetoSpecification;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -59,6 +63,8 @@ public class ProjetoService {
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final EmailService emailService;
 	private final ProjetoAcaoService projetoAcaoService;
+	private final AcessoCidadaoService acessoCidadaoService;
+	private final AcessoCidadaoAutorizacaoService autorizacaoACService;
 	
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
@@ -170,6 +176,7 @@ public class ProjetoService {
 		Set<ProjetoPessoa> projetoPessoaSet;
 
 		List<EquipeDto> equipeParaGravar = form.equipeElaboracao();
+				
 		List<EquipeDto> equipeElaboracaoValidada = this.validarEquipeElaboracao(form);
 		if (!new HashSet<>(form.equipeElaboracao()).equals(new HashSet<>(equipeElaboracaoValidada))) {
 			equipeParaGravar = equipeElaboracaoValidada;
@@ -301,7 +308,72 @@ public class ProjetoService {
 		repository.save(projeto);
 	}
 
+	@Transactional
+	public void atualizarProtocoloProcessoEdocsProjeto(Long id, String protocoloEdcos) {
+		Projeto projeto = this.buscar(id);
+
+		projeto.setProtocoloEdocs(protocoloEdcos);
+
+		repository.save(projeto);
+	}
+
+
 	public void enviarSolicitacaoRevisaoProjeto( Long id, String justificativa ) {
+		
+		List<String> erros = new ArrayList<>();
+		
+		if( justificativa == null || justificativa.isEmpty() || justificativa.isBlank() ){
+			erros.add("Erro ao enviar solicitação de revisão do projeto id " + id + " justificativa não presente no pedido de envio.");
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		Projeto projeto = this.buscar(id);
+
+		Optional<Pessoa> proponenteProjeto = projeto.getProjetoPessoaSet()
+			.stream()
+			.filter( pessoa -> pessoa.isProponente() )
+			.findFirst()
+			.map( proponente -> proponente.getPessoa() );
+
+		if( proponenteProjeto.isPresent() ){
+
+			List<String> emailsInteressadosList = new ArrayList<String>();
+
+			emailsInteressadosList.add( proponenteProjeto.get().getEmail() );
+			
+			boolean confirmacaoEnvioEmail;
+			try {
+				
+				confirmacaoEnvioEmail = emailService.enviarEmailRevisarProjeto( emailsInteressadosList, 
+					justificativa, 
+					proponenteProjeto.get().getNome(), projeto );
+			
+				if (confirmacaoEnvioEmail) {
+					logger.info("Email enviado com sucesso");
+				}else{
+					erros.add("Erro ao enviar solicitação de revisão do projeto id " + id);
+				}
+
+			} catch (UnsupportedEncodingException e) {
+				logger.error(e.getMessage());
+			} catch (MessagingException e) {
+				logger.error(e.getMessage());
+			}
+
+		}else{
+			erros.add("Não foi possível fazer o envio pois o proponente não foi encontrado - projeto id " + id);
+		}
+						
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		return;
+
+	}
+
+	public void enviarAvisoArquivamentoProjeto( Long id, String justificativa ) {
 		
 		List<String> erros = new ArrayList<>();
 		
@@ -327,12 +399,15 @@ public class ProjetoService {
 			boolean confirmacaoEnvioEmail;
 			try {
 				
-				confirmacaoEnvioEmail = emailService.enviarEmailRevisarProjeto( emailsInteressadosList, justificativa, responsavelProponenteProjeto.get().getNome() );
+				confirmacaoEnvioEmail = emailService.enviarEmailArquivamentorProjeto( emailsInteressadosList, 
+					justificativa, 
+					responsavelProponenteProjeto.get().getNome(),
+					projeto.getSigla() );
 			
 				if (confirmacaoEnvioEmail) {
 					logger.info("Email enviado com sucesso");
 				}else{
-					erros.add("Erro ao enviar solicitação de revisão do projeto id " + id);
+					erros.add("Erro ao enviar aviso de arwquivamento do projeto id " + id);
 				}
 
 			} catch (UnsupportedEncodingException e) {
@@ -469,7 +544,7 @@ public class ProjetoService {
 
 	private List<EquipeDto> buscarEquipeElaboracao(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
-					.filter(Predicate.not(ProjetoPessoa::isResponsavelProponente))
+					.filter(pessoa -> !pessoa.isResponsavelProponente() && !pessoa.isProponente())
 					.map(EquipeDto::new)
 					.toList();
 	}

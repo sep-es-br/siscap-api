@@ -11,16 +11,18 @@ public record ProjetoListaDto(
 			String titulo,
 			String status,
 			BigDecimal valorEstimado,
-			boolean isRascunho
+			boolean isRascunho,
+			String protocoloEdocs
 ) {
 	public ProjetoListaDto(Projeto projeto, BigDecimal valorEstimado) {
 		this(
-					projeto.getId(),
-					projeto.getSigla(),
-					projeto.getTitulo(),
-					projeto.getStatus(),
-					valorEstimado,
-					projeto.isRascunho()
+			projeto.getId(),
+			projeto.getSigla(),
+			projeto.getTitulo(),
+			projeto.getStatus(),
+			valorEstimado,
+			projeto.isRascunho(),
+			projeto.getProtocoloEdocs()
 		);
 	}
 }

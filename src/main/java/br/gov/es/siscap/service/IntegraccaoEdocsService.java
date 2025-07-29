@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.edocswebapi.*;
 import br.gov.es.siscap.enums.edocs.SituacaoEventoEdocsEnum;
+import br.gov.es.siscap.repository.ProjetoRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,6 +31,8 @@ public class IntegraccaoEdocsService {
 	private final AcessoCidadaoAutorizacaoService AutorizacaoACService;
 	private final AcessoCidadaoService AcessoCidadaoService;
 	private final UploadS3Service UploadS3Service;
+	private final ProjetoService projetoService;
+
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
 	public void assinarAutuarDespacharDicProccessoSUBCAP( Resource arquivoDic, String nomeArquivo, Long idProjeto ){
@@ -124,7 +127,7 @@ public class IntegraccaoEdocsService {
 												token  
 											))
 											.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-											.doOnNext(dto -> logger.info("Status recebido: {}", dto.situacao())) // LOG PARA DEBUG
+											.doOnNext(dto -> logger.info("Id do processo autuado : {}", dto.idProcesso() )) 
 											.filter(dto -> {
 												boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
 												if (!isConcluido) {
@@ -155,7 +158,6 @@ public class IntegraccaoEdocsService {
 														token  
 													))
 													.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-													.doOnNext(dto -> logger.info("Status recebido: {}", dto.situacao())) // LOG PARA DEBUG
 													.filter(dto -> {
 														boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
 														if (!isConcluido) {
@@ -166,8 +168,22 @@ public class IntegraccaoEdocsService {
 													.repeatWhenEmpty( flux -> flux.delayElements(Duration.ofSeconds(2))) // Repete a cada 2s se vazio
 													.timeout(Duration.ofMinutes(1)) // Timeout total em minutos
 													.switchIfEmpty(Mono.error(new RuntimeException("Falha ao consultar situacao do evento de DESPACHO DO PROCESSO ID " + idEventoDespacho + ".")))
-													.doOnSuccess( situacaoEventoDto -> logger.info("Despacho confirmado: {}", situacaoEventoDto.situacao() ))
+													.doOnSuccess( dto -> logger.info("Consulta evento despacho concluído: {}", dto.id() ) )
 													.doOnError( e -> logger.error("Falha ao verificar situacao do evento de despacho do processo no E-Docs.", e ) )
+												)
+												.flatMap( dtoSituacaoEventoDespacho -> 
+													FeignReativo.fromFeign( () -> 
+														consultarDadosProcessoEdocs( dtoSituacaoEventoAutuacao.idProcesso(), 
+														token ) 
+													)
+													.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+													.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.")))
+													.doOnSuccess( retornoDadosProcesso -> { 
+															logger.info("Gravando Protocolo do processo E-Docs {} no processo do SISCAP.", retornoDadosProcesso.protocolo() ) ;
+															projetoService.atualizarProtocoloProcessoEdocsProjeto(idProjeto, retornoDadosProcesso.protocolo() );
+														}
+													)
+													.doOnError( e -> logger.error("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs. {}", e ) )
 												)
 										)
 									)
@@ -176,7 +192,7 @@ public class IntegraccaoEdocsService {
 						)
 					)
 				)
-			).thenReturn("Upload concluído com sucesso");
+			).thenReturn("Upload concluido com sucesso");
 
 	}
 	
@@ -192,6 +208,11 @@ public class IntegraccaoEdocsService {
 	private SituacaoEventoDto consultarSituacaoEventoEdocs( String idEventoEdocs, String token ){
 		logger.info("Iniciar consulta situacao evento id {}.", idEventoEdocs);
 		return EdocsWebClient.buscarSituacaoEvento( token, idEventoEdocs );
+	}
+
+	private ProcessoEdocsDto consultarDadosProcessoEdocs( String idProcessoEdocs, String token ){
+		logger.info("Iniciar consulta dados do processo E-Docs id {}.", idProcessoEdocs);
+		return EdocsWebClient.buscarDadosProcessoEdocs( token, idProcessoEdocs );
 	}
 
 	private String capturarAssinarDocumento( String identificadorTemporarioArquivo, String nomeArquivo, String token  ){
