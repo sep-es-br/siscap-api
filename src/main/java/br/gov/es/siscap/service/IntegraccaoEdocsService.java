@@ -39,7 +39,7 @@ public class IntegraccaoEdocsService {
 
 		logger.info("Iniciando processo para Autuacao/Despacho do projeto {} para SUBCAP..", idProjeto);
 		
-		uploadArquivoReativo(idProjeto, arquivoDic, nomeArquivo)
+		autuarDicProjetoReativo(idProjeto, arquivoDic, nomeArquivo)
 			.subscribe(
 				mensagem -> logger.info("SUCESSO: {}", mensagem),
 				erro -> logger.info("ERRO: {}", erro)
@@ -49,7 +49,7 @@ public class IntegraccaoEdocsService {
 		
 	}
 
-	public Mono<String> uploadArquivoReativo(Long idProjeto, Resource arquivo, String nomeArquivo) {
+	public Mono<String> autuarDicProjetoReativo(Long idProjeto, Resource arquivo, String nomeArquivo) {
 		
 		return FeignReativo.fromFeign(() -> { 
 				try {

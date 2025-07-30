@@ -11,8 +11,10 @@ spring:
       ddl-auto: none
 
   mail:
-    host: sistemas.mail.dcpr.es.gov.br
-    port: 25
+    host: sandbox.smtp.mailtrap.io
+    port: 2525
+    username: 37a8c577b86c51
+    password: 300531ac19c0d5
     properties:
       mail:
         smtp:
@@ -35,19 +37,30 @@ spring:
         registration:
           acessocidadao:
             client-name: siscap
-            client-id: 54e0c69a-b488-459f-a411-51d22d115c90
-            client-secret: UdBSIIAAH1erVfkVr2xZ1Viog$qp1e
+            client-id: 5527294c-228f-476a-b672-4ba76c0ca118
+            client-secret: 19j8hUHrAPPn@@JyeTtHZD1*ZnFd6j
             authorization-grant-type: authorization_code
-            redirect-uri: https://siscap.hom.sep.local/siscap/acesso-cidadao-response.html
+            redirect-uri: http://localhost:8080/siscap/acesso-cidadao-response.html
             scope:
-              - openid
-              - profile
-              - nome
-              - agentepublico
-              - email
-              - roles
-              - permissoes
-              - emailCorporativo
+               - api-sigades
+               - api-sigades-processo
+               - api-sigades-documento
+               - api-sigades-consultar
+               - api-sigades-encaminhamento
+               - openid
+               - profile
+               - nome
+               - agentepublico
+               - email
+               - roles
+               - permissoes
+               - emailCorporativo
+               - ApiAcessoCidadao
+               - ApiOrganograma
+               - api-acessocidadao-cpf
+               - api-acessocidadao-base
+               - api-organograma
+               - api-acessocidadao-servidores
       resourceserver:
         jwt:
           issuer-uri: https://acessocidadao.es.gov.br/is
@@ -58,20 +71,23 @@ api:
       token: https://acessocidadao.es.gov.br/is/connect/token
       webapi: https://sistemas.es.gov.br/prodest/acessocidadao.webapi
       userinfo: https://acessocidadao.es.gov.br/is/connect/userinfo
-    client-id: 6c57c6f5-c356-4a3e-b54b-6c629e3b1dcb
-    client-secret: 2oNXhRHmVDpKQmABFE1ypixM4V22cs
+    client-id: af311882-53a8-495e-874e-8c98d825c007
+    client-secret: HlvbBUqcKIIpy67Fo8$rgIt*yG$GHK
     grant_type: client_credentials
-    scope: ApiAcessoCidadao ApiOrganograma api-acessocidadao-cpf api-acessocidadao-base api-organograma api-acessocidadao-servidores
+    scope: ApiAcessoCidadao ApiOrganograma api-acessocidadao-cpf api-acessocidadao-base api-organograma api-acessocidadao-servidores api-sigades-documento
   organograma:
     uri:
       webapi: https://api.organograma.es.gov.br
+  edocs:
+    uri:
+      webapi: https://api.treinamento.e-docs.es.gov.br
 
 frontend:
-  host: https://siscap.hom.sep.local
+  host: http://localhost:4200
 
 raiz:
   imagens: C:/siscap/api/arquivos/imagens
-  relatorios: C:/siscap/api/arquivos/relatorios
+  relatorios: jasper
   documentos: C:/siscap/api/arquivos/documentos
 
 authorities:
@@ -96,6 +112,11 @@ server:
 
 logging:
   level:
-    root: warn
+    root: INFO
+    feign: INFO
+    org.springframework.web.client.RestTemplate: DEBUG
+    org.apache.http: DEBUG
+    org.apache.http.wire: DEBUG
+        
   file:
-    name: api-error.log
+    name: api-error.log  
