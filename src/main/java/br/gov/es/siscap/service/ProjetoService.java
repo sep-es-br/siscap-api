@@ -318,6 +318,7 @@ public class ProjetoService {
 	}
 
 
+	@Transactional
 	public void enviarSolicitacaoRevisaoProjeto( Long id, String justificativa ) {
 		
 		List<String> erros = new ArrayList<>();
@@ -349,7 +350,11 @@ public class ProjetoService {
 					proponenteProjeto.get().getNome(), projeto );
 			
 				if (confirmacaoEnvioEmail) {
+					
 					logger.info("Email enviado com sucesso");
+					
+					this.alterarStatusProjeto(id, StatusProjetoEnum.EM_ELABORACAO.getValue());
+					
 				}else{
 					erros.add("Erro ao enviar solicitação de revisão do projeto id " + id);
 				}
@@ -373,6 +378,7 @@ public class ProjetoService {
 
 	}
 
+	@Transactional
 	public void enviarAvisoArquivamentoProjeto( Long id, String justificativa ) {
 		
 		List<String> erros = new ArrayList<>();
@@ -405,9 +411,10 @@ public class ProjetoService {
 					projeto.getSigla() );
 			
 				if (confirmacaoEnvioEmail) {
-					logger.info("Email enviado com sucesso");
+					logger.info("Email aviso arquivamento projeto enviado com sucesso do projeto id " + id);
+					this.alterarStatusProjeto(id, StatusProjetoEnum.ARQUIVADO.getValue());
 				}else{
-					erros.add("Erro ao enviar aviso de arwquivamento do projeto id " + id);
+					erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id);
 				}
 
 			} catch (UnsupportedEncodingException e) {
