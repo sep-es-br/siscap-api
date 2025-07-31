@@ -25,7 +25,8 @@ public record ProjetoDto(
 	String subResponsavelProponente,
 	List<ProjetoIndicadorDto> indicadoresProjeto,
 	List<ProjetoAcaoDto> acoesProjeto,
-	String pecasPlanejamento
+	String pecasPlanejamento,
+	String protocoloEdocs
 ) {
 
 	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao, 
@@ -50,7 +51,8 @@ public record ProjetoDto(
 			subResponsavelProponente,
 			indicadoresProjeto,
 			acoesProjeto,
-			projeto.getPecasPlanejamento()
+			projeto.getPecasPlanejamento(),
+			projeto.getProtocoloEdocs()
 		);
 	}
 

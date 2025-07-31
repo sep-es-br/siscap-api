@@ -104,6 +104,9 @@ public class Projeto extends ControleHistorico {
 	@Column(name = "pecas_planejamento", nullable = false, length = 2000)
 	private String pecasPlanejamento;
 
+	@Column(name = "protocolo_edocs", nullable = false, length = 15)
+	private String protocoloEdocs;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
@@ -149,7 +152,8 @@ public class Projeto extends ControleHistorico {
 		this.setImpactos(form.impactos());
 		this.setArranjosInstitucionais(form.arranjosInstitucionais());
 		this.setFase("DIC");
-		this.setPecasPlanejamento(form.pecasPlanejamento());;
+		this.setPecasPlanejamento(form.pecasPlanejamento());
+		this.setProtocoloEdocs(form.protocoloEdocs());
 	}
 
 }

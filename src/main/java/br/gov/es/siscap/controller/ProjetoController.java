@@ -4,6 +4,8 @@ import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.form.ProjetoForm;
+import br.gov.es.siscap.service.AsyncExecutorService;
+import br.gov.es.siscap.service.IntegraccaoEdocsService;
 import br.gov.es.siscap.service.ProjetoService;
 import br.gov.es.siscap.service.RelatoriosService;
 import jakarta.validation.Valid;
@@ -33,8 +35,7 @@ public class ProjetoController {
 
 	private final ProjetoService service;
 	private final RelatoriosService relatoriosService;
-
-	private final Logger logger = LogManager.getLogger(ProjetoService.class);
+	private final AsyncExecutorService asyncExecutorService;
 
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
@@ -78,6 +79,20 @@ public class ProjetoController {
 		return ResponseEntity.ok().body("Status do projeto alterado com sucesso!");
 	}
 
+	@PostMapping("/{id}/revisar")
+	public ResponseEntity<String> enviarProjetoParaRevisao(@PathVariable @NotNull Long id, @RequestBody Map<String, String> justificativa) {
+		service.enviarSolicitacaoRevisaoProjeto(id, justificativa.get("justificativa"));
+		return ResponseEntity.ok().body("Solicitação de revisão enviada com sucesso!");
+	}
+
+	@PostMapping("/{id}/arquivar")
+	public ResponseEntity<String> enviarProjetoParaArquivamento(@PathVariable @NotNull Long id, @RequestBody Map<String, String> justificativa) {
+		service.enviarAvisoArquivamentoProjeto(id, justificativa.get("justificativa"));
+		// persistir o arquivo no banco..
+		return ResponseEntity.ok().body("Solicitação de revisão enviada com sucesso!");
+	}
+
+
 	@GetMapping("/dic/{idProjeto}")
 	public ResponseEntity<Resource> gerarDIC(@PathVariable Integer idProjeto) {
 		Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto);
@@ -90,4 +105,11 @@ public class ProjetoController {
 					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + ".pdf\"")
 					.body(resource);
 	}
+
+	@PutMapping("/dic/edocs/autuar/{idProjeto}")
+	public ResponseEntity<Resource> assinarAutuarDIC( @PathVariable Long idProjeto ) {
+		asyncExecutorService.executarAutuacaoEdocs(idProjeto);
+    	return ResponseEntity.accepted().build(); // HTTP 202
+	}
+
 }
