@@ -88,7 +88,6 @@ public class ProjetoController {
 	@PostMapping("/{id}/arquivar")
 	public ResponseEntity<String> enviarProjetoParaArquivamento(@PathVariable @NotNull Long id, @RequestBody Map<String, String> justificativa) {
 		service.enviarAvisoArquivamentoProjeto(id, justificativa.get("justificativa"));
-		// persistir o arquivo no banco..
 		return ResponseEntity.ok().body("Solicitação de revisão enviada com sucesso!");
 	}
 

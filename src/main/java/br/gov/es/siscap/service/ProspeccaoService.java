@@ -118,7 +118,7 @@ public class ProspeccaoService {
 
 		List<String> emailsInteressadosList = prospeccaoInteressadoService.buscarEmailsInteressadosPorPropeccao(this.buscar(id));
 
-		String nomeArquivo = this.projetoService.gerarNomeArquivo(id) + ".pdf";
+		String nomeArquivo = this.projetoService.gerarNomeArquivo(id.intValue()) + ".pdf";
 
 		boolean confirmacaoEnvioEmail = emailService.enviarEmail(prospeccaoDetalhesDto, emailsInteressadosList, nomeArquivo);
 
