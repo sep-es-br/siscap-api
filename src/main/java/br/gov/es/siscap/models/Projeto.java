@@ -107,6 +107,14 @@ public class Projeto extends ControleHistorico {
 	@Column(name = "protocolo_edocs", nullable = false, length = 15)
 	private String protocoloEdocs;
 
+	@ManyToOne
+	@JoinColumn(name = "id_tipo_motivo_arquivamento")
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private TipoMotivoArquivamento tipoMotivoArquivamento;
+
+	@Column(name = "justificativa_arquivamento", nullable = false, length = 255)
+	private String justificativaArquivamento;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
