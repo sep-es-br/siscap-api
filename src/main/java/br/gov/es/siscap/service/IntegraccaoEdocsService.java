@@ -6,7 +6,6 @@ import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.edocswebapi.*;
 import br.gov.es.siscap.enums.edocs.SituacaoEventoEdocsEnum;
-import br.gov.es.siscap.repository.ProjetoRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,12 +34,14 @@ public class IntegraccaoEdocsService {
 	private final ProjetoService projetoService;
 
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
-
+	
 	public void assinarAutuarDespacharDicProccessoSUBCAP( Resource arquivoDic, String nomeArquivo, Long idProjeto ){
 
 		logger.info("Iniciando processo para Autuacao/Despacho do projeto {} para SUBCAP..", idProjeto);
+
+		ProjetoDto projetoDtoIntegrando = projetoService.buscarPorId(idProjeto);
 		
-		autuarDicProjetoReativo(idProjeto, arquivoDic, nomeArquivo)
+		autuarDicProjetoReativo(projetoDtoIntegrando, arquivoDic, nomeArquivo)
 			.subscribe(
 				mensagem -> logger.info("SUCESSO: {}", mensagem),
 				erro -> logger.info("ERRO: {}", erro)
@@ -50,7 +51,7 @@ public class IntegraccaoEdocsService {
 		
 	}
 
-	public Mono<String> autuarDicProjetoReativo(Long idProjeto, Resource arquivo, String nomeArquivo) {
+	public Mono<String> autuarDicProjetoReativo(ProjetoDto projeto, Resource arquivo, String nomeArquivo) {
 		
 		return FeignReativo.fromFeign(() -> { 
 				try {
@@ -112,7 +113,7 @@ public class IntegraccaoEdocsService {
 								.flatMap( dtoSituacaoEvento -> 
 									FeignReativo.fromFeign( () ->  
 										autuarProcesso( 
-											idProjeto,
+											projeto.id(),
 											token,
 											dtoSituacaoEvento.idDocumento() 
 										)
@@ -144,7 +145,7 @@ public class IntegraccaoEdocsService {
 										.flatMap( dtoSituacaoEventoAutuacao -> 
 											FeignReativo.fromFeign( () ->  
 												despacharProcessoSUBCAP( 
-													idProjeto, 
+													projeto.id(), 
 													token, 
 													dtoSituacaoEventoAutuacao.idProcesso() )
 											)
@@ -181,7 +182,7 @@ public class IntegraccaoEdocsService {
 													.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.")))
 													.doOnSuccess( retornoDadosProcesso -> { 
 															logger.info("Gravando Protocolo do processo E-Docs {} no processo do SISCAP.", retornoDadosProcesso.protocolo() ) ;
-															projetoService.atualizarProtocoloProcessoEdocsProjeto(idProjeto, retornoDadosProcesso.protocolo() );
+															projetoService.atualizarProtocoloProcessoEdocsProjeto(projeto.id(), retornoDadosProcesso.protocolo() );
 														}
 													)
 													.doOnError( e -> logger.error("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs. {}", e ) )
