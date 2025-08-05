@@ -86,9 +86,9 @@ public class ProjetoController {
 	}
 
 	@PostMapping("/{id}/arquivar")
-	public ResponseEntity<String> enviarProjetoParaArquivamento(@PathVariable @NotNull Long id, @RequestBody Map<String, String> justificativa) {
-		service.enviarAvisoArquivamentoProjeto(id, justificativa.get("justificativa"));
-		return ResponseEntity.ok().body("Solicitação de revisão enviada com sucesso!");
+	public ResponseEntity<String> enviarProjetoParaArquivamento(@PathVariable @NotNull Long id, @RequestBody Map<String, String> payload) {
+		service.enviarAvisoArquivamentoProjeto(id, payload.get("justificativa"), payload.get("codigoMotivoArquivamento") );
+		return ResponseEntity.ok().body("Aviso de arquivamento enviada com sucesso!");
 	}
 
 

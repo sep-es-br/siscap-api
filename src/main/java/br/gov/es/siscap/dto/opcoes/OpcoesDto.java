@@ -1,6 +1,5 @@
 package br.gov.es.siscap.dto.opcoes;
 
-import br.gov.es.siscap.models.TipoOperacao;
 import br.gov.es.siscap.models.*;
 
 public record OpcoesDto(Long id, String nome) {
@@ -72,4 +71,5 @@ public record OpcoesDto(Long id, String nome) {
 	public OpcoesDto(CartaConsulta cartaConsulta) {
 		this(cartaConsulta.getId(), (cartaConsulta.getTipoOperacao().getTipo() + " - " + cartaConsulta.formatarCartaConsultaNomeOpcaoDto()));
 	}
+
 }

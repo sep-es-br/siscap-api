@@ -19,6 +19,7 @@ import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
+import br.gov.es.siscap.models.TipoMotivoArquivamento;
 import br.gov.es.siscap.models.TipoPapel;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import br.gov.es.siscap.specification.ProjetoSpecification;
@@ -63,9 +64,8 @@ public class ProjetoService {
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final EmailService emailService;
 	private final ProjetoAcaoService projetoAcaoService;
-	private final AcessoCidadaoService acessoCidadaoService;
-	private final AcessoCidadaoAutorizacaoService autorizacaoACService;
-	
+	private final TipoMotivoArquivamentoService tipoMotivoArquivamentoService;
+
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
 	@Value("${frontend.host}")
@@ -300,6 +300,26 @@ public class ProjetoService {
 	}
 
 	@Transactional
+	public void registrarMotivoArquivamentoProjeto(Long id, String codigoMotivoArquivamento, String justificativa) {
+		
+		List<String> erros = new ArrayList<>();
+		Projeto projeto = this.buscar(id);
+
+		TipoMotivoArquivamento motivoArquivamento = tipoMotivoArquivamentoService.buscarTipoMotivoCodigo(codigoMotivoArquivamento);
+
+		if( motivoArquivamento != null ){
+			projeto.setTipoMotivoArquivamento(motivoArquivamento);
+			projeto.setJustificativaArquivamento(justificativa);
+		}else{
+			erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id + " motivo arquivamento não foi informado.");
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		repository.save(projeto);
+
+	}
+
+	@Transactional
 	public void alterarStatusProjeto(Long id, String status) {
 		Projeto projeto = this.buscar(id);
 
@@ -379,12 +399,18 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public void enviarAvisoArquivamentoProjeto( Long id, String justificativa ) {
+	public void enviarAvisoArquivamentoProjeto( Long id, String justificativa, String codigoMotivoArquivamento ) {
 		
 		List<String> erros = new ArrayList<>();
+
+		if( codigoMotivoArquivamento == null ){
+			erros.add("Erro ao enviar solicitação de revisão do projeto id " + id + " código do motivo de arquivamento não foi informado.");
+			throw new ValidacaoSiscapException(erros);
+		}
 		
-		if( justificativa == null || justificativa.isEmpty() || justificativa.isBlank() ){
-			erros.add("Erro ao enviar solicitação de revisão do projeto id " + id + " justificativa não presente no pedido de envio.");
+		if( ( justificativa == null || justificativa.isEmpty() || justificativa.isBlank() ) && ( codigoMotivoArquivamento != null && codigoMotivoArquivamento.trim().equals("M011") ) )
+		{
+			erros.add("Erro ao enviar solicitação de revisão do projeto id " + id + " justificativa não presente no pedido de envio para motivo OUTROS.");
 			throw new ValidacaoSiscapException(erros);
 		}
 
@@ -411,8 +437,14 @@ public class ProjetoService {
 					projeto.getSigla() );
 			
 				if (confirmacaoEnvioEmail) {
+					
 					logger.info("Email aviso arquivamento projeto enviado com sucesso do projeto id " + id);
+
 					this.alterarStatusProjeto(id, StatusProjetoEnum.ARQUIVADO.getValue());
+
+					this.registrarMotivoArquivamentoProjeto(id, codigoMotivoArquivamento, justificativa);
+					
+
 				}else{
 					erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id);
 				}

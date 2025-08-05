@@ -1,11 +1,11 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.client.EdocsWebClient;
+import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.edocswebapi.*;
 import br.gov.es.siscap.enums.edocs.SituacaoEventoEdocsEnum;
-import br.gov.es.siscap.repository.ProjetoRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,12 +34,14 @@ public class IntegraccaoEdocsService {
 	private final ProjetoService projetoService;
 
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
-
+	
 	public void assinarAutuarDespacharDicProccessoSUBCAP( Resource arquivoDic, String nomeArquivo, Long idProjeto ){
 
 		logger.info("Iniciando processo para Autuacao/Despacho do projeto {} para SUBCAP..", idProjeto);
+
+		ProjetoDto projetoDtoIntegrando = projetoService.buscarPorId(idProjeto);
 		
-		autuarDicProjetoReativo(idProjeto, arquivoDic, nomeArquivo)
+		autuarDicProjetoReativo(projetoDtoIntegrando, arquivoDic, nomeArquivo)
 			.subscribe(
 				mensagem -> logger.info("SUCESSO: {}", mensagem),
 				erro -> logger.info("ERRO: {}", erro)
@@ -49,7 +51,7 @@ public class IntegraccaoEdocsService {
 		
 	}
 
-	public Mono<String> autuarDicProjetoReativo(Long idProjeto, Resource arquivo, String nomeArquivo) {
+	public Mono<String> autuarDicProjetoReativo(ProjetoDto projeto, Resource arquivo, String nomeArquivo) {
 		
 		return FeignReativo.fromFeign(() -> { 
 				try {
@@ -111,7 +113,7 @@ public class IntegraccaoEdocsService {
 								.flatMap( dtoSituacaoEvento -> 
 									FeignReativo.fromFeign( () ->  
 										autuarProcesso( 
-											idProjeto,
+											projeto.id(),
 											token,
 											dtoSituacaoEvento.idDocumento() 
 										)
@@ -143,7 +145,7 @@ public class IntegraccaoEdocsService {
 										.flatMap( dtoSituacaoEventoAutuacao -> 
 											FeignReativo.fromFeign( () ->  
 												despacharProcessoSUBCAP( 
-													idProjeto, 
+													projeto.id(), 
 													token, 
 													dtoSituacaoEventoAutuacao.idProcesso() )
 											)
@@ -180,7 +182,7 @@ public class IntegraccaoEdocsService {
 													.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.")))
 													.doOnSuccess( retornoDadosProcesso -> { 
 															logger.info("Gravando Protocolo do processo E-Docs {} no processo do SISCAP.", retornoDadosProcesso.protocolo() ) ;
-															projetoService.atualizarProtocoloProcessoEdocsProjeto(idProjeto, retornoDadosProcesso.protocolo() );
+															projetoService.atualizarProtocoloProcessoEdocsProjeto(projeto.id(), retornoDadosProcesso.protocolo() );
 														}
 													)
 													.doOnError( e -> logger.error("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs. {}", e ) )
@@ -244,11 +246,14 @@ public class IntegraccaoEdocsService {
 	private String autuarProcesso( Long idProjeto, String token, String idDocumentoCapturado ){
 		
 		logger.info("Iniciar autuacao do processo para o projeto id {} - documento id {}.", idProjeto, idDocumentoCapturado );
+
+		ProjetoDto projetoDTO = projetoService.buscarPorId(idProjeto);
 				
 		String idClasse = "bb6509d9-d8f5-46d1-a3c8-3e9ed6318f63";
 		String idPapelResponsavel = "fc4fb210-fb3a-4d51-845c-cfd6921e5aa6";
 		String idLocal = "d2ab305b-3f41-4802-b509-09f447ab3016";
-		String resumo = "Autuação testes uso de API do E-Docs - teste 03/07/2025 - DIC";
+
+		String resumo = String.format( "AUTUAÇÃO PROJETO - %s", projetoDTO.titulo() );
 		
 		List<String> idsAgentesInteressados = List.of( "e7942272-bb41-4d32-9c51-de3145ebcf21", "d2c2c928-ddcc-4f0a-b58d-0ffcab7f31e3" ) ;
 		List<String> idsDocumentosEntranhados = List.of( idDocumentoCapturado );
@@ -264,9 +269,9 @@ public class IntegraccaoEdocsService {
 		logger.info("Iniciar depacho do processo para o projeto id {} para SUBCAP.", idProjeto );
 		
 		String idDestino = "e67022ba-ec5d-4082-9ca1-01979df9c462";
-		String mensagem = "TESTE ENVIO PELA API DO SISCAP AUTOMATICAMENTE";
-		//String idProcessoEDocs = "bb636bfc-5a36-4001-9cdc-905bdd708e5c";
+		String mensagem = "DEPACHO AUTOMÁTICO GERADO PELO SISCAP";
 		String idPapelResponsavel = "fc4fb210-fb3a-4d51-845c-cfd6921e5aa6";
+
 		RestricaoAcessoBodyDto restricaoAcessoBodyDto = new RestricaoAcessoBodyDto(true, null, null);
 
 		DespacharProjetoDto despacharProjetoDto = new DespacharProjetoDto( idDestino, mensagem, restricaoAcessoBodyDto, idProcessoEDocs, idPapelResponsavel );
