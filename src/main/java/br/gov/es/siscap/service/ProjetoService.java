@@ -65,6 +65,7 @@ public class ProjetoService {
 	private final EmailService emailService;
 	private final ProjetoAcaoService projetoAcaoService;
 	private final TipoMotivoArquivamentoService tipoMotivoArquivamentoService;
+	private final AcessoCidadaoService acessoCidadaoService;
 
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
@@ -132,7 +133,11 @@ public class ProjetoService {
 		this.buscarEquipeElaboracao(projetoPessoaSet),
 		this.buscarSubResponsavelProponente(projetoPessoaSet),
 		this.buscarIndicadores(indicadores),
-		this.buscarAcoes(acoes));
+		this.buscarAcoes(acoes),
+		this.buscarSubProponente(projetoPessoaSet),
+		this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
+		this.buscarNomeResponsavelProponente(projetoPessoaSet)
+		);
 
 		return projetoDtoRetorno;
 
@@ -205,7 +210,11 @@ public class ProjetoService {
 			this.buscarEquipeElaboracao(projetoPessoaSet), 
 			this.buscarSubResponsavelProponente(projetoPessoaSet) ,
 			indicadoresProjetoParaGravar,
-			acoesProjetoParaGravar);
+			acoesProjetoParaGravar,
+			this.buscarSubProponente(projetoPessoaSet),
+			this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
+			this.buscarNomeResponsavelProponente(projetoPessoaSet));
+
 	}
 
 	@Transactional
@@ -232,10 +241,21 @@ public class ProjetoService {
 		List<EquipeDto> equipeParaGravar = form.equipeElaboracao();
 
 		List<EquipeDto> equipeElaboracaoValidada = this.validarEquipeElaboracao(form);
+
 		if (!new HashSet<>(form.equipeElaboracao()).equals(new HashSet<>(equipeElaboracaoValidada))) {
 			equipeParaGravar = equipeElaboracaoValidada;
 		}
-		projetoPessoaSet = projetoPessoaService.atualizar(projeto, form.idResponsavelProponente(), equipeParaGravar);
+
+		projetoPessoaSet = projetoPessoaService.atualizar( projeto, form.idResponsavelProponente(), equipeParaGravar );
+
+		// forçar a atualizacao do SUB do responsavel novo
+		projetoPessoaSet.stream()
+			.filter(p -> p.getPessoa().getId().equals(form.idResponsavelProponente()) && p.getTipoPapel().getId().equals(TipoPapelEnum.RESPONSAVEL_PROPONENTE.getValue()))
+			.findFirst()
+			.ifPresent(p -> {
+				String subResponsavelProponente = pessoaService.buscarSubPorId( p.getPessoa().getId() );
+				p.getPessoa().setSub(subResponsavelProponente);
+			} );
 
 		List<ProjetoIndicadorDto> projetoIndicadoresDto = form.indicadoresProjeto();
 		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projetoResult, projetoIndicadoresDto);
@@ -271,7 +291,10 @@ public class ProjetoService {
 			this.buscarEquipeElaboracao(projetoPessoaSet), 
 			subResponsavelProponente,
 			this.buscarIndicadores(projetoIndicadoresSet),
-			this.buscarAcoes(projetoAcoesSet)
+			this.buscarAcoes(projetoAcoesSet),
+			this.buscarSubProponente(projetoPessoaSet),
+			this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
+			this.buscarNomeResponsavelProponente(projetoPessoaSet)
 			);
 
 	}
@@ -570,6 +593,35 @@ public class ProjetoService {
 					.filter(ProjetoPessoa::isResponsavelProponente)
 					.findFirst()
 					.map(projetoPessoa -> projetoPessoa.getPessoa().getSub())
+					.orElse(null);
+	}
+
+	private String buscarSubProponente(Set<ProjetoPessoa> projetoPessoaSet) {
+		return projetoPessoaSet.stream()
+					.filter(ProjetoPessoa::isProponente)
+					.findFirst()
+					.map(projetoPessoa -> projetoPessoa.getPessoa().getSub())
+					.orElse(null);
+	}
+	
+	private String buscarLotacaoResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
+		return projetoPessoaSet.stream()
+					.filter(ProjetoPessoa::isResponsavelProponente)
+					.findFirst()
+					.map( projetoPessoa -> {
+						String sub = projetoPessoa.getPessoa().getSub();
+            			return acessoCidadaoService.buscarNomePapelPrioritarioPorSub(sub) ;
+					} ) 
+					.orElse(null);
+	}
+
+	private String buscarNomeResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
+		return projetoPessoaSet.stream()
+					.filter(ProjetoPessoa::isResponsavelProponente)
+					.findFirst()
+					.map( projetoPessoa -> {
+						return projetoPessoa.getPessoa().getNome();
+					} ) 
 					.orElse(null);
 	}
 

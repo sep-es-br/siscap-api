@@ -81,6 +81,8 @@ api:
   edocs:
     uri:
       webapi: https://api.treinamento.e-docs.es.gov.br
+    classedocumento-id: 6c6118eb-3129-4dfb-beaf-b16d3acf4ba6
+    guiddestinoSUBCAP: 515685f7-2aeb-4cc4-a311-8b793297f8fb
 
 frontend:
   host: http://localhost:4200
@@ -113,10 +115,13 @@ server:
 logging:
   level:
     root: INFO
-    feign: INFO
+    feign: DEBUG
+    feign.Logger: TRACE
     org.springframework.web.client.RestTemplate: DEBUG
     org.apache.http: DEBUG
     org.apache.http.wire: DEBUG
         
   file:
-    name: api-error.log  
+    name: api-error.log 
+
+listarpapeisprioritarios: false

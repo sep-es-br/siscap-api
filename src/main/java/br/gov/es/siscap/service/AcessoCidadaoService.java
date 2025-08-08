@@ -1,16 +1,13 @@
 package br.gov.es.siscap.service;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-
 import br.gov.es.siscap.client.AcessoCidadaoUserInfoClient;
 import br.gov.es.siscap.client.AcessoCidadaoWebClient;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
@@ -23,6 +20,10 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AcessoCidadaoService {
+
+    
+    //@Value("${listarpapeisprioritarios}")
+	//private Boolean listarPapeisPrioritarios;
 
     private final AcessoCidadaoAutorizacaoService ACAuthService;
     private final AcessoCidadaoWebClient ACWebClient;
@@ -44,6 +45,19 @@ public class AcessoCidadaoService {
 
     public List<ACAgentePublicoPapelDto> listarPapeisAgentePublicoPorSub(String sub) {
         return buscarPapeisAgentePublicoPorSub(sub);
+    }
+
+    public String buscarNomePapelPrioritarioPorSub(String sub){
+        List<ACAgentePublicoPapelDto> papeisAgentePublico = this.listarPapeisAgentePublicoPorSub(sub);
+        return papeisAgentePublico
+            .stream()
+            .filter( papel -> Boolean.TRUE.equals(papel.Prioritario()))
+            .findFirst()
+            .map(ACAgentePublicoPapelDto::Nome)
+			.orElseGet( () -> papeisAgentePublico.stream()
+				.findFirst()
+				.map(ACAgentePublicoPapelDto::Nome)
+				.orElse(""));
     }
 
     public ACAgentePublicoPapelDto buscarGestorNovoConjuntoPorGuidOrganizacao(String guid) {
@@ -68,19 +82,22 @@ public class AcessoCidadaoService {
     }
 
     public List<ResponsavelProponenteOpcoesDto> buscarPessoasUnidadePapelPrioritario(String unidadeGuid) {
-        List<ResponsavelProponenteOpcoesDto> result = ACWebClient.buscarAgentesPublicosPapeisPorGuidUnidade(ACAuthService.getAuthorizationHeader(), unidadeGuid)
+                
+        List<ResponsavelProponenteOpcoesDto> result = ACWebClient.buscarAgentesPublicosPapeisPorGuidUnidade( ACAuthService.getAuthorizationHeader(), unidadeGuid, true )
         .stream()
-        .filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
+        //.filter( agente -> ( Boolean.TRUE.equals(agente.Prioritario()) ) )
         .map( dto -> new ResponsavelProponenteOpcoesDto(
             0L, 
             dto.AgentePublicoNome(), 
-            dto.Nome(),
+            dto.Nome().toUpperCase(),
             dto.AgentePublicoSub(),
             false
         ))
         .sorted((a, b) -> a.nome().compareToIgnoreCase(b.nome()))
         .collect(Collectors.toList());
+
         return result;
+
     }
 
     public String buscarGestorPorGuidUnidade(String unidadeGuid) {

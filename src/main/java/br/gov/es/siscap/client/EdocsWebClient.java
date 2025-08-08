@@ -6,17 +6,12 @@ import br.gov.es.siscap.dto.edocswebapi.DespacharProjetoDto;
 import br.gov.es.siscap.dto.edocswebapi.GerarUrlUploadResponseDto;
 import br.gov.es.siscap.dto.edocswebapi.ProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.SituacaoEventoDto;
-import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-
-import java.util.Map;
-import java.util.Optional;
 
 @FeignClient(name = "edocsWeb", url = "${api.edocs.uri.webapi}")
 public interface EdocsWebClient {
