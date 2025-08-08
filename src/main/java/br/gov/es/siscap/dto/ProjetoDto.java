@@ -26,11 +26,15 @@ public record ProjetoDto(
 	List<ProjetoIndicadorDto> indicadoresProjeto,
 	List<ProjetoAcaoDto> acoesProjeto,
 	String pecasPlanejamento,
-	String protocoloEdocs
+	String protocoloEdocs,
+	String subProponente,
+	String lotacaoProponenteResponsavel,
+	String nomeProponenteResponsavel
 ) {
 
 	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao, 
-		String subResponsavelProponente, List<ProjetoIndicadorDto> indicadoresProjeto, List<ProjetoAcaoDto> acoesProjeto ) {
+		String subResponsavelProponente, List<ProjetoIndicadorDto> indicadoresProjeto, List<ProjetoAcaoDto> acoesProjeto, String subProponente, 
+		String lotacaoProponenteResponsavel, String nomeProponenteResponsavel ) {
 		this(projeto.getId(),
 			projeto.getSigla(),
 			projeto.getTitulo(),
@@ -52,7 +56,10 @@ public record ProjetoDto(
 			indicadoresProjeto,
 			acoesProjeto,
 			projeto.getPecasPlanejamento(),
-			projeto.getProtocoloEdocs()
+			projeto.getProtocoloEdocs(),
+			subProponente,
+			lotacaoProponenteResponsavel,
+			nomeProponenteResponsavel
 		);
 	}
 

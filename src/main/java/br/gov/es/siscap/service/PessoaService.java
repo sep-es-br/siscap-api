@@ -297,6 +297,12 @@ public class PessoaService {
 			.orElse("");
 	}
 
+	public String buscarSubPorId(long id) {
+		return repository.findById(id)
+			.map(p -> p.getSub())
+			.orElse("");
+	}
+
 	public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownTodosAgentesGoves() {
 		return acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(GUID_GOVES);
 	}

@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.edocswebapi.*;
+import br.gov.es.siscap.enums.TipoPapelEnum;
 import br.gov.es.siscap.enums.edocs.SituacaoEventoEdocsEnum;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -19,13 +20,17 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class IntegraccaoEdocsService {
+	
+	@Value("${api.edocs.classedocumento-id}")
+	private String classeDocumentoId;
 
-	@Value("")
-	private String GUID_GOVES;
+	@Value("${api.edocs.guiddestinoSUBCAP}")
+	private String guiddestinoSUBCAP;
 
 	private final EdocsWebClient EdocsWebClient;
 	private final AcessoCidadaoAutorizacaoService AutorizacaoACService;
@@ -81,8 +86,7 @@ public class IntegraccaoEdocsService {
 							.doOnError( e -> logger.error("Falha ao executar UPLOAD do arquivo para o servidor S3 do E-Docs.", e ) )
 						.flatMap( retornoUpload -> 
 							FeignReativo.fromFeign( () ->  
-								capturarAssinarDocumento(
-									urlDto.identificadorTemporarioArquivoNaNuvem(),
+								capturarAssinarDocumento(urlDto.identificadorTemporarioArquivoNaNuvem(),
 									nomeArquivo,
 									token
 								))
@@ -113,7 +117,7 @@ public class IntegraccaoEdocsService {
 								.flatMap( dtoSituacaoEvento -> 
 									FeignReativo.fromFeign( () ->  
 										autuarProcesso( 
-											projeto.id(),
+											projeto,
 											token,
 											dtoSituacaoEvento.idDocumento() 
 										)
@@ -145,7 +149,7 @@ public class IntegraccaoEdocsService {
 										.flatMap( dtoSituacaoEventoAutuacao -> 
 											FeignReativo.fromFeign( () ->  
 												despacharProcessoSUBCAP( 
-													projeto.id(), 
+													projeto, 
 													token, 
 													dtoSituacaoEventoAutuacao.idProcesso() )
 											)
@@ -218,21 +222,24 @@ public class IntegraccaoEdocsService {
 	}
 
 	private String capturarAssinarDocumento( String identificadorTemporarioArquivo, String nomeArquivo, String token  ){
-
+		
 		String tokenLimpo = token.replace("Bearer ", "").trim();
-
+		
 		ACUserInfoDto userInfo = AcessoCidadaoService.buscarInformacoesUsuario(tokenLimpo);
 
 		List<ACAgentePublicoPapelDto> listaPapeisUsuario = AcessoCidadaoService.listarPapeisAgentePublicoPorSub(userInfo.subNovo());
 		String guidPapelUsuario = listaPapeisUsuario.stream()
-									.filter(papel -> papel.Prioritario() )  // Filtra os prioritários
-									.findFirst()                            // Pega o primeiro prioritário (se existir)
+									.filter(papel -> papel.Prioritario() )  
+									.findFirst()                            
 									.orElseGet(() -> listaPapeisUsuario.stream().findFirst().orElse(null) )
-									.Guid() ; // Se não houver, pega o primeiro da lista original
+									.Guid() ; 
 
-		String idPapelCapturadorAssinante = guidPapelUsuario ; //"fc4fb210-fb3a-4d51-845c-cfd6921e5aa6"; // TESTE - TEM QUE PEGAR DO USUARIO LOGADO
-		String idClasse = "6c6118eb-3129-4dfb-beaf-b16d3acf4ba6"; // TESTE - TEM QUE PEGAR DO USUARIO LOGADO
+		String idPapelCapturadorAssinante = guidPapelUsuario ;
+		
+		String idClasse = this.classeDocumentoId;
+
 		boolean credenciarCapturador = true;
+
 		RestricaoAcessoBodyDto restricaoAcessoBodyDto = new RestricaoAcessoBodyDto(true, null, null);
 		CapturaAssinaturaBodyDto capturaAssinaturaBodyDto = new CapturaAssinaturaBodyDto( idPapelCapturadorAssinante, idClasse, 
 																						  nomeArquivo, credenciarCapturador, 
@@ -243,19 +250,42 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	private String autuarProcesso( Long idProjeto, String token, String idDocumentoCapturado ){
+	private String autuarProcesso( ProjetoDto projetoDTO, String token, String idDocumentoCapturado ){
 		
-		logger.info("Iniciar autuacao do processo para o projeto id {} - documento id {}.", idProjeto, idDocumentoCapturado );
+		logger.info("Iniciar autuacao do processo para o projeto id {} - documento id {}.", projetoDTO.id(), idDocumentoCapturado );
 
-		ProjetoDto projetoDTO = projetoService.buscarPorId(idProjeto);
-				
-		String idClasse = "bb6509d9-d8f5-46d1-a3c8-3e9ed6318f63";
-		String idPapelResponsavel = "fc4fb210-fb3a-4d51-845c-cfd6921e5aa6";
-		String idLocal = "d2ab305b-3f41-4802-b509-09f447ab3016";
+		String idClasse = classeDocumentoId ; 
+
+		List<ACAgentePublicoPapelDto> papeisAgentePublico = AcessoCidadaoService.listarPapeisAgentePublicoPorSub( projetoDTO.subResponsavelProponente() );
+		
+		String idPapelResponsavel = papeisAgentePublico.stream()
+			.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
+			.findFirst()
+			.map(ACAgentePublicoPapelDto::Guid)
+			.orElseGet(() -> papeisAgentePublico.stream()
+				.findFirst()
+				.map(ACAgentePublicoPapelDto::Guid)
+				.orElse("")); 
+		
+		String idLocal = papeisAgentePublico.stream()
+			.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
+			.findFirst()
+			.map(ACAgentePublicoPapelDto::LotacaoGuid)
+			.orElseGet(() -> papeisAgentePublico.stream()
+				.findFirst()
+				.map(ACAgentePublicoPapelDto::LotacaoGuid)
+				.orElse("")); 
 
 		String resumo = String.format( "AUTUAÇÃO PROJETO - %s", projetoDTO.titulo() );
 		
-		List<String> idsAgentesInteressados = List.of( "e7942272-bb41-4d32-9c51-de3145ebcf21", "d2c2c928-ddcc-4f0a-b58d-0ffcab7f31e3" ) ;
+		List<String> idsAgentesInteressados = projetoDTO.equipeElaboracao()
+			.stream()
+			.map(membro -> membro.subPessoa() )
+			.collect(Collectors.toList()) ;
+
+		idsAgentesInteressados.add( projetoDTO.subResponsavelProponente() );
+		idsAgentesInteressados.add( projetoDTO.subProponente() );
+
 		List<String> idsDocumentosEntranhados = List.of( idDocumentoCapturado );
 
 		AutuarProjetoDto autuarProjetoDto = new AutuarProjetoDto( idClasse, idPapelResponsavel, idLocal, resumo, idsAgentesInteressados, idsDocumentosEntranhados );
@@ -264,16 +294,28 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	private String despacharProcessoSUBCAP( Long idProjeto, String token, String idProcessoEDocs ){
+	private String despacharProcessoSUBCAP( ProjetoDto projetoDTO, String token, String idProcessoEDocs ){
 		
-		logger.info("Iniciar depacho do processo para o projeto id {} para SUBCAP.", idProjeto );
+		logger.info("Iniciar depacho do processo para o projeto id {} para SUBCAP.", projetoDTO.id() );
 		
-		String idDestino = "e67022ba-ec5d-4082-9ca1-01979df9c462";
+		String idDestino = guiddestinoSUBCAP; 
+
 		String mensagem = "DEPACHO AUTOMÁTICO GERADO PELO SISCAP";
-		String idPapelResponsavel = "fc4fb210-fb3a-4d51-845c-cfd6921e5aa6";
+
+		List<ACAgentePublicoPapelDto> papeisAgentePublico = AcessoCidadaoService.listarPapeisAgentePublicoPorSub( projetoDTO.subResponsavelProponente() );
+
+		String idPapelResponsavel = papeisAgentePublico.stream()
+			.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
+			.findFirst()
+			.map(ACAgentePublicoPapelDto::Guid)
+			.orElseGet(() -> papeisAgentePublico.stream()
+				.findFirst()
+				.map(ACAgentePublicoPapelDto::Guid)
+				.orElse(""));
+
+		logger.info( "Papel Responsavel Despacho : {}", idPapelResponsavel );			
 
 		RestricaoAcessoBodyDto restricaoAcessoBodyDto = new RestricaoAcessoBodyDto(true, null, null);
-
 		DespacharProjetoDto despacharProjetoDto = new DespacharProjetoDto( idDestino, mensagem, restricaoAcessoBodyDto, idProcessoEDocs, idPapelResponsavel );
 
 		return EdocsWebClient.depacharProcesso( token, despacharProjetoDto );
