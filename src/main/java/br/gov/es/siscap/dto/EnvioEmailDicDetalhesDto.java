@@ -7,7 +7,8 @@ public record EnvioEmailDicDetalhesDto(
 			String linkAcessoProjeto,
 			String descricaoOrganizacaoGestor,
 			String nomeGestor,
-			List<String> emailsInteressadosList
+			List<String> emailsInteressadosList,
+			String tituloProjeto
 ) {
 
 }
