@@ -168,13 +168,16 @@ public class ProjetoService {
 
 		tempProjeto.setCountAno(this.buscarCountAnoFormatado());
 
-		if (rascunho) {
+		//if (rascunho) {
 			tempProjeto.setRascunho(true);
 			tempProjeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
+		//}
+		/*
 		} else {
 			tempProjeto.setRascunho(false);
 			tempProjeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
 		}
+		*/
 
 		Projeto projeto = repository.save(tempProjeto); 
 
@@ -227,13 +230,14 @@ public class ProjetoService {
 		Projeto projeto = this.buscar(id);
 		projeto.atualizarProjeto(form);
 
-		if (rascunho) {
+		//if (rascunho) {
 			projeto.setRascunho(true);
 			projeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
-		} else {
+		//}
+		/*} else {
 			projeto.setRascunho(false);
 			projeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
-		}
+		}*/
 
 		Projeto projetoResult = repository.save(projeto);
 
@@ -356,6 +360,8 @@ public class ProjetoService {
 		Projeto projeto = this.buscar(id);
 
 		projeto.setProtocoloEdocs(protocoloEdcos);
+		projeto.setRascunho(false);
+		projeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
 
 		repository.save(projeto);
 	}
@@ -730,13 +736,17 @@ public class ProjetoService {
 			.map(o -> o.getOrganizacao().getNome());
 
 		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idProjeto;
-
+		
 		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
 			nomeProponente,
 			linkEdicao,
 			nomeOrganizacao.orElse(""),
 			dadosResponsavelProponente.getNome(),
-			emailsInteressadosList );
+			emailsInteressadosList,
+			repository.findById(idProjeto)
+				.map(Projeto::getTitulo)
+				.orElse( "" )
+				 );
 
 		boolean confirmacaoEnvioEmail = emailService.enviarEmailAnaliseDIC( envioEmailDicDetalhesDto );
 
