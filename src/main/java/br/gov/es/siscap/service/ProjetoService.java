@@ -179,7 +179,7 @@ public class ProjetoService {
 		}
 		*/
 
-		Projeto projeto = repository.save(tempProjeto); 
+		Projeto projeto = repository.save(tempProjeto);		
 
 		Set<ProjetoPessoa> projetoPessoaSet;
 
@@ -205,6 +205,21 @@ public class ProjetoService {
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
 
 		projetoAcaoService.cadastrar( projeto, acoesProjetoParaGravar );
+
+		String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
+
+		String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
+
+		try {
+			if( form.enviarProjetoGestor() ) {
+				logger.info("Envio email para gestor");
+				this.enviarEmailGestorAvaliarDic( projeto.getId(), subResponsavelProponente, nomeProponente );
+			}
+		} catch (UnsupportedEncodingException e) {
+			logger.error(e.getMessage());
+		} catch (MessagingException e) {
+			logger.error(e.getMessage());
+		}
 
 		logger.info("Projeto cadastrado com sucesso");
 
@@ -714,7 +729,12 @@ public class ProjetoService {
 
 	@Transactional
 	public boolean enviarEmailGestorAvaliarDic(Long idProjeto, String subResponsavelProponente, String nomeProponente) throws MessagingException, UnsupportedEncodingException {
-				
+		
+		if( idProjeto == null || idProjeto == 0 ){
+			logger.info("ID do projeto não foi informado." );
+			return false;
+		}
+
 		Pessoa dadosResponsavelProponente = pessoaService.buscarPorSub(subResponsavelProponente);
 		
 		if( dadosResponsavelProponente == null ){
