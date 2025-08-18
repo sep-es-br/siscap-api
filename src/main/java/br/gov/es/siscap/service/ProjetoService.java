@@ -1,13 +1,11 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
-import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.TipoPapelEnum;
-import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
@@ -20,14 +18,13 @@ import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.models.TipoMotivoArquivamento;
-import br.gov.es.siscap.models.TipoPapel;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import br.gov.es.siscap.specification.ProjetoSpecification;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,7 +43,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoIndicador;
 
@@ -66,6 +62,9 @@ public class ProjetoService {
 	private final ProjetoAcaoService projetoAcaoService;
 	private final TipoMotivoArquivamentoService tipoMotivoArquivamentoService;
 	private final AcessoCidadaoService acessoCidadaoService;
+
+	@PersistenceContext
+    private EntityManager entityManager;
 
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
@@ -168,18 +167,10 @@ public class ProjetoService {
 
 		tempProjeto.setCountAno(this.buscarCountAnoFormatado());
 
-		//if (rascunho) {
-			tempProjeto.setRascunho(true);
-			tempProjeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
-		//}
-		/*
-		} else {
-			tempProjeto.setRascunho(false);
-			tempProjeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
-		}
-		*/
+		tempProjeto.setRascunho(true);
+		tempProjeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
 
-		Projeto projeto = repository.save(tempProjeto);		
+		Projeto projeto = repository.save(tempProjeto);
 
 		Set<ProjetoPessoa> projetoPessoaSet;
 
@@ -206,21 +197,6 @@ public class ProjetoService {
 
 		projetoAcaoService.cadastrar( projeto, acoesProjetoParaGravar );
 
-		String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
-
-		String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
-
-		try {
-			if( form.enviarProjetoGestor() ) {
-				logger.info("Envio email para gestor");
-				this.enviarEmailGestorAvaliarDic( projeto.getId(), subResponsavelProponente, nomeProponente );
-			}
-		} catch (UnsupportedEncodingException e) {
-			logger.error(e.getMessage());
-		} catch (MessagingException e) {
-			logger.error(e.getMessage());
-		}
-
 		logger.info("Projeto cadastrado com sucesso");
 
 		return new ProjetoDto(projeto, valorDto, rateio, 
@@ -243,16 +219,12 @@ public class ProjetoService {
 		this.validarProjeto(form, false);
 
 		Projeto projeto = this.buscar(id);
+
 		projeto.atualizarProjeto(form);
 
-		//if (rascunho) {
-			projeto.setRascunho(true);
-			projeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
-		//}
-		/*} else {
-			projeto.setRascunho(false);
-			projeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
-		}*/
+		projeto.setRascunho(true);
+
+		projeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
 
 		Projeto projetoResult = repository.save(projeto);
 
@@ -302,6 +274,9 @@ public class ProjetoService {
 		} catch (MessagingException e) {
 			logger.error(e.getMessage());
 		}
+
+		// atualiza com o que ficou no gravado no banco apos commit 
+		entityManager.refresh(projeto);
 		
 		logger.info("Projeto atualizado com sucesso");
 
