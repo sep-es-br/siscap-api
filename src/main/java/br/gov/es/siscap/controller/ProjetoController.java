@@ -106,9 +106,14 @@ public class ProjetoController {
 	}
 
 	@PutMapping("/dic/edocs/autuar/{idProjeto}")
-	public ResponseEntity<Resource> assinarAutuarDIC( @PathVariable Long idProjeto ) {
+	public ResponseEntity<Resource> assinarAutuarDIC( @PathVariable Long idProjeto, @Valid @RequestBody ProjetoForm form ) {
+		
+		service.atualizar( idProjeto, form, false );
+
 		asyncExecutorService.executarAutuacaoEdocs(idProjeto);
-    	return ResponseEntity.accepted().build(); // HTTP 202
+    	
+		return ResponseEntity.accepted().build(); // HTTP 202
+
 	}
 
 }
