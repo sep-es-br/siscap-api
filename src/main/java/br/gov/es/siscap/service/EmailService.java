@@ -14,6 +14,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -34,8 +35,11 @@ public class EmailService {
 	@Value("${email.remetente.apelido}")
 	private String REMETENTE_APELIDO;
 
+	@Value("${email.remetente.endereco-nao-responda}")
+	private String REMETENTE_ENDERECO_NAO_RESPONDA;
+
 	private final JavaMailSenderImpl sender;
-	//private final ProjetoService projetoService;
+	
 	private final RelatoriosService relatoriosService;
 
 	public boolean enviarEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto, List<String> emailsInteressadosList, String nomeArquivo) throws MessagingException, UnsupportedEncodingException {
@@ -100,15 +104,25 @@ public class EmailService {
 		String assuntoEmail = EnvioAnaliseGestorDicEmailBuilder.montarAssuntoEmail();
 		String corpoEmail = EnvioAnaliseGestorDicEmailBuilder.montarCorpoEmail(envioEmailDicDetalhesDto);
 
-		helper.setFrom(REMETENTE_ENDERECO, REMETENTE_APELIDO);
+		helper.setFrom( REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO );
 		helper.setSubject(assuntoEmail);
 		helper.setText(corpoEmail, true);
 
 		for (String emailInteressado : envioEmailDicDetalhesDto.emailsInteressadosList()) {
 			helper.setTo(emailInteressado);
 			try {
+
+				// adicionando a imagem inline (do resources)
+				ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
+				helper.addInline("govES-logo", imagemLogoES );
+
+				ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
+				helper.addInline("Icon-siscap", imagemLogoSiscap );
+
 				this.sender.send(helper.getMimeMessage());
+
 				confirmacaoEnvioEmailList.add(true);
+
 			} catch (MailException e) {
 				confirmacaoEnvioEmailList.add(false);
 				throw new RuntimeException(e);
@@ -118,7 +132,7 @@ public class EmailService {
 		return confirmacaoEnvioEmailList.stream().allMatch(Boolean::booleanValue);
 	}
 
-	public boolean enviarEmailRevisarProjeto( List<String> emailsInteressadosList, String justificativa, String nomeResponsavelEnvio, Projeto projeto ) 
+	public boolean enviarEmailRevisarProjeto( List<String> emailsInteressadosList, String justificativa, String nomeResponsavelEnvio, Projeto projeto, String responsavelProponenteProjeto) 
 		throws MessagingException, UnsupportedEncodingException {
 
 		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
@@ -128,17 +142,27 @@ public class EmailService {
 		
 		String descricaoProjeto = projeto.getSigla().concat("-").concat( projeto.getTitulo() );
 		String assuntoEmail = EnvioRevisaoDicEmailBuilder.montarAssuntoEmail();
-		String corpoEmail = EnvioRevisaoDicEmailBuilder.montarCorpoEmail( nomeResponsavelEnvio, justificativa, descricaoProjeto );
+		String corpoEmail = EnvioRevisaoDicEmailBuilder.montarCorpoEmail( nomeResponsavelEnvio, justificativa, descricaoProjeto, responsavelProponenteProjeto );
 		
-		helper.setFrom(REMETENTE_ENDERECO, REMETENTE_APELIDO);
+		helper.setFrom(REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO);
 		helper.setSubject(assuntoEmail);
 		helper.setText(corpoEmail, true);
 		
 		for (String emailInteressado : emailsInteressadosList ) {
 			helper.setTo(emailInteressado);
 			try {
+				
+				// adicionando a imagem inline (do resources)
+				ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
+				helper.addInline("govES-logo", imagemLogoES );
+
+				ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
+				helper.addInline("Icon-siscap", imagemLogoSiscap );
+				
 				this.sender.send(helper.getMimeMessage());
+
 				confirmacaoEnvioEmailList.add(true);
+
 			} catch (MailException e) {
 				confirmacaoEnvioEmailList.add(false);
 				throw new RuntimeException(e);
@@ -149,8 +173,11 @@ public class EmailService {
 
 	}
 
-	public boolean enviarEmailArquivamentorProjeto( List<String> emailsInteressadosList, String justificativa, String nomeResponsavelEnvio, String descricaoProjeto ) 
-		throws MessagingException, UnsupportedEncodingException {
+	public boolean enviarEmailArquivamentorProjeto( List<String> emailsInteressadosList, String justificativa, String nomeResponsavelEnvio, 
+		String descricaoProjeto, 
+		String codigoMotivoArquivamento,
+		String descricaoTipoMotivoArquivamento,
+		String responsavelProponenteProjeto ) throws MessagingException, UnsupportedEncodingException {
 
 		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
 
@@ -158,16 +185,27 @@ public class EmailService {
 		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
 		
 		String assuntoEmail = EnvioArquivamentoDicEmailBuilder.montarAssuntoEmail(descricaoProjeto);
-		String corpoEmail = EnvioArquivamentoDicEmailBuilder.montarCorpoEmail( nomeResponsavelEnvio, justificativa, descricaoProjeto );
+		String corpoEmail = EnvioArquivamentoDicEmailBuilder.montarCorpoEmail( nomeResponsavelEnvio, justificativa, descricaoProjeto, 
+			responsavelProponenteProjeto , 
+			codigoMotivoArquivamento, descricaoTipoMotivoArquivamento );
 		
-		helper.setFrom(REMETENTE_ENDERECO, REMETENTE_APELIDO);
+		helper.setFrom(REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO);
 		helper.setSubject(assuntoEmail);
 		helper.setText(corpoEmail, true);
 		
 		for (String emailInteressado : emailsInteressadosList ) {
 			helper.setTo(emailInteressado);
 			try {
+				
+				// adicionando a imagem inline (do resources)
+				ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
+				helper.addInline("govES-logo", imagemLogoES );
+
+				ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
+				helper.addInline("Icon-siscap", imagemLogoSiscap );
+
 				this.sender.send(helper.getMimeMessage());
+
 				confirmacaoEnvioEmailList.add(true);
 			} catch (MailException e) {
 				confirmacaoEnvioEmailList.add(false);
