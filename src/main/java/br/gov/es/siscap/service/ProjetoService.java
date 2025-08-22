@@ -710,7 +710,7 @@ public class ProjetoService {
 		List<EquipeDto> equipe = new ArrayList<>();
 		
 		for (EquipeDto membro : form.equipeElaboracao()) {
-			
+
 			String sub = membro.subPessoa();
 			
 			String id = pessoaService.buscarIdPorSub(sub);
@@ -727,6 +727,7 @@ public class ProjetoService {
 			equipe.add(novoMembro);
 
 			logger.info("Verificar se pessoa com id [{}] possui organizacao associada na base do SISCAP.", id);
+
 			List<PessoaOrganizacao> organizacoes = pessoaOrganizacaoService.buscarPorIds( List.of(Long.valueOf(id)) );
 			if( organizacoes.isEmpty() ) {
 				logger.info("Pessoa com sub [{}] não possui organizacao associada na base do SISCAP - proceder com atualizacao do AC.", sub );
