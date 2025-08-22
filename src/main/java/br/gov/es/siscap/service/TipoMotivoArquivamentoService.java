@@ -15,11 +15,14 @@ public class TipoMotivoArquivamentoService {
 	private final TipoMotivoArquivamentoRepository repository;
 
 	public List<MotivosArquivamentoOpcoesDto> listarOpcoesDropdown() {
-		return repository.findAll().stream().map(MotivosArquivamentoOpcoesDto::new).toList();
+		return repository.findAll()
+			.stream()
+			.map(MotivosArquivamentoOpcoesDto::new).toList();
 	}
 
 	public TipoMotivoArquivamento buscarTipoMotivoCodigo(String codigoTipoMotivo ){
-		return repository.findByCodigo(codigoTipoMotivo).orElse(null);
+		return repository.findByCodigo(codigoTipoMotivo)
+			.orElse(null);
 	}
 
 }

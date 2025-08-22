@@ -3,65 +3,34 @@ package br.gov.es.siscap.utils;
 import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
 
 public abstract class EnvioAnaliseGestorDicEmailBuilder {
-
-	private static final String CAMPO_TITULO = "Prezado(a) Gestor(a) do(a) %s, ";
-	private static final String CAMPO_CONTEUDO = "Informamos que o DIC (Documento Inicial para Captação) do projeto [%s] já se encontra disponível no SISCAP para análise, assinatura e posterior autuação via E-Docs pela SUBCAP.\r\n.<br/>" 
-		+ "Para acessar diretamente o documento, utilize o link abaixo:";
-	private static final String CAMPO_RODAPE = "Em caso de dúvidas, estamos à disposição para prestar o suporte necessário.";		
-
+	
 	public static String montarAssuntoEmail() {
 		return "DIC disponível para análise e autuação via E-Docs.";
 	}
 
 	public static String montarCorpoEmail(EnvioEmailDicDetalhesDto envioDetalhesDto) {
 				
-		String campoOperacaoTitulo = montarElementoTitulo(CAMPO_TITULO, envioDetalhesDto);
-		String campoOperacaoConteudo = montarProjetoPropostoElementoConteudo(CAMPO_CONTEUDO, envioDetalhesDto);
-		String campoRodape = montarElementoConteudo(CAMPO_RODAPE);
+		String campoTable = montarElementoTable(envioDetalhesDto);
 		
 		String corpoEmail = "<html>" +
-					"<body>" +
-					"<p>" +
-					campoOperacaoTitulo +
-					campoOperacaoConteudo +
-					"</p>" +		
-					"<div>" +
-					campoRodape +
-					"</div>" +
+					"<body style=\"margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;\">" +
+					campoTable +
 					"</body>" +
 					"</html>";
-
+	
 		return corpoEmail;
 
 	}
 
-	private static String montarElementoTitulo(String titulo, EnvioEmailDicDetalhesDto envioDetalhes ) {
-		return "<strong style='margin-bottom: 8px;'>" + String.format( titulo, envioDetalhes.descricaoOrganizacaoGestor() ) + "</strong><br/>";
+	private static String montarElementoTable(EnvioEmailDicDetalhesDto envioDetalhesDto) {
+		
+		String cabecalhoSuperior = "<td style=\"padding: 20px; background-color: #2a8fbd; width: 100%;\"> <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"> <tr> <td style=\"vertical-align: middle;\"> <img src=\"cid:govES-logo\" style=\"height: 30px; vertical-align: middle; margin-right: 10px;\"> </td><td style=\"vertical-align: middle;\"><h1 style=\"margin: 0; color: #ffffff; font-size: 20px; font-family: Arial, sans-serif;\">Sistema de Captação - Governo do Estado do Espírito Santo</h1></td></tr></table></td>";
+		String campoTratamento = "Prezado(a) Gestor(a) do(a) <strong>" + envioDetalhesDto.descricaoOrganizacaoGestor() + "</strong>";
+		String campoCorpoPrincipal = "Comunicamos que há um DIC (Documento Inicial para Captação) disponível para análise, assinatura e autuação via E-Docs.";
+		String linkAcessarDic = "<p style=\"font-size: 14px; color: #000000; margin-bottom: 5px;\">Acesse o sistema SISCAP em:</p> <a href=\"" + envioDetalhesDto.linkAcessoProjeto() + "\" style=\"display: inline-block; padding: 10px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; margin: 1px 0 1px 0; color: #2a8fbd;\"> " + envioDetalhesDto.linkAcessoProjeto() + "</a>";
+		
+		return "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"background-color: #f5f5f5;\">  <tr>  <td align=\"center\" style=\"padding: 20px 0;\">  <table width=\"800\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"background-color: #ffffff; border-radius: 4px; box-shadow: 0 2px 4px #ffffff; max-width: 100%;\"> " + cabecalhoSuperior + " <tr><td style=\"padding: 0 12px;\"><hr style=\"border: 0; height: 0px; background-color: #e0e0e0; margin: 15px 0;\"></td></tr> <tr> <td style=\"padding: 15px 20px; width:90%; background-color: #fcea8f; font-size: 14px;\"><strong style=\"color: #d32f2f;\">Atenção:</strong> Este é um e-mail automático. Favor não responder.</td></tr>   <tr><td style=\"padding: 0 20px;\"><hr style=\"border: 0; height: 0px; background-color: #e0e0e0; margin: 15px 0;\"></td></tr> <tr><td style=\"padding: 0 20px 20px 20px;\"> <p style=\"font-size: 14px; line-height: 1.5; margin-bottom: 20px;\"> " + campoTratamento + ", </p> <p style=\"font-size: 14px; line-height: 1.5; margin-bottom: 20px;\"> " + campoCorpoPrincipal + "</p> " + linkAcessarDic + " </td> </tr> <p style=\"font-size: 14px; line-height: 1.5; margin-bottom: 20px;\">Em caso de dúvidas, estamos à disposição para prestar o suporte necessário.</p> <tr> <td style=\"padding: 15px 20px; background-color: #2a8fbd; text-align: center; font-size: 12px; color: #ffffff;\">©2025 - Desenvolvido pela CGTI-SEP   <img src=\"cid:Icon-siscap\" style=\"height: 15px; vertical-align: middle; margin-right: 10px;\"> </td> </td>  </tr> </table> </td> </tr> </table>" ;
+	
 	}
-
-	/*
-	private static String montarElementoTitulo(String titulo ) {
-		return "<strong style='margin-bottom: 8px;'>" + titulo + "</strong><br/>";
-	}
-	*/
-
-	private static String montarElementoConteudo(String conteudo) {
-		return "<span>" + conteudo + "</span><br/>";
-	}
-
-	private static String montarProjetoPropostoElementoConteudo(String conteudo, EnvioEmailDicDetalhesDto envioDetalhes) {
-		return  "<span style='margin-left: 8px;'>" + String.format(conteudo, envioDetalhes.tituloProjeto() ) + "</span><br/>" +
-		"<a href='" + envioDetalhes.linkAcessoProjeto() + "' " +
-		"style='color: #1155cc; text-decoration: underline;'>" +
-		"Acessar Projeto</a>";
-	}
-
-	/*
-	private static String montarAssinaturaPessoaProspectora(EnvioEmailDicDetalhesDto envioDetalhes) {
-		return montarElementoTitulo("Atenciosamente,") +
-					montarElementoConteudo(envioDetalhes.nomeResponsavelEnvioEmail()) +
-					montarElementoConteudo(envioDetalhes.descricaoOrganizacaoGestor());
-	}
-	*/
 
 }

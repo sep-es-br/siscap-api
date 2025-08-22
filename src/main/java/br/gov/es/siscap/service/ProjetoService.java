@@ -35,6 +35,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -196,6 +197,27 @@ public class ProjetoService {
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
 
 		projetoAcaoService.cadastrar( projeto, acoesProjetoParaGravar );
+
+		try {
+			if( form.enviarProjetoGestor() ) {
+
+				logger.info("Envio email para gestor");
+				
+				String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
+
+				String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
+
+				this.enviarEmailGestorAvaliarDic( projeto.getId(), subResponsavelProponente, nomeProponente );
+
+			}
+		} catch (UnsupportedEncodingException e) {
+			logger.error(e.getMessage());
+		} catch (MessagingException e) {
+			logger.error(e.getMessage());
+		}
+
+		// atualiza com o que ficou no gravado no banco apos commit 
+		entityManager.refresh(projeto);
 
 		logger.info("Projeto cadastrado com sucesso");
 
@@ -375,7 +397,13 @@ public class ProjetoService {
 			.findFirst()
 			.map( proponente -> proponente.getPessoa() );
 
-		if( proponenteProjeto.isPresent() ){
+		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
+			.stream()
+			.filter( pessoa -> pessoa.isResponsavelProponente() )
+			.findFirst()
+			.map( proponente -> proponente.getPessoa() );
+
+		if( proponenteProjeto.isPresent() && responsavelProponenteProjeto.isPresent() ){
 
 			List<String> emailsInteressadosList = new ArrayList<String>();
 
@@ -386,7 +414,8 @@ public class ProjetoService {
 				
 				confirmacaoEnvioEmail = emailService.enviarEmailRevisarProjeto( emailsInteressadosList, 
 					justificativa, 
-					proponenteProjeto.get().getNome(), projeto );
+					proponenteProjeto.get().getNome(), 
+					projeto, responsavelProponenteProjeto.get().getNome() );
 			
 				if (confirmacaoEnvioEmail) {
 					
@@ -433,37 +462,46 @@ public class ProjetoService {
 			throw new ValidacaoSiscapException(erros);
 		}
 
+		if( justificativa == null )
+			justificativa = "";
+
 		Projeto projeto = this.buscar(id);
 
-		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
+		Optional<Pessoa> proponenteProjeto = projeto.getProjetoPessoaSet()
 			.stream()
 			.filter( pessoa -> pessoa.isProponente() )
 			.findFirst()
 			.map( proponente -> proponente.getPessoa() );
 
-		if( responsavelProponenteProjeto.isPresent() ){
+		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
+			.stream()
+			.filter( pessoa -> pessoa.isResponsavelProponente() )
+			.findFirst()
+			.map( proponente -> proponente.getPessoa() );
+			
+		if( proponenteProjeto.isPresent() && responsavelProponenteProjeto.isPresent() ){
 
 			List<String> emailsInteressadosList = new ArrayList<String>();
-
-			emailsInteressadosList.add(responsavelProponenteProjeto.get().getEmail());
-			
 			boolean confirmacaoEnvioEmail;
+
+			emailsInteressadosList.add(proponenteProjeto.get().getEmail());
+			
+			TipoMotivoArquivamento tipoMotivoArquivamento = tipoMotivoArquivamentoService.buscarTipoMotivoCodigo(codigoMotivoArquivamento);
+
 			try {
 				
 				confirmacaoEnvioEmail = emailService.enviarEmailArquivamentorProjeto( emailsInteressadosList, 
 					justificativa, 
-					responsavelProponenteProjeto.get().getNome(),
-					projeto.getSigla() );
+					proponenteProjeto.get().getNome(),
+					projeto.getSigla(),
+					codigoMotivoArquivamento,
+					tipoMotivoArquivamento.getTipo(),
+					responsavelProponenteProjeto.get().getNome() );
 			
 				if (confirmacaoEnvioEmail) {
-					
 					logger.info("Email aviso arquivamento projeto enviado com sucesso do projeto id " + id);
-
 					this.alterarStatusProjeto(id, StatusProjetoEnum.ARQUIVADO.getValue());
-
 					this.registrarMotivoArquivamentoProjeto(id, codigoMotivoArquivamento, justificativa);
-					
-
 				}else{
 					erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id);
 				}
@@ -672,7 +710,7 @@ public class ProjetoService {
 		List<EquipeDto> equipe = new ArrayList<>();
 		
 		for (EquipeDto membro : form.equipeElaboracao()) {
-			
+
 			String sub = membro.subPessoa();
 			
 			String id = pessoaService.buscarIdPorSub(sub);
@@ -689,6 +727,7 @@ public class ProjetoService {
 			equipe.add(novoMembro);
 
 			logger.info("Verificar se pessoa com id [{}] possui organizacao associada na base do SISCAP.", id);
+
 			List<PessoaOrganizacao> organizacoes = pessoaOrganizacaoService.buscarPorIds( List.of(Long.valueOf(id)) );
 			if( organizacoes.isEmpty() ) {
 				logger.info("Pessoa com sub [{}] não possui organizacao associada na base do SISCAP - proceder com atualizacao do AC.", sub );
@@ -722,31 +761,40 @@ public class ProjetoService {
 			return false;
 		}
 
+		Projeto projeto = repository.findById(idProjeto)
+				.orElse( null );
+
+		if( projeto == null ){
+			logger.info("Projeto id [{}] não encontrado.", idProjeto );
+			return false;
+		}
+
 		List<String> emailsInteressadosList = Arrays.asList( dadosResponsavelProponente.getEmail() );
 
-		Optional<String> nomeOrganizacao = dadosResponsavelProponente.getPessoaOrganizacaoSet()
-			.stream()
-			.filter(o -> o.getIsResponsavel()) 
-			.findFirst() 
-			.map(o -> o.getOrganizacao().getNome());
+		Long idOrganizacaoProjeto = projeto.getOrganizacao().getId();
+
+		String nomeOrganizacaoProjeto = "";
+		try {
+			OrganizacaoDto organizacaoDto = organizacaoService.buscarPorId(idOrganizacaoProjeto);
+			nomeOrganizacaoProjeto = String.format("%s - %s", organizacaoDto.abreviatura(), organizacaoDto.nome());
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+			throw new RuntimeException("Erro ao buscar dados organizacao projeto.");
+		}
 
 		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idProjeto;
 		
 		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
 			nomeProponente,
 			linkEdicao,
-			nomeOrganizacao.orElse(""),
+			nomeOrganizacaoProjeto,
 			dadosResponsavelProponente.getNome(),
 			emailsInteressadosList,
-			repository.findById(idProjeto)
-				.map(Projeto::getTitulo)
-				.orElse( "" )
-				 );
+			projeto.getTitulo() );
 
 		boolean confirmacaoEnvioEmail = emailService.enviarEmailAnaliseDIC( envioEmailDicDetalhesDto );
 
 		if (confirmacaoEnvioEmail) {
-		//	this.alterarDadosDicEnvioEmail(id); VAMOS GRAVAR ALGO ?
 			logger.info("Email enviado com sucesso");
 			return true;
 		}else{

@@ -86,7 +86,7 @@ public class ProjetoPessoaService {
 		Set<ProjetoPessoa> membrosEquipeSet = this.buscarMembrosEquipe(projetoPessoaSet);
 
 		Set<ProjetoPessoa> membrosEquipeAtualizarSet = this.atualizarMembrosEquipe(projeto, membrosEquipeSet, equipeDtoList);
-
+		
 		projetoPessoaRepository.saveAllAndFlush(membrosEquipeAtualizarSet);
 
 		logger.info("Equipe do projeto alterada com sucesso");
@@ -150,7 +150,6 @@ public class ProjetoPessoaService {
 	private Set<ProjetoPessoa> atualizarMembrosEquipe(Projeto projeto, Set<ProjetoPessoa> membrosEquipeSet, List<EquipeDto> equipeDtoList) {
 
 		Set<ProjetoPessoa> membrosEquipeAlterarSet = new HashSet<>();
-
 		Set<ProjetoPessoa> membrosEquipeAdicionarSet = new HashSet<>();
 
 		equipeDtoList.forEach(equipeDto -> {
@@ -160,8 +159,12 @@ public class ProjetoPessoaService {
 						.findFirst()
 						.ifPresentOrElse(
 							(projetoPessoa) -> {
-								projetoPessoa.atualizarMembroEquipe(equipeDto);
-								membrosEquipeAlterarSet.add(projetoPessoa);
+								if (equipeDto.idStatus() != null && equipeDto.idStatus().equals(TipoStatusEnum.EXCLUIDO.getValue())) {
+									projetoPessoaRepository.deleteFisico(projetoPessoa.getId()); // excluir fisicamente da tabela
+								} else {
+									projetoPessoa.atualizarMembroEquipe(equipeDto);
+									membrosEquipeAlterarSet.add(projetoPessoa);
+								}
 							},
 							() -> {
 								membrosEquipeAdicionarSet.add(new ProjetoPessoa(projeto, equipeDto));
