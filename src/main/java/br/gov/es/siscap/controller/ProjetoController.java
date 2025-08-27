@@ -1,6 +1,7 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.dto.edocswebapi.EtapasIntegracaoDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.form.ProjetoForm;
@@ -36,6 +37,7 @@ public class ProjetoController {
 	private final ProjetoService service;
 	private final RelatoriosService relatoriosService;
 	private final AsyncExecutorService asyncExecutorService;
+	private final IntegraccaoEdocsService integracaoEdocsService;
 
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
@@ -113,6 +115,13 @@ public class ProjetoController {
 		asyncExecutorService.executarAutuacaoEdocs(idProjeto);
     	
 		return ResponseEntity.accepted().build();
+
+	}
+
+	@GetMapping("/dic/edocs/fases/{idProjeto}")
+	public ResponseEntity<List<EtapasIntegracaoDto>> integracaoEdocsFases(@PathVariable Long idProjeto) {
+		var fases = integracaoEdocsService.consultarFasesIntegracaoEdocsProjeto(idProjeto);
+		return ResponseEntity.ok(fases);
 
 	}
 
