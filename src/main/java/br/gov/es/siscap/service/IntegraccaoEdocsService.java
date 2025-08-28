@@ -5,7 +5,7 @@ import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.edocswebapi.*;
-import br.gov.es.siscap.enums.TipoPapelEnum;
+import br.gov.es.siscap.enums.edocs.EtapasIntegracaoEdocsEnum;
 import br.gov.es.siscap.enums.edocs.SituacaoEventoEdocsEnum;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -18,7 +18,10 @@ import reactor.util.retry.Retry;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -39,6 +42,35 @@ public class IntegraccaoEdocsService {
 	private final ProjetoService projetoService;
 
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
+
+	private Map<Long, List<EtapasIntegracaoDto>> etapasPorProjeto = new HashMap<>();
+
+	public void atualizarEtapa(Long idProjeto, EtapasIntegracaoEdocsEnum etapaEnum, boolean iniciou, boolean finalizou) {
+		List<EtapasIntegracaoDto> etapas = etapasPorProjeto.get(idProjeto);
+		if (etapas != null) {
+			for (EtapasIntegracaoDto etapa : etapas) {
+				if (etapa.getEtapa().equals(etapaEnum)) {
+					etapa.setIniciou(iniciou);
+					etapa.setFinalizou(finalizou);
+					break;
+				}
+			}
+		}
+	}
+
+	public List<EtapasIntegracaoDto> consultarEtapas(Long idProjeto) {
+		return etapasPorProjeto.getOrDefault(idProjeto, new ArrayList<>());
+	}
+
+	public void limparEtapas(Long idProjeto) {
+		etapasPorProjeto.remove(idProjeto);
+	}
+
+	public void adicionarEtapa(Long idProjeto, EtapasIntegracaoDto etapa) {
+		etapasPorProjeto
+			.computeIfAbsent( idProjeto, k -> new ArrayList<>() ) // cria lista se não existir
+			.add(etapa);
+	}
 	
 	public void assinarAutuarDespacharDicProccessoSUBCAP( Resource arquivoDic, String nomeArquivo, Long idProjeto ){
 
@@ -69,9 +101,10 @@ public class IntegraccaoEdocsService {
 				buscarTokenReativo()
 				.flatMap( token -> 
 					FeignReativo.fromFeign( () -> EdocsWebClient.gerarUrlUploadArquivo(token, tamanho) )
+					    .doOnRequest(n -> { this.adicionarEtapa( projeto.id(), new EtapasIntegracaoDto(projeto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false) ); } )
 						.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 						.switchIfEmpty(Mono.error(new RuntimeException("Falha na geração da URL temporária para Upload do Arquivo.")))
-						.doOnSuccess(urlDto -> logger.info("URL gerada: {}", urlDto.url()))
+						.doOnSuccess( urlDto -> { logger.info("URL gerada: {}", urlDto.url()); } )
 						.doOnError(e -> logger.error("Falha ao gerar URL", e))
 					.flatMap( urlDto ->
 						FeignReativo.fromFeign( () ->  UploadS3Service.enviarArquivoParaS3OkHttp(
@@ -101,7 +134,6 @@ public class IntegraccaoEdocsService {
 										token  
 									))
 									.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-									.doOnNext(dto -> logger.info("Status recebido: {}", dto.situacao())) // LOG PARA DEBUG
 									.filter(dto -> {
 										boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
 										if (!isConcluido) {
@@ -110,9 +142,13 @@ public class IntegraccaoEdocsService {
 										return isConcluido;
 									})
 									.repeatWhenEmpty( flux -> flux.delayElements(Duration.ofSeconds(2))) // Repete a cada 2s se vazio
-									.timeout(Duration.ofMinutes(1)) // Timeout total em minutos
-									.switchIfEmpty(Mono.error(new RuntimeException("Falha ao consultar situacao do evento de CAPTURA ID " + idEventoCaptura + ".")))
-									.doOnSuccess( situacaoEventoDto -> logger.info("Captura confirmada: {}", situacaoEventoDto.situacao() ))
+									.timeout( Duration.ofMinutes(1)) // Timeout total em minutos
+									.switchIfEmpty( Mono.error(new RuntimeException("Falha ao consultar situacao do evento de CAPTURA ID " + idEventoCaptura + ".")))
+									.doOnSuccess( situacaoEventoDto -> {
+											logger.info("Captura confirmada: {}", situacaoEventoDto.situacao() );
+											this.atualizarEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, true );
+										}
+									)
 									.doOnError( e -> logger.error("Falha ao verificar situacao do evento de caputura do arquivo para o servidor S3 do E-Docs.", e ) )
 								.flatMap( dtoSituacaoEvento -> 
 									FeignReativo.fromFeign( () ->  
@@ -120,11 +156,12 @@ public class IntegraccaoEdocsService {
 											projeto,
 											token,
 											dtoSituacaoEvento.idDocumento() 
-										)
-									)
+										))
+										.doOnRequest(n -> {
+											this.adicionarEtapa( projeto.id(), new EtapasIntegracaoDto( projeto.id(), EtapasIntegracaoEdocsEnum.AUTUAR, true, false) );											
+											})
 										.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 										.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para autuar um processo via E-Docs.")))
-										.doOnSuccess( retornoAutuacao -> logger.info("Chamada ao endpoint realizada: {}", retornoAutuacao ))
 										.doOnError( e -> logger.error("Falha ao executar chamada ao endpoint para autuar um processo via E-Docs. {}", e ) )
 									.flatMap( idEventoAutuar -> 
 										FeignReativo.fromFeign( () ->  
@@ -144,18 +181,20 @@ public class IntegraccaoEdocsService {
 											.repeatWhenEmpty( flux -> flux.delayElements(Duration.ofSeconds(2))) // Repete a cada 2s se vazio
 											.timeout(Duration.ofMinutes(1)) // Timeout total em minutos
 											.switchIfEmpty(Mono.error(new RuntimeException("Falha ao consultar situacao do evento de AUTUACAO DO PROCESSO ID " + idEventoAutuar + ".")))
-											.doOnSuccess( situacaoEventoDto -> logger.info("Autuacaao confirmada: {}", situacaoEventoDto.situacao() ))
+											.doOnRequest( n -> {
+													this.atualizarEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.AUTUAR, true, true );
+												})
 											.doOnError( e -> logger.error("Falha ao verificar situacao do evento de autuacao do processo no E-Docs.", e ) )
 										.flatMap( dtoSituacaoEventoAutuacao -> 
 											FeignReativo.fromFeign( () ->  
-												despacharProcessoSUBCAP( 
-													projeto, 
-													token, 
-													dtoSituacaoEventoAutuacao.idProcesso() )
+												despacharProcessoSUBCAP( projeto, token, dtoSituacaoEventoAutuacao.idProcesso() )
 											)
+											.doOnRequest(n -> {
+												this.adicionarEtapa( projeto.id(), new EtapasIntegracaoDto( projeto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, false) );
+												})
 											.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 											.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.")))
-											.doOnSuccess( retornoDespacho -> logger.info("Chamada ao endpoint realizada: {}", retornoDespacho ))
+											.doOnSuccess( retorno -> logger.info("Chamada ao endpoint realizada: {}", retorno ) )
 											.doOnError( e -> logger.error("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs. {}", e ) )
 											.flatMap( idEventoDespacho -> 
 												FeignReativo.fromFeign( () ->  
@@ -174,10 +213,12 @@ public class IntegraccaoEdocsService {
 													.repeatWhenEmpty( flux -> flux.delayElements(Duration.ofSeconds(2))) // Repete a cada 2s se vazio
 													.timeout(Duration.ofMinutes(1)) // Timeout total em minutos
 													.switchIfEmpty(Mono.error(new RuntimeException("Falha ao consultar situacao do evento de DESPACHO DO PROCESSO ID " + idEventoDespacho + ".")))
-													.doOnSuccess( dto -> logger.info("Consulta evento despacho concluído: {}", dto.id() ) )
+													.doOnSuccess( retorno -> {
+														this.atualizarEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true );
+													})
 													.doOnError( e -> logger.error("Falha ao verificar situacao do evento de despacho do processo no E-Docs.", e ) )
 												)
-												.flatMap( dtoSituacaoEventoDespacho -> 
+												.flatMap( dtoSituacaoEventoDespacho ->
 													FeignReativo.fromFeign( () -> 
 														consultarDadosProcessoEdocs( dtoSituacaoEventoAutuacao.idProcesso(), 
 														token ) 
@@ -322,5 +363,8 @@ public class IntegraccaoEdocsService {
 
 	}
 
+	public List<EtapasIntegracaoDto> consultarFasesIntegracaoEdocsProjeto(Long idProjeto){
+		return this.etapasPorProjeto.get(idProjeto);
+	}
 
 }
