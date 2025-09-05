@@ -115,6 +115,9 @@ public class Projeto extends ControleHistorico {
 	@Column(name = "justificativa_arquivamento", nullable = false, length = 255)
 	private String justificativaArquivamento;
 
+	@Column(name = "id_documento_edocs", nullable = false, length = 15)
+	private String idDocumentoCapturadoEdocs;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}

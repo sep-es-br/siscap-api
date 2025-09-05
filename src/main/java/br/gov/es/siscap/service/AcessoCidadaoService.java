@@ -1,12 +1,12 @@
 package br.gov.es.siscap.service;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import br.gov.es.siscap.client.AcessoCidadaoUserInfoClient;
 import br.gov.es.siscap.client.AcessoCidadaoWebClient;
@@ -85,7 +85,6 @@ public class AcessoCidadaoService {
                 
         List<ResponsavelProponenteOpcoesDto> result = ACWebClient.buscarAgentesPublicosPapeisPorGuidUnidade( ACAuthService.getAuthorizationHeader(), unidadeGuid, true )
         .stream()
-        //.filter( agente -> ( Boolean.TRUE.equals(agente.Prioritario()) ) )
         .map( dto -> new ResponsavelProponenteOpcoesDto(
             0L, 
             dto.AgentePublicoNome(), 
@@ -110,6 +109,14 @@ public class AcessoCidadaoService {
             logger.error("Erro ao buscar gestor da unidade [guid: {}] - devolver lista de agentes publicos da unidade para seleção manual.", unidadeGuid );
         }
         return "";
+    }
+
+    public ACUserInfoDto buscarInformacoesUsuarioLogado() {
+        String accessToken = "";
+        // accessToken = ACAuthService.getEdocsToken("accessTokenAC");
+        // ACUserInfoDto acUserInfoDto = buscarAcessoCidadaoUserInfo(accessToken);
+        HashMap<String, Object> mapHeader = ACAuthService.getAuthorizationHeader();
+        return null ; //acUserInfoDto;
     }
 
 }

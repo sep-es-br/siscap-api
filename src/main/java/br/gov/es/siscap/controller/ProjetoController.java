@@ -13,8 +13,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -93,6 +91,11 @@ public class ProjetoController {
 		return ResponseEntity.ok().body("Aviso de arquivamento enviada com sucesso!");
 	}
 
+	@PostMapping("/{id}/complementar")
+	public ResponseEntity<String> enviarProjetoParaComplementacao(@PathVariable @NotNull Long id, @RequestBody List<Map<String, String>> complementos) {
+		service.enviarAvisoSolicitarComplementacaoProjeto(id, complementos );
+		return ResponseEntity.ok().body("Aviso de complementação enviada com sucesso!");
+	}
 
 	@GetMapping("/dic/{idProjeto}")
 	public ResponseEntity<Resource> gerarDIC(@PathVariable Integer idProjeto) {
