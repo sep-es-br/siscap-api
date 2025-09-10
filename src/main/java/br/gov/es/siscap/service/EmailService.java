@@ -222,6 +222,7 @@ public class EmailService {
 	}
 
 	public boolean enviarEmailComplemetacaoProjeto( List<String> emailsInteressadosList, String nomeResponsavelEnvio, String responsavelProponenteProjeto, 
+		
 		String descricaoProjeto, List<Map<String, String>> camposComplementar ) throws MessagingException, UnsupportedEncodingException {
 
 		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
@@ -230,7 +231,7 @@ public class EmailService {
 		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
 		
 		String assuntoEmail = EnvioComplementoDicEmailBuilder.montarAssuntoEmail( descricaoProjeto );
-		String corpoEmail = "";// EnvioComplementoDicEmailBuilder.montarCorpoEmail( nomeResponsavelEnvio, descricaoProjeto, responsavelProponenteProjeto, camposComplementar );
+		String corpoEmail = EnvioComplementoDicEmailBuilder.montarCorpoEmail( nomeResponsavelEnvio, descricaoProjeto, responsavelProponenteProjeto, camposComplementar );
 		
 		helper.setFrom(REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO);
 		helper.setSubject(assuntoEmail);
@@ -259,7 +260,7 @@ public class EmailService {
 			
 		}
 
-		return false;
+		return true;
 
 	}
 

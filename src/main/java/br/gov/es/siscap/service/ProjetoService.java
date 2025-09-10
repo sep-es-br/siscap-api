@@ -116,6 +116,7 @@ public class ProjetoService {
 	}
 
 	public ProjetoDto buscarPorId(Long id) {
+
 		logger.info("Buscando projeto com id: {}", id);
 
 		Projeto projeto = this.buscar(id);
@@ -135,7 +136,10 @@ public class ProjetoService {
 		String Subusuario = autenticacaoService.getUsuarioLogado();
 
 		Boolean podeEditarEmAnalise = regrasDePermissaoService.podeEditar( Subusuario, projeto );
+
 		Boolean podeSolicitarComplementacao = regrasDePermissaoService.podeSolicitarComplementacao( Subusuario, projeto );
+		
+		Boolean podeResponderComplementacao = regrasDePermissaoService.podeReenviarDICEmComplementacao(this.subEhResponsavelProponenteProjeto(Subusuario,projeto.getId()), projeto);
 
 		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
 			this.buscarIdResponsavelProponente(projetoPessoaSet),
@@ -147,7 +151,8 @@ public class ProjetoService {
 			this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
 			this.buscarNomeResponsavelProponente(projetoPessoaSet),
 			podeEditarEmAnalise,
-			podeSolicitarComplementacao
+			podeSolicitarComplementacao,
+			podeResponderComplementacao
 		);
 		
 		return projetoDtoRetorno;
@@ -242,6 +247,7 @@ public class ProjetoService {
 			this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
 			this.buscarNomeResponsavelProponente(projetoPessoaSet),
 			false,
+			false,
 			false);
 
 	}
@@ -324,6 +330,7 @@ public class ProjetoService {
 			this.buscarSubProponente(projetoPessoaSet),
 			this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
 			this.buscarNomeResponsavelProponente(projetoPessoaSet),
+			false,
 			false,
 			false
 			);
@@ -467,7 +474,7 @@ public class ProjetoService {
 		List<String> erros = new ArrayList<>();
 
 		if( complementos.isEmpty() ){
-			erros.add("Erro ao enviar solicitação de revisão do projeto id " + id + " motivos para complementação não informadas.");
+			erros.add("Erro ao enviar solicitação para complementação do projeto id " + id + " motivos para complementação não informadas.");
 			throw new ValidacaoSiscapException(erros);
 		}
 				
@@ -501,10 +508,9 @@ public class ProjetoService {
 
 				if (confirmacaoEnvioEmail) {
 					logger.info("Email aviso solicitação de complementação do projeto enviado com sucesso para o projeto id " + id);
-					this.alterarStatusProjeto(id, StatusProjetoEnum.ARQUIVADO.getValue());
-					// this.registrarMotivoArquivamentoProjeto(id, codigoMotivoArquivamento, justificativa );
+					this.alterarStatusProjeto(id, StatusProjetoEnum.COMPLEMETACAO.getValue());
 				}else{
-					erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id);
+					erros.add("Erro ao enviar aviso para complementação do projeto id " + id);
 				}
 
 			} catch (UnsupportedEncodingException e) {
@@ -891,6 +897,17 @@ public class ProjetoService {
 		projeto.setIdDocumentoCapturadoEdocs(idArquivoCapturado);
 
 		repository.save(projeto);
+	}
+
+	public boolean subEhResponsavelProponenteProjeto(String subUsuario, Long idProjeto) {
+		Projeto projeto = this.buscar(idProjeto);
+		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
+			.stream()
+			.findFirst()
+			.map( proponente -> proponente.getPessoa() );
+		return responsavelProponenteProjeto
+			.map(pessoa -> pessoa.getSub().equalsIgnoreCase(subUsuario))
+        	.orElse(false);
 	}
 
 }
