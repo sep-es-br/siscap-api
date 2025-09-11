@@ -2,10 +2,13 @@ package br.gov.es.siscap.dto.edocswebapi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record DesentranharArquivoProcessoEdocsDto(
-    
+public record EntranharDocumentosProcessoEdocsDto(
+
     @JsonProperty("justificativa")
     String justificativa,
+    
+    @JsonProperty("idsDocumentosEntranhados")
+    String[] idsDocumentosEntranhados,
 
     @JsonProperty("restricaoAcesso")
     RestricaoAcessoBodyDto restricaoAcessoBodyDto,
@@ -14,10 +17,6 @@ public record DesentranharArquivoProcessoEdocsDto(
     String idProcesso,
 
     @JsonProperty("idPapelResponsavel")
-    String idPapelResponsavel,
-
-    @JsonProperty("sequenciais")
-    String[] sequenciais 
-
+    String idPapelResponsavel
 
 ) {}
