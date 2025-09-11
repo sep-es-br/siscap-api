@@ -1,11 +1,20 @@
 package br.gov.es.siscap.client;
 
+import br.gov.es.siscap.dto.edocswebapi.AtosProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.AutuarProjetoDto;
+import br.gov.es.siscap.dto.edocswebapi.AvocarProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.CapturaAssinaturaBodyDto;
+import br.gov.es.siscap.dto.edocswebapi.DesentranharArquivoProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.DespacharProjetoDto;
+import br.gov.es.siscap.dto.edocswebapi.EntranharDocumentosProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.GerarUrlUploadResponseDto;
+import br.gov.es.siscap.dto.edocswebapi.ProcessoDocumentosAtoProcessoDto;
 import br.gov.es.siscap.dto.edocswebapi.ProcessoEdocsDto;
+import br.gov.es.siscap.dto.edocswebapi.ProcessoVinculadoDocumentoDto;
 import br.gov.es.siscap.dto.edocswebapi.SituacaoEventoDto;
+
+import java.util.List;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,6 +49,28 @@ public interface EdocsWebClient {
 	ProcessoEdocsDto buscarDadosProcessoEdocs( @RequestHeader("Authorization") String bearerToken, 
 		@PathVariable String idProcesso );
 	
-		
+	@PostMapping("/v2/processos/avocar")
+	String avocarProcesso( @RequestHeader("Authorization") String bearerToken,
+		@RequestBody AvocarProcessoEdocsDto request );
 
+	@PostMapping("/v2/processos/desentranhar")
+	String desentranharDocumentosProcesso( @RequestHeader("Authorization") String bearerToken,
+		@RequestBody DesentranharArquivoProcessoEdocsDto request );
+
+	@GetMapping("/v2/documentos/{idDocumento}/processos")
+	List<ProcessoVinculadoDocumentoDto> buscarProcessosVinculadosDocumento( @RequestHeader("Authorization") String bearerToken, 
+		@PathVariable String idDocumento );
+
+	@GetMapping("/v2/processos/{idProcesso}/atos")
+	List<AtosProcessoEdocsDto> buscarAtosProcessoEdocs( @RequestHeader("Authorization") String bearerToken, 
+		@PathVariable String idProcessoEdocs );
+
+	@GetMapping("/v2/processos/{idProcesso}/atos/{idAto}/documentos")
+	List<ProcessoDocumentosAtoProcessoDto> buscarDocumentosAtoProcesso( @RequestHeader("Authorization") String bearerToken, 
+		@PathVariable String idProcessoEdocs, @PathVariable String idAto );
+
+	@PostMapping("/v2/processos/entranhar-documentos")
+	String entranharDocumentosProcesso( @RequestHeader("Authorization") String bearerToken,
+		@RequestBody EntranharDocumentosProcessoEdocsDto request );
+	
 }

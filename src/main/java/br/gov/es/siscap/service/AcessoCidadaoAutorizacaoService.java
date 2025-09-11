@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
@@ -88,12 +87,9 @@ public class AcessoCidadaoAutorizacaoService {
         edocsTokenStore.put(userId, edocsToken);
     }
 
-    public Optional<String> getEdocsToken(String userId) {
+    public String getEdocsToken(String userId) {
         String token = edocsTokenStore.get(userId);
-        if (token == null) {
-            throw new IllegalStateException("Token do e-Docs não disponível para o usuário: " + userId);
-        }
-        return Optional.of(BEARER + token);
+        return BEARER + token;
     }
 
 	public Mono<String> getEdocsTokenReativo(String tokenType) {

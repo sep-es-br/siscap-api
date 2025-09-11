@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
+import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import br.gov.es.siscap.models.ProjetoAcao;
@@ -63,6 +65,8 @@ public class ProjetoService {
 	private final ProjetoAcaoService projetoAcaoService;
 	private final TipoMotivoArquivamentoService tipoMotivoArquivamentoService;
 	private final AcessoCidadaoService acessoCidadaoService;
+	private final AutenticacaoService autenticacaoService;
+	private final RegrasDePermissaoService regrasDePermissaoService;
 
 	@PersistenceContext
     private EntityManager entityManager;
@@ -112,6 +116,7 @@ public class ProjetoService {
 	}
 
 	public ProjetoDto buscarPorId(Long id) {
+
 		logger.info("Buscando projeto com id: {}", id);
 
 		Projeto projeto = this.buscar(id);
@@ -128,17 +133,28 @@ public class ProjetoService {
 
 		Set<ProjetoAcao> acoes = projetoAcaoService.buscarPorProjeto(projeto);
 
-		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
-		this.buscarIdResponsavelProponente(projetoPessoaSet),
-		this.buscarEquipeElaboracao(projetoPessoaSet),
-		this.buscarSubResponsavelProponente(projetoPessoaSet),
-		this.buscarIndicadores(indicadores),
-		this.buscarAcoes(acoes),
-		this.buscarSubProponente(projetoPessoaSet),
-		this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
-		this.buscarNomeResponsavelProponente(projetoPessoaSet)
-		);
+		String Subusuario = autenticacaoService.getUsuarioLogado();
 
+		Boolean podeEditarEmAnalise = regrasDePermissaoService.podeEditar( Subusuario, projeto );
+
+		Boolean podeSolicitarComplementacao = regrasDePermissaoService.podeSolicitarComplementacao( Subusuario, projeto );
+		
+		Boolean podeResponderComplementacao = regrasDePermissaoService.podeReenviarDICEmComplementacao(this.subEhResponsavelProponenteProjeto(Subusuario,projeto.getId()), projeto);
+
+		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
+			this.buscarIdResponsavelProponente(projetoPessoaSet),
+			this.buscarEquipeElaboracao(projetoPessoaSet),
+			this.buscarSubResponsavelProponente(projetoPessoaSet),
+			this.buscarIndicadores(indicadores),
+			this.buscarAcoes(acoes),
+			this.buscarSubProponente(projetoPessoaSet),
+			this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
+			this.buscarNomeResponsavelProponente(projetoPessoaSet),
+			podeEditarEmAnalise,
+			podeSolicitarComplementacao,
+			podeResponderComplementacao
+		);
+		
 		return projetoDtoRetorno;
 
 	}
@@ -229,7 +245,10 @@ public class ProjetoService {
 			acoesProjetoParaGravar,
 			this.buscarSubProponente(projetoPessoaSet),
 			this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
-			this.buscarNomeResponsavelProponente(projetoPessoaSet));
+			this.buscarNomeResponsavelProponente(projetoPessoaSet),
+			false,
+			false,
+			false);
 
 	}
 
@@ -310,7 +329,10 @@ public class ProjetoService {
 			this.buscarAcoes(projetoAcoesSet),
 			this.buscarSubProponente(projetoPessoaSet),
 			this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
-			this.buscarNomeResponsavelProponente(projetoPessoaSet)
+			this.buscarNomeResponsavelProponente(projetoPessoaSet),
+			false,
+			false,
+			false
 			);
 
 	}
@@ -425,6 +447,70 @@ public class ProjetoService {
 					
 				}else{
 					erros.add("Erro ao enviar solicitação de revisão do projeto id " + id);
+				}
+
+			} catch (UnsupportedEncodingException e) {
+				logger.error(e.getMessage());
+			} catch (MessagingException e) {
+				logger.error(e.getMessage());
+			}
+
+		}else{
+			erros.add("Não foi possível fazer o envio pois o proponente não foi encontrado - projeto id " + id);
+		}
+						
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		return;
+
+	}
+
+	@Transactional
+	public void enviarAvisoSolicitarComplementacaoProjeto( Long id, List<Map<String, String>> complementos ) {
+
+		List<String> erros = new ArrayList<>();
+
+		if( complementos.isEmpty() ){
+			erros.add("Erro ao enviar solicitação para complementação do projeto id " + id + " motivos para complementação não informadas.");
+			throw new ValidacaoSiscapException(erros);
+		}
+				
+		Projeto projeto = this.buscar(id);
+
+		Optional<Pessoa> proponenteProjeto = projeto.getProjetoPessoaSet()
+			.stream()
+			.filter( pessoa -> pessoa.isProponente() )
+			.findFirst()
+			.map( proponente -> proponente.getPessoa() );
+
+		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
+			.stream()
+			.filter( pessoa -> pessoa.isResponsavelProponente() )
+			.findFirst()
+			.map( proponente -> proponente.getPessoa() );
+			
+		if( proponenteProjeto.isPresent() && responsavelProponenteProjeto.isPresent() ){
+
+			boolean confirmacaoEnvioEmail;
+			List<String> emailsInteressadosList = new ArrayList<String>();
+			emailsInteressadosList.add(proponenteProjeto.get().getEmail());
+
+			try {
+				
+				confirmacaoEnvioEmail = emailService.enviarEmailComplemetacaoProjeto( emailsInteressadosList, 
+					proponenteProjeto.get().getNome(),
+					responsavelProponenteProjeto.get().getNome(),
+					projeto.getSigla(),
+					complementos );
+
+				if (confirmacaoEnvioEmail) {
+					logger.info("Email aviso solicitação de complementação do projeto enviado com sucesso para o projeto id " + id);
+					this.alterarStatusProjeto(id, StatusProjetoEnum.COMPLEMETACAO.getValue());
+				}else{
+					erros.add("Erro ao enviar aviso para complementação do projeto id " + id);
 				}
 
 			} catch (UnsupportedEncodingException e) {
@@ -802,6 +888,26 @@ public class ProjetoService {
 			return true;
 		}
 
+	}
+
+	@Transactional
+	public void atualizarIdArquivoCapturadoProcessoEdocsProjeto(Long idProjeto, String idArquivoCapturado) {
+		Projeto projeto = this.buscar(idProjeto);
+
+		projeto.setIdDocumentoCapturadoEdocs(idArquivoCapturado);
+
+		repository.save(projeto);
+	}
+
+	public boolean subEhResponsavelProponenteProjeto(String subUsuario, Long idProjeto) {
+		Projeto projeto = this.buscar(idProjeto);
+		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
+			.stream()
+			.findFirst()
+			.map( proponente -> proponente.getPessoa() );
+		return responsavelProponenteProjeto
+			.map(pessoa -> pessoa.getSub().equalsIgnoreCase(subUsuario))
+        	.orElse(false);
 	}
 
 }

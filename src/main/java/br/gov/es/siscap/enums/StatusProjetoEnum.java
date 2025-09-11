@@ -10,7 +10,10 @@ public enum StatusProjetoEnum {
 	EM_ELABORACAO("Em Elaboração"),
 	EM_ANALISE("Em Análise"),
 	ARQUIVADO("Arquivado"),
-	PARECER_SEP("Parecer SEP");
-
+	PARECER_SEP("Parecer SEP"),
+	PARECER_ESTRATEGICO_ORCAMENTARIO("Parecer Estratégico-Orçamentário"),
+	COMPLEMETACAO("Em Complementação");
+	
 	private final String value;
+	
 }

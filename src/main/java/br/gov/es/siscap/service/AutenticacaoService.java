@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import br.gov.es.siscap.dto.UsuarioDto;
@@ -43,6 +44,10 @@ public class AutenticacaoService {
 	private final TokenService tokenService;
 	private final UsuarioRepository usuarioRepository;
 	private final Roles roles;
+
+	public String getUsuarioLogado() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
 	
 	public UsuarioDto autenticar(String accessToken) {
 		logger.info("Autenticar usuário SisCap.");
