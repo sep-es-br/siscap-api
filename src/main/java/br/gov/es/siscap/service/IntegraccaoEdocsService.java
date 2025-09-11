@@ -516,175 +516,191 @@ public class IntegraccaoEdocsService {
 	// }
 
 	public Mono<String> autuarDicProjetoReativo(ProjetoDto projeto, Resource arquivo, String nomeArquivo) {
-		
-		return FeignReativo.fromFeign( () -> {
-				try {
-					return arquivo.contentLength();
-				} catch (IOException e) {
-					throw new RuntimeException(" Falha ao obter tamanho do arquivo", e);
-				} 
-			})
-			.flatMap( tamanho -> 
-				buscarTokenReativo()
-				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.flatMap( token -> 
-					FeignReativo.fromFeign( () -> EdocsWebClient.gerarUrlUploadArquivo(token, tamanho) )
-						.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-						.doOnRequest(n -> { this.adicionarEtapa( projeto.id(), new EtapasIntegracaoDto( projeto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false ) ); } )
-						.switchIfEmpty(Mono.error(new RuntimeException("Falha na geração da URL temporária para Upload do Arquivo.")))
-						.doOnSuccess( urlDto -> { logger.info("URL gerada: {}", urlDto.url()); } )
-						.doOnError( e -> { logger.error("Falha ao gerar URL", e );
-										   this.registrarFalhaEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
-		 								 } )
-					.flatMap( urlDto ->
-						FeignReativo.fromFeign( () ->  UploadS3Service.enviarArquivoParaS3OkHttp(
-								urlDto.url(), 
-								urlDto.body(), 
-								arquivo, 
-								nomeArquivo, 
-								token) )
-							.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-							.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar UPLOAD do arquivo para o servidor S3 do E-Docs.")))
-							.doOnSuccess( retornoEnvio -> logger.info("Upload feito com sucesso: {}", retornoEnvio ))
-							.doOnError( e -> { 	logger.error("Falha ao executar UPLOAD do arquivo para o servidor S3 do E-Docs.", e ); 
-												this.registrarFalhaEtapa(projeto.id(),EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
-												} )
-						.flatMap( retornoUpload -> 
-							FeignReativo.fromFeign( () ->  
-								capturarAssinarDocumento(urlDto.identificadorTemporarioArquivoNaNuvem(),
-									nomeArquivo,
-									token
-								))
+
+		return FeignReativo.fromFeign(() -> {
+					try {
+						return arquivo.contentLength();
+					} catch (IOException e) {
+						throw new RuntimeException(" Falha ao obter tamanho do arquivo", e);
+					}
+				})
+				.flatMap(tamanho ->
+					buscarTokenReativo()
+						.switchIfEmpty( Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()") ) )
+						.doOnError(e -> {
+							logger.error("Falha ao recuperar Token para acesso.", e);
+							this.registrarFalhaEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+						})
+						.flatMap(token ->
+							FeignReativo.fromFeign(() -> EdocsWebClient.gerarUrlUploadArquivo(token, tamanho))
 								.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-								.switchIfEmpty(Mono.error(new RuntimeException("Falha ao capturar/assinar documento via E-Docs.")))
-								.doOnSuccess( retornoCaptura -> logger.info("Captura realizada: {}", retornoCaptura ))
-								.doOnError( e -> { logger.error("Falha ao enviar caputura do arquivo para o servidor S3 do E-Docs.", e );
-													this.registrarFalhaEtapa(projeto.id(),EtapasIntegracaoEdocsEnum.CAPTURAASSINA); } )
-							.flatMap( idEventoCaptura -> 
-								FeignReativo.fromFeign( () ->  
-									consultarSituacaoEventoEdocs( 
-										idEventoCaptura.replace("\"", ""), 
-										token  
-									))
-									.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-									.filter(dto -> {
-										boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
-										if (!isConcluido) {
-											logger.warn("Status não concluído: {}", dto.situacao()); // Log de status inesperado
-										}
-										return isConcluido;
-									})
-									.repeatWhenEmpty( flux -> flux.delayElements(Duration.ofSeconds(2))) // Repete a cada 2s se vazio
-									.timeout( Duration.ofMinutes(1)) // Timeout total em minutos
-									.switchIfEmpty( Mono.error(new RuntimeException("Falha ao consultar situacao do evento de CAPTURA ID " + idEventoCaptura + ".")))
-									.doOnSuccess( situacaoEventoDto -> {
-											logger.info("Captura confirmada: {}", situacaoEventoDto.situacao() );
-											this.atualizarEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, true );
-										}
-									)
-									.doOnError( e -> { logger.error("Falha ao verificar situacao do evento de caputura do arquivo para o servidor S3 do E-Docs.", e );
-														this.registrarFalhaEtapa(projeto.id(),EtapasIntegracaoEdocsEnum.CAPTURAASSINA); } )
-								.flatMap( dtoSituacaoEvento -> 
-									FeignReativo.fromFeign( () ->  
-										autuarProcesso( 
-											projeto,
-											token,
-											dtoSituacaoEvento.idDocumento() 
+								.doOnRequest(n -> this.adicionarEtapa(
+									projeto.id(),
+									new EtapasIntegracaoDto(projeto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false)
+								))
+								.switchIfEmpty(Mono.error(new RuntimeException("Falha na geração da URL temporária para Upload do Arquivo.")))
+								.doOnSuccess(urlDto -> logger.info("URL gerada: {}", urlDto.url()))
+								.doOnError(e -> {
+									logger.error("Falha ao gerar URL", e);
+									this.registrarFalhaEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+								})
+								.flatMap(urlDto ->
+									FeignReativo.fromFeign(() -> UploadS3Service.enviarArquivoParaS3OkHttp(
+											urlDto.url(),
+											urlDto.body(),
+											arquivo,
+											nomeArquivo,
+											token
 										))
-										.doOnRequest(n -> {
-											this.adicionarEtapa( projeto.id(), new EtapasIntegracaoDto( projeto.id(), EtapasIntegracaoEdocsEnum.AUTUAR, true, false, false) );											
-											})
 										.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-										.switchIfEmpty( Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para autuar um processo via E-Docs.")))
-										.doOnError( e -> { logger.error("Falha ao executar chamada ao endpoint para autuar um processo via E-Docs. {}", e );
-															this.registrarFalhaEtapa(projeto.id(),EtapasIntegracaoEdocsEnum.AUTUAR); } )
-									.flatMap( idEventoAutuar -> 
-										FeignReativo.fromFeign( () ->  
-											consultarSituacaoEventoEdocs( 
-												idEventoAutuar.replace("\"", ""), 
-												token  
-											))
-											.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-											.doOnNext(dto -> logger.info("Id do processo autuado : {}", dto.idProcesso() )) 
-											.filter(dto -> {
-												boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
-												if (!isConcluido) {
-													logger.warn("Status não concluído: {}", dto.situacao()); // Log de status inesperado
-												}
-												return isConcluido;
-											})
-											.repeatWhenEmpty( flux -> flux.delayElements(Duration.ofSeconds(2))) // Repete a cada 2s se vazio
-											.timeout(Duration.ofMinutes(1)) // Timeout total em minutos
-											.switchIfEmpty(Mono.error(new RuntimeException("Falha ao consultar situacao do evento de AUTUACAO DO PROCESSO ID " + idEventoAutuar + ".")))
-											.doOnRequest( n -> {
-													this.atualizarEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.AUTUAR, true, true );
+										.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar UPLOAD do arquivo para o servidor S3 do E-Docs.")))
+										.doOnSuccess(retornoEnvio -> logger.info("Upload feito com sucesso: {}", retornoEnvio))
+										.doOnError(e -> {
+											logger.error("Falha ao executar UPLOAD do arquivo para o servidor S3 do E-Docs.", e);
+											this.registrarFalhaEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+										})
+										.flatMap(retornoUpload ->
+											FeignReativo.fromFeign(() -> capturarAssinarDocumento(
+													urlDto.identificadorTemporarioArquivoNaNuvem(),
+													nomeArquivo,
+													token
+												))
+												.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+												.switchIfEmpty(Mono.error(new RuntimeException("Falha ao capturar/assinar documento via E-Docs.")))
+												.doOnSuccess(retornoCaptura -> logger.info("Captura realizada: {}", retornoCaptura))
+												.doOnError(e -> {
+													logger.error("Falha ao enviar captura do arquivo para o servidor S3 do E-Docs.", e);
+													this.registrarFalhaEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
 												})
-											.doOnError( e -> { logger.error("Falha ao verificar situacao do evento de autuacao do processo no E-Docs.", e );
-																this.registrarFalhaEtapa(projeto.id(),EtapasIntegracaoEdocsEnum.AUTUAR); } )
-										.flatMap( dtoSituacaoEventoAutuacao -> 
-											FeignReativo.fromFeign( () ->  
-												despacharProcessoSUBCAP( projeto, token, dtoSituacaoEventoAutuacao.idProcesso() )
-											)
-											.doOnRequest(n -> {
-												this.adicionarEtapa( projeto.id(), new EtapasIntegracaoDto( projeto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, false, false) );
-												})
-											.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-											.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.")))
-											.doOnSuccess( retorno -> logger.info("Chamada ao endpoint realizada: {}", retorno ) )
-											.doOnError( e -> {  logger.error("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs. {}", e );
-																this.registrarFalhaEtapa(projeto.id(),EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
-														 } )
-											.flatMap( idEventoDespacho -> 
-												FeignReativo.fromFeign( () ->  
-													consultarSituacaoEventoEdocs( 
-														idEventoDespacho.replace("\"", ""), 
-														token  
-													))
-													.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-													.filter(dto -> {
-														boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
-														if (!isConcluido) {
-															logger.warn("Status não concluído: {}", dto.situacao()); // Log de status inesperado
-														}
-														return isConcluido;
-													})
-													.repeatWhenEmpty( flux -> flux.delayElements(Duration.ofSeconds(2))) // Repete a cada 2s se vazio
-													.timeout(Duration.ofMinutes(1)) // Timeout total em minutos
-													.switchIfEmpty(Mono.error(new RuntimeException("Falha ao consultar situacao do evento de DESPACHO DO PROCESSO ID " + idEventoDespacho + ".")))
-													.doOnSuccess( retorno -> {
-														this.atualizarEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true );
-													})
-													.doOnError( e -> { logger.error("Falha ao verificar situacao do evento de despacho do processo no E-Docs.", e );
-																	this.registrarFalhaEtapa(projeto.id(),EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
-															 } )
-												)
-												.flatMap( dtoSituacaoEventoDespacho ->
-													FeignReativo.fromFeign( () -> 
-														consultarDadosProcessoEdocs( dtoSituacaoEventoAutuacao.idProcesso(), 
-														token ) 
-													)
-													.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-													.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.")))
-													.doOnSuccess( retornoDadosProcesso -> { 
-															logger.info("Gravando Protocolo do processo E-Docs {} no processo do SISCAP.", retornoDadosProcesso.protocolo() ) ;
-															projetoService.atualizarProtocoloProcessoEdocsProjeto(projeto.id(), retornoDadosProcesso.protocolo() );
-															projetoService.atualizarIdArquivoCapturadoProcessoEdocsProjeto(projeto.id(),dtoSituacaoEvento.idDocumento());
-														}
-													)
-													.doOnError( e -> { logger.error("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs. {}", e );
-																		this.registrarFalhaEtapa(projeto.id(),EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);						
-																	} )
+												.flatMap(idEventoCaptura ->
+													FeignReativo.fromFeign(() -> consultarSituacaoEventoEdocs(
+															idEventoCaptura.replace("\"", ""),
+															token
+														))
+														.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+														.filter(dto -> {
+															boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
+															if (!isConcluido) {
+																logger.warn("Status não concluído: {}", dto.situacao());
+															}
+															return isConcluido;
+														})
+														.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
+														.timeout(Duration.ofMinutes(1))
+														.switchIfEmpty(Mono.error(new RuntimeException("Falha ao consultar situacao do evento de CAPTURA ID " + idEventoCaptura + ".")))
+														.doOnSuccess(situacaoEventoDto -> {
+															logger.info("Captura confirmada: {}", situacaoEventoDto.situacao());
+															this.atualizarEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, true);
+														})
+														.doOnError(e -> {
+															logger.error("Falha ao verificar situacao do evento de captura.", e);
+															this.registrarFalhaEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+														})
+														.flatMap(dtoSituacaoEvento ->
+															FeignReativo.fromFeign(() -> autuarProcesso(
+																	projeto,
+																	token,
+																	dtoSituacaoEvento.idDocumento()
+																))
+																.doOnRequest(n -> this.adicionarEtapa(
+																	projeto.id(),
+																	new EtapasIntegracaoDto(projeto.id(), EtapasIntegracaoEdocsEnum.AUTUAR, true, false, false)
+																))
+																.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+																.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para autuar um processo via E-Docs.")))
+																.doOnError(e -> {
+																	logger.error("Falha ao executar chamada ao endpoint para autuar um processo via E-Docs. {}", e);
+																	this.registrarFalhaEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.AUTUAR);
+																})
+																.flatMap(idEventoAutuar ->
+																	FeignReativo.fromFeign(() -> consultarSituacaoEventoEdocs(
+																			idEventoAutuar.replace("\"", ""),
+																			token
+																		))
+																		.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+																		.doOnNext(dto -> logger.info("Id do processo autuado : {}", dto.idProcesso()))
+																		.filter(dto -> {
+																			boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
+																			if (!isConcluido) {
+																				logger.warn("Status não concluído: {}", dto.situacao());
+																			}
+																			return isConcluido;
+																		})
+																		.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
+																		.timeout(Duration.ofMinutes(1))
+																		.switchIfEmpty(Mono.error(new RuntimeException("Falha ao consultar situacao do evento de AUTUACAO DO PROCESSO ID " + idEventoAutuar + ".")))
+																		.doOnRequest(n -> this.atualizarEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.AUTUAR, true, true))
+																		.doOnError(e -> {
+																			logger.error("Falha ao verificar situacao do evento de autuacao do processo no E-Docs.", e);
+																			this.registrarFalhaEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.AUTUAR);
+																		})
+																		.flatMap(dtoSituacaoEventoAutuacao ->
+																			FeignReativo.fromFeign(() -> despacharProcessoSUBCAP(
+																					projeto,
+																					token,
+																					dtoSituacaoEventoAutuacao.idProcesso()
+																				))
+																				.doOnRequest(n -> this.adicionarEtapa(
+																					projeto.id(),
+																					new EtapasIntegracaoDto(projeto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, false, false)
+																				))
+																				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+																				.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.")))
+																				.doOnSuccess(retorno -> logger.info("Chamada ao endpoint realizada: {}", retorno))
+																				.doOnError(e -> {
+																					logger.error("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs. {}", e);
+																					this.registrarFalhaEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+																				})
+																				.flatMap(idEventoDespacho ->
+																					FeignReativo.fromFeign(() -> consultarSituacaoEventoEdocs(
+																							idEventoDespacho.replace("\"", ""),
+																							token
+																						))
+																						.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+																						.filter(dto -> {
+																							boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
+																							if (!isConcluido) {
+																								logger.warn("Status não concluído: {}", dto.situacao());
+																							}
+																							return isConcluido;
+																						})
+																						.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
+																						.timeout(Duration.ofMinutes(1))
+																						.switchIfEmpty(Mono.error(new RuntimeException("Falha ao consultar situacao do evento de DESPACHO DO PROCESSO ID " + idEventoDespacho + ".")))
+																						.doOnSuccess(retorno -> this.atualizarEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true))
+																						.doOnError(e -> {
+																							logger.error("Falha ao verificar situacao do evento de despacho do processo no E-Docs.", e);
+																							this.registrarFalhaEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+																						})
+																				)
+																				.flatMap(dtoSituacaoEventoDespacho ->
+																					FeignReativo.fromFeign(() -> consultarDadosProcessoEdocs(
+																							dtoSituacaoEventoAutuacao.idProcesso(),
+																							token
+																						))
+																						.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+																						.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.")))
+																						.doOnSuccess(retornoDadosProcesso -> {
+																							logger.info("Gravando Protocolo do processo E-Docs {} no processo do SISCAP.", retornoDadosProcesso.protocolo());
+																							projetoService.atualizarProtocoloProcessoEdocsProjeto(projeto.id(), retornoDadosProcesso.protocolo());
+																							projetoService.atualizarIdArquivoCapturadoProcessoEdocsProjeto(projeto.id(), dtoSituacaoEvento.idDocumento());
+																						})
+																						.doOnError(e -> {
+																							logger.error("Falha ao executar chamada ao endpoint para despachar um processo via E-Docs. {}", e);
+																							this.registrarFalhaEtapa(projeto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+																						})
+																				)
+																		)
+																)
+														)
 												)
 										)
-									)
 								)
-							)
 						)
-					)
 				)
-			).thenReturn("Autuação do DIC concluido com sucesso");
-
+				.thenReturn("Autuação do DIC concluido com sucesso");
 	}
+	
 	
 	private Mono<String> buscarTokenReativo() {
 		return Mono.just(AutorizacaoACService.getEdocsToken("accessTokenAC")); 
