@@ -138,8 +138,10 @@ public class ProjetoService {
 		Boolean podeEditarEmAnalise = regrasDePermissaoService.podeEditar( Subusuario, projeto );
 
 		Boolean podeSolicitarComplementacao = regrasDePermissaoService.podeSolicitarComplementacao( Subusuario, projeto );
+
+		//logger.info("SubEhResponsavel ( {} ) - Sigla Proj. {} ? {} ", Subusuario , projeto.getSigla(), this.subEhResponsavelProponenteProjeto(Subusuario,projeto.getId()) );
 		
-		Boolean podeResponderComplementacao = regrasDePermissaoService.podeReenviarDICEmComplementacao(this.subEhResponsavelProponenteProjeto(Subusuario,projeto.getId()), projeto);
+		Boolean podeResponderComplementacao = regrasDePermissaoService.podeReenviarDICEmComplementacao( this.subEhResponsavelProponenteProjeto(Subusuario,projeto.getId()), projeto );
 
 		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
 			this.buscarIdResponsavelProponente(projetoPessoaSet),
@@ -152,8 +154,11 @@ public class ProjetoService {
 			this.buscarNomeResponsavelProponente(projetoPessoaSet),
 			podeEditarEmAnalise,
 			podeSolicitarComplementacao,
-			podeResponderComplementacao
+			podeResponderComplementacao,
+			projeto.getIdProcessoEdocs()
 		);
+
+		//logger.info( "Dados Dto Projeto ID {} - {}", projetoDtoRetorno.id(), projetoDtoRetorno.toString() );
 		
 		return projetoDtoRetorno;
 
@@ -248,7 +253,7 @@ public class ProjetoService {
 			this.buscarNomeResponsavelProponente(projetoPessoaSet),
 			false,
 			false,
-			false);
+			false, null);
 
 	}
 
@@ -332,8 +337,8 @@ public class ProjetoService {
 			this.buscarNomeResponsavelProponente(projetoPessoaSet),
 			false,
 			false,
-			false
-			);
+			false,
+			null);
 
 	}
 
@@ -899,15 +904,31 @@ public class ProjetoService {
 		repository.save(projeto);
 	}
 
-	public boolean subEhResponsavelProponenteProjeto(String subUsuario, Long idProjeto) {
+	@Transactional
+	public void atualizarIdProcessoEdocsProjeto(Long idProjeto, String idProcessoEdocs) {
 		Projeto projeto = this.buscar(idProjeto);
+
+		projeto.setIdProcessoEdocs(idProcessoEdocs);
+
+		repository.save(projeto);
+	}
+
+	public boolean subEhResponsavelProponenteProjeto(String subUsuario, Long idProjeto) {
+		
+		Projeto projeto = this.buscar(idProjeto);
+		
 		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
 			.stream()
+			.filter( membro -> membro.isResponsavelProponente() )
 			.findFirst()
 			.map( proponente -> proponente.getPessoa() );
+
+		//logger.info( " Responsavel do Projeto : {} - Sub {} ", responsavelProponenteProjeto.get().getNome() , responsavelProponenteProjeto.get().getSub() );	
+
 		return responsavelProponenteProjeto
 			.map(pessoa -> pessoa.getSub().equalsIgnoreCase(subUsuario))
         	.orElse(false);
+
 	}
 
 }

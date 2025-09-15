@@ -111,12 +111,4 @@ public class AcessoCidadaoService {
         return "";
     }
 
-    public ACUserInfoDto buscarInformacoesUsuarioLogado() {
-        String accessToken = "";
-        // accessToken = ACAuthService.getEdocsToken("accessTokenAC");
-        // ACUserInfoDto acUserInfoDto = buscarAcessoCidadaoUserInfo(accessToken);
-        HashMap<String, Object> mapHeader = ACAuthService.getAuthorizationHeader();
-        return null ; //acUserInfoDto;
-    }
-
 }
