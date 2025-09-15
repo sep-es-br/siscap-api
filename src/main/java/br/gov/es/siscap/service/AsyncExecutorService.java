@@ -21,4 +21,11 @@ public class AsyncExecutorService {
         integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP(resource, nomeArquivo, idProjeto.longValue());
     }
 
+    @Async
+    public void executarReentranhamentoDicEdocs(Long idProjeto) {
+        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue());
+        String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
+        integracaoEdocsService.reentranharDespacharDicProccessoComplementacaoSUBCAP(resource, nomeArquivo, idProjeto.longValue());
+    }
+
 }

@@ -112,20 +112,23 @@ public class ProjetoController {
 
 	@PutMapping("/dic/edocs/autuar/{idProjeto}")
 	public ResponseEntity<Resource> assinarAutuarDIC( @PathVariable Long idProjeto, @Valid @RequestBody ProjetoForm form ) {
-		
 		service.atualizar( idProjeto, form, false );
-		
 		asyncExecutorService.executarAutuacaoEdocs(idProjeto);
-    	
 		return ResponseEntity.accepted().build();
-
 	}
 
 	@GetMapping("/dic/edocs/fases/{idProjeto}")
 	public ResponseEntity<List<EtapasIntegracaoDto>> integracaoEdocsFases(@PathVariable Long idProjeto) {
 		var fases = integracaoEdocsService.consultarFasesIntegracaoEdocsProjeto(idProjeto);
 		return ResponseEntity.ok(fases);
+	}
 
+	@PutMapping("/dic/edocs/reentranharDIC/{idProjeto}")
+	public ResponseEntity<Resource> reentranharDIC( @PathVariable Long idProjeto, 
+		@Valid @RequestBody ProjetoForm form ) {
+		service.atualizar( idProjeto, form, false );
+		asyncExecutorService.executarReentranhamentoDicEdocs(idProjeto);
+		return ResponseEntity.accepted().build();
 	}
 
 }
