@@ -26,6 +26,8 @@ import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -139,8 +141,6 @@ public class ProjetoService {
 
 		Boolean podeSolicitarComplementacao = regrasDePermissaoService.podeSolicitarComplementacao( Subusuario, projeto );
 
-		//logger.info("SubEhResponsavel ( {} ) - Sigla Proj. {} ? {} ", Subusuario , projeto.getSigla(), this.subEhResponsavelProponenteProjeto(Subusuario,projeto.getId()) );
-		
 		Boolean podeResponderComplementacao = regrasDePermissaoService.podeReenviarDICEmComplementacao( this.subEhResponsavelProponenteProjeto(Subusuario,projeto.getId()), projeto );
 
 		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
@@ -155,11 +155,10 @@ public class ProjetoService {
 			podeEditarEmAnalise,
 			podeSolicitarComplementacao,
 			podeResponderComplementacao,
-			projeto.getIdProcessoEdocs()
+			projeto.getIdProcessoEdocs(),
+			projeto.getIdDocumentoCapturadoEdocs()
 		);
 
-		//logger.info( "Dados Dto Projeto ID {} - {}", projetoDtoRetorno.id(), projetoDtoRetorno.toString() );
-		
 		return projetoDtoRetorno;
 
 	}
@@ -253,7 +252,7 @@ public class ProjetoService {
 			this.buscarNomeResponsavelProponente(projetoPessoaSet),
 			false,
 			false,
-			false, null);
+			false, null, null);
 
 	}
 
@@ -338,7 +337,7 @@ public class ProjetoService {
 			false,
 			false,
 			false,
-			null);
+			null, null);
 
 	}
 
@@ -474,7 +473,7 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public void enviarAvisoSolicitarComplementacaoProjeto( Long id, List<Map<String, String>> complementos ) {
+	public boolean enviarAvisoSolicitarComplementacaoProjeto( Long id, List<Map<String, String>> complementos ) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -504,7 +503,7 @@ public class ProjetoService {
 			emailsInteressadosList.add(proponenteProjeto.get().getEmail());
 
 			try {
-				
+
 				confirmacaoEnvioEmail = emailService.enviarEmailComplemetacaoProjeto( emailsInteressadosList, 
 					proponenteProjeto.get().getNome(),
 					responsavelProponenteProjeto.get().getNome(),
@@ -533,7 +532,7 @@ public class ProjetoService {
 			throw new ValidacaoSiscapException(erros);
 		}
 
-		return;
+		return true;
 
 	}
 

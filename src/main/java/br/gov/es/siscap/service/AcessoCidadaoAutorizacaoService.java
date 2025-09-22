@@ -84,7 +84,10 @@ public class AcessoCidadaoAutorizacaoService {
 	}
 
     public void storeEdocsToken(String userId, String edocsToken) {
-        edocsTokenStore.put(userId, edocsToken);
+		if (edocsToken != null)
+        	edocsTokenStore.put(userId, edocsToken);
+		else
+			System.out.println("Tentativa de armazenar o token do Edocs vazio..");
     }
 
     public String getEdocsToken(String userId) {
