@@ -35,7 +35,7 @@ public class AutenticacaoController {
 	@Hidden
 	@GetMapping("/acesso-cidadao-response")
 	public RedirectView acessoCidadaoResponse(String accessToken) {
-		autorizacaoACService.storeEdocsToken( "accessTokenAC", accessToken );
+		autorizacaoACService.storeEdocsToken( "accessTokenACPuro", accessToken );
 		String tokenEmBase64 = Base64.getEncoder().encodeToString(accessToken.getBytes());
 		return new RedirectView(String.format("%s/token?token=%s", frontEndHost, tokenEmBase64));
 	}

@@ -202,7 +202,7 @@ public class IntegraccaoEdocsService {
 		}
 
 		this.adicionarEtapa( projetoDto.id(), 
-			new EtapasIntegracaoDto( projetoDto.id(), EtapasIntegracaoEdocsEnum.AVOCAR , true, false, false) );
+			new EtapasIntegracaoDto( projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false) );
 
 		return buscarTokenReativo()
 			.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
@@ -606,7 +606,7 @@ public class IntegraccaoEdocsService {
 	}
 	
 	private Mono<String> buscarTokenReativo() {
-		return Mono.just(AutorizacaoACService.getEdocsToken("accessTokenAC")); 
+		return Mono.just(AutorizacaoACService.getEdocsToken("accessTokenACPuro")); 
 	}
 
 	private SituacaoEventoDto consultarSituacaoEventoEdocs( String idEventoEdocs, String token ){
@@ -726,7 +726,7 @@ public class IntegraccaoEdocsService {
 		
 		String idDestino = guiddestinoSUBCAP; 
 		
-		String mensagem = "DEPACHO AUTOMÁTICO GERADO PELO SISCAP";
+		String mensagem = "DEPACHO AUTOMATICO GERADO PELO SISCAP";
 
 		List<ACAgentePublicoPapelDto> papeisAgentePublico = AcessoCidadaoService.listarPapeisAgentePublicoPorSub( ctx.getProjeto().subResponsavelProponente() );
 
@@ -749,7 +749,7 @@ public class IntegraccaoEdocsService {
 
 	private String despacharProcessoOrgaoOrigem( FluxoContextoIntegracaoDto ctx ){
 						
-		String mensagem = "DEPACHO AUTOMÁTICO GERADO PELO SISCAP";
+		String mensagem = "DEPACHO AUTOMATICO GERADO PELO SISCAP";
 
 		List<ACAgentePublicoPapelDto> papeisAgentePublico = AcessoCidadaoService.listarPapeisAgentePublicoPorSub( ctx.getProjeto().subResponsavelProponente() );
 
