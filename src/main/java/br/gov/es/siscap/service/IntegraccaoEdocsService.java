@@ -453,7 +453,9 @@ public class IntegraccaoEdocsService {
 			.repeatWhenEmpty( flux -> flux.delayElements( Duration.ofSeconds(2) ) )
 			.timeout(Duration.ofMinutes(1))
 			.switchIfEmpty( Mono.error( new RuntimeException("Falha ao consultar situcao evento de ENTRANHAMENTO via E-Docs.") ) )
-			.doOnSuccess( resultConsultaEvento -> ctx.setSituacaoEventoEntranhamentoDto(resultConsultaEvento) )
+			.doOnSuccess( resultConsultaEvento -> { ctx.setSituacaoEventoEntranhamentoDto(resultConsultaEvento); 
+				this.atualizarEtapa( ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO, true, true );
+				} )
 			.doOnError( e -> {
 				logger.error("Falha ao consultar situacao evento de ENTRANHAMENTO via E-Docs.", e);
 				registrarFalhaEtapa( ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO );
@@ -703,7 +705,7 @@ public class IntegraccaoEdocsService {
 		
 		List<String> idsAgentesInteressados = projetoDTO.equipeElaboracao()
 			.stream()
-			.map(membro -> membro.subPessoa() )
+			.map( membro -> membro.subPessoa() )
 			.collect(Collectors.toList()) ;
 
 		Optional.ofNullable(projetoDTO.subResponsavelProponente())
@@ -716,7 +718,8 @@ public class IntegraccaoEdocsService {
 
 		List<String> idsDocumentosEntranhados = List.of( idDocumentoCapturado );
 
-		AutuarProjetoDto autuarProjetoDto = new AutuarProjetoDto( idClasse, idPapelResponsavel, idLocal, resumo, idsAgentesInteressados, idsDocumentosEntranhados );
+		AutuarProjetoDto autuarProjetoDto = new AutuarProjetoDto( idClasse, idPapelResponsavel, idLocal, resumo, 
+			idsAgentesInteressados, idsDocumentosEntranhados );
 
 		return EdocsWebClient.autuarProcesso( token, autuarProjetoDto );
 
@@ -729,7 +732,7 @@ public class IntegraccaoEdocsService {
 		String mensagem = "DEPACHO AUTOMATICO GERADO PELO SISCAP";
 
 		List<ACAgentePublicoPapelDto> papeisAgentePublico = AcessoCidadaoService.listarPapeisAgentePublicoPorSub( ctx.getProjeto().subResponsavelProponente() );
-
+		
 		String idPapelResponsavel = papeisAgentePublico.stream()
 			.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
 			.findFirst()
@@ -738,9 +741,9 @@ public class IntegraccaoEdocsService {
 				.findFirst()
 				.map(ACAgentePublicoPapelDto::Guid)
 				.orElse(""));
-		
+				
 		RestricaoAcessoBodyDto restricaoAcessoBodyDto = new RestricaoAcessoBodyDto(true, null, null);
-		
+
 		DespacharProjetoDto despacharProjetoDto = new DespacharProjetoDto( idDestino, mensagem, restricaoAcessoBodyDto, ctx.getIdProcesso(), idPapelResponsavel );
 
 		return EdocsWebClient.depacharProcesso(  ctx.getToken(), despacharProjetoDto );
@@ -753,15 +756,6 @@ public class IntegraccaoEdocsService {
 
 		List<ACAgentePublicoPapelDto> papeisAgentePublico = AcessoCidadaoService.listarPapeisAgentePublicoPorSub( ctx.getProjeto().subResponsavelProponente() );
 
-		String idPapelResponsavel = papeisAgentePublico.stream()
-			.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
-			.findFirst()
-			.map(ACAgentePublicoPapelDto::Guid)
-			.orElseGet(() -> papeisAgentePublico.stream()
-				.findFirst()
-				.map(ACAgentePublicoPapelDto::Guid)
-				.orElse(""));
-
 		String idDestino = papeisAgentePublico.stream()
 			.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
 			.findFirst()
@@ -769,11 +763,21 @@ public class IntegraccaoEdocsService {
 			.orElseGet(() -> papeisAgentePublico.stream()
 				.findFirst()
 				.map(ACAgentePublicoPapelDto::LotacaoGuid)
-				.orElse("")); 
+				.orElse(""));
+
+		ACUserInfoDto userInfo = AcessoCidadaoService.buscarInformacoesUsuario(ctx.getToken());
+
+		List<ACAgentePublicoPapelDto> listaPapeisUsuario = AcessoCidadaoService.listarPapeisAgentePublicoPorSub(userInfo.subNovo());
+		
+		String guidPapelUsuario = listaPapeisUsuario.stream()
+			.filter(papel -> papel.Prioritario() )  
+			.findFirst()                            
+			.orElseGet(() -> listaPapeisUsuario.stream().findFirst().orElse(null) )
+			.Guid() ; 
 		
 		RestricaoAcessoBodyDto restricaoAcessoBodyDto = new RestricaoAcessoBodyDto(true, null, null);
 		
-		DespacharProjetoDto despacharProjetoDto = new DespacharProjetoDto( idDestino, mensagem, restricaoAcessoBodyDto, ctx.getProjeto().idProcessoEdocs(), idPapelResponsavel );
+		DespacharProjetoDto despacharProjetoDto = new DespacharProjetoDto( idDestino, mensagem, restricaoAcessoBodyDto, ctx.getProjeto().idProcessoEdocs(), guidPapelUsuario );
 
 		logger.info("Dto Despacho : {}", despacharProjetoDto );
 

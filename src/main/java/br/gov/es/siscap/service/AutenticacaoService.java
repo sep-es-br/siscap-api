@@ -54,8 +54,6 @@ public class AutenticacaoService {
 
 		ACUserInfoDto userInfo = acessoCidadaoService.buscarInformacoesUsuario(accessToken);
 
-		logger.info("Informações do usuario : {}", userInfo );
-						
 		if ( Boolean.FALSE.equals(userInfo.agentepublico() ) && ( userInfo.role() == null || userInfo.role().isEmpty() ) )
 			throw new UsuarioSemAutorizacaoException();
 
@@ -70,11 +68,8 @@ public class AutenticacaoService {
 		if ( isProponente )
 			userInfo.role().add("PROPONENTE");
 
-		logger.info("Perfis do usuario : {}", userInfo.role() );
-
 		Usuario usuario = buscarOuCriarUsuario(userInfo, accessToken);
 		String token = tokenService.gerarToken(usuario);
-		logger.info("Token JWT gerado.");
 
 		byte[] imagemPerfil = construirImagemPerfilUsuario(usuario.getPessoa().getNomeImagem());
 		
@@ -82,8 +77,6 @@ public class AutenticacaoService {
 
 		Set<Long> idOrganizacoes = construirIdOrganizacoesSet(usuario.getPessoa(), usuario.getSub());
 
-		logger.info( "Tamanho lista organizacoes : {} " , idOrganizacoes.size() );
-				
 		return new UsuarioDto(token, usuario.getPessoa().getNome(), getEmailUserInfo(userInfo), usuario.getSub(),
 			imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente );
 

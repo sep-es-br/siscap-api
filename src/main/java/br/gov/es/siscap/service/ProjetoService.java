@@ -269,7 +269,7 @@ public class ProjetoService {
 
 		projeto.setRascunho(true);
 
-		projeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
+		//projeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
 
 		Projeto projetoResult = repository.save(projeto);
 
