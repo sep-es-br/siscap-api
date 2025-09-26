@@ -187,7 +187,7 @@ public class IntegraccaoEdocsService {
 			.flatMap(ctx -> despacharProcessoDIC(ctx))
 			.flatMap(ctx -> consultarSituacaoDespachar(ctx))
 			.flatMap(ctx -> atualizarProjeto(ctx))
-			.thenReturn("Reentranhamento de DIC complementado concluída com sucesso.");
+			.thenReturn("Atuação concluída com sucesso.");
 	
 	}
 	

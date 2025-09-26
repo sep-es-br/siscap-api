@@ -15,7 +15,7 @@ public class RegrasDePermissaoService {
     public boolean podeEditar(String subUsuario, Projeto projeto) {
         // regra: só SUBCAP pode editar se projeto está "Em Análise"
         boolean ehDaSubcap = usuarioService.ehDaSubcap(subUsuario);
-        return ehDaSubcap && StatusProjetoEnum.COMPLEMETACAO.getValue().equals(projeto.getStatus());
+        return ehDaSubcap && StatusProjetoEnum.EM_ANALISE.getValue().equals(projeto.getStatus());
     }
 
     public boolean podeSolicitarComplementacao(String subUsuario, Projeto projeto) {

@@ -9,6 +9,7 @@ import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.utils.EnvioAnaliseGestorDicEmailBuilder;
 import br.gov.es.siscap.utils.EnvioArquivamentoDicEmailBuilder;
 import br.gov.es.siscap.utils.EnvioComplementoDicEmailBuilder;
+import br.gov.es.siscap.utils.EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioRevisaoDicEmailBuilder;
 import br.gov.es.siscap.utils.ProspeccaoEmailBuilder;
 import jakarta.mail.MessagingException;
@@ -39,6 +40,12 @@ public class EmailService {
 
 	@Value("${email.remetente.endereco-nao-responda}")
 	private String REMETENTE_ENDERECO_NAO_RESPONDA;
+
+	@Value("${email.destinatario-parecer.orcamentario}")
+	private String DESTINO_PARECER_ORCAMENTARIO;
+
+	@Value("${email.destinatario-parecer.estrategico}")
+	private String DESTINO_PARECER_ESTRATEGICO;
 
 	private final JavaMailSenderImpl sender;
 	
@@ -132,6 +139,51 @@ public class EmailService {
 		}
 
 		return confirmacaoEnvioEmailList.stream().allMatch(Boolean::booleanValue);
+	}
+
+	public boolean enviarEmailPareceresEstrategicoOrcamentario( EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto ) throws MessagingException, UnsupportedEncodingException {
+
+		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
+		List<String> emailsDestinatarios = new ArrayList<>();
+		
+		emailsDestinatarios.add(this.DESTINO_PARECER_ESTRATEGICO);
+		emailsDestinatarios.add(this.DESTINO_PARECER_ORCAMENTARIO);
+
+		MimeMessage mensagem = this.sender.createMimeMessage();
+		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
+		
+		String assuntoEmail = EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder.montarAssuntoEmail();
+		String corpoEmail = EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder.montarCorpoEmail(envioEmailDicDetalhesDto);
+
+		helper.setFrom( REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO );
+		helper.setSubject(assuntoEmail);
+		helper.setText(corpoEmail, true);
+
+		for ( String emailInteressado : emailsDestinatarios ) {
+
+			helper.setTo(emailInteressado);
+			
+			try {
+
+				// adicionando a imagem inline (do resources)
+				ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
+				helper.addInline("govES-logo", imagemLogoES );
+
+				ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
+				helper.addInline("Icon-siscap", imagemLogoSiscap );
+
+				this.sender.send(helper.getMimeMessage());
+
+				confirmacaoEnvioEmailList.add(true);
+
+			} catch (MailException e) {
+				confirmacaoEnvioEmailList.add(false);
+				throw new RuntimeException(e);
+			}
+		}
+
+		return confirmacaoEnvioEmailList.stream().allMatch(Boolean::booleanValue);
+
 	}
 
 	public boolean enviarEmailRevisarProjeto( List<String> emailsInteressadosList, String justificativa, String nomeResponsavelEnvio, Projeto projeto, String responsavelProponenteProjeto) 

@@ -75,7 +75,10 @@ public record ProjetoForm(
 			boolean enviarProjetoGestor,
 			
 			@Size(max = 15)
-			String protocoloEdocs
+			String protocoloEdocs,
+
+			@NotNull
+			boolean enviarProjetoPedirParecer
 
 ) {
 }
