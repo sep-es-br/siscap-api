@@ -41,6 +41,7 @@ public class IntegraccaoEdocsService {
 	private final AcessoCidadaoService AcessoCidadaoService;
 	private final UploadS3Service UploadS3Service;
 	private final ProjetoService projetoService;
+	private final AutenticacaoService autenticacaoService;
 
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
@@ -608,7 +609,8 @@ public class IntegraccaoEdocsService {
 	}
 	
 	private Mono<String> buscarTokenReativo() {
-		return Mono.just(AutorizacaoACService.getEdocsToken("accessTokenACPuro")); 
+		String subJwt = autenticacaoService.getUsuarioSub();
+		return Mono.just(AutorizacaoACService.getEdocsToken(subJwt)); 
 	}
 
 	private SituacaoEventoDto consultarSituacaoEventoEdocs( String idEventoEdocs, String token ){
