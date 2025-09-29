@@ -42,7 +42,7 @@ public class UsuarioService implements UserDetailsService {
                             .findFirst()
                             .map(ACAgentePublicoPapelDto::LotacaoGuid)
                             .orElse(""));
-        return lotacaoGuidUsuario.equals(guidSUBCAP);
+       return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBCAP);
     }
     
 

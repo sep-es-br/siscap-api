@@ -2,6 +2,8 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.client.AcessoCidadaoTokenClient;
 import br.gov.es.siscap.dto.acessocidadaoapi.LoginACResponseDto;
+import br.gov.es.siscap.models.TokenAc;
+import br.gov.es.siscap.repository.TokenAcRepository;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -10,11 +12,10 @@ import org.springframework.stereotype.Service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,7 +25,9 @@ public class AcessoCidadaoAutorizacaoService {
 	public static final String AUTHORIZATION = "Authorization";
 	public static final String BEARER = "Bearer ";
 
-	private final ConcurrentMap<String, String> edocsTokenStore = new ConcurrentHashMap<>();
+	private final TokenAcRepository repositoryToken;
+
+	//private final ConcurrentMap<String, String> edocsTokenStore = new ConcurrentHashMap<>();
 
 	@Value("${api.acessocidadao.client-id}")
 	private String clientId;
@@ -83,23 +86,41 @@ public class AcessoCidadaoAutorizacaoService {
 		return authorizationHeader;
 	}
 
-    public void storeEdocsToken(String userId, String edocsToken) {
-        edocsTokenStore.put(userId, edocsToken);
+	 public void storeEdocsToken(String sub, String accessToken, long expSeconds) {
+        TokenAc token = new TokenAc();
+        token.setSubUsuario(sub);
+        token.setToken(accessToken);
+        token.setDataExpiracao(LocalDateTime.now().plusSeconds(expSeconds));
+        repositoryToken.save(token);
     }
 
-    public String getEdocsToken(String userId) {
-        String token = edocsTokenStore.get(userId);
-        return BEARER + token;
-    }
-
-	public Mono<String> getEdocsTokenReativo(String tokenType) {
-		return Mono.fromCallable(() -> {
-			return edocsTokenStore.get(tokenType);
-		});
+    public String getEdocsToken(String sub) {
+        return BEARER + repositoryToken.findById(sub)
+			.filter(t -> t.getDataExpiracao().isAfter(LocalDateTime.now()))
+			.map(TokenAc::getToken)
+			.orElse(null);
 	}
 
-    public void clearEdocsToken(String userId) {
-        edocsTokenStore.remove(userId);
-    }
+	// public Mono<String> getEdocsTokenReativo(String subUsuario) {
+	// 	return Mono.fromCallable(() -> {
+	// 		return getEdocsToken(subUsuario);
+	// 	});
+	// }
+
+    // public void storeEdocsToken(String userId, String edocsToken) {
+	// 	if (edocsToken != null)
+    //     	edocsTokenStore.put(userId, edocsToken);
+	// 	else
+	// 		System.out.println("Tentativa de armazenar o token do Edocs vazio..");
+    // }
+
+    // public String getEdocsToken(String userId) {
+    //     String token = edocsTokenStore.get(userId);
+    //     return BEARER + token;
+    // }
+
+    // public void clearEdocsToken(String userId) {
+    //     edocsTokenStore.remove(userId);
+    // }
 
 }

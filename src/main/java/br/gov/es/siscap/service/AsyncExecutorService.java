@@ -28,4 +28,9 @@ public class AsyncExecutorService {
         integracaoEdocsService.reentranharDespacharDicProccessoComplementacaoSUBCAP(resource, nomeArquivo, idProjeto.longValue());
     }
 
+    @Async
+    public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto) {
+        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto.longValue());
+    }
+
 }

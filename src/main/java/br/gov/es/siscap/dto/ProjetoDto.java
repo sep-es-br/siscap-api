@@ -33,13 +33,14 @@ public record ProjetoDto(
 	Boolean podeEditar,
 	Boolean podeSolicitarComplementacao,
 	Boolean podeResponderComplementacao,
-	String idProcessoEdocs
+	String idProcessoEdocs,
+	String idDocumentoDicEdocs
 ) {
 
 	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao, 
 		String subResponsavelProponente, List<ProjetoIndicadorDto> indicadoresProjeto, List<ProjetoAcaoDto> acoesProjeto, String subProponente, 
 		String lotacaoProponenteResponsavel, String nomeProponenteResponsavel, Boolean podeEditar, Boolean podeSolicitarComplementacao, 
-		Boolean podeResponderComplementacao, String idProcessoEdocs ) {
+		Boolean podeResponderComplementacao, String idProcessoEdocs, String idDocumentoDicEdocs ) {
 		this(projeto.getId(),
 			projeto.getSigla(),
 			projeto.getTitulo(),
@@ -68,7 +69,8 @@ public record ProjetoDto(
 			podeEditar,
 			podeSolicitarComplementacao,
 			podeResponderComplementacao,
-			idProcessoEdocs
+			idProcessoEdocs,
+			idDocumentoDicEdocs
 		);
 	}
 

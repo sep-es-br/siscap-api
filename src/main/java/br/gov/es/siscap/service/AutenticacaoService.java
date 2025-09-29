@@ -15,6 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import br.gov.es.siscap.dto.UsuarioDto;
@@ -48,14 +49,24 @@ public class AutenticacaoService {
 	public String getUsuarioLogado() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
+
+	public String getUsuarioSub() {
+		
+		var authentication = SecurityContextHolder.getContext().getAuthentication();
+	
+		if (authentication.getPrincipal() instanceof Jwt jwt) {
+			return jwt.getClaim("sub"); // aqui pega o 'sub' do token
+		}
+	
+		return authentication.getName(); // fallback
+
+	}
 	
 	public UsuarioDto autenticar(String accessToken) {
 		logger.info("Autenticar usuário SisCap.");
 
 		ACUserInfoDto userInfo = acessoCidadaoService.buscarInformacoesUsuario(accessToken);
 
-		logger.info("Informações do usuario : {}", userInfo );
-						
 		if ( Boolean.FALSE.equals(userInfo.agentepublico() ) && ( userInfo.role() == null || userInfo.role().isEmpty() ) )
 			throw new UsuarioSemAutorizacaoException();
 
@@ -70,11 +81,8 @@ public class AutenticacaoService {
 		if ( isProponente )
 			userInfo.role().add("PROPONENTE");
 
-		logger.info("Perfis do usuario : {}", userInfo.role() );
-
 		Usuario usuario = buscarOuCriarUsuario(userInfo, accessToken);
 		String token = tokenService.gerarToken(usuario);
-		logger.info("Token JWT gerado.");
 
 		byte[] imagemPerfil = construirImagemPerfilUsuario(usuario.getPessoa().getNomeImagem());
 		
@@ -82,8 +90,6 @@ public class AutenticacaoService {
 
 		Set<Long> idOrganizacoes = construirIdOrganizacoesSet(usuario.getPessoa(), usuario.getSub());
 
-		logger.info( "Tamanho lista organizacoes : {} " , idOrganizacoes.size() );
-				
 		return new UsuarioDto(token, usuario.getPessoa().getNome(), getEmailUserInfo(userInfo), usuario.getSub(),
 			imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente );
 

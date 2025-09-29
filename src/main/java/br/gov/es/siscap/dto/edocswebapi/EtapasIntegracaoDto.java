@@ -12,7 +12,7 @@ public class EtapasIntegracaoDto {
     private boolean finalizada;
     private boolean erro;
 
-    public EtapasIntegracaoDto(Long idProjeto, EtapasIntegracaoEdocsEnum etapa, boolean iniciada, boolean finalizada, boolean erro) {
+    public EtapasIntegracaoDto(Long idProjeto, EtapasIntegracaoEdocsEnum etapa, boolean iniciada, boolean finalizada, boolean erro ) {
         this.idProjeto = idProjeto;
         this.etapa = etapa;
         this.iniciada = iniciada;

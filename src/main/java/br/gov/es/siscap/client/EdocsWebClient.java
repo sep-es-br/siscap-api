@@ -61,13 +61,14 @@ public interface EdocsWebClient {
 	List<ProcessoVinculadoDocumentoDto> buscarProcessosVinculadosDocumento( @RequestHeader("Authorization") String bearerToken, 
 		@PathVariable String idDocumento );
 
-	@GetMapping("/v2/processos/{idProcesso}/atos")
+	@GetMapping("/v2/processos/{idProcessoEdocs}/atos")
 	List<AtosProcessoEdocsDto> buscarAtosProcessoEdocs( @RequestHeader("Authorization") String bearerToken, 
 		@PathVariable String idProcessoEdocs );
 
-	@GetMapping("/v2/processos/{idProcesso}/atos/{idAto}/documentos")
+	@GetMapping("/v2/processos/{idProcessoEdocs}/atos/{idAto}/documentos")
 	List<ProcessoDocumentosAtoProcessoDto> buscarDocumentosAtoProcesso( @RequestHeader("Authorization") String bearerToken, 
-		@PathVariable String idProcessoEdocs, @PathVariable String idAto );
+		@PathVariable String idProcessoEdocs, 
+		@PathVariable String idAto );
 
 	@PostMapping("/v2/processos/entranhar-documentos")
 	String entranharDocumentosProcesso( @RequestHeader("Authorization") String bearerToken,

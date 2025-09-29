@@ -12,7 +12,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
+
+import java.time.Instant;
 import java.util.Base64;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/signin")
@@ -35,8 +41,21 @@ public class AutenticacaoController {
 	@Hidden
 	@GetMapping("/acesso-cidadao-response")
 	public RedirectView acessoCidadaoResponse(String accessToken) {
-		autorizacaoACService.storeEdocsToken( "accessTokenAC", accessToken );
+		
+		//autorizacaoACService.storeEdocsToken( "accessTokenACPuro", accessToken );
+
+		DecodedJWT jwt = JWT.decode(accessToken);
+
+		Map<String, Claim> claims = jwt.getClaims();
+
+		String subNovo = claims.get("subNovo").asString();
+
+		long expSeconds = jwt.getExpiresAt().toInstant().getEpochSecond() - Instant.now().getEpochSecond();
+
+		autorizacaoACService.storeEdocsToken(subNovo, accessToken, expSeconds);
+		
 		String tokenEmBase64 = Base64.getEncoder().encodeToString(accessToken.getBytes());
+
 		return new RedirectView(String.format("%s/token?token=%s", frontEndHost, tokenEmBase64));
 	}
 

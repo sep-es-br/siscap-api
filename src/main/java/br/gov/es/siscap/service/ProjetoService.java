@@ -26,6 +26,8 @@ import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -139,8 +141,6 @@ public class ProjetoService {
 
 		Boolean podeSolicitarComplementacao = regrasDePermissaoService.podeSolicitarComplementacao( Subusuario, projeto );
 
-		//logger.info("SubEhResponsavel ( {} ) - Sigla Proj. {} ? {} ", Subusuario , projeto.getSigla(), this.subEhResponsavelProponenteProjeto(Subusuario,projeto.getId()) );
-		
 		Boolean podeResponderComplementacao = regrasDePermissaoService.podeReenviarDICEmComplementacao( this.subEhResponsavelProponenteProjeto(Subusuario,projeto.getId()), projeto );
 
 		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
@@ -155,11 +155,10 @@ public class ProjetoService {
 			podeEditarEmAnalise,
 			podeSolicitarComplementacao,
 			podeResponderComplementacao,
-			projeto.getIdProcessoEdocs()
+			projeto.getIdProcessoEdocs(),
+			projeto.getIdDocumentoCapturadoEdocs()
 		);
 
-		//logger.info( "Dados Dto Projeto ID {} - {}", projetoDtoRetorno.id(), projetoDtoRetorno.toString() );
-		
 		return projetoDtoRetorno;
 
 	}
@@ -253,7 +252,7 @@ public class ProjetoService {
 			this.buscarNomeResponsavelProponente(projetoPessoaSet),
 			false,
 			false,
-			false, null);
+			false, null, null);
 
 	}
 
@@ -270,7 +269,7 @@ public class ProjetoService {
 
 		projeto.setRascunho(true);
 
-		projeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
+		//projeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
 
 		Projeto projetoResult = repository.save(projeto);
 
@@ -311,10 +310,21 @@ public class ProjetoService {
 		String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
 
 		try {
+			
 			if( form.enviarProjetoGestor() ) {
 				logger.info("Envio email para gestor");
 				this.enviarEmailGestorAvaliarDic( id, subResponsavelProponente, nomeProponente );
 			}
+
+			if( form.enviarProjetoPedirParecer() ) {
+				logger.info("Envio email para solicitar pareceres Estrategico e Orçamentario");
+				if ( this.enviarEmailPareceresEstrategicoOrcamentario( id, subResponsavelProponente, nomeProponente ) ) {
+					this.alterarStatusProjeto(id, StatusProjetoEnum.PARECER_ESTRATEGICO_ORCAMENTARIO.getValue());
+					entityManager.flush();
+				}
+			}
+
+
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
 		} catch (MessagingException e) {
@@ -338,7 +348,7 @@ public class ProjetoService {
 			false,
 			false,
 			false,
-			null);
+			null, null);
 
 	}
 
@@ -474,7 +484,7 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public void enviarAvisoSolicitarComplementacaoProjeto( Long id, List<Map<String, String>> complementos ) {
+	public boolean enviarAvisoSolicitarComplementacaoProjeto( Long id, List<Map<String, String>> complementos ) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -504,7 +514,7 @@ public class ProjetoService {
 			emailsInteressadosList.add(proponenteProjeto.get().getEmail());
 
 			try {
-				
+
 				confirmacaoEnvioEmail = emailService.enviarEmailComplemetacaoProjeto( emailsInteressadosList, 
 					proponenteProjeto.get().getNome(),
 					responsavelProponenteProjeto.get().getNome(),
@@ -533,7 +543,7 @@ public class ProjetoService {
 			throw new ValidacaoSiscapException(erros);
 		}
 
-		return;
+		return true;
 
 	}
 
@@ -884,6 +894,62 @@ public class ProjetoService {
 			projeto.getTitulo() );
 
 		boolean confirmacaoEnvioEmail = emailService.enviarEmailAnaliseDIC( envioEmailDicDetalhesDto );
+
+		if (confirmacaoEnvioEmail) {
+			logger.info("Email enviado com sucesso");
+			return true;
+		}else{
+			logger.info("Email não foi enviado");
+			return true;
+		}
+
+	}
+
+	@Transactional
+	public boolean enviarEmailPareceresEstrategicoOrcamentario(Long idProjeto, String subResponsavelProponente, String nomeProponente) throws MessagingException, UnsupportedEncodingException {
+		
+		if( idProjeto == null || idProjeto == 0 ){
+			logger.info("ID do projeto não foi informado." );
+			return false;
+		}
+
+		Pessoa dadosResponsavelProponente = pessoaService.buscarPorSub(subResponsavelProponente);
+		
+		if( dadosResponsavelProponente == null ){
+			logger.info("Dados do responsavel proponente sub [{}] não foi encontrado.", subResponsavelProponente );
+			return false;
+		}
+
+		Projeto projeto = repository.findById(idProjeto)
+				.orElse( null );
+
+		if( projeto == null ){
+			logger.info("Projeto id [{}] não encontrado.", idProjeto );
+			return false;
+		}
+
+		Long idOrganizacaoProjeto = projeto.getOrganizacao().getId();
+
+		String nomeOrganizacaoProjeto = "";
+		try {
+			OrganizacaoDto organizacaoDto = organizacaoService.buscarPorId(idOrganizacaoProjeto);
+			nomeOrganizacaoProjeto = String.format("%s - %s", organizacaoDto.abreviatura(), organizacaoDto.nome());
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+			throw new RuntimeException("Erro ao buscar dados organizacao projeto.");
+		}
+
+		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/parecer/" + idProjeto;
+		
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+			nomeProponente,
+			linkEdicao,
+			nomeOrganizacaoProjeto,
+			dadosResponsavelProponente.getNome(),
+			null,
+			projeto.getTitulo() );
+
+		boolean confirmacaoEnvioEmail = emailService.enviarEmailPareceresEstrategicoOrcamentario( envioEmailDicDetalhesDto );
 
 		if (confirmacaoEnvioEmail) {
 			logger.info("Email enviado com sucesso");

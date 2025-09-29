@@ -66,11 +66,7 @@ public class UploadS3Service {
             
             Response response = client.newCall(request).execute();
             if (response.isSuccessful()) {
-                logger.info("Requisição enviada com sucesso.");
-                logger.info("Código HTTP: {}", response.code());
             } else {
-                logger.error("Erro na requisição. Código: {}", response.code());
-                logger.error("Mensagem: {}", response.message());
                 throw new RuntimeException("Erro ao executar o upload do arquivo para o servidor S3 do E-Docs.");
             }
 
