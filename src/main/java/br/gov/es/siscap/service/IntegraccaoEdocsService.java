@@ -409,7 +409,6 @@ public class IntegraccaoEdocsService {
 				this.registrarFalhaEtapa( ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.AUTUAR);
 			} )
 			.doOnSuccess( resultConsultaEvento -> { 
-				logger.info("Dados de retorno consulta Situacao Evento Autuacao : {}", resultConsultaEvento );
 				ctx.setIdProcesso( resultConsultaEvento.idProcesso() ); } )
 			.thenReturn(ctx);
 
@@ -435,7 +434,6 @@ public class IntegraccaoEdocsService {
 			} )
 			.doOnSuccess( resultConsultaEvento -> { ctx.setIdDocumento( resultConsultaEvento.idDocumento() ); 
 				this.atualizarEtapa( ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA , true, true);
-
 				} )
 			.thenReturn(ctx);
 	}
@@ -767,7 +765,9 @@ public class IntegraccaoEdocsService {
 				.map(ACAgentePublicoPapelDto::LotacaoGuid)
 				.orElse(""));
 
-		ACUserInfoDto userInfo = AcessoCidadaoService.buscarInformacoesUsuario(ctx.getToken());
+		String tokenLimpo = ctx.getToken().replace("Bearer ", "").trim();
+
+		ACUserInfoDto userInfo = AcessoCidadaoService.buscarInformacoesUsuario(tokenLimpo);
 
 		List<ACAgentePublicoPapelDto> listaPapeisUsuario = AcessoCidadaoService.listarPapeisAgentePublicoPorSub(userInfo.subNovo());
 		
