@@ -92,7 +92,7 @@ public class ProjetoController {
 	}
 
 	@PostMapping("/{id}/complementar")
-	public ResponseEntity<String> enviarProjetoParaComplementacao(@PathVariable @NotNull Long id, @RequestBody List<Map<String, String>> complementos) {
+	public ResponseEntity<String> enviarProjetoParaComplementacao(@PathVariable @NotNull Long id, @RequestBody Map<String, String> complementos) {
 		if( service.enviarAvisoSolicitarComplementacaoProjeto( id, complementos ) )
 			asyncExecutorService.despacharProcessoOrgaoOrigemEdocs(id);
 		return ResponseEntity.ok().body("Aviso de complementação enviada com sucesso!");

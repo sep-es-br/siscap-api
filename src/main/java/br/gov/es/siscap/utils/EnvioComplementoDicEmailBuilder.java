@@ -13,7 +13,7 @@ public abstract class EnvioComplementoDicEmailBuilder {
 		return "Complementação do DIC " + descricaoProjeto + ".";
 	}
 	
-	public static String montarCorpoEmail( String nomeResponsavelEnvioEmail, String descricaoProjeto, String nomeGestorResponsavel, List<Map<String, String>> complemetacoes ) {
+	public static String montarCorpoEmail( String nomeResponsavelEnvioEmail, String descricaoProjeto, String nomeGestorResponsavel, Map<String, String> complemetacoes ) {
 		String campoTable = montarElementoTable( nomeResponsavelEnvioEmail, complemetacoes, descricaoProjeto, nomeGestorResponsavel );
 		String corpoEmail = "<html>" +
 			"<body style=\"margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;\">" +
@@ -23,7 +23,8 @@ public abstract class EnvioComplementoDicEmailBuilder {
 		return corpoEmail;
 	}
 
-	private static String montarElementoTable(String nomeResponsavelEnvioEmail, List<Map<String, String>> complemetacoes, String descricaoProjeto, String nomeGestorResponsavel) {
+	private static String montarElementoTable(String nomeResponsavelEnvioEmail, Map<String, String> complemetacoes, 
+		String descricaoProjeto, String nomeGestorResponsavel) {
 
 		String cabecalhoSuperior = "<td style=\"padding: 20px; background-color: #2a8fbd; width: 100%;\"> <table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\"> <tr> <td style=\"vertical-align: middle;\"> <img src=\"cid:govES-logo\" style=\"height: 30px; vertical-align: middle; margin-right: 10px;\"> </td><td style=\"vertical-align: middle;\"><h1 style=\"margin: 0; color: #ffffff; font-size: 20px; font-family: Arial, sans-serif;\">Sistema de Captação - Governo do Estado do Espírito Santo</h1></td></tr></table></td>";
 		String campoTratamento = String.format(CAMPO_APRESENTACAO, nomeResponsavelEnvioEmail);
@@ -34,25 +35,15 @@ public abstract class EnvioComplementoDicEmailBuilder {
 	
 	}
 
-	private static String gerarListaComplementosOrdenadaHtml(List<Map<String, String>> complementacoes) {
+	private static String gerarListaComplementosOrdenadaHtml( Map<String, String> complementacoes ) {
 		
 		StringBuilder html = new StringBuilder("<ol>");
 		
-		complementacoes.stream()
-			.flatMap(m -> m.entrySet().stream())
+		complementacoes.entrySet().stream()
 			.forEach(entry -> html.append("<li>")
 								.append("<strong>").append(entry.getKey()).append(":</strong> ")
 								.append(entry.getValue())
 								.append("</li>"));
-
-		// for (Map<String, String> item : complemetacoes) {
-		// 	for (Map.Entry<String, String> entry : item.entrySet()) {
-		// 		html.append("<li>")
-		// 			.append("<strong>").append(entry.getKey()).append(":</strong> ")
-		// 			.append(entry.getValue())
-		// 			.append("</li>");
-		// 	}
-		// }
 
 		html.append("</ol>");
 

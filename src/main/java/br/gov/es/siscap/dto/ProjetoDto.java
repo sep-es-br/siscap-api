@@ -34,13 +34,14 @@ public record ProjetoDto(
 	Boolean podeSolicitarComplementacao,
 	Boolean podeResponderComplementacao,
 	String idProcessoEdocs,
-	String idDocumentoDicEdocs
+	String idDocumentoDicEdocs,
+	List<ProjetoCamposComplementacaoDto> camposComplementar
 ) {
 
 	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente, List<EquipeDto> equipeElaboracao, 
 		String subResponsavelProponente, List<ProjetoIndicadorDto> indicadoresProjeto, List<ProjetoAcaoDto> acoesProjeto, String subProponente, 
 		String lotacaoProponenteResponsavel, String nomeProponenteResponsavel, Boolean podeEditar, Boolean podeSolicitarComplementacao, 
-		Boolean podeResponderComplementacao, String idProcessoEdocs, String idDocumentoDicEdocs ) {
+		Boolean podeResponderComplementacao, String idProcessoEdocs, String idDocumentoDicEdocs, List<ProjetoCamposComplementacaoDto> camposComplementar ) {
 		this(projeto.getId(),
 			projeto.getSigla(),
 			projeto.getTitulo(),
@@ -70,9 +71,10 @@ public record ProjetoDto(
 			podeSolicitarComplementacao,
 			podeResponderComplementacao,
 			idProcessoEdocs,
-			idDocumentoDicEdocs
+			idDocumentoDicEdocs,
+			camposComplementar
 		);
+		
 	}
-
 
 }

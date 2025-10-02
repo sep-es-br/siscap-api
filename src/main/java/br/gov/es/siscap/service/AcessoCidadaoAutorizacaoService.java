@@ -101,26 +101,4 @@ public class AcessoCidadaoAutorizacaoService {
 			.orElse(null);
 	}
 
-	// public Mono<String> getEdocsTokenReativo(String subUsuario) {
-	// 	return Mono.fromCallable(() -> {
-	// 		return getEdocsToken(subUsuario);
-	// 	});
-	// }
-
-    // public void storeEdocsToken(String userId, String edocsToken) {
-	// 	if (edocsToken != null)
-    //     	edocsTokenStore.put(userId, edocsToken);
-	// 	else
-	// 		System.out.println("Tentativa de armazenar o token do Edocs vazio..");
-    // }
-
-    // public String getEdocsToken(String userId) {
-    //     String token = edocsTokenStore.get(userId);
-    //     return BEARER + token;
-    // }
-
-    // public void clearEdocsToken(String userId) {
-    //     edocsTokenStore.remove(userId);
-    // }
-
 }

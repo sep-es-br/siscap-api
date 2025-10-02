@@ -1,7 +1,6 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
-import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
@@ -26,8 +25,6 @@ import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,7 +45,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import br.gov.es.siscap.models.ProjetoAcao;
+import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
 
 @Service
@@ -69,6 +69,7 @@ public class ProjetoService {
 	private final AcessoCidadaoService acessoCidadaoService;
 	private final AutenticacaoService autenticacaoService;
 	private final RegrasDePermissaoService regrasDePermissaoService;
+	private final ProjetoComplementosService projetoComplementosService;
 
 	@PersistenceContext
     private EntityManager entityManager;
@@ -143,6 +144,8 @@ public class ProjetoService {
 
 		Boolean podeResponderComplementacao = regrasDePermissaoService.podeReenviarDICEmComplementacao( this.subEhResponsavelProponenteProjeto(Subusuario,projeto.getId()), projeto );
 
+		Set<ProjetoCamposComplementacao> complementosSeremFeitos = projetoComplementosService.buscarPorProjeto(projeto);
+
 		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
 			this.buscarIdResponsavelProponente(projetoPessoaSet),
 			this.buscarEquipeElaboracao(projetoPessoaSet),
@@ -156,7 +159,8 @@ public class ProjetoService {
 			podeSolicitarComplementacao,
 			podeResponderComplementacao,
 			projeto.getIdProcessoEdocs(),
-			projeto.getIdDocumentoCapturadoEdocs()
+			projeto.getIdDocumentoCapturadoEdocs(),
+			this.buscarComplementacoes(complementosSeremFeitos)
 		);
 
 		return projetoDtoRetorno;
@@ -172,6 +176,12 @@ public class ProjetoService {
 	private List<ProjetoAcaoDto> buscarAcoes(Set<ProjetoAcao> projetoAcaoSet) {
 		return projetoAcaoSet.stream()
 			.map(ProjetoAcaoDto::new)
+			.toList();
+	}
+
+	private List<ProjetoCamposComplementacaoDto> buscarComplementacoes(Set<ProjetoCamposComplementacao> projetoCamposComplementacaoSet) {
+		return projetoCamposComplementacaoSet.stream()
+			.map(ProjetoCamposComplementacaoDto::new)
 			.toList();
 	}
 
@@ -252,7 +262,7 @@ public class ProjetoService {
 			this.buscarNomeResponsavelProponente(projetoPessoaSet),
 			false,
 			false,
-			false, null, null);
+			false, null, null, null);
 
 	}
 
@@ -348,7 +358,7 @@ public class ProjetoService {
 			false,
 			false,
 			false,
-			null, null);
+			null, null, null);
 
 	}
 
@@ -402,6 +412,31 @@ public class ProjetoService {
 		projeto.setStatus(status);
 
 		repository.save(projeto);
+	}
+
+	
+	@Transactional
+	public void inserirComplementacoesSeremRealizadasDIC(Projeto projeto, Map<String, String> complementos) {
+		
+		if( projeto.getProjetoComplementoSet().size() > 0 ){
+			logger.info("Projeto id {} ja possui complementos definidos e serão excluidos logicamente para inserção do novo pedido.", projeto.getId());
+			projetoComplementosService.excluirPorProjeto(projeto);
+		}
+		
+		List<ProjetoCamposComplementacaoDto> camposComplementarInserir = complementos.entrySet()
+																		.stream()
+																		.map( complemento -> { 
+																				ProjetoCamposComplementacaoDto dtoComplemewntos = 
+																					new ProjetoCamposComplementacaoDto(null, complemento.getKey(), 
+																						complemento.getValue() );
+																				return dtoComplemewntos; 
+																			} )
+																		.collect( Collectors.toList() );
+
+		projetoComplementosService.cadastrar( projeto, camposComplementarInserir );
+
+		repository.save(projeto);
+
 	}
 
 	@Transactional
@@ -484,7 +519,7 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public boolean enviarAvisoSolicitarComplementacaoProjeto( Long id, List<Map<String, String>> complementos ) {
+	public boolean enviarAvisoSolicitarComplementacaoProjeto( Long id, Map<String, String> complementos ) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -524,6 +559,7 @@ public class ProjetoService {
 				if (confirmacaoEnvioEmail) {
 					logger.info("Email aviso solicitação de complementação do projeto enviado com sucesso para o projeto id " + id);
 					this.alterarStatusProjeto(id, StatusProjetoEnum.COMPLEMETACAO.getValue());
+					this.inserirComplementacoesSeremRealizadasDIC( projeto, complementos );
 				}else{
 					erros.add("Erro ao enviar aviso para complementação do projeto id " + id);
 				}
@@ -988,8 +1024,6 @@ public class ProjetoService {
 			.filter( membro -> membro.isResponsavelProponente() )
 			.findFirst()
 			.map( proponente -> proponente.getPessoa() );
-
-		//logger.info( " Responsavel do Projeto : {} - Sub {} ", responsavelProponenteProjeto.get().getNome() , responsavelProponenteProjeto.get().getSub() );	
 
 		return responsavelProponenteProjeto
 			.map(pessoa -> pessoa.getSub().equalsIgnoreCase(subUsuario))
