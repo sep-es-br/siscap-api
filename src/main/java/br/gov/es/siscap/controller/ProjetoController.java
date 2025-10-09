@@ -1,5 +1,6 @@
 package br.gov.es.siscap.controller;
 
+import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.edocswebapi.EtapasIntegracaoDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
@@ -92,11 +93,17 @@ public class ProjetoController {
 	}
 
 	@PostMapping("/{id}/complementar")
-	public ResponseEntity<String> enviarProjetoParaComplementacao(@PathVariable @NotNull Long id, @RequestBody Map<String, String> complementos) {
-		if( service.enviarAvisoSolicitarComplementacaoProjeto( id, complementos ) )
-			asyncExecutorService.despacharProcessoOrgaoOrigemEdocs(id);
+	public ResponseEntity<String> enviarProjetoParaComplementacao(
+			@PathVariable @NotNull Long id,
+			@RequestBody List<ProjetoCamposComplementacaoDto> complementos) {
+		
+		if (service.enviarAvisoSolicitarComplementacaoProjeto(id, complementos)) {
+		 	asyncExecutorService.despacharProcessoOrgaoOrigemEdocs(id);
+		}
+
 		return ResponseEntity.ok().body("Aviso de complementação enviada com sucesso!");
 	}
+
 
 	@GetMapping("/dic/{idProjeto}")
 	public ResponseEntity<Resource> gerarDIC(@PathVariable Integer idProjeto) {

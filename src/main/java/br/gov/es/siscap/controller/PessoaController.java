@@ -29,12 +29,9 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import br.gov.es.siscap.service.AcessoCidadaoService;
 import br.gov.es.siscap.service.AutenticacaoService;
 import br.gov.es.siscap.service.CacheAgentesGovesService;
 import br.gov.es.siscap.service.OrganizacaoService;
-import br.gov.es.siscap.service.OrganogramaService;
-import br.gov.es.siscap.service.PessoaOrganizacaoService;
 
 @RestController
 @RequestMapping("/pessoas")
@@ -44,9 +41,6 @@ public class PessoaController {
 	private final Logger logger = LogManager.getLogger(AutenticacaoService.class);
 	private final PessoaService service;
 	private final OrganizacaoService organizacaoService;
-	private final AcessoCidadaoService acessoCidadaoService;
-	private final OrganogramaService organogramaService;
-	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 
 	@Autowired
     private CacheAgentesGovesService cacheService; 

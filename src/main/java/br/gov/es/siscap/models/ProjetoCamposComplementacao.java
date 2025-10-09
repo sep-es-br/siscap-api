@@ -40,7 +40,7 @@ public class ProjetoCamposComplementacao extends ControleHistorico {
 	public ProjetoCamposComplementacao(Projeto projeto, ProjetoCamposComplementacaoDto complemento) {
 		this.setProjeto(projeto);
 		this.setId(complemento.idComplemento());
-		this.setCampo(complemento.descricaoCampo());
+		this.setCampo(complemento.idCampo());
 		this.setMensagemComplementacao(complemento.descricaoComplemento());
 	}
 

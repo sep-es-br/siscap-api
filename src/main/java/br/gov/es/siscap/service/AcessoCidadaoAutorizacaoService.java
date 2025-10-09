@@ -5,8 +5,6 @@ import br.gov.es.siscap.dto.acessocidadaoapi.LoginACResponseDto;
 import br.gov.es.siscap.models.TokenAc;
 import br.gov.es.siscap.repository.TokenAcRepository;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

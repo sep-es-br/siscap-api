@@ -348,21 +348,37 @@ public class PessoaService {
 	@Transactional
 	public String sincronizarAgenteCidadaoPessoaSiscap( String sub ) {
 
+		String idPessoa="";
+
 		logger.info("Inicio sincronizar pessoa Acesso Cidadao com base do SISCAP.");
 
 		AgentePublicoACDto dados = acessoCidadaoService.buscarPessoaPorSub(sub);
 
-		Set<Organizacao> organizacoes = buscarOrganizacoesAssociadas(sub);
-		
-		Pessoa pessoa = construirPessoa(dados);
-		
-		pessoa = this.salvarNovaPessoaAcessoCidadao(pessoa);
-		
-		associarOrganizacoesAPessoa(pessoa, organizacoes);
+		if( repository.existsByEmail(dados.email()) ){
+			logger.info("Pessoa foi encontrada por email e já existe na base sem SUB entao sistema vai atualizar o SUB e continuar processo.");
+			Optional<Pessoa> pessoa = repository.buscarPorSubOuNomeTratado(dados.sub(), dados.nome());
+			if(pessoa.isPresent()){
+				pessoa.get().setSub(dados.sub());
+				idPessoa = pessoa.get().getId().toString();
+				repository.save(pessoa.get());
+			}
+		}else{
 
-		logger.info("Pessoa criada com sucesso.");
+			Set<Organizacao> organizacoes = buscarOrganizacoesAssociadas(sub);
+			
+			Pessoa pessoa = construirPessoa(dados);
+			
+			pessoa = this.salvarNovaPessoaAcessoCidadao(pessoa);
+			
+			associarOrganizacoesAPessoa(pessoa, organizacoes);
 
-		return pessoa.getId().toString();
+			idPessoa = pessoa.getId().toString();
+
+			logger.info("Pessoa criada com sucesso.");
+
+		}
+
+		return idPessoa;
 
 	}
 

@@ -42,11 +42,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
@@ -180,8 +177,9 @@ public class ProjetoService {
 	}
 
 	private List<ProjetoCamposComplementacaoDto> buscarComplementacoes(Set<ProjetoCamposComplementacao> projetoCamposComplementacaoSet) {
-		return projetoCamposComplementacaoSet.stream()
-			.map(ProjetoCamposComplementacaoDto::new)
+		return projetoCamposComplementacaoSet
+			.stream()
+			.map(campo -> { return new ProjetoCamposComplementacaoDto(campo, null); })
 			.toList();
 	}
 
@@ -190,14 +188,13 @@ public class ProjetoService {
 		
 		logger.info("Cadastrando novo projeto");
 
-		logger.info("Dados: {}", form);
+		//logger.info("Dados: {}", form);
 
 		this.validarProjeto(form, true);
 
 		Projeto tempProjeto = new Projeto(form);
 
 		tempProjeto.setCountAno(this.buscarCountAnoFormatado());
-
 		tempProjeto.setRascunho(true);
 		tempProjeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
 
@@ -416,24 +413,25 @@ public class ProjetoService {
 
 	
 	@Transactional
-	public void inserirComplementacoesSeremRealizadasDIC(Projeto projeto, Map<String, String> complementos) {
+	public void inserirComplementacoesSeremRealizadasDIC(Projeto projeto, List<ProjetoCamposComplementacaoDto> complementos) {
 		
 		if( projeto.getProjetoComplementoSet().size() > 0 ){
 			logger.info("Projeto id {} ja possui complementos definidos e serão excluidos logicamente para inserção do novo pedido.", projeto.getId());
 			projetoComplementosService.excluirPorProjeto(projeto);
 		}
 		
-		List<ProjetoCamposComplementacaoDto> camposComplementarInserir = complementos.entrySet()
-																		.stream()
-																		.map( complemento -> { 
-																				ProjetoCamposComplementacaoDto dtoComplemewntos = 
-																					new ProjetoCamposComplementacaoDto(null, complemento.getKey(), 
-																						complemento.getValue() );
-																				return dtoComplemewntos; 
-																			} )
-																		.collect( Collectors.toList() );
+		// List<ProjetoCamposComplementacaoDto> camposComplementarInserir = complementos.entrySet()
+		// 																.stream()
+		// 																.map( complemento -> {  complemento.
+		// 																		ProjetoCamposComplementacaoDto dtoComplemewntos = 
+		// 																			new ProjetoCamposComplementacaoDto( null, 
+		// 																				complemento.getKey(), 
+		// 																				complemento.getValue().values().stream() );
+		// 																		return dtoComplemewntos; 
+		// 																	} )
+		// 																.collect( Collectors.toList() );
 
-		projetoComplementosService.cadastrar( projeto, camposComplementarInserir );
+		projetoComplementosService.cadastrar( projeto, complementos );
 
 		repository.save(projeto);
 
@@ -519,7 +517,7 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public boolean enviarAvisoSolicitarComplementacaoProjeto( Long id, Map<String, String> complementos ) {
+	public boolean enviarAvisoSolicitarComplementacaoProjeto( Long id, List<ProjetoCamposComplementacaoDto> complementos ) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -548,7 +546,7 @@ public class ProjetoService {
 			List<String> emailsInteressadosList = new ArrayList<String>();
 			emailsInteressadosList.add(proponenteProjeto.get().getEmail());
 
-			try {
+			 try {
 
 				confirmacaoEnvioEmail = emailService.enviarEmailComplemetacaoProjeto( emailsInteressadosList, 
 					proponenteProjeto.get().getNome(),

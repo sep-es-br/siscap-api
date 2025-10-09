@@ -32,8 +32,6 @@ public class ProjetoComplementosService {
 		logger.info("Cadastrando campos a serem complementados do DIC com id: {}", projeto.getId());
 		
 		Set<ProjetoCamposComplementacao> ProjetoComplementosSet = new HashSet<>();
-
-		logger.info("Lista de campos a serem complementados vindas do front : {}", projetoComplementosDtoList);
 		
 		projetoComplementosDtoList.forEach( complementoDto -> {
 			ProjetoCamposComplementacao complementoProjeto = new ProjetoCamposComplementacao(projeto, complementoDto);

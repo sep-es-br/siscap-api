@@ -1,36 +1,5 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.EquipeDto;
-import br.gov.es.siscap.dto.ProjetoDto;
-import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
-import br.gov.es.siscap.exception.ValidacaoSiscapException;
-import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
-import br.gov.es.siscap.form.ProjetoForm;
-import br.gov.es.siscap.models.Projeto;
-import br.gov.es.siscap.repository.ProjetoRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 class ProjetoServiceTest {
 
 //	@Mock
