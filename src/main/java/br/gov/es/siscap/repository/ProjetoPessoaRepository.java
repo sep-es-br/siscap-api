@@ -22,4 +22,8 @@ public interface ProjetoPessoaRepository extends JpaRepository<ProjetoPessoa, Lo
     @Query(value = "DELETE FROM projeto_pessoa WHERE id = :id", nativeQuery = true)
     void deleteFisico(@Param("id") Integer id);
 
+	@Modifying
+    @Query(value = "DELETE FROM projeto_pessoa WHERE id_projeto = :idProjeto", nativeQuery = true)
+    void deleteFisicoPorProjeto(@Param("idProjeto") Long id);
+
 }

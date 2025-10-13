@@ -74,6 +74,15 @@ public class ProjetoIndicadorService {
 		
 		logger.info("Indicadores do projeto excluídos com sucesso" );
 	}
+
+	@Transactional
+	public void excluirFisicamentePorProjeto(Projeto projeto) {
+		logger.info("Excluindo fisicamente indicadores do Projeto com id: {}", projeto.getId());
+		
+		projetoIndicadorRepository.deleteFisicoPorProjeto(projeto.getId());
+		
+		logger.info("Indicadores do projeto excluídos fisicamente com sucesso" );
+	}
 	
     private Set<ProjetoIndicador> atualizarIndicadoresProjeto( Projeto projeto,  Set<ProjetoIndicador> indicadoresExistentes, List<ProjetoIndicadorDto> dtoList) {
 

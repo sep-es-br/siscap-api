@@ -18,6 +18,7 @@ public class FluxoContextoIntegracaoDto {
     private String idProcesso;
     private String protocolo;
     private String idDocumentoDesentranhar;
+    private String idEventoEncerramento;
 
     private SituacaoEventoDto situacaoEventoAvocarDto;
     private SituacaoEventoDto situacaoEventoEntranhamentoDto;

@@ -12,8 +12,9 @@ public enum StatusProjetoEnum {
 	ARQUIVADO("Arquivado"),
 	PARECER_SEP("Parecer SEP"),
 	PARECER_ESTRATEGICO_ORCAMENTARIO("Parecer Estratégico-Orçamentário"),
-	COMPLEMETACAO("Em Complementação");
-	
+	COMPLEMETACAO("Em Complementação"),
+	ENCERRADO("Encerrado");
+
 	private final String value;
 	
 }

@@ -110,6 +110,18 @@ public class ProjetoAcaoService {
 
 	}
 
+	@Transactional
+	public void excluirFisicamentePorProjeto(Projeto projeto) {
+
+		logger.info("Excluindo fisicamente ações do Projeto com id: {}", projeto.getId());
+
+		projetoAcapRepository.deleteFisicoPorProjeto(projeto.getId());
+
+		logger.info("Ações do projeto excluidas fisicamente com sucesso");
+
+	}
+
+
 	private Set<ProjetoAcao> atualizarAcoesProjeto( Projeto projeto, Set<ProjetoAcao> acoesProjetoExistentes, List<ProjetoAcaoDto> acoesProjetoDtoList ) {
 
 		Set<ProjetoAcao> acoesAlterarSet = new HashSet<>();
