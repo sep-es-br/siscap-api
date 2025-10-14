@@ -360,13 +360,51 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public void excluir(Long id) {
+	public boolean excluir(Long id, String justificativa) {
+
 		logger.info("Excluindo projeto com id: {}", id);
 
 		Projeto projeto = this.buscar(id);
 
+		// o DIC estando em alguns status especificos vamos fazer a exclusao logica porem
+		// registrando uma justificativa obrigatoria..
+		if( List.of(StatusProjetoEnum.EM_ANALISE.getValue(), StatusProjetoEnum.COMPLEMETACAO.getValue(), 
+			StatusProjetoEnum.PARECER_ESTRATEGICO_ORCAMENTARIO.getValue() )
+        	.contains( projeto.getStatus() ) ) {
+
+			if( justificativa == null || justificativa.isEmpty() )
+				throw new ValidacaoSiscapException(List.of("Justificativa para exclusão do DIC não informada."));
+
+			projeto.setJustificativaExclusaoLogica(justificativa);
+
+			this.alterarStatusProjeto(id, StatusProjetoEnum.ENCERRADO.getValue() );
+
+			this.exclusaoLogica(projeto);
+
+		} else if ( projeto.getStatus().equals(StatusProjetoEnum.EM_ELABORACAO.getValue()) ){
+
+			// faz exclusao fisica do projeto e seus dependentes..
+			this.exclusaoFisica(projeto);
+			
+		} else {
+
+			logger.info("Fazer exclusao lógica pois status do DIC esta fora do tratado.", id);
+
+			this.exclusaoLogica(projeto);
+
+		}
+
+		logger.info("Projeto excluido com sucesso");
+
+		return true;
+
+	}
+
+	@Transactional
+	private void exclusaoLogica(Projeto projeto){
+
 		projeto.apagarProjeto();
-		
+			
 		projetoPessoaService.excluirPorProjeto(projeto);
 		
 		localidadeQuantiaService.excluir(projeto);
@@ -375,11 +413,27 @@ public class ProjetoService {
 
 		projetoAcaoService.excluirPorProjeto(projeto);
 
+		//repository.saveAndFlush(projeto);
+		
+		repository.deleteById(projeto.getId());
+
+	}
+
+	@Transactional
+	private void exclusaoFisica(Projeto projeto){
+			
+		projetoPessoaService.excluirFisicamentePorProjeto(projeto);
+		
+		localidadeQuantiaService.excluirFisicamentePorProjeto(projeto);
+
+		projetoIndicadorService.excluirFisicamentePorProjeto(projeto);
+
+		projetoAcaoService.excluirFisicamentePorProjeto(projeto);
+
 		repository.saveAndFlush(projeto);
 		
-		repository.deleteById(id);
+		repository.deleteFisico(projeto.getId());
 
-		logger.info("Projeto excluido com sucesso");
 	}
 
 	@Transactional
@@ -419,17 +473,6 @@ public class ProjetoService {
 			logger.info("Projeto id {} ja possui complementos definidos e serão excluidos logicamente para inserção do novo pedido.", projeto.getId());
 			projetoComplementosService.excluirPorProjeto(projeto);
 		}
-		
-		// List<ProjetoCamposComplementacaoDto> camposComplementarInserir = complementos.entrySet()
-		// 																.stream()
-		// 																.map( complemento -> {  complemento.
-		// 																		ProjetoCamposComplementacaoDto dtoComplemewntos = 
-		// 																			new ProjetoCamposComplementacaoDto( null, 
-		// 																				complemento.getKey(), 
-		// 																				complemento.getValue().values().stream() );
-		// 																		return dtoComplemewntos; 
-		// 																	} )
-		// 																.collect( Collectors.toList() );
 
 		projetoComplementosService.cadastrar( projeto, complementos );
 

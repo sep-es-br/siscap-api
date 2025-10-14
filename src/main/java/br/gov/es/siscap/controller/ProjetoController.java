@@ -69,8 +69,17 @@ public class ProjetoController {
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<String> excluir(@PathVariable @NotNull Long id) {
-		service.excluir(id);
+	public ResponseEntity<String> excluir(@PathVariable @NotNull Long id,
+		@RequestBody(required = false) Map<String, String> justificativa) {
+		ProjetoDto projetoSnapShot = service.buscarPorId(id);
+		String justificativaEnviada = justificativa != null ? justificativa.get("justificativa") : "";
+		if( service.excluir( id, justificativaEnviada ) ){
+			if( justificativaEnviada != null && !justificativaEnviada.isBlank() )
+				asyncExecutorService.encerrarProcessoEdocs(projetoSnapShot);
+		}else{
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Falha ao excluir o projeto.");
+		}
 		return ResponseEntity.ok().body("Projeto excluído com sucesso!");
 	}
 
@@ -138,5 +147,11 @@ public class ProjetoController {
 		asyncExecutorService.executarReentranhamentoDicEdocs(idProjeto);
 		return ResponseEntity.accepted().build();
 	}
+
+	// @PutMapping("/dic/edocs/encerrar/{idProjeto}")
+	// public ResponseEntity<Resource> encerrarProcesso( @PathVariable Long idProjeto ) {
+	// 	asyncExecutorService.encerrarProcessoEdocs(idProjeto);
+	// 	return ResponseEntity.accepted().build();
+	// }
 
 }

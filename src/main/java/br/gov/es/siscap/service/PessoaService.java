@@ -65,17 +65,18 @@ public class PessoaService {
 		logger.info("Buscando todas as pessoas.");
 
 		return repository.paginarPessoasPorFiltroPesquisaSimples(search, pageable)
-					.map(pessoa -> {
-						try {
-							Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorPessoa(pessoa);
+				.map(pessoa -> {
+					try {
+						Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorPessoa(pessoa);
 
-							List<String> nomesOrganizacoes = this.mapearNomesOrganizacoesPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+						List<String> nomesOrganizacoes = this
+								.mapearNomesOrganizacoesPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
 
-							return new PessoaListaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), nomesOrganizacoes);
-						} catch (IOException e) {
-							throw new SiscapServiceException(Collections.singletonList(e.getMessage()));
-						}
-					});
+						return new PessoaListaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), nomesOrganizacoes);
+					} catch (IOException e) {
+						throw new SiscapServiceException(Collections.singletonList(e.getMessage()));
+					}
+				});
 	}
 
 	public List<OpcoesDto> listarOpcoesDropdown() {
@@ -89,9 +90,11 @@ public class PessoaService {
 
 		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorPessoa(pessoa);
 		Set<Long> idOrganizacoes = this.mapearIdOrganizacoesPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
-		Long idOrganizacaoResponsavel = this.mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+		Long idOrganizacaoResponsavel = this
+				.mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
 
-		return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), idOrganizacoes, idOrganizacaoResponsavel);
+		return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), idOrganizacoes,
+				idOrganizacaoResponsavel);
 	}
 
 	@Transactional
@@ -105,14 +108,16 @@ public class PessoaService {
 
 		Pessoa pessoa = repository.save(new Pessoa(form, nomeImagem));
 
-		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.cadastrarPorPessoa(pessoa, form.idOrganizacoes());
+		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.cadastrarPorPessoa(pessoa,
+				form.idOrganizacoes());
 		Set<Long> idOrganizacoes = this.mapearIdOrganizacoesPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
-		Long idOrganizacaoResponsavel = this.mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+		Long idOrganizacaoResponsavel = this
+				.mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
 
 		logger.info("Pessoa cadastrada com sucesso");
-		return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), idOrganizacoes, idOrganizacaoResponsavel);
+		return new PessoaDto(pessoa, getImagemNotNull(pessoa.getNomeImagem()), idOrganizacoes,
+				idOrganizacaoResponsavel);
 	}
-
 
 	@Transactional
 	public PessoaDto atualizar(Long id, PessoaForm form, Authentication auth) throws IOException {
@@ -135,15 +140,16 @@ public class PessoaService {
 
 		Pessoa pessoaResultado = repository.save(pessoa);
 
-		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.atualizarPorPessoa(pessoaResultado, form.idOrganizacoes());
+		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.atualizarPorPessoa(pessoaResultado,
+				form.idOrganizacoes());
 		Set<Long> idOrganizacoes = this.mapearIdOrganizacoesPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
-		Long idOrganizacaoResponsavel = this.mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+		Long idOrganizacaoResponsavel = this
+				.mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
 
 		logger.info("Pessoa atualizada com sucesso");
-		return new PessoaDto(pessoaResultado, getImagemNotNull(pessoa.getNomeImagem()), idOrganizacoes, idOrganizacaoResponsavel);
+		return new PessoaDto(pessoaResultado, getImagemNotNull(pessoa.getNomeImagem()), idOrganizacoes,
+				idOrganizacaoResponsavel);
 	}
-
-	
 
 	@Transactional
 	public void excluir(Long id) {
@@ -191,7 +197,8 @@ public class PessoaService {
 
 		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorPessoa(pessoa);
 		Set<Long> idOrganizacoes = this.mapearIdOrganizacoesPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
-		Long idOrganizacaoResponsavel = this.mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
+		Long idOrganizacaoResponsavel = this
+				.mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(pessoaOrganizacaoSet);
 
 		return new PessoaDto(pessoa, conteudo, idOrganizacoes, idOrganizacaoResponsavel);
 	}
@@ -231,26 +238,26 @@ public class PessoaService {
 
 	private List<String> mapearNomesOrganizacoesPorPessoaOrganizacaoSet(Set<PessoaOrganizacao> pessoaOrganizacaoSet) {
 		return pessoaOrganizacaoSet
-					.stream()
-					.map(PessoaOrganizacao::getOrganizacao)
-					.map(Organizacao::getNome)
-					.toList();
+				.stream()
+				.map(PessoaOrganizacao::getOrganizacao)
+				.map(Organizacao::getNome)
+				.toList();
 	}
 
 	private Set<Long> mapearIdOrganizacoesPorPessoaOrganizacaoSet(Set<PessoaOrganizacao> pessoaOrganizacaoSet) {
 		return pessoaOrganizacaoSet
-					.stream()
-					.map(pessoaOrganizacao -> pessoaOrganizacao.getOrganizacao().getId())
-					.collect(Collectors.toSet());
+				.stream()
+				.map(pessoaOrganizacao -> pessoaOrganizacao.getOrganizacao().getId())
+				.collect(Collectors.toSet());
 	}
 
 	private Long mapearIdOrganizacaoResponsavelPorPessoaOrganizacaoSet(Set<PessoaOrganizacao> pessoaOrganizacaoSet) {
 		return pessoaOrganizacaoSet
-					.stream()
-					.filter(PessoaOrganizacao::getIsResponsavel)
-					.findFirst()
-					.map(pessoaOrganizacao -> pessoaOrganizacao.getOrganizacao().getId())
-					.orElse(null);
+				.stream()
+				.filter(PessoaOrganizacao::getIsResponsavel)
+				.findFirst()
+				.map(pessoaOrganizacao -> pessoaOrganizacao.getOrganizacao().getId())
+				.orElse(null);
 	}
 
 	private void validarPessoa(PessoaForm form) {
@@ -267,109 +274,107 @@ public class PessoaService {
 		}
 	}
 
-    public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownOrganizacao(String unidadeGuid) {
-		
+	public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownOrganizacao(String unidadeGuid) {
+
 		List<ResponsavelProponenteOpcoesDto> listaResponsavelOrganizacao;
-		
+
 		String subGestorOrganizacao = acessoCidadaoService.buscarGestorPorGuidUnidade(unidadeGuid);
-		
+
 		listaResponsavelOrganizacao = acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(unidadeGuid);
 
 		List<ResponsavelProponenteOpcoesDto> listaAtualizada = listaResponsavelOrganizacao.stream()
-																.map(p -> new ResponsavelProponenteOpcoesDto(
-																p.id(),
-																p.nome(),
-																p.papelPrioritario(),
-																p.agentePublicoSub(),
-																subGestorOrganizacao.equals(p.agentePublicoSub()) // seta true se for o gestor
-															))
-															.collect(Collectors.toList());
-		
-		listaResponsavelOrganizacao = listaAtualizada ;
+				.map(p -> new ResponsavelProponenteOpcoesDto(
+						p.id(),
+						p.nome(),
+						p.papelPrioritario(),
+						p.agentePublicoSub(),
+						subGestorOrganizacao.equals(p.agentePublicoSub()) // seta true se for o gestor
+				))
+				.collect(Collectors.toList());
+
+		listaResponsavelOrganizacao = listaAtualizada;
 
 		return listaResponsavelOrganizacao;
 
-    }
+	}
 
 	public String buscarIdPorSub(String sub) {
 		return repository.findBySub(sub)
-			.map(p -> String.valueOf(p.getId()))
-			.orElse("");
+				.map(p -> String.valueOf(p.getId()))
+				.orElse("");
 	}
 
 	public String buscarSubPorId(long id) {
 		return repository.findById(id)
-			.map(p -> p.getSub())
-			.orElse("");
+				.map(p -> p.getSub())
+				.orElse("");
 	}
 
 	public List<ResponsavelProponenteOpcoesDto> listarOpcoesDropdownTodosAgentesGoves() {
 		return acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(GUID_GOVES);
 	}
 
-    public List<ResponsavelProponenteOpcoesDto> filtrarAgentesGovesPorTermo(String termo, CacheAgentesGovesService cacheService) {
-		
+	public List<ResponsavelProponenteOpcoesDto> filtrarAgentesGovesPorTermo(String termo,
+			CacheAgentesGovesService cacheService) {
+
 		String termoLower = Normalizer.normalize(termo, Normalizer.Form.NFD)
-							.replaceAll("[^\\p{ASCII}]", "")
-							.toLowerCase();
+				.replaceAll("[^\\p{ASCII}]", "")
+				.toLowerCase();
 
 		return cacheService.getCache().stream()
-			.filter(agente -> 
-				agente.nome().toLowerCase().contains(termoLower)
-			)
-			.collect(Collectors.toList());
+				.filter(agente -> agente.nome().toLowerCase().contains(termoLower))
+				.collect(Collectors.toList());
 
-    }
+	}
 
 	public ResponsavelProponenteOpcoesDto buscarAgentesGovesPorSub(String sub, CacheAgentesGovesService cacheService) {
-		
+
 		try {
 			Pessoa pessoaBanco = buscarPorSub(sub);
 			return new ResponsavelProponenteOpcoesDto(
-				pessoaBanco.getId(), 
-				pessoaBanco.getNome(), 
-				pessoaBanco.getNomeSocial(),
-				sub,
-				false );
+					pessoaBanco.getId(),
+					pessoaBanco.getNome(),
+					pessoaBanco.getNomeSocial(),
+					sub,
+					false);
 
 		} catch (PessoaNaoEncontradoException e) {
 			logger.debug("Agente não encontrado no banco, buscando no cache...");
 		}
-		
-		return cacheService.getCache().stream()
-        .filter(agente -> 
-            agente.agentePublicoSub().contains(sub)
-        )
-        .findFirst()
-		.orElse(null);
 
-    }
+		return cacheService.getCache().stream()
+				.filter(agente -> agente.agentePublicoSub().contains(sub))
+				.findFirst()
+				.orElse(null);
+
+	}
 
 	@Transactional
-	public String sincronizarAgenteCidadaoPessoaSiscap( String sub ) {
+	public String sincronizarAgenteCidadaoPessoaSiscap(String sub) {
 
-		String idPessoa="";
+		String idPessoa = "";
 
 		logger.info("Inicio sincronizar pessoa Acesso Cidadao com base do SISCAP.");
 
 		AgentePublicoACDto dados = acessoCidadaoService.buscarPessoaPorSub(sub);
 
-		if( repository.existsByEmail(dados.email()) ){
-			logger.info("Pessoa foi encontrada por email e já existe na base sem SUB entao sistema vai atualizar o SUB e continuar processo.");
+		if (repository.existsByEmail(dados.email())) {
+			logger.info(
+					"Pessoa foi encontrada por email e já existe na base sem SUB entao sistema vai atualizar o SUB e continuar processo.");
 			Optional<Pessoa> pessoa = repository.buscarPorSubOuNomeTratado(dados.sub(), dados.nome());
-			if(pessoa.isPresent()){
+			if (pessoa.isPresent()) {
 				pessoa.get().setSub(dados.sub());
 				idPessoa = pessoa.get().getId().toString();
 				repository.save(pessoa.get());
 			}
-		}else{
+		} else {
 
 			Set<Organizacao> organizacoes = buscarOrganizacoesAssociadas(sub);
-			
+
 			Pessoa pessoa = construirPessoa(dados);
-			
+
 			pessoa = this.salvarNovaPessoaAcessoCidadao(pessoa);
-			
+
 			associarOrganizacoesAPessoa(pessoa, organizacoes);
 
 			idPessoa = pessoa.getId().toString();
@@ -383,47 +388,48 @@ public class PessoaService {
 	}
 
 	public void sincronizarDadosAgentePessoaSiscap(Long idPessoaSiscap, String sub) {
-        
+
 		logger.info("Inicio sincronizar dados pessoa já existente com dados do Acesso Cidadao.");
 
 		AgentePublicoACDto dados = acessoCidadaoService.buscarPessoaPorSub(sub);
-				
+
 		this.atualizarPessoaDadosAcessoCidadao(idPessoaSiscap, dados);
 
-    }
+	}
 
 	@Transactional
 	private void atualizarPessoaDadosAcessoCidadao(Long idPessoaSiscap, AgentePublicoACDto acDtoDados) {
-		
+
 		boolean needsUpdate = false;
 
 		Pessoa pessoa = buscar(idPessoaSiscap);
-		if( pessoa != null && acDtoDados != null ) {
-			
+		if (pessoa != null && acDtoDados != null) {
+
 			// Atualização do nome
 			if (acDtoDados.nome() != null && !Objects.equals(pessoa.getNome(), acDtoDados.nome())) {
 				pessoa.setNome(acDtoDados.nome().toUpperCase());
 				needsUpdate = true;
 			}
-		
+
 			// Atualização do nome social
 			if (acDtoDados.apelido() != null && !Objects.equals(pessoa.getNomeSocial(), acDtoDados.apelido())) {
 				pessoa.setNomeSocial(acDtoDados.apelido().toUpperCase());
 				needsUpdate = true;
 			}
 
-			if( needsUpdate )
+			if (needsUpdate)
 				repository.save(pessoa);
 
 		}
 
 		if (needsUpdate) {
-			logger.info("Nome ou apelido da pessoa id {} foram atualizados com sucesso.", idPessoaSiscap );
-			repository.save(pessoa);
+			logger.info("Nome ou apelido da pessoa id {} foram atualizados com sucesso.", idPessoaSiscap);
+			if (pessoa != null)
+				repository.save(pessoa);
 		}
 
 	}
-	
+
 	private Pessoa construirPessoa(AgentePublicoACDto dados) {
 		Pessoa pessoa = new Pessoa();
 		pessoa.setNome(dados.nome().toUpperCase());
@@ -440,19 +446,18 @@ public class PessoaService {
 		String lotacaoGuidPrioritaria = buscarLotacaoGuidPrioritaria(sub);
 		if (!lotacaoGuidPrioritaria.isEmpty()) {
 			buscarOrganizacaoPorLotacao(lotacaoGuidPrioritaria)
-				.ifPresentOrElse(
-					organizacoes::add,
-					() -> logger.info("Organização não encontrada para o CNPJ fornecido.")
-				);
+					.ifPresentOrElse(
+							organizacoes::add,
+							() -> logger.info("Organização não encontrada para o CNPJ fornecido."));
 		}
 		return organizacoes;
 	}
 
 	public void associarOrganizacoesAPessoa(Pessoa pessoa, Set<Organizacao> organizacoes) {
-    	Set<Long> idsOrganizacoes = organizacoes.stream()
-            .map(Organizacao::getId)
-            .collect(Collectors.toSet());
-    	pessoaOrganizacaoService.cadastrarPorPessoa(pessoa, idsOrganizacoes);
+		Set<Long> idsOrganizacoes = organizacoes.stream()
+				.map(Organizacao::getId)
+				.collect(Collectors.toSet());
+		pessoaOrganizacaoService.cadastrarPorPessoa(pessoa, idsOrganizacoes);
 	}
 
 	private String buscarLotacaoGuidPrioritaria(String sub) {
@@ -465,11 +470,9 @@ public class PessoaService {
 	}
 
 	private Optional<Organizacao> buscarOrganizacaoPorLotacao(String lotacaoGuid) {
-    	String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
-    	String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
-    	return organizacaoService.buscarPorCnpj(cnpjOrganizacao);
+		String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
+		String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
+		return organizacaoService.buscarPorCnpj(cnpjOrganizacao);
 	}
-
-   
 
 }

@@ -4,7 +4,9 @@ import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Set;
@@ -18,4 +20,9 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long>, JpaSpec
 
 	@Query("select count(p) from Projeto p where year(p.criadoEm) = year(current_date)")
 	int contagemAnoAtual();
+
+	@Modifying
+    @Query(value = "DELETE FROM projeto WHERE id = :idProjeto", nativeQuery = true)
+    void deleteFisico(@Param("idProjeto") Long id);
+
 }

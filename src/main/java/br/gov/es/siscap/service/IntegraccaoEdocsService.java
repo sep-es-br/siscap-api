@@ -114,6 +114,16 @@ public class IntegraccaoEdocsService {
 		return; 
 	}
 
+	public void encerrarProcessoEdocs( ProjetoDto projetoDto ){
+		logger.info("Iniciando processo para encerramento processo do E-Docs referente ao DIC {} .", projetoDto.id() );
+		this.encerrarProcessoEdcosReativo( projetoDto )
+			.subscribe(
+				mensagem -> logger.info("SUCESSO: {}", mensagem),
+				erro -> logger.info("ERRO: {}", erro)
+			);
+		return;
+	}
+
 	public void reentranharDespacharDicProccessoComplementacaoSUBCAP( Resource arquivoDic, String nomeArquivo, Long idProjeto ){
 
 		logger.info("Iniciando processo para reentranhamento DIC complementado do projeto {} para SUBCAP..", idProjeto);
@@ -166,6 +176,19 @@ public class IntegraccaoEdocsService {
 			})
 			.thenReturn("Despachar processo de DIC para orgão de origem finalizado com sucesso.");
 
+	}
+
+	public Mono<String> encerrarProcessoEdcosReativo ( ProjetoDto projetoDto ) {
+		return buscarTokenReativo()
+			.switchIfEmpty( Mono.error( new RuntimeException("Token não encontrado ao buscarTokenReativo()" ) ) )
+			.map( token -> new FluxoContextoIntegracaoDto( projetoDto, token ) )
+			.flatMap(ctx -> encerrarProcessoEdocs(ctx))
+			.flatMap(ctx -> consultarSituacaoEncerramento(ctx))
+			.doOnError( e -> {
+				logger.error("Falha ao executar chamada ao endpoint para ENCERRAR o processo via E-Docs.", e);
+				this.registrarFalhaEtapa( projetoDto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO );
+			})
+			.thenReturn("Encerramento do processo no Edocs realizado com sucesso.");
 	}
 
 	public Mono<String> autuarDicProjetoReativo(ProjetoDto projetoDto, Resource arquivo, String nomeArquivo) {
@@ -290,7 +313,6 @@ public class IntegraccaoEdocsService {
 			.thenReturn("Atualização DIC complementado concluída com sucesso.");
 
 	}
-
 	
 	private Mono<FluxoContextoIntegracaoDto> despacharProcessoDICOrgaoOrigem(FluxoContextoIntegracaoDto ctx) {
 
@@ -325,6 +347,29 @@ public class IntegraccaoEdocsService {
 				this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
 			})
 			.thenReturn(ctx);
+	}
+
+	private Mono<FluxoContextoIntegracaoDto> encerrarProcessoEdocs(FluxoContextoIntegracaoDto ctx) {
+
+		logger.info("Iniciar processo de encerramento processo E-Docs DIC Id: {}.", ctx.getProjeto().id());
+
+		return FeignReativo.fromFeign(() -> encerrarProcessoEdcosClient(ctx))
+			.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+			.switchIfEmpty(
+				Mono.error(new RuntimeException(
+					"Falha ao executar chamada ao endpoint para encerrar um processo via E-Docs."
+				))
+			)
+			.doOnSuccess(retorno -> 
+				ctx.setIdEventoEncerramento(retorno.replace("\"", ""))
+			)
+			.doOnError(e -> {
+				logger.error(
+					"Falha ao executar chamada ao endpoint para encerramento um processo via E-Docs.", e
+				);
+			})
+			.thenReturn(ctx);
+
 	}
 	
 
@@ -439,40 +484,6 @@ public class IntegraccaoEdocsService {
 					ctx.setDtoAtoProcessoDocs( atoEntranhamento ); } )
 				.thenReturn(ctx);
 	}
-
-	// private Mono<FluxoContextoIntegracaoDto> documentosAtosProcesso(FluxoContextoIntegracaoDto ctx) {
-
-	// 	logger.info("Iniciar consulta documentos ato ao processo. ID do Processo no Edocs: {}", 
-	// 			ctx.getProjeto().idProcessoEdocs());
-	
-	// 	return FeignReativo.fromFeign(() ->
-	// 					consultarDocumentosAtoProcesso(
-	// 							ctx.getProjeto().idProcessoEdocs(),
-	// 							ctx.getDtoAtoProcessoDocs().id(),
-	// 							ctx.getToken()
-	// 					)
-	// 			)
-	// 			.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
-	// 			.timeout( Duration.ofMinutes(1) )
-	// 			.switchIfEmpty( Mono.error( new RuntimeException("Falha ao consultar documentos do ato do processo.") ) )
-	// 			.doOnSuccess( documentos -> documentos.forEach( doc -> logger.info( "Documento -> {}, {}, {} ", doc.documentoId(), doc.documentoNome(), doc.sequencial() ) ) )
-	// 			.doOnError( e -> {
-	// 				logger.error("Erro ao consultar documentos do ato do processo.", e);
-	// 				this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
-	// 			})
-	// 			.flatMap(documentosAtoProcesso ->
-	// 					Mono.justOrEmpty(
-	// 							documentosAtoProcesso.stream()
-	// 									.filter(documento ->
-	// 											documento.documentoId()
-	// 													.equals(ctx.getProjeto().idDocumentoDicEdocs()))
-	// 									.findFirst()
-	// 					)
-	// 							.doOnNext(ctx::setDocumentoAtoProcessoDto)
-	// 							.thenReturn(ctx)
-	// 			)
-	// 			.thenReturn(ctx);
-	// }
 
 	private Mono<FluxoContextoIntegracaoDto> documentosAtosProcesso(FluxoContextoIntegracaoDto ctx) {
 		
@@ -663,6 +674,26 @@ public class IntegraccaoEdocsService {
 			.doOnError( e -> {
 				logger.error("Falha ao verificar situacao do evento de despacho do processo no E-Docs.", e);
 				this.registrarFalhaEtapa( ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+			} )
+			.thenReturn(ctx);
+	}
+
+	private Mono<FluxoContextoIntegracaoDto> consultarSituacaoEncerramento( FluxoContextoIntegracaoDto ctx ){
+		logger.info("Iniciar consulta situacao evento - ENCERRAMENTO - id {}.", ctx.getIdEventoEncerramento() );
+		return FeignReativo.fromFeign(() -> consultarSituacaoEventoEdocs( ctx.getIdEventoEncerramento(), ctx.getToken()))
+			.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+			.filter(dto -> {
+				boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
+				if (!isConcluido) {
+					logger.warn("Status não concluído: {}", dto.situacao());
+				}
+				return isConcluido;
+			})
+			.repeatWhenEmpty( flux -> flux.delayElements( Duration.ofSeconds(2) ) )
+			.timeout( Duration.ofMinutes(1) )
+			.switchIfEmpty( Mono.error(new RuntimeException("Falha ao consultar situacao do evento de ENCERRAMENTO do processo ID " + ctx.getIdEventoEncerramento() + ".") ) )
+			.doOnError( e -> {
+				logger.error("Falha ao verificar situacao do evento de encerramento do processo no E-Docs.", e);
 			} )
 			.thenReturn(ctx);
 	}
@@ -971,6 +1002,33 @@ public class IntegraccaoEdocsService {
 		DespacharProjetoDto despacharProjetoDto = new DespacharProjetoDto( idDestino, mensagem, restricaoAcessoBodyDto, idProjetoEDocs, guidPapelUsuario );
 
 		return EdocsWebClient.depacharProcesso(  ctx.getToken(), despacharProjetoDto );
+
+	}
+
+	private String encerrarProcessoEdcosClient( FluxoContextoIntegracaoDto ctx ){
+
+		String desfecho = "Encerramento do processo gerado via sistema de captação - SISCAP";
+
+		RestricaoAcessoBodyDto restricaoAcessoBodyDto = new RestricaoAcessoBodyDto(true, null, null);
+
+		String idProjetoEDocs = ( ctx.getIdProcesso() != null && !ctx.getIdProcesso().isEmpty()) ? ctx.getIdProcesso() : ctx.getProjeto().idProcessoEdocs() ;
+
+		String tokenLimpo = ctx.getToken().replace("Bearer ", "").trim();
+
+		ACUserInfoDto userInfo = AcessoCidadaoService.buscarInformacoesUsuario(tokenLimpo);
+
+		List<ACAgentePublicoPapelDto> listaPapeisUsuario = AcessoCidadaoService.listarPapeisAgentePublicoPorSub(userInfo.subNovo());
+		
+		String guidPapelUsuario = listaPapeisUsuario.stream()
+			.filter(papel -> papel.Prioritario() )  
+			.findFirst()                            
+			.orElseGet(() -> listaPapeisUsuario.stream().findFirst().orElse(null) )
+			.Guid() ; 
+
+		EncerrarProcessoEdocsDto encerrarProcessoEdocsDto = 
+			new EncerrarProcessoEdocsDto( desfecho, restricaoAcessoBodyDto, idProjetoEDocs, guidPapelUsuario );
+
+		return EdocsWebClient.encerrarProcesso(  ctx.getToken(), encerrarProcessoEdocsDto );
 
 	}
 

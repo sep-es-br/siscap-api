@@ -4,6 +4,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import br.gov.es.siscap.dto.ProjetoDto;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -31,6 +32,11 @@ public class AsyncExecutorService {
     @Async
     public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto) {
         integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto.longValue());
+    }
+
+    @Async
+    public void encerrarProcessoEdocs(ProjetoDto projetoDto) {
+        integracaoEdocsService.encerrarProcessoEdocs(projetoDto);
     }
 
 }

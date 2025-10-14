@@ -111,6 +111,16 @@ public class ProjetoPessoaService {
 	}
 
 	@Transactional
+	public void excluirFisicamentePorProjeto(Projeto projeto) {
+		logger.info("Excluindo fisicamente equipe do Projeto com id: {}", projeto.getId());
+
+		//Set<ProjetoPessoa> projetoPessoaSet = this.buscarPorProjeto(projeto);
+		projetoPessoaRepository.deleteFisicoPorProjeto(projeto.getId());
+
+		logger.info("Equipe do projeto excluida fisicamente com sucesso");
+	}
+
+	@Transactional
 	public void excluirPorPessoa(Pessoa pessoa) {
 		logger.info("Excluindo Pessoa com id: {} da(s) equipe(s) de projeto", pessoa.getId());
 
