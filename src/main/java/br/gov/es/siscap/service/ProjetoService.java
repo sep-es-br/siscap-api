@@ -1,7 +1,6 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
-import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
@@ -26,8 +25,6 @@ import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,10 +42,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import br.gov.es.siscap.models.ProjetoAcao;
+import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
 
 @Service
@@ -69,6 +66,7 @@ public class ProjetoService {
 	private final AcessoCidadaoService acessoCidadaoService;
 	private final AutenticacaoService autenticacaoService;
 	private final RegrasDePermissaoService regrasDePermissaoService;
+	private final ProjetoComplementosService projetoComplementosService;
 
 	@PersistenceContext
     private EntityManager entityManager;
@@ -143,6 +141,8 @@ public class ProjetoService {
 
 		Boolean podeResponderComplementacao = regrasDePermissaoService.podeReenviarDICEmComplementacao( this.subEhResponsavelProponenteProjeto(Subusuario,projeto.getId()), projeto );
 
+		Set<ProjetoCamposComplementacao> complementosSeremFeitos = projetoComplementosService.buscarPorProjeto(projeto);
+
 		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
 			this.buscarIdResponsavelProponente(projetoPessoaSet),
 			this.buscarEquipeElaboracao(projetoPessoaSet),
@@ -156,7 +156,8 @@ public class ProjetoService {
 			podeSolicitarComplementacao,
 			podeResponderComplementacao,
 			projeto.getIdProcessoEdocs(),
-			projeto.getIdDocumentoCapturadoEdocs()
+			projeto.getIdDocumentoCapturadoEdocs(),
+			this.buscarComplementacoes(complementosSeremFeitos)
 		);
 
 		return projetoDtoRetorno;
@@ -175,19 +176,25 @@ public class ProjetoService {
 			.toList();
 	}
 
+	private List<ProjetoCamposComplementacaoDto> buscarComplementacoes(Set<ProjetoCamposComplementacao> projetoCamposComplementacaoSet) {
+		return projetoCamposComplementacaoSet
+			.stream()
+			.map(campo -> { return new ProjetoCamposComplementacaoDto(campo, null); })
+			.toList();
+	}
+
 	@Transactional
 	public ProjetoDto cadastrar(ProjetoForm form, boolean rascunho) {
 		
 		logger.info("Cadastrando novo projeto");
 
-		logger.info("Dados: {}", form);
+		//logger.info("Dados: {}", form);
 
 		this.validarProjeto(form, true);
 
 		Projeto tempProjeto = new Projeto(form);
 
 		tempProjeto.setCountAno(this.buscarCountAnoFormatado());
-
 		tempProjeto.setRascunho(true);
 		tempProjeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
 
@@ -252,7 +259,7 @@ public class ProjetoService {
 			this.buscarNomeResponsavelProponente(projetoPessoaSet),
 			false,
 			false,
-			false, null, null);
+			false, null, null, null);
 
 	}
 
@@ -348,7 +355,7 @@ public class ProjetoService {
 			false,
 			false,
 			false,
-			null, null);
+			null, null, null);
 
 	}
 
@@ -402,6 +409,32 @@ public class ProjetoService {
 		projeto.setStatus(status);
 
 		repository.save(projeto);
+	}
+
+	
+	@Transactional
+	public void inserirComplementacoesSeremRealizadasDIC(Projeto projeto, List<ProjetoCamposComplementacaoDto> complementos) {
+		
+		if( projeto.getProjetoComplementoSet().size() > 0 ){
+			logger.info("Projeto id {} ja possui complementos definidos e serão excluidos logicamente para inserção do novo pedido.", projeto.getId());
+			projetoComplementosService.excluirPorProjeto(projeto);
+		}
+		
+		// List<ProjetoCamposComplementacaoDto> camposComplementarInserir = complementos.entrySet()
+		// 																.stream()
+		// 																.map( complemento -> {  complemento.
+		// 																		ProjetoCamposComplementacaoDto dtoComplemewntos = 
+		// 																			new ProjetoCamposComplementacaoDto( null, 
+		// 																				complemento.getKey(), 
+		// 																				complemento.getValue().values().stream() );
+		// 																		return dtoComplemewntos; 
+		// 																	} )
+		// 																.collect( Collectors.toList() );
+
+		projetoComplementosService.cadastrar( projeto, complementos );
+
+		repository.save(projeto);
+
 	}
 
 	@Transactional
@@ -484,7 +517,7 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public boolean enviarAvisoSolicitarComplementacaoProjeto( Long id, List<Map<String, String>> complementos ) {
+	public boolean enviarAvisoSolicitarComplementacaoProjeto( Long id, List<ProjetoCamposComplementacaoDto> complementos ) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -513,7 +546,7 @@ public class ProjetoService {
 			List<String> emailsInteressadosList = new ArrayList<String>();
 			emailsInteressadosList.add(proponenteProjeto.get().getEmail());
 
-			try {
+			 try {
 
 				confirmacaoEnvioEmail = emailService.enviarEmailComplemetacaoProjeto( emailsInteressadosList, 
 					proponenteProjeto.get().getNome(),
@@ -524,6 +557,7 @@ public class ProjetoService {
 				if (confirmacaoEnvioEmail) {
 					logger.info("Email aviso solicitação de complementação do projeto enviado com sucesso para o projeto id " + id);
 					this.alterarStatusProjeto(id, StatusProjetoEnum.COMPLEMETACAO.getValue());
+					this.inserirComplementacoesSeremRealizadasDIC( projeto, complementos );
 				}else{
 					erros.add("Erro ao enviar aviso para complementação do projeto id " + id);
 				}
@@ -988,8 +1022,6 @@ public class ProjetoService {
 			.filter( membro -> membro.isResponsavelProponente() )
 			.findFirst()
 			.map( proponente -> proponente.getPessoa() );
-
-		//logger.info( " Responsavel do Projeto : {} - Sub {} ", responsavelProponenteProjeto.get().getNome() , responsavelProponenteProjeto.get().getSub() );	
 
 		return responsavelProponenteProjeto
 			.map(pessoa -> pessoa.getSub().equalsIgnoreCase(subUsuario))

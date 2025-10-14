@@ -5,8 +5,6 @@ import br.gov.es.siscap.dto.acessocidadaoapi.LoginACResponseDto;
 import br.gov.es.siscap.models.TokenAc;
 import br.gov.es.siscap.repository.TokenAcRepository;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -100,27 +98,5 @@ public class AcessoCidadaoAutorizacaoService {
 			.map(TokenAc::getToken)
 			.orElse(null);
 	}
-
-	// public Mono<String> getEdocsTokenReativo(String subUsuario) {
-	// 	return Mono.fromCallable(() -> {
-	// 		return getEdocsToken(subUsuario);
-	// 	});
-	// }
-
-    // public void storeEdocsToken(String userId, String edocsToken) {
-	// 	if (edocsToken != null)
-    //     	edocsTokenStore.put(userId, edocsToken);
-	// 	else
-	// 		System.out.println("Tentativa de armazenar o token do Edocs vazio..");
-    // }
-
-    // public String getEdocsToken(String userId) {
-    //     String token = edocsTokenStore.get(userId);
-    //     return BEARER + token;
-    // }
-
-    // public void clearEdocsToken(String userId) {
-    //     edocsTokenStore.remove(userId);
-    // }
 
 }

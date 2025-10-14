@@ -1,10 +1,8 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoIndicador;
-import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.models.TipoStatus;
 import br.gov.es.siscap.repository.ProjetoIndicadorRepository;
 import lombok.RequiredArgsConstructor;

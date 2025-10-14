@@ -1,7 +1,6 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.opcoes.MotivosArquivamentoOpcoesDto;
-import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.service.TipoMotivoArquivamentoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
