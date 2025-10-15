@@ -47,6 +47,7 @@ import java.util.Set;
 import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
+import br.gov.es.siscap.models.ProjetoParecer;
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +68,7 @@ public class ProjetoService {
 	private final AutenticacaoService autenticacaoService;
 	private final RegrasDePermissaoService regrasDePermissaoService;
 	private final ProjetoComplementosService projetoComplementosService;
+	private final ProjetoParecerService projetoParecerService;
 
 	@PersistenceContext
     private EntityManager entityManager;
@@ -143,6 +145,8 @@ public class ProjetoService {
 
 		Set<ProjetoCamposComplementacao> complementosSeremFeitos = projetoComplementosService.buscarPorProjeto(projeto);
 
+		Set<ProjetoParecer> pareceresProjeto = projetoParecerService.buscarPorProjeto(projeto);
+
 		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
 			this.buscarIdResponsavelProponente(projetoPessoaSet),
 			this.buscarEquipeElaboracao(projetoPessoaSet),
@@ -157,7 +161,8 @@ public class ProjetoService {
 			podeResponderComplementacao,
 			projeto.getIdProcessoEdocs(),
 			projeto.getIdDocumentoCapturadoEdocs(),
-			this.buscarComplementacoes(complementosSeremFeitos)
+			this.buscarComplementacoes(complementosSeremFeitos),
+			this.buscarPareceres(pareceresProjeto)
 		);
 
 		return projetoDtoRetorno;
@@ -180,6 +185,13 @@ public class ProjetoService {
 		return projetoCamposComplementacaoSet
 			.stream()
 			.map(campo -> { return new ProjetoCamposComplementacaoDto(campo, null); })
+			.toList();
+	}
+
+	private List<ProjetoParecerDto> buscarPareceres(Set<ProjetoParecer> projetoParecerSet) {
+		return projetoParecerSet
+			.stream()
+			.map(parecer -> { return new ProjetoParecerDto(parecer); })
 			.toList();
 	}
 
@@ -259,7 +271,7 @@ public class ProjetoService {
 			this.buscarNomeResponsavelProponente(projetoPessoaSet),
 			false,
 			false,
-			false, null, null, null);
+			false, null, null, null, null);
 
 	}
 
@@ -355,7 +367,7 @@ public class ProjetoService {
 			false,
 			false,
 			false,
-			null, null, null);
+			null, null, null, null);
 
 	}
 
@@ -413,8 +425,8 @@ public class ProjetoService {
 
 		projetoAcaoService.excluirPorProjeto(projeto);
 
-		//repository.saveAndFlush(projeto);
-		
+		projetoParecerService.excluirPorProjeto(projeto);
+
 		repository.deleteById(projeto.getId());
 
 	}
@@ -429,6 +441,8 @@ public class ProjetoService {
 		projetoIndicadorService.excluirFisicamentePorProjeto(projeto);
 
 		projetoAcaoService.excluirFisicamentePorProjeto(projeto);
+
+		projetoParecerService.excluirFisicamentePorProjeto(projeto);
 
 		repository.saveAndFlush(projeto);
 		
@@ -458,6 +472,7 @@ public class ProjetoService {
 
 	@Transactional
 	public void alterarStatusProjeto(Long id, String status) {
+
 		Projeto projeto = this.buscar(id);
 
 		projeto.setStatus(status);

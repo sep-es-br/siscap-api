@@ -59,39 +59,4 @@ public class ProjetoComplementosService {
 
 	}
 
-	// @Transactional
-	// public Set<ProjetoIndicador> atualizar(Projeto projeto, List<ProjetoIndicadorDto> projetoIndicadorDtoList) {
-	// 	logger.info("Alterando dados de indicadores do Projeto com id: {}", projeto.getId());
-	// 	Set<ProjetoIndicador> projetoIndicadorSet = this.buscarPorProjeto(projeto);
-	// 	Set<ProjetoIndicador> indicadoresProjetoAtualizarSet = this.atualizarIndicadoresProjeto( projeto, projetoIndicadorSet, projetoIndicadorDtoList );
-	// 	projetoIndicadorRepository.saveAllAndFlush(indicadoresProjetoAtualizarSet);
-	// 	logger.info("Indicadores do projeto alterados com sucesso");
-	// 	return this.buscarPorProjeto(projeto);
-	// }
-
-	
-	
-    // private Set<ProjetoIndicador> atualizarIndicadoresProjeto( Projeto projeto,  Set<ProjetoIndicador> indicadoresExistentes, List<ProjetoIndicadorDto> dtoList) {
-	// 	Map<Integer, ProjetoIndicador> indicadoresExistentesMap = indicadoresExistentes.stream()
-	// 		.filter(ind -> ind.getId() != null)
-	// 		.collect(Collectors.toMap(ProjetoIndicador::getId, Function.identity()));
-	// 	return dtoList.stream()
-	// 		.map(dto -> {
-	// 			ProjetoIndicador indicador;
-	// 			if (dto.idIndicador() != null && indicadoresExistentesMap.containsKey(dto.idIndicador())) {
-	// 				indicador = indicadoresExistentesMap.get(dto.idIndicador());
-	// 				indicador.setId(dto.idIndicador());
-	// 				indicador.setTipoIndicador(dto.tipoIndicador());
-	// 				indicador.setDescricaoIndicador(dto.descricaoIndicador());
-	// 				indicador.setDescricaoMeta(dto.descricaoMeta());
-	// 				indicador.setTipoStatus( new TipoStatus(dto.idStatus()) );
-	// 			} else {
-	// 				indicador = new ProjetoIndicador(projeto, dto);
-	// 			}
-	// 			return indicador;
-	// 		})
-	// 		.collect(Collectors.toSet());
-	// }
-
-
 }

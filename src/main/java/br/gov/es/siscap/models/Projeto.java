@@ -127,6 +127,9 @@ public class Projeto extends ControleHistorico {
 	@Column(name = "justificativa_exclusao_logica", nullable = true, length = 500)
 	private String justificativaExclusaoLogica;
 
+	@OneToMany(mappedBy = "projeto")
+	private Set<ProjetoParecer> projetoParecerSet;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
