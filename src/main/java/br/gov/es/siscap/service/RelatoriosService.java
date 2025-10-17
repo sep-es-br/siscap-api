@@ -38,6 +38,11 @@ public class RelatoriosService {
 		return exportarRelatorio(jasperPrint);
 	}
 
+	public Resource gerarArquivoParecerDIC(String nomeArquivo, Integer idProjeto) {
+		JasperPrint jasperPrint = preencherArquivo(recuperarArquivo(nomeArquivo), idProjeto);
+		return exportarRelatorio(jasperPrint);
+	}
+
 	private InputStream recuperarArquivo(String nomeArquivo) {
 		try {
 			return new ClassPathResource(raizRelatorios + "/" + nomeArquivo + ".jasper").getInputStream();

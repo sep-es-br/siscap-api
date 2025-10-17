@@ -20,6 +20,12 @@ public class UsuarioService implements UserDetailsService {
     @Value("${api.edocs.guiddestinoSUBCAP}")
 	private String guidSUBCAP;
 
+    @Value("${api.parecer.guidSUBEPP}")
+    private String guidSUBEPP;
+
+    @Value("${api.parecer.guidSUBEO}")
+    private String guidSUBEO;
+
     private final UsuarioRepository repository;
     private final AcessoCidadaoService acessoCidadaoService;
 
@@ -43,6 +49,32 @@ public class UsuarioService implements UserDetailsService {
                             .map(ACAgentePublicoPapelDto::LotacaoGuid)
                             .orElse(""));
        return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBCAP);
+    }
+
+    public Boolean ehDaSubepp(String subUsuario ){
+        List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService.listarPapeisAgentePublicoPorSub(subUsuario);
+        String lotacaoGuidUsuario = listaPapeisUsuario.stream()
+                        .filter( papel -> Boolean.TRUE.equals(papel.Prioritario()))
+                        .findFirst()
+                        .map(ACAgentePublicoPapelDto::LotacaoGuid)
+                        .orElseGet( () -> listaPapeisUsuario.stream()
+                            .findFirst()
+                            .map(ACAgentePublicoPapelDto::LotacaoGuid)
+                            .orElse(""));
+       return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBEPP);
+    }
+
+    public Boolean ehDaSubeo(String subUsuario ){
+        List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService.listarPapeisAgentePublicoPorSub(subUsuario);
+        String lotacaoGuidUsuario = listaPapeisUsuario.stream()
+                        .filter( papel -> Boolean.TRUE.equals(papel.Prioritario()))
+                        .findFirst()
+                        .map(ACAgentePublicoPapelDto::LotacaoGuid)
+                        .orElseGet( () -> listaPapeisUsuario.stream()
+                            .findFirst()
+                            .map(ACAgentePublicoPapelDto::LotacaoGuid)
+                            .orElse(""));
+       return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBEO);
     }
     
 

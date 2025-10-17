@@ -147,6 +147,8 @@ public class ProjetoService {
 
 		Set<ProjetoParecer> pareceresProjeto = projetoParecerService.buscarPorProjeto(projeto);
 
+		
+
 		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
 			this.buscarIdResponsavelProponente(projetoPessoaSet),
 			this.buscarEquipeElaboracao(projetoPessoaSet),
@@ -321,12 +323,14 @@ public class ProjetoService {
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesProjeto();
-		
 		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar( projetoResult, projetoAcoesDto, rascunho );
 
 		String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
 
 		String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
+
+		List<ProjetoParecerDto> projetoParecerDto = form.pareceresProjeto();
+		Set<ProjetoParecer> projetoPareceresSet = projetoParecerService.atualizar( projetoResult, projetoParecerDto, rascunho );
 
 		try {
 			
@@ -367,7 +371,9 @@ public class ProjetoService {
 			false,
 			false,
 			false,
-			null, null, null, null);
+			null, null, 
+			null, 
+			this.buscarPareceres(projetoPareceresSet));
 
 	}
 

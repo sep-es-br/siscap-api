@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.ProjetoAcaoDto;
 import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.dto.ValorDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorDto;
+import br.gov.es.siscap.dto.ProjetoParecerDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
@@ -78,7 +79,9 @@ public record ProjetoForm(
 			String protocoloEdocs,
 
 			@NotNull
-			boolean enviarProjetoPedirParecer
+			boolean enviarProjetoPedirParecer,
+
+			List<ProjetoParecerDto> pareceresProjeto
 
 ) {
 }

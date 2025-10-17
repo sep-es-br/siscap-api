@@ -136,6 +136,14 @@ public class ProjetoController {
 		asyncExecutorService.executarAutuacaoEdocs(idProjeto);
 		return ResponseEntity.accepted().build();
 	}
+	
+	@PutMapping("/dic/edocs/capturarparecer/{idProjeto}")
+	public ResponseEntity<Resource> assinarCapturaParecerDIC(@PathVariable Long idProjeto,
+			@Valid @RequestBody ProjetoForm form) {
+		service.atualizar(idProjeto, form, false);
+		asyncExecutorService.assinarCapturaParecerDIC(idProjeto);
+		return ResponseEntity.accepted().build();
+	}
 
 	@GetMapping("/dic/edocs/fases/{idProjeto}")
 	public ResponseEntity<List<EtapasIntegracaoDto>> integracaoEdocsFases(@PathVariable Long idProjeto) {
