@@ -9,6 +9,8 @@ import br.gov.es.siscap.enums.StatusParecerEnum;
 import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.edocs.EtapasIntegracaoEdocsEnum;
 import br.gov.es.siscap.enums.edocs.SituacaoEventoEdocsEnum;
+import br.gov.es.siscap.models.Projeto;
+import br.gov.es.siscap.models.ProjetoParecer;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -112,22 +115,40 @@ public class IntegraccaoEdocsService {
 
 		this.limparEtapas(idProjeto);
 
-		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
+		Projeto projeto = projetoService.buscar(idProjeto);
 
-		Boolean parecerJaCapturado = projetoDto.pareceresProjeto().stream()
-				.anyMatch(parecer -> parecer.statusParecer() == StatusParecerEnum.ENVIADO
-						|| parecer.statusParecer() == StatusParecerEnum.CAPTURADO_EDOCS);
+		Set<ProjetoParecer> pareceresProjeto = projetoParecerService.buscarPorProjeto(projeto);
 
-		if(parecerJaCapturado){
-			logger.error("Algum dos pareceres já foi capturado/assinado no E-Docs. Interrompendo processamento.");
-			this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA );
-			throw new RuntimeException("Falha ao obter tamanho do arquivo" );
-		}
+		// Boolean parecerJaCapturado = projetoDto.pareceresProjeto().statusParecer() ==
+		// StatusParecerEnum.ENVIADO
+		// || projetoDto.pareceresProjeto().statusParecer() ==
+		// StatusParecerEnum.CAPTURADO_EDOCS;
 
-		projetoDto.pareceresProjeto().stream().forEach( parecer -> {
+		// if(parecerJaCapturado){
+		// logger.error("Algum dos pareceres já foi capturado/assinado no E-Docs.
+		// Interrompendo processamento.");
+		// this.registrarFalhaEtapa(projetoDto.id(),
+		// EtapasIntegracaoEdocsEnum.CAPTURAASSINA );
+		// throw new RuntimeException("Falha ao obter tamanho do arquivo" );
+		// }
 
-			Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", parecer.id());
+		pareceresProjeto.stream().forEach(parecer -> {
+
+			Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", parecer.getId());
 			String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idProjeto);
+
+			ProjetoDto projetoDto = new ProjetoDto( projeto, null, null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				false,
+				false,
+				false, null, null, null, null);
 
 			assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo)
 					.subscribe(

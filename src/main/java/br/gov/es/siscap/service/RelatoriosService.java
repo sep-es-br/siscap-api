@@ -38,9 +38,9 @@ public class RelatoriosService {
 		return exportarRelatorio(jasperPrint);
 	}
 
-	public Resource gerarArquivoParecerDIC(String nomeArquivo, Integer idProjeto) {
-		JasperPrint jasperPrint = preencherArquivo(recuperarArquivo(nomeArquivo), idProjeto);
-		return exportarRelatorio(jasperPrint);
+	public Resource gerarArquivoParecerDIC(String nomeArquivo, Long idProjeto) {
+		//JasperPrint jasperPrint = preencherArquivo(recuperarArquivo(nomeArquivo), idProjeto);
+		return null; //exportarRelatorio(jasperPrint);
 	}
 
 	private InputStream recuperarArquivo(String nomeArquivo) {

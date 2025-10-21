@@ -20,4 +20,6 @@ public interface ProjetoParecerRepository extends JpaRepository<ProjetoParecer, 
     @Query(value = "DELETE FROM projeto_parecer WHERE id_projeto = :idProjeto", nativeQuery = true)
     void deleteFisicoPorProjeto(@Param("idProjeto") Long id);
 
+    boolean existsByProjetoIdAndGuidUnidadeOrganizacao(Long projetoId, String guidUnidadeOrganizacao);
+
 }

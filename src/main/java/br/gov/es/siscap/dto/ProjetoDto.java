@@ -36,7 +36,7 @@ public record ProjetoDto(
 		String idProcessoEdocs,
 		String idDocumentoDicEdocs,
 		List<ProjetoCamposComplementacaoDto> camposComplementar,
-		List<ProjetoParecerDto> pareceresProjeto) {
+		ProjetoParecerDto parecerProjeto) {
 
 	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente,
 			List<EquipeDto> equipeElaboracao,
@@ -46,7 +46,7 @@ public record ProjetoDto(
 			Boolean podeSolicitarComplementacao,
 			Boolean podeResponderComplementacao, String idProcessoEdocs, String idDocumentoDicEdocs,
 			List<ProjetoCamposComplementacaoDto> camposComplementar,
-			List<ProjetoParecerDto> pareceresProjeto) {
+			ProjetoParecerDto parecerProjeto) {
 		this(projeto.getId(),
 				projeto.getSigla(),
 				projeto.getTitulo(),
@@ -78,7 +78,7 @@ public record ProjetoDto(
 				idProcessoEdocs,
 				idDocumentoDicEdocs,
 				camposComplementar,
-				pareceresProjeto);
+				parecerProjeto);
 
 	}
 

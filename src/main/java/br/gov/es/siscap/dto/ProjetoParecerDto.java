@@ -6,7 +6,7 @@ import br.gov.es.siscap.enums.StatusParecerEnum;
 import br.gov.es.siscap.models.ProjetoParecer;
 
 public record ProjetoParecerDto(
-		Integer id,
+		Long id,
 		Long idProjeto,
 		String guidUnidadeOrganizacao,
 		String textoParecer,

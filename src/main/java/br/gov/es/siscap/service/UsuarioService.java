@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 public class UsuarioService implements UserDetailsService {
 
     @Value("${api.edocs.guiddestinoSUBCAP}")
-	private String guidSUBCAP;
+    private String guidSUBCAP;
 
     @Value("${api.parecer.guidSUBEPP}")
     private String guidSUBEPP;
@@ -38,44 +38,33 @@ public class UsuarioService implements UserDetailsService {
         repository.deleteByPessoa(new Pessoa(id));
     }
 
-    public Boolean ehDaSubcap(String subUsuario ){
-        List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService.listarPapeisAgentePublicoPorSub(subUsuario);
-        String lotacaoGuidUsuario = listaPapeisUsuario.stream()
-                        .filter( papel -> Boolean.TRUE.equals(papel.Prioritario()))
-                        .findFirst()
-                        .map(ACAgentePublicoPapelDto::LotacaoGuid)
-                        .orElseGet( () -> listaPapeisUsuario.stream()
-                            .findFirst()
-                            .map(ACAgentePublicoPapelDto::LotacaoGuid)
-                            .orElse(""));
-       return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBCAP);
+    public Boolean ehDaSubcap(String subUsuario) {
+        String lotacaoGuidUsuario = this.lotacaoGuidUsuario(subUsuario);
+        return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBCAP);
     }
 
-    public Boolean ehDaSubepp(String subUsuario ){
-        List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService.listarPapeisAgentePublicoPorSub(subUsuario);
-        String lotacaoGuidUsuario = listaPapeisUsuario.stream()
-                        .filter( papel -> Boolean.TRUE.equals(papel.Prioritario()))
-                        .findFirst()
-                        .map(ACAgentePublicoPapelDto::LotacaoGuid)
-                        .orElseGet( () -> listaPapeisUsuario.stream()
-                            .findFirst()
-                            .map(ACAgentePublicoPapelDto::LotacaoGuid)
-                            .orElse(""));
-       return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBEPP);
+    public Boolean ehDaSubepp(String subUsuario) {
+        String lotacaoGuidUsuario = this.lotacaoGuidUsuario(subUsuario);
+        return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBEPP);
     }
 
-    public Boolean ehDaSubeo(String subUsuario ){
-        List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService.listarPapeisAgentePublicoPorSub(subUsuario);
-        String lotacaoGuidUsuario = listaPapeisUsuario.stream()
-                        .filter( papel -> Boolean.TRUE.equals(papel.Prioritario()))
+    public Boolean ehDaSubeo(String subUsuario) {
+        String lotacaoGuidUsuario = this.lotacaoGuidUsuario(subUsuario);
+        return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBEO);
+    }
+
+    public String lotacaoGuidUsuario(String subUsuario) {
+        List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService
+                .listarPapeisAgentePublicoPorSub(subUsuario);
+        return listaPapeisUsuario.stream()
+                .filter(papel -> Boolean.TRUE.equals(papel.Prioritario()))
+                .findFirst()
+                .map(ACAgentePublicoPapelDto::LotacaoGuid)
+                .orElseGet(() -> listaPapeisUsuario.stream()
                         .findFirst()
                         .map(ACAgentePublicoPapelDto::LotacaoGuid)
-                        .orElseGet( () -> listaPapeisUsuario.stream()
-                            .findFirst()
-                            .map(ACAgentePublicoPapelDto::LotacaoGuid)
-                            .orElse(""));
-       return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBEO);
+                        .orElse(""));
+
     }
-    
 
 }

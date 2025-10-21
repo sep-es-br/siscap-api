@@ -81,7 +81,7 @@ public record ProjetoForm(
 			@NotNull
 			boolean enviarProjetoPedirParecer,
 
-			List<ProjetoParecerDto> pareceresProjeto
+			ProjetoParecerDto parecerProjeto
 
 ) {
 }

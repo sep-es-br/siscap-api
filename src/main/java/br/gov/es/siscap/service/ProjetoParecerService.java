@@ -1,12 +1,10 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.ProjetoAcaoDto;
 import br.gov.es.siscap.dto.ProjetoParecerDto;
-import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
-import br.gov.es.siscap.exception.ValorEstimadoIncompativelAcoesProjetoException;
+import br.gov.es.siscap.enums.StatusParecerEnum;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
 import br.gov.es.siscap.models.Projeto;
-import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.repository.ProjetoParecerRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +23,15 @@ import java.util.*;
 public class ProjetoParecerService {
 
 	@Value("${api.parecer.guidSUBEPP}")
-    private String guidSUBEPP;
+	private String guidSUBEPP;
 
-    @Value("${api.parecer.guidSUBEO}")
-    private String guidSUBEO;
+	@Value("${api.parecer.guidSUBEO}")
+	private String guidSUBEO;
 
 	private final ProjetoParecerRepository projetoParecerRepository;
+	private final AutenticacaoService autenticacaoService;
+	private final UsuarioService usuarioService;
+
 	private final Logger logger = LogManager.getLogger(ProjetoParecer.class);
 
 	public Set<ProjetoParecer> buscarPorProjeto(Projeto projeto) {
@@ -40,12 +41,12 @@ public class ProjetoParecerService {
 
 	@Transactional
 	public Set<ProjetoParecer> cadastrar(Projeto projeto, List<ProjetoParecerDto> projetoPareceresDtoList) {
-		
+
 		logger.info("Cadastrando pareceres DIC com id: {}", projeto.getId());
-		
+
 		Set<ProjetoParecer> ProjetoComplementosSet = new HashSet<>();
-		
-		projetoPareceresDtoList.forEach( parecerDto -> {
+
+		projetoPareceresDtoList.forEach(parecerDto -> {
 			ProjetoParecer complementoProjeto = new ProjetoParecer(projeto, parecerDto);
 			ProjetoComplementosSet.add(complementoProjeto);
 		});
@@ -62,12 +63,12 @@ public class ProjetoParecerService {
 	public void excluirPorProjeto(Projeto projeto) {
 
 		logger.info("Excluindo pareceres por DIC com id: {}", projeto.getId());
-		
+
 		Set<ProjetoParecer> projetoIndicadorSet = this.buscarPorProjeto(projeto);
-		
+
 		projetoParecerRepository.deleteAll(projetoIndicadorSet);
-		
-		logger.info(" pareceres vinculados ao DIC excluídos com sucesso" );
+
+		logger.info(" pareceres vinculados ao DIC excluídos com sucesso");
 
 	}
 
@@ -83,19 +84,52 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public Set<ProjetoParecer> atualizar(Projeto projeto, List<ProjetoParecerDto> ProjetoParecerDtoList, boolean isSalvar) {
-		
-		logger.info("Alterando dados de acões do Projeto com id: {}", projeto.getId());
+	public ProjetoParecer atualizar(Projeto projeto, ProjetoParecerDto ProjetoParecerDto, boolean isSalvar) {
+
+		logger.info("Alterando dados de um parecer do Projeto com id: {}", projeto.getId());
+
+		String lotacaoParecer = "";
+
+		if (ProjetoParecerDto.guidUnidadeOrganizacao().equals(guidSUBEPP))
+			lotacaoParecer = "ESTRATÉGICO";
+		else if (ProjetoParecerDto.guidUnidadeOrganizacao().equals(guidSUBEO))
+			lotacaoParecer = "ORÇAMENTÁRIO";
+
+		if (ProjetoParecerDto.id() == null || ProjetoParecerDto.id() == 0) {
+			if (projetoParecerRepository.existsByProjetoIdAndGuidUnidadeOrganizacao(projeto.getId(),
+					ProjetoParecerDto.guidUnidadeOrganizacao())) {
+				throw new ValidacaoSiscapException(
+						List.of("Já existe para esse projeto parecer vinculado ao setor : " + lotacaoParecer));
+			}
+		} else {
+			if (ProjetoParecerDto.guidUnidadeOrganizacao() == null
+					|| ProjetoParecerDto.guidUnidadeOrganizacao().isEmpty()) {
+				throw new ValidacaoSiscapException(
+						List.of("Setor não informado para atualizacao do parecer."));
+			}
+		}
+
+		if (ProjetoParecerDto.textoParecer() == null
+				|| ProjetoParecerDto.textoParecer().isEmpty()) {
+			throw new ValidacaoSiscapException(
+					List.of("Texto do parecer não informado."));
+		}
 
 		Set<ProjetoParecer> ProjetoParecerSet = this.buscarPorProjeto(projeto);
 
-		Set<ProjetoParecer> pareceresProjetoAtualizarSet = this.atualizarPareceresProjeto( projeto, ProjetoParecerSet, ProjetoParecerDtoList );
-		
+		Set<ProjetoParecer> pareceresProjetoAtualizarSet = this.atualizarPareceresProjeto(projeto, ProjetoParecerSet,
+				ProjetoParecerDto);
+
 		projetoParecerRepository.saveAllAndFlush(pareceresProjetoAtualizarSet);
 
 		logger.info("Ações do projeto alterada com sucesso");
 
-		return this.buscarPorProjeto(projeto);
+		return this.buscarPorProjeto(projeto)
+				.stream()
+				.filter(parecer -> parecer.getGuidUnidadeOrganizacao()
+						.equals(ProjetoParecerDto.guidUnidadeOrganizacao()))
+				.findFirst()
+				.orElse(null);
 
 	}
 
@@ -113,43 +147,43 @@ public class ProjetoParecerService {
 		return projetoParecerRepository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 	}
 
-	public String gerarNomeArquivoParecerDIC(Long id){
-		
+	public String gerarNomeArquivoParecerDIC(Long id) {
+
 		ProjetoParecer projetoParecer = this.buscar(id);
 		String tipoParecer = "";
 
-		if(projetoParecer.getGuidUnidadeOrganizacao().equals(guidSUBEPP))
+		if (projetoParecer.getGuidUnidadeOrganizacao().equals(guidSUBEPP))
 			tipoParecer = "ESTRATÉGICO";
-		else if(projetoParecer.getGuidUnidadeOrganizacao().equals(guidSUBEO))
+		else if (projetoParecer.getGuidUnidadeOrganizacao().equals(guidSUBEO))
 			tipoParecer = "ORÇAMENTÁRIO";
 
 		return "PARECER " + tipoParecer +
-			projetoParecer.getProjeto().getCountAno() + "-" +
-			projetoParecer.getProjeto().getOrganizacao().getNomeFantasia();
+				projetoParecer.getProjeto().getCountAno() + "-" +
+				projetoParecer.getProjeto().getOrganizacao().getNomeFantasia();
 
 	}
 
-	private Set<ProjetoParecer> atualizarPareceresProjeto( Projeto projeto, Set<ProjetoParecer> pareceresProjetoExistentes, List<ProjetoParecerDto> pareceresProjetoDtoList ) {
+	private Set<ProjetoParecer> atualizarPareceresProjeto(Projeto projeto,
+			Set<ProjetoParecer> pareceresProjetoExistentes, ProjetoParecerDto parecerDto) {
 
 		Set<ProjetoParecer> pareceresAlterarSet = new HashSet<>();
-
 		Set<ProjetoParecer> pareceresAdicionarSet = new HashSet<>();
 
-		// pareceresProjetoDtoList.forEach( parecerDto -> {
-		// 	pareceresProjetoExistentes
-		// 				.stream()
-		// 				.filter( projetoParecer -> projetoParecer.compararIdAcaoComAcaoDto(parecerDto) )
-		// 				.findFirst()
-		// 				.ifPresentOrElse(
-		// 							(projetoParecer) -> {
-		// 								projetoParecer.atualizarParecer(acaoDto);
-		// 								pareceresAlterarSet.add(projetoAcao);
-		// 							},
-		// 							() -> {
-		// 								pareceresAdicionarSet.add(new ProjetoParecer(projeto, parecerDto));
-		// 							}
-		// 				);
-		// });
+		pareceresProjetoExistentes
+				.stream()
+				.filter(projetoParecer -> projetoParecer.compararIdParecerComParecerDto(parecerDto))
+				.findFirst()
+				.ifPresentOrElse(
+						(projetoParecer) -> {
+							projetoParecer.atualizarParecer(parecerDto, projeto);
+							pareceresAlterarSet.add(projetoParecer);
+						},
+						() -> {
+							String subUsuario = autenticacaoService.getUsuarioLogado();
+							String guidOrgaoLotacaoUsuario = usuarioService.lotacaoGuidUsuario(subUsuario);
+							pareceresAdicionarSet.add(new ProjetoParecer(projeto, guidOrgaoLotacaoUsuario,
+									parecerDto.textoParecer(), StatusParecerEnum.PENDENTE));
+						});
 
 		pareceresAdicionarSet.addAll(pareceresAlterarSet);
 

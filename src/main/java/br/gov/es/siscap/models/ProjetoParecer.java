@@ -1,7 +1,9 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.dto.ProjetoAcaoDto;
 import br.gov.es.siscap.dto.ProjetoParecerDto;
 import br.gov.es.siscap.enums.StatusParecerEnum;
+import br.gov.es.siscap.enums.TipoStatusEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -9,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -27,7 +30,7 @@ public class ProjetoParecer extends ControleHistorico {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "projeto_parecer_id_gen")
 	@SequenceGenerator(name = "projeto_parecer_id_gen", sequenceName = "projeto_parecer_id_seq", allocationSize = 1)
 	@Column(name = "id", nullable = false)
-	private Integer id;
+	private Long id;
 
 	@NotNull
 	@ManyToOne()
@@ -59,5 +62,24 @@ public class ProjetoParecer extends ControleHistorico {
 		this.setGuidDocumentoEdocs(parecer.guidDocumentoEdocs());
 	}
 
+	public ProjetoParecer(Projeto projeto, String guidUnidadeOrganizacao , String textoParecer, StatusParecerEnum statusParecer ) {
+		this.setProjeto(projeto);
+		this.setGuidUnidadeOrganizacao(guidUnidadeOrganizacao);
+		this.setTextoParecer(textoParecer);
+		this.setStatusParecer(statusParecer);
+	}
+
+	public boolean compararIdParecerComParecerDto(ProjetoParecerDto parecerDto) {
+        return Objects.equals(this.getId(), parecerDto.id());
+    }
+
+	public void atualizarParecer(ProjetoParecerDto parecerDto, Projeto projeto) {
+		this.setProjeto(projeto);
+		this.setDataEnvio(parecerDto.dataEnvio());
+		this.setGuidDocumentoEdocs(parecerDto.guidDocumentoEdocs());
+		this.setGuidUnidadeOrganizacao(parecerDto.guidUnidadeOrganizacao());
+		this.setStatusParecer(parecerDto.statusParecer());
+		this.setTextoParecer(parecerDto.textoParecer());
+	}
 
 }
