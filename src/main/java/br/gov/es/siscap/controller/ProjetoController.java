@@ -7,13 +7,17 @@ import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.service.AsyncExecutorService;
+import br.gov.es.siscap.service.AutenticacaoService;
 import br.gov.es.siscap.service.IntegraccaoEdocsService;
 import br.gov.es.siscap.service.ProjetoService;
 import br.gov.es.siscap.service.RelatoriosService;
+import br.gov.es.siscap.service.UsuarioService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +41,8 @@ public class ProjetoController {
 	private final RelatoriosService relatoriosService;
 	private final AsyncExecutorService asyncExecutorService;
 	private final IntegraccaoEdocsService integracaoEdocsService;
+	private final AutenticacaoService autenticacaoService;
+	private final Logger logger = LogManager.getLogger(RelatoriosService.class);
 
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
@@ -140,8 +146,8 @@ public class ProjetoController {
 	@PutMapping("/dic/edocs/capturarparecer/{idProjeto}")
 	public ResponseEntity<Resource> assinarCapturaParecerDIC(@PathVariable Long idProjeto,
 			@Valid @RequestBody ProjetoForm form) {
-		service.atualizar(idProjeto, form, false);
-		asyncExecutorService.assinarCapturaParecerDIC(idProjeto);
+		service.atualizar( idProjeto, form, false );
+		asyncExecutorService.assinarCapturaParecerDIC( idProjeto, form.parecerProjeto().id() );
 		return ResponseEntity.accepted().build();
 	}
 

@@ -11,7 +11,7 @@ public enum StatusProjetoEnum {
 	EM_ANALISE("Em Análise"),
 	ARQUIVADO("Arquivado"),
 	PARECER_SEP("Parecer SEP"),
-	PARECER_ESTRATEGICO_ORCAMENTARIO("Parecer Estratégico-Orçamentário"),
+	PARECER_ESTRATEGICO_ORCAMENTARIO("Aguardando Parecer"),
 	COMPLEMETACAO("Em Complementação"),
 	ENCERRADO("Encerrado");
 

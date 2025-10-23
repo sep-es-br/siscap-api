@@ -4,6 +4,7 @@ import br.gov.es.siscap.dto.*;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
+import br.gov.es.siscap.enums.LotacaoUsuarioEnum;
 import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.TipoPapelEnum;
 import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
@@ -78,6 +79,12 @@ public class ProjetoService {
 
 	@Value("${frontend.host}")
 	private String frontEndHost;
+
+	@Value("${api.parecer.guidSUBEPP}")
+    private String guidSUBEPP;
+
+    @Value("${api.parecer.guidSUBEO}")
+    private String guidSUBEO;
 
 	public Page<ProjetoListaDto> listarTodos(
 			Pageable pageable,
@@ -156,6 +163,12 @@ public class ProjetoService {
 				.findFirst()
 				.orElse(null);
 
+		LotacaoUsuarioEnum lotacaoUsuario = LotacaoUsuarioEnum.fromGuid(
+			usuarioService.lotacaoGuidUsuario(subUsuario),
+			guidSUBEPP,
+			guidSUBEO
+		);
+
 		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
@@ -171,7 +184,8 @@ public class ProjetoService {
 				projeto.getIdProcessoEdocs(),
 				projeto.getIdDocumentoCapturadoEdocs(),
 				this.buscarComplementacoes(complementosSeremFeitos),
-				this.buscarParecer(parecerProjeto));
+				this.buscarParecer(parecerProjeto), 
+				lotacaoUsuario.getValue() );
 
 		return projetoDtoRetorno;
 
@@ -280,7 +294,7 @@ public class ProjetoService {
 				this.buscarNomeResponsavelProponente(projetoPessoaSet),
 				false,
 				false,
-				false, null, null, null, null);
+				false, null, null, null, null, null);
 
 	}
 
@@ -340,7 +354,7 @@ public class ProjetoService {
 		ProjetoParecerDto projetoParecerDto = form.parecerProjeto();
 		ProjetoParecer projetoParecer = null;
 
-		if (projeto.getStatus() == StatusProjetoEnum.PARECER_ESTRATEGICO_ORCAMENTARIO.getValue()) {
+		if (projeto.getStatus().equals(StatusProjetoEnum.PARECER_ESTRATEGICO_ORCAMENTARIO.getValue())) {
 			projetoParecerDto = form.parecerProjeto();
 			projetoParecer = projetoParecerService.atualizar(projetoResult, projetoParecerDto, rascunho);
 		}
@@ -385,7 +399,7 @@ public class ProjetoService {
 				false,
 				null, null,
 				null,
-				this.buscarParecer(projetoParecer));
+				this.buscarParecer(projetoParecer),null);
 
 	}
 

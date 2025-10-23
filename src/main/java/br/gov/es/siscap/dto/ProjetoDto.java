@@ -1,5 +1,6 @@
 package br.gov.es.siscap.dto;
 
+import br.gov.es.siscap.enums.LotacaoUsuarioEnum;
 import br.gov.es.siscap.models.*;
 
 import java.util.List;
@@ -36,7 +37,8 @@ public record ProjetoDto(
 		String idProcessoEdocs,
 		String idDocumentoDicEdocs,
 		List<ProjetoCamposComplementacaoDto> camposComplementar,
-		ProjetoParecerDto parecerProjeto) {
+		ProjetoParecerDto parecerProjeto,
+		Long lotacaoUsuario) {
 
 	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente,
 			List<EquipeDto> equipeElaboracao,
@@ -46,7 +48,7 @@ public record ProjetoDto(
 			Boolean podeSolicitarComplementacao,
 			Boolean podeResponderComplementacao, String idProcessoEdocs, String idDocumentoDicEdocs,
 			List<ProjetoCamposComplementacaoDto> camposComplementar,
-			ProjetoParecerDto parecerProjeto) {
+			ProjetoParecerDto parecerProjeto, Long lotacaoUsuario) {
 		this(projeto.getId(),
 				projeto.getSigla(),
 				projeto.getTitulo(),
@@ -78,7 +80,43 @@ public record ProjetoDto(
 				idProcessoEdocs,
 				idDocumentoDicEdocs,
 				camposComplementar,
-				parecerProjeto);
+				parecerProjeto, lotacaoUsuario);
+
+	}
+
+	public ProjetoDto(Projeto projeto) {
+		this(projeto.getId(),
+				projeto.getSigla(),
+				projeto.getTitulo(),
+				projeto.getStatus(),
+				null,
+				projeto.getObjetivo(),
+				projeto.getObjetivoEspecifico(),
+				projeto.getTipoStatus().getId(),
+				projeto.getOrganizacao().getId(),
+				projeto.getSituacaoProblema(),
+				projeto.getSolucoesPropostas(),
+				projeto.getImpactos(),
+				projeto.getArranjosInstitucionais(),
+				null,
+				null,
+				null,
+				projeto.isRascunho(),
+				null,
+				null,
+				null,
+				projeto.getPecasPlanejamento(),
+				projeto.getProtocoloEdocs(),
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null, null);
 
 	}
 

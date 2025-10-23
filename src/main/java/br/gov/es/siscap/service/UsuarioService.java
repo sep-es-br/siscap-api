@@ -26,6 +26,9 @@ public class UsuarioService implements UserDetailsService {
     @Value("${api.parecer.guidSUBEO}")
     private String guidSUBEO;
 
+    @Value("${api.parecer.lotacao.simulada}")
+    private String lotacaoSimulada;
+
     private final UsuarioRepository repository;
     private final AcessoCidadaoService acessoCidadaoService;
 
@@ -54,15 +57,26 @@ public class UsuarioService implements UserDetailsService {
     }
 
     public String lotacaoGuidUsuario(String subUsuario) {
+
+        // ⚙️ Simulação de ambiente de teste
+        if (lotacaoSimulada != null && !lotacaoSimulada.isEmpty()) {
+            return switch (lotacaoSimulada.toUpperCase()) {
+                case "SUBEPP" -> guidSUBEPP;
+                case "SUBEO" -> guidSUBEO;
+                default -> lotacaoSimulada;
+            };
+        }
+        
         List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService
                 .listarPapeisAgentePublicoPorSub(subUsuario);
+
         return listaPapeisUsuario.stream()
                 .filter(papel -> Boolean.TRUE.equals(papel.Prioritario()))
                 .findFirst()
                 .map(ACAgentePublicoPapelDto::LotacaoGuid)
                 .orElseGet(() -> listaPapeisUsuario.stream()
                         .findFirst()
-                        .map(ACAgentePublicoPapelDto::LotacaoGuid)
+                        .map( ACAgentePublicoPapelDto::LotacaoGuid )
                         .orElse(""));
 
     }

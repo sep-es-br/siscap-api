@@ -8,6 +8,7 @@ import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.repository.ProjetoParecerRepository;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -188,6 +190,20 @@ public class ProjetoParecerService {
 		pareceresAdicionarSet.addAll(pareceresAlterarSet);
 
 		return pareceresAdicionarSet;
+
+	}
+
+	@Transactional
+	public void atualizarIdArquivoCapturado(String guidArquivoCapturado, Long idParecer, String subUsuarioLogado) {
+
+		ProjetoParecer projetoParecer = this.buscar(idParecer);
+
+		projetoParecer.setGuidDocumentoEdocs(guidArquivoCapturado);
+		projetoParecer.setStatusParecer(StatusParecerEnum.ENVIADO);
+		projetoParecer.setDataEnvio(LocalDateTime.now());
+		projetoParecer.setSubUsuarioEnviou(subUsuarioLogado);
+
+		projetoParecerRepository.save(projetoParecer);
 
 	}
 

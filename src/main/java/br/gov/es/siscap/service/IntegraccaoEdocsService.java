@@ -9,6 +9,7 @@ import br.gov.es.siscap.enums.StatusParecerEnum;
 import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.edocs.EtapasIntegracaoEdocsEnum;
 import br.gov.es.siscap.enums.edocs.SituacaoEventoEdocsEnum;
+import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoParecer;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -23,6 +25,7 @@ import reactor.util.retry.Retry;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,53 +112,24 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	public void assinarCapturaParecerDIC(Long idProjeto) {
+	public void assinarCapturaParecerDIC( Long idProjeto, Long idParecer ) {
 
 		logger.info("Iniciando processo para Assinar e Capturar Pareceres do projeto {} no E-Docs..", idProjeto);
+
+		String subUsuarioLogado = autenticacaoService.getUsuarioLogado();
 
 		this.limparEtapas(idProjeto);
 
 		Projeto projeto = projetoService.buscar(idProjeto);
 
-		Set<ProjetoParecer> pareceresProjeto = projetoParecerService.buscarPorProjeto(projeto);
+		Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer);
+		String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
+		ProjetoDto projetoDto = new ProjetoDto(projeto);
 
-		// Boolean parecerJaCapturado = projetoDto.pareceresProjeto().statusParecer() ==
-		// StatusParecerEnum.ENVIADO
-		// || projetoDto.pareceresProjeto().statusParecer() ==
-		// StatusParecerEnum.CAPTURADO_EDOCS;
-
-		// if(parecerJaCapturado){
-		// logger.error("Algum dos pareceres já foi capturado/assinado no E-Docs.
-		// Interrompendo processamento.");
-		// this.registrarFalhaEtapa(projetoDto.id(),
-		// EtapasIntegracaoEdocsEnum.CAPTURAASSINA );
-		// throw new RuntimeException("Falha ao obter tamanho do arquivo" );
-		// }
-
-		pareceresProjeto.stream().forEach(parecer -> {
-
-			Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", parecer.getId());
-			String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idProjeto);
-
-			ProjetoDto projetoDto = new ProjetoDto( projeto, null, null,
-				null,
-				null,
-				null,
-				null,
-				null,
-				null,
-				null,
-				null,
-				false,
-				false,
-				false, null, null, null, null);
-
-			assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo)
-					.subscribe(
-							mensagem -> logger.info("SUCESSO: {}", mensagem),
-							erro -> logger.info("ERRO: {}", erro));
-
-		});
+		this.assinarCapturarParecerProjetoReativo( projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado )
+				.subscribe(
+						mensagem -> logger.info("SUCESSO: {}", mensagem),
+						erro -> logger.info("ERRO: {}", erro));
 
 	}
 
@@ -277,7 +251,7 @@ public class IntegraccaoEdocsService {
 	}
 
 	public Mono<String> assinarCapturarParecerProjetoReativo(ProjetoDto projetoDto, Resource arquivo,
-			String nomeArquivo) {
+			String nomeArquivo, Long idParecer, String subUsuarioLogado) {
 
 		final long tamanho;
 		try {
@@ -296,7 +270,7 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
 				.flatMap(ctx -> capturarAssinar(ctx, nomeArquivo))
 				.flatMap(ctx -> consultarSituacaoCaptura(ctx))
-				// .flatMap(ctx -> atualizarProjeto(ctx))
+				.flatMap(ctx -> atualizarParecer(ctx, idParecer, subUsuarioLogado))
 				.thenReturn("Assinatura e Captura do parecer concluída com sucesso.");
 
 	}
@@ -369,6 +343,14 @@ public class IntegraccaoEdocsService {
 				.thenReturn(ctx);
 	}
 
+	private Mono<String> atualizarParecer(FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado) {
+		
+		projetoParecerService.atualizarIdArquivoCapturado(ctx.getIdDocumento(), idParecer, subUsuarioLogado );
+
+		return Mono.just("Ok");
+
+	}
+
 	private Mono<String> atualizarProjeto(FluxoContextoIntegracaoDto ctx) {
 
 		String idProjetoEDocs = (ctx.getIdProcesso() != null && !ctx.getIdProcesso().isEmpty()) ? ctx.getIdProcesso()
@@ -379,7 +361,7 @@ public class IntegraccaoEdocsService {
 				ctx.getToken()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.switchIfEmpty(Mono.error(new RuntimeException(
-						"Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.")))
+						"Falha ao executar chamada ao endpoint para consultar dados do processo via E-Docs.")))
 				.doOnSuccess(retornoDadosProcesso -> {
 
 					logger.info("Gravando Protocolo do processo E-Docs {} no processo do SISCAP.",

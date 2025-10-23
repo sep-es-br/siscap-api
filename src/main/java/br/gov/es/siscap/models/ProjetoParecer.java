@@ -1,9 +1,7 @@
 package br.gov.es.siscap.models;
 
-import br.gov.es.siscap.dto.ProjetoAcaoDto;
 import br.gov.es.siscap.dto.ProjetoParecerDto;
 import br.gov.es.siscap.enums.StatusParecerEnum;
-import br.gov.es.siscap.enums.TipoStatusEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -51,6 +49,9 @@ public class ProjetoParecer extends ControleHistorico {
 
 	@Column(name = "guid_documento_edocs", nullable = true, length=50)
 	private String guidDocumentoEdocs;
+
+	@Column(name = "sub_usuario_enviou", nullable = true, length=50)
+	private String subUsuarioEnviou;
 
 	public ProjetoParecer(Projeto projeto, ProjetoParecerDto parecer) {
 		this.setProjeto(projeto);
