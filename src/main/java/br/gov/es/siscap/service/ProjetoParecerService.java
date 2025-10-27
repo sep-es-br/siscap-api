@@ -4,18 +4,19 @@ import br.gov.es.siscap.dto.ProjetoParecerDto;
 import br.gov.es.siscap.enums.StatusParecerEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
+import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.repository.ProjetoParecerRepository;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -30,9 +31,17 @@ public class ProjetoParecerService {
 	@Value("${api.parecer.guidSUBEO}")
 	private String guidSUBEO;
 
+	@Value("${email.destinatario-subcap}")
+	private String DESTINO_AVISO_PARECER_CAPTURA;
+
+	@Value("${frontend.host}")
+	private String frontEndHost;
+
 	private final ProjetoParecerRepository projetoParecerRepository;
 	private final AutenticacaoService autenticacaoService;
 	private final UsuarioService usuarioService;
+	private final PessoaService pessoaService;
+	private final EmailService emailService;
 
 	private final Logger logger = LogManager.getLogger(ProjetoParecer.class);
 
@@ -135,18 +144,45 @@ public class ProjetoParecerService {
 
 	}
 
-	public ProjetoParecerDto buscarPorId(Long id) {
+	// public ProjetoParecerDto buscarPorId(Long id) {
 
-		logger.info("Buscando parecer de um projeto com id: {}", id);
+	// 	logger.info("Buscando parecer de um projeto com id: {}", id);
 
-		ProjetoParecer projetoParecer = this.buscar(id);
+	// 	ProjetoParecer projetoParecer = this.buscar(id);
 
-		return new ProjetoParecerDto(projetoParecer);
+	// 	Pessoa pessoa = pessoaService.buscarPorSub(projetoParecer.getSubUsuarioEnviou());
 
-	}
+	// 	return new ProjetoParecerDto(projetoParecer, pessoa.getNome());
+
+	// }
 
 	private ProjetoParecer buscar(Long id) {
 		return projetoParecerRepository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
+	}
+
+	public Boolean verificarEnvioPareceresProjeto(Long idProjeto) {
+
+		var pareceres = projetoParecerRepository.findAllByProjetoId(idProjeto);
+
+		boolean subeppEnviado = pareceres.stream()
+				.anyMatch(p -> p.getGuidDocumentoEdocs() != null
+						&& p.getStatusParecer() == StatusParecerEnum.ENVIADO.getValue()
+						&& p.getGuidUnidadeOrganizacao().equals(guidSUBEPP));
+
+		boolean subeoEnviado = pareceres.stream()
+				.anyMatch(p -> p.getGuidDocumentoEdocs() != null
+						&& p.getStatusParecer() == StatusParecerEnum.ENVIADO.getValue()
+						&& p.getGuidUnidadeOrganizacao().equals(guidSUBEO));
+
+		return subeppEnviado && subeoEnviado;
+
+	}
+
+	public Boolean verificarCapturaParecer(Long idParecer){
+		Optional<ProjetoParecer> parecer = projetoParecerRepository.findById(idParecer);
+		return parecer
+			.map(p -> p.getGuidDocumentoEdocs() != null && p.getGuidDocumentoEdocs().length() > 0)
+			.orElse(false);
 	}
 
 	public String gerarNomeArquivoParecerDIC(Long id) {
@@ -183,7 +219,7 @@ public class ProjetoParecerService {
 						() -> {
 							String subUsuario = autenticacaoService.getUsuarioLogado();
 							String guidOrgaoLotacaoUsuario = usuarioService.lotacaoGuidUsuario(subUsuario);
-							pareceresAdicionarSet.add(new ProjetoParecer(projeto, guidOrgaoLotacaoUsuario,
+							pareceresAdicionarSet.add( new ProjetoParecer(projeto, guidOrgaoLotacaoUsuario,
 									parecerDto.textoParecer(), StatusParecerEnum.PENDENTE));
 						});
 
@@ -199,11 +235,48 @@ public class ProjetoParecerService {
 		ProjetoParecer projetoParecer = this.buscar(idParecer);
 
 		projetoParecer.setGuidDocumentoEdocs(guidArquivoCapturado);
-		projetoParecer.setStatusParecer(StatusParecerEnum.ENVIADO);
+		projetoParecer.setStatusParecer(StatusParecerEnum.ENVIADO.getValue());
 		projetoParecer.setDataEnvio(LocalDateTime.now());
 		projetoParecer.setSubUsuarioEnviou(subUsuarioLogado);
 
 		projetoParecerRepository.save(projetoParecer);
+
+	}
+
+	@Transactional
+	public boolean enviarAvisoPareceresProjetoCapturadosEdocs(Long idProjeto) {
+
+		List<String> erros = new ArrayList<>();
+
+		boolean confirmacaoEnvioEmail = false;
+		List<String> emailsInteressadosList = new ArrayList<String>();
+		emailsInteressadosList.add( DESTINO_AVISO_PARECER_CAPTURA );
+
+		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idProjeto;
+
+		try {
+
+			confirmacaoEnvioEmail = emailService.enviarEmailPareceresCapturadosProjeto(emailsInteressadosList, idProjeto, linkEdicao );
+
+			if (confirmacaoEnvioEmail) {
+				logger.info(
+						"Email aviso captura pareceres do projeto enviado com sucesso para o projeto id " + idProjeto);
+			} else {
+				erros.add("Erro ao enviar aviso captura pareceres do projeto id " + idProjeto);
+			}
+
+		} catch (UnsupportedEncodingException e) {
+			logger.error(e.getMessage());
+		} catch (MessagingException e) {
+			logger.error(e.getMessage());
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		return true;
 
 	}
 

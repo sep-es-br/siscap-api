@@ -214,9 +214,16 @@ public class ProjetoService {
 	}
 
 	private ProjetoParecerDto buscarParecer(ProjetoParecer projetoParecer) {
-		return Optional.ofNullable(projetoParecer)
-				.map(ProjetoParecerDto::new)
-				.orElse(null);
+		if( projetoParecer == null )
+			return null;
+			
+		String nomeUsuarioEnviou = "";
+		if(projetoParecer.getSubUsuarioEnviou() != null){
+			Pessoa pessoa = pessoaService.buscarPorSub(projetoParecer.getSubUsuarioEnviou());
+			nomeUsuarioEnviou = pessoa.getNome();
+		}
+
+		return new ProjetoParecerDto(projetoParecer, nomeUsuarioEnviou);
 	}
 
 	@Transactional
@@ -847,8 +854,6 @@ public class ProjetoService {
 	}
 
 	public Projeto buscar(Long id) {
-		// Projeto resultado = repository.findById(id).orElseThrow(() -> new
-		// ProjetoNaoEncontradoException(id));
 		return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 	}
 

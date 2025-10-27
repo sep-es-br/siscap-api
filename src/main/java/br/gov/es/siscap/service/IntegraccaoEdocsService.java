@@ -5,19 +5,16 @@ import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.edocswebapi.*;
-import br.gov.es.siscap.enums.StatusParecerEnum;
 import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.edocs.EtapasIntegracaoEdocsEnum;
 import br.gov.es.siscap.enums.edocs.SituacaoEventoEdocsEnum;
-import br.gov.es.siscap.exception.service.SiscapServiceException;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Projeto;
-import br.gov.es.siscap.models.ProjetoParecer;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -25,12 +22,10 @@ import reactor.util.retry.Retry;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,8 +51,8 @@ public class IntegraccaoEdocsService {
 
 	private Map<Long, List<EtapasIntegracaoDto>> etapasPorProjeto = new HashMap<>();
 
-	public void atualizarEtapa(Long idProjeto, EtapasIntegracaoEdocsEnum etapaEnum, boolean iniciou,
-			boolean finalizou) {
+	public void atualizarEtapa( Long idProjeto, EtapasIntegracaoEdocsEnum etapaEnum, boolean iniciou,
+			boolean finalizou ) {
 		List<EtapasIntegracaoDto> etapas = etapasPorProjeto.get(idProjeto);
 		if (etapas != null) {
 			for (EtapasIntegracaoDto etapa : etapas) {
@@ -67,6 +62,17 @@ public class IntegraccaoEdocsService {
 					etapa.setErro(false);
 					break;
 				}
+			}
+		}
+	}
+
+	public void finalizaTodasEtapas( Long idProjeto ) {
+		List<EtapasIntegracaoDto> etapas = etapasPorProjeto.get(idProjeto);
+		if (etapas != null) {
+			for (EtapasIntegracaoDto etapa : etapas) {
+					etapa.setIniciou(true);
+					etapa.setFinalizou(true);
+					etapa.setErro(false);
 			}
 		}
 	}
@@ -115,6 +121,12 @@ public class IntegraccaoEdocsService {
 	public void assinarCapturaParecerDIC( Long idProjeto, Long idParecer ) {
 
 		logger.info("Iniciando processo para Assinar e Capturar Pareceres do projeto {} no E-Docs..", idProjeto);
+
+		if(projetoParecerService.verificarCapturaParecer(idParecer)){
+			logger.info("Parecere {} já capturado no E-Docs..", idParecer);
+			throw new ValidacaoSiscapException(
+						List.of("Parecer já capturado via E-Docs"));
+		}
 
 		String subUsuarioLogado = autenticacaoService.getUsuarioLogado();
 
@@ -194,8 +206,6 @@ public class IntegraccaoEdocsService {
 		return buscarTokenReativo()
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token))
-				// .flatMap(ctx -> avocar(ctx))
-				// .flatMap(ctx -> consultarSituacaoEventoAvocar(ctx))
 				.flatMap(ctx -> despacharProcessoDICOrgaoOrigem(ctx))
 				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
 				.doOnSuccess(retornoSituacaoDespacho -> {
@@ -270,6 +280,7 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
 				.flatMap(ctx -> capturarAssinar(ctx, nomeArquivo))
 				.flatMap(ctx -> consultarSituacaoCaptura(ctx))
+				.doOnSuccess( retorno -> finalizaTodasEtapas( projetoDto.id() ) )
 				.flatMap(ctx -> atualizarParecer(ctx, idParecer, subUsuarioLogado))
 				.thenReturn("Assinatura e Captura do parecer concluída com sucesso.");
 
@@ -291,14 +302,6 @@ public class IntegraccaoEdocsService {
 		return buscarTokenReativo()
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token))
-				// .flatMap(ctx -> avocar(ctx))
-				// .doOnError(e -> {
-				// logger.error("Falha ao executar chamada ao endpoint para avocar processo via
-				// E-Docs.", e );
-				// this.registrarFalhaEtapa( projetoDto.id(),
-				// EtapasIntegracaoEdocsEnum.CAPTURAASSINA );
-				// })
-				// .flatMap(ctx -> consultarSituacaoEventoAvocar(ctx))
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
 				.flatMap(ctx -> uploadArquivo(ctx, arquivoCorrigido, nomeArquivo))
 				.flatMap(ctx -> capturarAssinar(ctx, nomeArquivo))
@@ -343,9 +346,16 @@ public class IntegraccaoEdocsService {
 				.thenReturn(ctx);
 	}
 
-	private Mono<String> atualizarParecer(FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado) {
+	private Mono<String> atualizarParecer( FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado ) {
 		
-		projetoParecerService.atualizarIdArquivoCapturado(ctx.getIdDocumento(), idParecer, subUsuarioLogado );
+		projetoParecerService.atualizarIdArquivoCapturado( ctx.getIdDocumento(), idParecer, subUsuarioLogado );
+
+		// alterar o status do projeto se todos os pareceres foram enviados para o E-Docs..
+		// no minimo havera parecers da SUBEPP E SUBEO..
+		if ( projetoParecerService.verificarEnvioPareceresProjeto( ctx.getProjeto().id() ) ) {
+			if( projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs( ctx.getProjeto().id() ) )
+				projetoService.alterarStatusProjeto( ctx.getProjeto().id(), StatusProjetoEnum.EM_ANALISE.getValue() );
+		}
 
 		return Mono.just("Ok");
 
@@ -542,19 +552,10 @@ public class IntegraccaoEdocsService {
 					registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
 				})
 				.map(documentos -> {
-
-					// documentos.forEach(
-					// doc -> logger.info("Documento looping -> {}, {}, {} -- documento CTX {}",
-					// doc.documentoId(), doc.documentoNome(), doc.sequencial(),
-					// ctx.getProjeto().idDocumentoDicEdocs()) );
-
 					documentos.stream()
 							.filter(doc -> doc.documentoId().equals(ctx.getProjeto().idDocumentoDicEdocs()))
 							.findFirst()
 							.ifPresent(ctx::setDocumentoAtoProcessoDto);
-
-					// logger.info( "CTX - " , ctx.toString() );
-
 					return ctx;
 				});
 	}

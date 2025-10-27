@@ -42,7 +42,7 @@ public class ProjetoParecer extends ControleHistorico {
 	private String textoParecer;
 
 	@Column(name = "status_parecer", nullable = false)
-	private StatusParecerEnum statusParecer;
+	private Long statusParecer;
 
 	@Column(name = "data_envio", nullable = false)
 	private LocalDateTime dataEnvio;
@@ -67,7 +67,7 @@ public class ProjetoParecer extends ControleHistorico {
 		this.setProjeto(projeto);
 		this.setGuidUnidadeOrganizacao(guidUnidadeOrganizacao);
 		this.setTextoParecer(textoParecer);
-		this.setStatusParecer(statusParecer);
+		this.setStatusParecer(statusParecer.getValue());
 	}
 
 	public boolean compararIdParecerComParecerDto(ProjetoParecerDto parecerDto) {

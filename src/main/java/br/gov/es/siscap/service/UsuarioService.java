@@ -46,15 +46,15 @@ public class UsuarioService implements UserDetailsService {
         return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBCAP);
     }
 
-    public Boolean ehDaSubepp(String subUsuario) {
-        String lotacaoGuidUsuario = this.lotacaoGuidUsuario(subUsuario);
-        return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBEPP);
-    }
+    // public Boolean ehDaSubepp(String subUsuario) {
+    //     String lotacaoGuidUsuario = this.lotacaoGuidUsuario(subUsuario);
+    //     return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBEPP);
+    // }
 
-    public Boolean ehDaSubeo(String subUsuario) {
-        String lotacaoGuidUsuario = this.lotacaoGuidUsuario(subUsuario);
-        return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBEO);
-    }
+    // public Boolean ehDaSubeo(String subUsuario) {
+    //     String lotacaoGuidUsuario = this.lotacaoGuidUsuario(subUsuario);
+    //     return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBEO);
+    // }
 
     public String lotacaoGuidUsuario(String subUsuario) {
 

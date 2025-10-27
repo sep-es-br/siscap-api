@@ -16,6 +16,8 @@ public interface ProjetoParecerRepository extends JpaRepository<ProjetoParecer, 
 
 	Set<ProjetoParecer> findAllByProjeto(Projeto projeto);
 
+    Set<ProjetoParecer> findAllByProjetoId(Long idProjeto);
+
 	@Modifying
     @Query(value = "DELETE FROM projeto_parecer WHERE id_projeto = :idProjeto", nativeQuery = true)
     void deleteFisicoPorProjeto(@Param("idProjeto") Long id);

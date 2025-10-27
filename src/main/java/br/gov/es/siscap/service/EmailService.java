@@ -9,6 +9,7 @@ import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.utils.EnvioAnaliseGestorDicEmailBuilder;
 import br.gov.es.siscap.utils.EnvioArquivamentoDicEmailBuilder;
+import br.gov.es.siscap.utils.EnvioAvisoCapturaPareceresEmailBuilder;
 import br.gov.es.siscap.utils.EnvioComplementoDicEmailBuilder;
 import br.gov.es.siscap.utils.EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioRevisaoDicEmailBuilder;
@@ -319,6 +320,52 @@ public class EmailService {
 		}
 
 		return true;
+	}
+
+	public boolean enviarEmailPareceresCapturadosProjeto( List<String> emailsInteressadosList, Long idProjeto, String linkEdicao ) throws MessagingException, UnsupportedEncodingException {
+
+		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
+		MimeMessage mensagem = this.sender.createMimeMessage();
+		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
+
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+				"",
+				linkEdicao,
+				"",
+				"",
+				emailsInteressadosList,
+				"");
+
+		String assuntoEmail = EnvioAvisoCapturaPareceresEmailBuilder.montarAssuntoEmail();
+		String corpoEmail = EnvioAvisoCapturaPareceresEmailBuilder.montarCorpoEmail( envioEmailDicDetalhesDto ) ;
+
+		helper.setFrom(REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO);
+		helper.setSubject(assuntoEmail);
+		helper.setText(corpoEmail, true);
+
+		for (String emailInteressado : emailsInteressadosList) {
+			helper.setTo(emailInteressado);
+			try {
+				// adicionando as imagens inline (do resources)
+				ClassPathResource imagemLogoES =
+						new ClassPathResource("static/imagens/govES-logo.png");
+				helper.addInline("govES-logo", imagemLogoES);
+
+				ClassPathResource imagemLogoSiscap =
+						new ClassPathResource("static/imagens/siscap-white.png");
+				helper.addInline("Icon-siscap", imagemLogoSiscap);
+
+				this.sender.send(helper.getMimeMessage());
+				confirmacaoEnvioEmailList.add(true);
+
+			} catch (MailException e) {
+				confirmacaoEnvioEmailList.add(false);
+				throw new RuntimeException(e);
+			}
+		}
+
+		return true;
+
 	}
 
 

@@ -2,7 +2,6 @@ package br.gov.es.siscap.dto;
 
 import java.time.LocalDateTime;
 
-import br.gov.es.siscap.enums.StatusParecerEnum;
 import br.gov.es.siscap.models.ProjetoParecer;
 
 public record ProjetoParecerDto(
@@ -10,9 +9,22 @@ public record ProjetoParecerDto(
 		Long idProjeto,
 		String guidUnidadeOrganizacao,
 		String textoParecer,
-		StatusParecerEnum statusParecer,
+		Long statusParecer,
 		LocalDateTime dataEnvio,
-		String guidDocumentoEdocs) {
+		String guidDocumentoEdocs,
+		String usuarioFezEnvioParecer) {
+
+	public ProjetoParecerDto(ProjetoParecer projetoParecer, String usuarioFezEnvioParecer) {
+		this(
+				projetoParecer.getId(),
+				projetoParecer.getProjeto().getId(),
+				projetoParecer.getGuidUnidadeOrganizacao(),
+				projetoParecer.getTextoParecer(),
+				projetoParecer.getStatusParecer(),
+				projetoParecer.getDataEnvio(),
+				projetoParecer.getGuidDocumentoEdocs(),
+				usuarioFezEnvioParecer);
+	}
 
 	public ProjetoParecerDto(ProjetoParecer projetoParecer) {
 		this(
@@ -22,7 +34,8 @@ public record ProjetoParecerDto(
 				projetoParecer.getTextoParecer(),
 				projetoParecer.getStatusParecer(),
 				projetoParecer.getDataEnvio(),
-				projetoParecer.getGuidDocumentoEdocs());
+				projetoParecer.getGuidDocumentoEdocs(),
+				projetoParecer.getSubUsuarioEnviou());
 	}
 
 }
