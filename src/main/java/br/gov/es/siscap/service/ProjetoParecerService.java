@@ -95,33 +95,38 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public ProjetoParecer atualizar(Projeto projeto, ProjetoParecerDto ProjetoParecerDto, boolean isSalvar) {
+	public ProjetoParecer atualizar(Projeto projeto, ProjetoParecerDto projetoParecerDto, boolean isSalvar) {
+
+		if ( projetoParecerDto.guidDocumentoEdocs() != null && projetoParecerDto.guidDocumentoEdocs().length() > 0 ) {
+			throw new ValidacaoSiscapException(
+						List.of("O parecer já foi enviado e não pode mais ser alterado ou reenviado."));
+		}
 
 		logger.info("Alterando dados de um parecer do Projeto com id: {}", projeto.getId());
 
 		String lotacaoParecer = "";
 
-		if (ProjetoParecerDto.guidUnidadeOrganizacao().equals(guidSUBEPP))
+		if (projetoParecerDto.guidUnidadeOrganizacao().equals(guidSUBEPP))
 			lotacaoParecer = "ESTRATÉGICO";
-		else if (ProjetoParecerDto.guidUnidadeOrganizacao().equals(guidSUBEO))
+		else if (projetoParecerDto.guidUnidadeOrganizacao().equals(guidSUBEO))
 			lotacaoParecer = "ORÇAMENTÁRIO";
 
-		if (ProjetoParecerDto.id() == null || ProjetoParecerDto.id() == 0) {
+		if (projetoParecerDto.id() == null || projetoParecerDto.id() == 0) {
 			if (projetoParecerRepository.existsByProjetoIdAndGuidUnidadeOrganizacao(projeto.getId(),
-					ProjetoParecerDto.guidUnidadeOrganizacao())) {
+				projetoParecerDto.guidUnidadeOrganizacao())) {
 				throw new ValidacaoSiscapException(
 						List.of("Já existe para esse projeto parecer vinculado ao setor : " + lotacaoParecer));
 			}
 		} else {
-			if (ProjetoParecerDto.guidUnidadeOrganizacao() == null
-					|| ProjetoParecerDto.guidUnidadeOrganizacao().isEmpty()) {
+			if (projetoParecerDto.guidUnidadeOrganizacao() == null
+					|| projetoParecerDto.guidUnidadeOrganizacao().isEmpty()) {
 				throw new ValidacaoSiscapException(
 						List.of("Setor não informado para atualizacao do parecer."));
 			}
 		}
 
-		if (ProjetoParecerDto.textoParecer() == null
-				|| ProjetoParecerDto.textoParecer().isEmpty()) {
+		if (projetoParecerDto.textoParecer() == null
+				|| projetoParecerDto.textoParecer().isEmpty()) {
 			throw new ValidacaoSiscapException(
 					List.of("Texto do parecer não informado."));
 		}
@@ -129,7 +134,7 @@ public class ProjetoParecerService {
 		Set<ProjetoParecer> ProjetoParecerSet = this.buscarPorProjeto(projeto);
 
 		Set<ProjetoParecer> pareceresProjetoAtualizarSet = this.atualizarPareceresProjeto(projeto, ProjetoParecerSet,
-				ProjetoParecerDto);
+		projetoParecerDto);
 
 		projetoParecerRepository.saveAllAndFlush(pareceresProjetoAtualizarSet);
 
@@ -138,23 +143,11 @@ public class ProjetoParecerService {
 		return this.buscarPorProjeto(projeto)
 				.stream()
 				.filter(parecer -> parecer.getGuidUnidadeOrganizacao()
-						.equals(ProjetoParecerDto.guidUnidadeOrganizacao()))
+						.equals(projetoParecerDto.guidUnidadeOrganizacao()))
 				.findFirst()
 				.orElse(null);
 
 	}
-
-	// public ProjetoParecerDto buscarPorId(Long id) {
-
-	// 	logger.info("Buscando parecer de um projeto com id: {}", id);
-
-	// 	ProjetoParecer projetoParecer = this.buscar(id);
-
-	// 	Pessoa pessoa = pessoaService.buscarPorSub(projetoParecer.getSubUsuarioEnviou());
-
-	// 	return new ProjetoParecerDto(projetoParecer, pessoa.getNome());
-
-	// }
 
 	private ProjetoParecer buscar(Long id) {
 		return projetoParecerRepository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
