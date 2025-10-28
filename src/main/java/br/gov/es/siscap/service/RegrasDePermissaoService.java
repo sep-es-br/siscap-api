@@ -21,19 +21,8 @@ public class RegrasDePermissaoService {
         boolean ehDaSubcap = usuarioService.ehDaSubcap(subUsuario);
         boolean ehResponsavelProponente = this.usuarioEhResponsavelProponente(subUsuario, projeto);
 
-        if (ehDaSubcap) {
-            if (StatusProjetoEnum.EM_ANALISE.getValue().equals(projeto.getStatus())) {
-                podeEditar = true;
-            } else {
-                podeEditar = false;
-            }
-        } else if (!ehDaSubcap) {
-            if (StatusProjetoEnum.COMPLEMETACAO.getValue().equals(projeto.getStatus())) {
-                podeEditar = true;
-            } else {
-                podeEditar = false;
-            }
-        }
+        if ( StatusProjetoEnum.EM_ANALISE.getValue().equals(projeto.getStatus()) && ehDaSubcap )
+            podeEditar = true;
 
         if (StatusProjetoEnum.EM_ELABORACAO.getValue().equals(projeto.getStatus()))
             podeEditar = true;
@@ -41,7 +30,7 @@ public class RegrasDePermissaoService {
         if (StatusProjetoEnum.ARQUIVADO.getValue().equals(projeto.getStatus()))
             podeEditar = false;
 
-        if (StatusProjetoEnum.COMPLEMETACAO.getValue().equals(projeto.getStatus()) && ehResponsavelProponente )
+        if ( StatusProjetoEnum.COMPLEMETACAO.getValue().equals(projeto.getStatus()) && ehResponsavelProponente && !ehDaSubcap )
             podeEditar = true;
 
         return podeEditar;
