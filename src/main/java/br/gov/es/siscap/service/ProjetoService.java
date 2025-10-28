@@ -214,9 +214,10 @@ public class ProjetoService {
 	}
 
 	private ProjetoParecerDto buscarParecer(ProjetoParecer projetoParecer) {
+
 		if( projetoParecer == null )
 			return null;
-			
+
 		String nomeUsuarioEnviou = "";
 		if(projetoParecer.getSubUsuarioEnviou() != null){
 			Pessoa pessoa = pessoaService.buscarPorSub(projetoParecer.getSubUsuarioEnviou());
@@ -224,6 +225,7 @@ public class ProjetoService {
 		}
 
 		return new ProjetoParecerDto(projetoParecer, nomeUsuarioEnviou);
+		
 	}
 
 	@Transactional

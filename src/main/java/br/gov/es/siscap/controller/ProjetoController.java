@@ -142,8 +142,8 @@ public class ProjetoController {
 	@PutMapping("/dic/edocs/capturarparecer/{idProjeto}")
 	public ResponseEntity<Resource> assinarCapturaParecerDIC(@PathVariable Long idProjeto,
 			@Valid @RequestBody ProjetoForm form) {
-		service.atualizar( idProjeto, form, false );
-		asyncExecutorService.assinarCapturaParecerDIC( idProjeto, form.parecerProjeto().id() );
+ 		ProjetoDto projetoDto = service.atualizar( idProjeto, form, false );
+		asyncExecutorService.assinarCapturaParecerDIC( idProjeto, projetoDto.parecerProjeto().id() );
 		return ResponseEntity.accepted().build();
 	}
 

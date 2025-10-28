@@ -40,7 +40,6 @@ public class ProjetoParecerService {
 	private final ProjetoParecerRepository projetoParecerRepository;
 	private final AutenticacaoService autenticacaoService;
 	private final UsuarioService usuarioService;
-	private final PessoaService pessoaService;
 	private final EmailService emailService;
 
 	private final Logger logger = LogManager.getLogger(ProjetoParecer.class);
