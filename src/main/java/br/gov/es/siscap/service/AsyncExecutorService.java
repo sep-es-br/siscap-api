@@ -39,4 +39,9 @@ public class AsyncExecutorService {
         integracaoEdocsService.encerrarProcessoEdocs(projetoDto);
     }
 
+    @Async
+    public void assinarCapturaParecerDIC( Long idProjeto, Long idParecer ) {
+        integracaoEdocsService.assinarCapturaParecerDIC( idProjeto, idParecer );
+    }
+
 }

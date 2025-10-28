@@ -4,6 +4,7 @@ import br.gov.es.siscap.dto.*;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
+import br.gov.es.siscap.enums.LotacaoUsuarioEnum;
 import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.TipoPapelEnum;
 import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
@@ -47,6 +48,7 @@ import java.util.Set;
 import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
+import br.gov.es.siscap.models.ProjetoParecer;
 
 @Service
 @RequiredArgsConstructor
@@ -67,52 +69,63 @@ public class ProjetoService {
 	private final AutenticacaoService autenticacaoService;
 	private final RegrasDePermissaoService regrasDePermissaoService;
 	private final ProjetoComplementosService projetoComplementosService;
+	private final ProjetoParecerService projetoParecerService;
+	private final UsuarioService usuarioService;
 
 	@PersistenceContext
-    private EntityManager entityManager;
+	private EntityManager entityManager;
 
 	private final Logger logger = LogManager.getLogger(ProjetoService.class);
 
 	@Value("${frontend.host}")
 	private String frontEndHost;
 
-	public Page<ProjetoListaDto> listarTodos(
-				Pageable pageable,
-				String siglaOuTitulo,
-				Long idOrganizacao,
-				String status) {
+	@Value("${api.parecer.guidSUBEPP}")
+    private String guidSUBEPP;
 
-		Specification<Projeto> especificacaoSiglaTitulo = siglaOuTitulo.isBlank() ? null : ProjetoSpecification.filtroSiglaTitulo(siglaOuTitulo);
-		Specification<Projeto> especificacaoIdOrganizacao = idOrganizacao == 0 ? null : ProjetoSpecification.filtroIdOrganizacao(idOrganizacao);
-		Specification<Projeto> especificacaoStatus = status.equals("Status") ? null : ProjetoSpecification.filtroStatus(status);
+    @Value("${api.parecer.guidSUBEO}")
+    private String guidSUBEO;
+
+	public Page<ProjetoListaDto> listarTodos(
+			Pageable pageable,
+			String siglaOuTitulo,
+			Long idOrganizacao,
+			String status) {
+
+		Specification<Projeto> especificacaoSiglaTitulo = siglaOuTitulo.isBlank() ? null
+				: ProjetoSpecification.filtroSiglaTitulo(siglaOuTitulo);
+		Specification<Projeto> especificacaoIdOrganizacao = idOrganizacao == 0 ? null
+				: ProjetoSpecification.filtroIdOrganizacao(idOrganizacao);
+		Specification<Projeto> especificacaoStatus = status.equals("Status") ? null
+				: ProjetoSpecification.filtroStatus(status);
 
 		Specification<Projeto> filtroPesquisa = Specification
-					.where(especificacaoSiglaTitulo)
-					.and(especificacaoIdOrganizacao)
-					.and(especificacaoStatus);
+				.where(especificacaoSiglaTitulo)
+				.and(especificacaoIdOrganizacao)
+				.and(especificacaoStatus);
 
 		return repository.findAll(filtroPesquisa, pageable)
-					.map(projeto -> {
-						Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
+				.map(projeto -> {
+					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 
-						ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
-						return new ProjetoListaDto(projeto, valorDto.quantia());
-					});
+					return new ProjetoListaDto(projeto, valorDto.quantia());
+				});
 	}
 
 	public List<ProjetoPropostoOpcoesDto> listarOpcoesDropdown() {
 		return repository.findAll(Sort.by(Sort.Direction.ASC, "titulo"))
-					.stream()
-					.filter(Projeto::isAtivo)
-					.map(projeto -> {
-						Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
+				.stream()
+				.filter(Projeto::isAtivo)
+				.map(projeto -> {
+					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 
-						ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
-						return new ProjetoPropostoOpcoesDto(projeto, valorDto);
-					})
-					.toList();
+					return new ProjetoPropostoOpcoesDto(projeto, valorDto);
+				})
+				.toList();
 	}
 
 	public ProjetoDto buscarPorId(Long id) {
@@ -133,32 +146,46 @@ public class ProjetoService {
 
 		Set<ProjetoAcao> acoes = projetoAcaoService.buscarPorProjeto(projeto);
 
-		String Subusuario = autenticacaoService.getUsuarioLogado();
+		String subUsuario = autenticacaoService.getUsuarioLogado();
 
-		Boolean podeEditarEmAnalise = regrasDePermissaoService.podeEditar( Subusuario, projeto );
+		Boolean podeEditarEmAnalise = regrasDePermissaoService.podeEditar(subUsuario, projeto);
 
-		Boolean podeSolicitarComplementacao = regrasDePermissaoService.podeSolicitarComplementacao( Subusuario, projeto );
+		Boolean podeSolicitarComplementacao = regrasDePermissaoService.podeSolicitarComplementacao(subUsuario, projeto);
 
-		Boolean podeResponderComplementacao = regrasDePermissaoService.podeReenviarDICEmComplementacao( this.subEhResponsavelProponenteProjeto(Subusuario,projeto.getId()), projeto );
+		Boolean podeResponderComplementacao = regrasDePermissaoService.podeReenviarDICEmComplementacao(
+				this.subEhResponsavelProponenteProjeto(subUsuario, projeto.getId()), projeto);
 
 		Set<ProjetoCamposComplementacao> complementosSeremFeitos = projetoComplementosService.buscarPorProjeto(projeto);
 
-		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio, 
-			this.buscarIdResponsavelProponente(projetoPessoaSet),
-			this.buscarEquipeElaboracao(projetoPessoaSet),
-			this.buscarSubResponsavelProponente(projetoPessoaSet),
-			this.buscarIndicadores(indicadores),
-			this.buscarAcoes(acoes),
-			this.buscarSubProponente(projetoPessoaSet),
-			this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
-			this.buscarNomeResponsavelProponente(projetoPessoaSet),
-			podeEditarEmAnalise,
-			podeSolicitarComplementacao,
-			podeResponderComplementacao,
-			projeto.getIdProcessoEdocs(),
-			projeto.getIdDocumentoCapturadoEdocs(),
-			this.buscarComplementacoes(complementosSeremFeitos)
+		ProjetoParecer parecerProjeto = projetoParecerService.buscarPorProjeto(projeto).stream()
+				.filter(parecer -> parecer.getGuidUnidadeOrganizacao()
+						.equals(usuarioService.lotacaoGuidUsuario(subUsuario)))
+				.findFirst()
+				.orElse(null);
+
+		LotacaoUsuarioEnum lotacaoUsuario = LotacaoUsuarioEnum.fromGuid(
+			usuarioService.lotacaoGuidUsuario(subUsuario),
+			guidSUBEPP,
+			guidSUBEO
 		);
+
+		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio,
+				this.buscarIdResponsavelProponente(projetoPessoaSet),
+				this.buscarEquipeElaboracao(projetoPessoaSet),
+				this.buscarSubResponsavelProponente(projetoPessoaSet),
+				this.buscarIndicadores(indicadores),
+				this.buscarAcoes(acoes),
+				this.buscarSubProponente(projetoPessoaSet),
+				this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
+				this.buscarNomeResponsavelProponente(projetoPessoaSet),
+				podeEditarEmAnalise,
+				podeSolicitarComplementacao,
+				podeResponderComplementacao,
+				projeto.getIdProcessoEdocs(),
+				projeto.getIdDocumentoCapturadoEdocs(),
+				this.buscarComplementacoes(complementosSeremFeitos),
+				this.buscarParecer(parecerProjeto), 
+				lotacaoUsuario.getValue() );
 
 		return projetoDtoRetorno;
 
@@ -166,29 +193,45 @@ public class ProjetoService {
 
 	private List<ProjetoIndicadorDto> buscarIndicadores(Set<ProjetoIndicador> projetoIndicadorSet) {
 		return projetoIndicadorSet.stream()
-			.map(ProjetoIndicadorDto::new)
-			.toList();
+				.map(ProjetoIndicadorDto::new)
+				.toList();
 	}
 
 	private List<ProjetoAcaoDto> buscarAcoes(Set<ProjetoAcao> projetoAcaoSet) {
 		return projetoAcaoSet.stream()
-			.map(ProjetoAcaoDto::new)
-			.toList();
+				.map(ProjetoAcaoDto::new)
+				.toList();
 	}
 
-	private List<ProjetoCamposComplementacaoDto> buscarComplementacoes(Set<ProjetoCamposComplementacao> projetoCamposComplementacaoSet) {
+	private List<ProjetoCamposComplementacaoDto> buscarComplementacoes(
+			Set<ProjetoCamposComplementacao> projetoCamposComplementacaoSet) {
 		return projetoCamposComplementacaoSet
-			.stream()
-			.map(campo -> { return new ProjetoCamposComplementacaoDto(campo, null); })
-			.toList();
+				.stream()
+				.map(campo -> {
+					return new ProjetoCamposComplementacaoDto(campo, null);
+				})
+				.toList();
+	}
+
+	private ProjetoParecerDto buscarParecer(ProjetoParecer projetoParecer) {
+
+		if( projetoParecer == null )
+			return null;
+
+		String nomeUsuarioEnviou = "";
+		if(projetoParecer.getSubUsuarioEnviou() != null){
+			Pessoa pessoa = pessoaService.buscarPorSub(projetoParecer.getSubUsuarioEnviou());
+			nomeUsuarioEnviou = pessoa.getNome();
+		}
+
+		return new ProjetoParecerDto(projetoParecer, nomeUsuarioEnviou);
+		
 	}
 
 	@Transactional
 	public ProjetoDto cadastrar(ProjetoForm form, boolean rascunho) {
-		
-		logger.info("Cadastrando novo projeto");
 
-		//logger.info("Dados: {}", form);
+		logger.info("Cadastrando novo projeto");
 
 		this.validarProjeto(form, true);
 
@@ -203,38 +246,39 @@ public class ProjetoService {
 		Set<ProjetoPessoa> projetoPessoaSet;
 
 		List<EquipeDto> equipeParaGravar = form.equipeElaboracao();
-				
+
 		List<EquipeDto> equipeElaboracaoValidada = this.validarEquipeElaboracao(form);
 		if (!new HashSet<>(form.equipeElaboracao()).equals(new HashSet<>(equipeElaboracaoValidada))) {
 			equipeParaGravar = equipeElaboracaoValidada;
 		}
 
-		projetoPessoaSet = projetoPessoaService.cadastrar( projeto, form.idResponsavelProponente(), equipeParaGravar );
+		projetoPessoaSet = projetoPessoaService.cadastrar(projeto, form.idResponsavelProponente(), equipeParaGravar);
 
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(), form.rateio());
+		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(),
+				form.rateio());
 
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		List<ProjetoIndicadorDto> indicadoresProjetoParaGravar = form.indicadoresProjeto();
-		
-		projetoIndicadorService.cadastrar( projeto, indicadoresProjetoParaGravar );
+
+		projetoIndicadorService.cadastrar(projeto, indicadoresProjetoParaGravar);
 
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
 
-		projetoAcaoService.cadastrar( projeto, acoesProjetoParaGravar );
+		projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
 
 		try {
-			if( form.enviarProjetoGestor() ) {
+			if (form.enviarProjetoGestor()) {
 
 				logger.info("Envio email para gestor");
-				
+
 				String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
 
 				String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
 
-				this.enviarEmailGestorAvaliarDic( projeto.getId(), subResponsavelProponente, nomeProponente );
+				this.enviarEmailGestorAvaliarDic(projeto.getId(), subResponsavelProponente, nomeProponente);
 
 			}
 		} catch (UnsupportedEncodingException e) {
@@ -243,23 +287,23 @@ public class ProjetoService {
 			logger.error(e.getMessage());
 		}
 
-		// atualiza com o que ficou no gravado no banco apos commit 
+		// atualiza com o que ficou no gravado no banco apos commit
 		entityManager.refresh(projeto);
 
 		logger.info("Projeto cadastrado com sucesso");
 
-		return new ProjetoDto(projeto, valorDto, rateio, 
-			this.buscarIdResponsavelProponente(projetoPessoaSet), 
-			this.buscarEquipeElaboracao(projetoPessoaSet), 
-			this.buscarSubResponsavelProponente(projetoPessoaSet) ,
-			indicadoresProjetoParaGravar,
-			acoesProjetoParaGravar,
-			this.buscarSubProponente(projetoPessoaSet),
-			this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
-			this.buscarNomeResponsavelProponente(projetoPessoaSet),
-			false,
-			false,
-			false, null, null, null);
+		return new ProjetoDto(projeto, valorDto, rateio,
+				this.buscarIdResponsavelProponente(projetoPessoaSet),
+				this.buscarEquipeElaboracao(projetoPessoaSet),
+				this.buscarSubResponsavelProponente(projetoPessoaSet),
+				indicadoresProjetoParaGravar,
+				acoesProjetoParaGravar,
+				this.buscarSubProponente(projetoPessoaSet),
+				this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
+				this.buscarNomeResponsavelProponente(projetoPessoaSet),
+				false,
+				false,
+				false, null, null, null, null, null);
 
 	}
 
@@ -276,8 +320,6 @@ public class ProjetoService {
 
 		projeto.setRascunho(true);
 
-		//projeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
-
 		Projeto projetoResult = repository.save(projeto);
 
 		Set<ProjetoPessoa> projetoPessoaSet;
@@ -289,48 +331,57 @@ public class ProjetoService {
 			equipeParaGravar = equipeElaboracaoValidada;
 		}
 
-		projetoPessoaSet = projetoPessoaService.atualizar( projeto, form.idResponsavelProponente(), equipeParaGravar );
+		projetoPessoaSet = projetoPessoaService.atualizar(projeto, form.idResponsavelProponente(), equipeParaGravar);
 
 		// forçar a atualizacao do SUB do responsavel novo
 		projetoPessoaSet.stream()
-			.filter(p -> p.getPessoa().getId().equals(form.idResponsavelProponente()) && p.getTipoPapel().getId().equals(TipoPapelEnum.RESPONSAVEL_PROPONENTE.getValue()))
-			.findFirst()
-			.ifPresent(p -> {
-				String subResponsavelProponente = pessoaService.buscarSubPorId( p.getPessoa().getId() );
-				p.getPessoa().setSub(subResponsavelProponente);
-			} );
+				.filter(p -> p.getPessoa().getId().equals(form.idResponsavelProponente())
+						&& p.getTipoPapel().getId().equals(TipoPapelEnum.RESPONSAVEL_PROPONENTE.getValue()))
+				.findFirst()
+				.ifPresent(p -> {
+					String subResponsavelProponente = pessoaService.buscarSubPorId(p.getPessoa().getId());
+					p.getPessoa().setSub(subResponsavelProponente);
+				});
 
 		List<ProjetoIndicadorDto> projetoIndicadoresDto = form.indicadoresProjeto();
-		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projetoResult, projetoIndicadoresDto);
+		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projetoResult,
+				projetoIndicadoresDto);
 
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
+		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(),
+				form.rateio());
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesProjeto();
-		
-		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar( projetoResult, projetoAcoesDto, rascunho );
+		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar(projetoResult, projetoAcoesDto, rascunho);
 
 		String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
 
 		String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
 
+		ProjetoParecerDto projetoParecerDto = form.parecerProjeto();
+		ProjetoParecer projetoParecer = null;
+
+		if (projeto.getStatus().equals(StatusProjetoEnum.PARECER_ESTRATEGICO_ORCAMENTARIO.getValue())) {
+			projetoParecerDto = form.parecerProjeto();
+			projetoParecer = projetoParecerService.atualizar(projetoResult, projetoParecerDto, rascunho);
+		}
+
 		try {
-			
-			if( form.enviarProjetoGestor() ) {
+
+			if (form.enviarProjetoGestor()) {
 				logger.info("Envio email para gestor");
-				this.enviarEmailGestorAvaliarDic( id, subResponsavelProponente, nomeProponente );
+				this.enviarEmailGestorAvaliarDic(id, subResponsavelProponente, nomeProponente);
 			}
 
-			if( form.enviarProjetoPedirParecer() ) {
+			if (form.enviarProjetoPedirParecer()) {
 				logger.info("Envio email para solicitar pareceres Estrategico e Orçamentario");
-				if ( this.enviarEmailPareceresEstrategicoOrcamentario( id, subResponsavelProponente, nomeProponente ) ) {
+				if (this.enviarEmailPareceresEstrategicoOrcamentario(id, subResponsavelProponente, nomeProponente)) {
 					this.alterarStatusProjeto(id, StatusProjetoEnum.PARECER_ESTRATEGICO_ORCAMENTARIO.getValue());
 					entityManager.flush();
 				}
 			}
-
 
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
@@ -338,24 +389,26 @@ public class ProjetoService {
 			logger.error(e.getMessage());
 		}
 
-		// atualiza com o que ficou no gravado no banco apos commit 
+		// atualiza com o que ficou no gravado no banco apos commit
 		entityManager.refresh(projeto);
-		
+
 		logger.info("Projeto atualizado com sucesso");
 
-		return new ProjetoDto(projetoResult, valorDto, rateio, 
-			this.buscarIdResponsavelProponente(projetoPessoaSet), 
-			this.buscarEquipeElaboracao(projetoPessoaSet), 
-			subResponsavelProponente,
-			this.buscarIndicadores(projetoIndicadoresSet),
-			this.buscarAcoes(projetoAcoesSet),
-			this.buscarSubProponente(projetoPessoaSet),
-			this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
-			this.buscarNomeResponsavelProponente(projetoPessoaSet),
-			false,
-			false,
-			false,
-			null, null, null);
+		return new ProjetoDto(projetoResult, valorDto, rateio,
+				this.buscarIdResponsavelProponente(projetoPessoaSet),
+				this.buscarEquipeElaboracao(projetoPessoaSet),
+				subResponsavelProponente,
+				this.buscarIndicadores(projetoIndicadoresSet),
+				this.buscarAcoes(projetoAcoesSet),
+				this.buscarSubProponente(projetoPessoaSet),
+				this.buscarLotacaoResponsavelProponente(projetoPessoaSet),
+				this.buscarNomeResponsavelProponente(projetoPessoaSet),
+				false,
+				false,
+				false,
+				null, null,
+				null,
+				this.buscarParecer(projetoParecer),null);
 
 	}
 
@@ -366,26 +419,27 @@ public class ProjetoService {
 
 		Projeto projeto = this.buscar(id);
 
-		// o DIC estando em alguns status especificos vamos fazer a exclusao logica porem
+		// o DIC estando em alguns status especificos vamos fazer a exclusao logica
+		// porem
 		// registrando uma justificativa obrigatoria..
-		if( List.of(StatusProjetoEnum.EM_ANALISE.getValue(), StatusProjetoEnum.COMPLEMETACAO.getValue(), 
-			StatusProjetoEnum.PARECER_ESTRATEGICO_ORCAMENTARIO.getValue() )
-        	.contains( projeto.getStatus() ) ) {
+		if (List.of(StatusProjetoEnum.EM_ANALISE.getValue(), StatusProjetoEnum.COMPLEMETACAO.getValue(),
+				StatusProjetoEnum.PARECER_ESTRATEGICO_ORCAMENTARIO.getValue())
+				.contains(projeto.getStatus())) {
 
-			if( justificativa == null || justificativa.isEmpty() )
+			if (justificativa == null || justificativa.isEmpty())
 				throw new ValidacaoSiscapException(List.of("Justificativa para exclusão do DIC não informada."));
 
 			projeto.setJustificativaExclusaoLogica(justificativa);
 
-			this.alterarStatusProjeto(id, StatusProjetoEnum.ENCERRADO.getValue() );
+			this.alterarStatusProjeto(id, StatusProjetoEnum.ENCERRADO.getValue());
 
 			this.exclusaoLogica(projeto);
 
-		} else if ( projeto.getStatus().equals(StatusProjetoEnum.EM_ELABORACAO.getValue()) ){
+		} else if (projeto.getStatus().equals(StatusProjetoEnum.EM_ELABORACAO.getValue())) {
 
 			// faz exclusao fisica do projeto e seus dependentes..
 			this.exclusaoFisica(projeto);
-			
+
 		} else {
 
 			logger.info("Fazer exclusao lógica pois status do DIC esta fora do tratado.", id);
@@ -401,54 +455,58 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	private void exclusaoLogica(Projeto projeto){
+	private void exclusaoLogica(Projeto projeto) {
 
 		projeto.apagarProjeto();
-			
+
 		projetoPessoaService.excluirPorProjeto(projeto);
-		
+
 		localidadeQuantiaService.excluir(projeto);
 
 		projetoIndicadorService.excluirPorProjeto(projeto);
 
 		projetoAcaoService.excluirPorProjeto(projeto);
 
-		//repository.saveAndFlush(projeto);
-		
+		projetoParecerService.excluirPorProjeto(projeto);
+
 		repository.deleteById(projeto.getId());
 
 	}
 
 	@Transactional
-	private void exclusaoFisica(Projeto projeto){
-			
+	private void exclusaoFisica(Projeto projeto) {
+
 		projetoPessoaService.excluirFisicamentePorProjeto(projeto);
-		
+
 		localidadeQuantiaService.excluirFisicamentePorProjeto(projeto);
 
 		projetoIndicadorService.excluirFisicamentePorProjeto(projeto);
 
 		projetoAcaoService.excluirFisicamentePorProjeto(projeto);
 
+		projetoParecerService.excluirFisicamentePorProjeto(projeto);
+
 		repository.saveAndFlush(projeto);
-		
+
 		repository.deleteFisico(projeto.getId());
 
 	}
 
 	@Transactional
 	public void registrarMotivoArquivamentoProjeto(Long id, String codigoMotivoArquivamento, String justificativa) {
-		
+
 		List<String> erros = new ArrayList<>();
 		Projeto projeto = this.buscar(id);
 
-		TipoMotivoArquivamento motivoArquivamento = tipoMotivoArquivamentoService.buscarTipoMotivoCodigo(codigoMotivoArquivamento);
+		TipoMotivoArquivamento motivoArquivamento = tipoMotivoArquivamentoService
+				.buscarTipoMotivoCodigo(codigoMotivoArquivamento);
 
-		if( motivoArquivamento != null ){
+		if (motivoArquivamento != null) {
 			projeto.setTipoMotivoArquivamento(motivoArquivamento);
 			projeto.setJustificativaArquivamento(justificativa);
-		}else{
-			erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id + " motivo arquivamento não foi informado.");
+		} else {
+			erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id
+					+ " motivo arquivamento não foi informado.");
 			throw new ValidacaoSiscapException(erros);
 		}
 
@@ -458,6 +516,7 @@ public class ProjetoService {
 
 	@Transactional
 	public void alterarStatusProjeto(Long id, String status) {
+
 		Projeto projeto = this.buscar(id);
 
 		projeto.setStatus(status);
@@ -465,16 +524,18 @@ public class ProjetoService {
 		repository.save(projeto);
 	}
 
-	
 	@Transactional
-	public void inserirComplementacoesSeremRealizadasDIC(Projeto projeto, List<ProjetoCamposComplementacaoDto> complementos) {
-		
-		if( projeto.getProjetoComplementoSet().size() > 0 ){
-			logger.info("Projeto id {} ja possui complementos definidos e serão excluidos logicamente para inserção do novo pedido.", projeto.getId());
+	public void inserirComplementacoesSeremRealizadasDIC(Projeto projeto,
+			List<ProjetoCamposComplementacaoDto> complementos) {
+
+		if (projeto.getProjetoComplementoSet().size() > 0) {
+			logger.info(
+					"Projeto id {} ja possui complementos definidos e serão excluidos logicamente para inserção do novo pedido.",
+					projeto.getId());
 			projetoComplementosService.excluirPorProjeto(projeto);
 		}
 
-		projetoComplementosService.cadastrar( projeto, complementos );
+		projetoComplementosService.cadastrar(projeto, complementos);
 
 		repository.save(projeto);
 
@@ -491,52 +552,52 @@ public class ProjetoService {
 		repository.save(projeto);
 	}
 
-
 	@Transactional
-	public void enviarSolicitacaoRevisaoProjeto( Long id, String justificativa ) {
-		
+	public void enviarSolicitacaoRevisaoProjeto(Long id, String justificativa) {
+
 		List<String> erros = new ArrayList<>();
-		
-		if( justificativa == null || justificativa.isEmpty() || justificativa.isBlank() ){
-			erros.add("Erro ao enviar solicitação de revisão do projeto id " + id + " justificativa não presente no pedido de envio.");
+
+		if (justificativa == null || justificativa.isEmpty() || justificativa.isBlank()) {
+			erros.add("Erro ao enviar solicitação de revisão do projeto id " + id
+					+ " justificativa não presente no pedido de envio.");
 			throw new ValidacaoSiscapException(erros);
 		}
 
 		Projeto projeto = this.buscar(id);
 
 		Optional<Pessoa> proponenteProjeto = projeto.getProjetoPessoaSet()
-			.stream()
-			.filter( pessoa -> pessoa.isProponente() )
-			.findFirst()
-			.map( proponente -> proponente.getPessoa() );
+				.stream()
+				.filter(pessoa -> pessoa.isProponente())
+				.findFirst()
+				.map(proponente -> proponente.getPessoa());
 
 		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
-			.stream()
-			.filter( pessoa -> pessoa.isResponsavelProponente() )
-			.findFirst()
-			.map( proponente -> proponente.getPessoa() );
+				.stream()
+				.filter(pessoa -> pessoa.isResponsavelProponente())
+				.findFirst()
+				.map(proponente -> proponente.getPessoa());
 
-		if( proponenteProjeto.isPresent() && responsavelProponenteProjeto.isPresent() ){
+		if (proponenteProjeto.isPresent() && responsavelProponenteProjeto.isPresent()) {
 
 			List<String> emailsInteressadosList = new ArrayList<String>();
 
-			emailsInteressadosList.add( proponenteProjeto.get().getEmail() );
-			
+			emailsInteressadosList.add(proponenteProjeto.get().getEmail());
+
 			boolean confirmacaoEnvioEmail;
 			try {
-				
-				confirmacaoEnvioEmail = emailService.enviarEmailRevisarProjeto( emailsInteressadosList, 
-					justificativa, 
-					proponenteProjeto.get().getNome(), 
-					projeto, responsavelProponenteProjeto.get().getNome() );
-			
+
+				confirmacaoEnvioEmail = emailService.enviarEmailRevisarProjeto(emailsInteressadosList,
+						justificativa,
+						proponenteProjeto.get().getNome(),
+						projeto, responsavelProponenteProjeto.get().getNome());
+
 				if (confirmacaoEnvioEmail) {
-					
+
 					logger.info("Email enviado com sucesso");
-					
+
 					this.alterarStatusProjeto(id, StatusProjetoEnum.EM_ELABORACAO.getValue());
-					
-				}else{
+
+				} else {
 					erros.add("Erro ao enviar solicitação de revisão do projeto id " + id);
 				}
 
@@ -546,10 +607,10 @@ public class ProjetoService {
 				logger.error(e.getMessage());
 			}
 
-		}else{
+		} else {
 			erros.add("Não foi possível fazer o envio pois o proponente não foi encontrado - projeto id " + id);
 		}
-						
+
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
@@ -560,48 +621,52 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public boolean enviarAvisoSolicitarComplementacaoProjeto( Long id, List<ProjetoCamposComplementacaoDto> complementos ) {
+	public boolean enviarAvisoSolicitarComplementacaoProjeto(Long id,
+			List<ProjetoCamposComplementacaoDto> complementos) {
 
 		List<String> erros = new ArrayList<>();
 
-		if( complementos.isEmpty() ){
-			erros.add("Erro ao enviar solicitação para complementação do projeto id " + id + " motivos para complementação não informadas.");
+		if (complementos.isEmpty()) {
+			erros.add("Erro ao enviar solicitação para complementação do projeto id " + id
+					+ " motivos para complementação não informadas.");
 			throw new ValidacaoSiscapException(erros);
 		}
-				
+
 		Projeto projeto = this.buscar(id);
 
 		Optional<Pessoa> proponenteProjeto = projeto.getProjetoPessoaSet()
-			.stream()
-			.filter( pessoa -> pessoa.isProponente() )
-			.findFirst()
-			.map( proponente -> proponente.getPessoa() );
+				.stream()
+				.filter(pessoa -> pessoa.isProponente())
+				.findFirst()
+				.map(proponente -> proponente.getPessoa());
 
 		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
-			.stream()
-			.filter( pessoa -> pessoa.isResponsavelProponente() )
-			.findFirst()
-			.map( proponente -> proponente.getPessoa() );
-			
-		if( proponenteProjeto.isPresent() && responsavelProponenteProjeto.isPresent() ){
+				.stream()
+				.filter(pessoa -> pessoa.isResponsavelProponente())
+				.findFirst()
+				.map(proponente -> proponente.getPessoa());
+
+		if (proponenteProjeto.isPresent() && responsavelProponenteProjeto.isPresent()) {
 
 			boolean confirmacaoEnvioEmail;
 			List<String> emailsInteressadosList = new ArrayList<String>();
 			emailsInteressadosList.add(proponenteProjeto.get().getEmail());
 
-			 try {
+			try {
 
-				confirmacaoEnvioEmail = emailService.enviarEmailComplemetacaoProjeto( emailsInteressadosList, 
-					proponenteProjeto.get().getNome(),
-					responsavelProponenteProjeto.get().getNome(),
-					projeto.getSigla(),
-					complementos );
+				confirmacaoEnvioEmail = emailService.enviarEmailComplemetacaoProjeto(emailsInteressadosList,
+						proponenteProjeto.get().getNome(),
+						responsavelProponenteProjeto.get().getNome(),
+						projeto.getSigla(),
+						complementos);
 
 				if (confirmacaoEnvioEmail) {
-					logger.info("Email aviso solicitação de complementação do projeto enviado com sucesso para o projeto id " + id);
+					logger.info(
+							"Email aviso solicitação de complementação do projeto enviado com sucesso para o projeto id "
+									+ id);
 					this.alterarStatusProjeto(id, StatusProjetoEnum.COMPLEMETACAO.getValue());
-					this.inserirComplementacoesSeremRealizadasDIC( projeto, complementos );
-				}else{
+					this.inserirComplementacoesSeremRealizadasDIC(projeto, complementos);
+				} else {
 					erros.add("Erro ao enviar aviso para complementação do projeto id " + id);
 				}
 
@@ -611,10 +676,10 @@ public class ProjetoService {
 				logger.error(e.getMessage());
 			}
 
-		}else{
+		} else {
 			erros.add("Não foi possível fazer o envio pois o proponente não foi encontrado - projeto id " + id);
 		}
-						
+
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
@@ -625,62 +690,65 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public void enviarAvisoArquivamentoProjeto( Long id, String justificativa, String codigoMotivoArquivamento ) {
-		
+	public void enviarAvisoArquivamentoProjeto(Long id, String justificativa, String codigoMotivoArquivamento) {
+
 		List<String> erros = new ArrayList<>();
 
-		if( codigoMotivoArquivamento == null ){
-			erros.add("Erro ao enviar solicitação de revisão do projeto id " + id + " código do motivo de arquivamento não foi informado.");
-			throw new ValidacaoSiscapException(erros);
-		}
-		
-		if( ( justificativa == null || justificativa.isEmpty() || justificativa.isBlank() ) && ( codigoMotivoArquivamento != null && codigoMotivoArquivamento.trim().equals("M011") ) )
-		{
-			erros.add("Erro ao enviar solicitação de revisão do projeto id " + id + " justificativa não presente no pedido de envio para motivo OUTROS.");
+		if (codigoMotivoArquivamento == null) {
+			erros.add("Erro ao enviar solicitação de revisão do projeto id " + id
+					+ " código do motivo de arquivamento não foi informado.");
 			throw new ValidacaoSiscapException(erros);
 		}
 
-		if( justificativa == null )
+		if ((justificativa == null || justificativa.isEmpty() || justificativa.isBlank())
+				&& (codigoMotivoArquivamento != null && codigoMotivoArquivamento.trim().equals("M011"))) {
+			erros.add("Erro ao enviar solicitação de revisão do projeto id " + id
+					+ " justificativa não presente no pedido de envio para motivo OUTROS.");
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		if (justificativa == null)
 			justificativa = "";
 
 		Projeto projeto = this.buscar(id);
 
 		Optional<Pessoa> proponenteProjeto = projeto.getProjetoPessoaSet()
-			.stream()
-			.filter( pessoa -> pessoa.isProponente() )
-			.findFirst()
-			.map( proponente -> proponente.getPessoa() );
+				.stream()
+				.filter(pessoa -> pessoa.isProponente())
+				.findFirst()
+				.map(proponente -> proponente.getPessoa());
 
 		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
-			.stream()
-			.filter( pessoa -> pessoa.isResponsavelProponente() )
-			.findFirst()
-			.map( proponente -> proponente.getPessoa() );
-			
-		if( proponenteProjeto.isPresent() && responsavelProponenteProjeto.isPresent() ){
+				.stream()
+				.filter(pessoa -> pessoa.isResponsavelProponente())
+				.findFirst()
+				.map(proponente -> proponente.getPessoa());
+
+		if (proponenteProjeto.isPresent() && responsavelProponenteProjeto.isPresent()) {
 
 			List<String> emailsInteressadosList = new ArrayList<String>();
 			boolean confirmacaoEnvioEmail;
 
 			emailsInteressadosList.add(proponenteProjeto.get().getEmail());
-			
-			TipoMotivoArquivamento tipoMotivoArquivamento = tipoMotivoArquivamentoService.buscarTipoMotivoCodigo(codigoMotivoArquivamento);
+
+			TipoMotivoArquivamento tipoMotivoArquivamento = tipoMotivoArquivamentoService
+					.buscarTipoMotivoCodigo(codigoMotivoArquivamento);
 
 			try {
-				
-				confirmacaoEnvioEmail = emailService.enviarEmailArquivamentorProjeto( emailsInteressadosList, 
-					justificativa, 
-					proponenteProjeto.get().getNome(),
-					projeto.getSigla(),
-					codigoMotivoArquivamento,
-					tipoMotivoArquivamento.getTipo(),
-					responsavelProponenteProjeto.get().getNome() );
-			
+
+				confirmacaoEnvioEmail = emailService.enviarEmailArquivamentorProjeto(emailsInteressadosList,
+						justificativa,
+						proponenteProjeto.get().getNome(),
+						projeto.getSigla(),
+						codigoMotivoArquivamento,
+						tipoMotivoArquivamento.getTipo(),
+						responsavelProponenteProjeto.get().getNome());
+
 				if (confirmacaoEnvioEmail) {
 					logger.info("Email aviso arquivamento projeto enviado com sucesso do projeto id " + id);
 					this.alterarStatusProjeto(id, StatusProjetoEnum.ARQUIVADO.getValue());
 					this.registrarMotivoArquivamentoProjeto(id, codigoMotivoArquivamento, justificativa);
-				}else{
+				} else {
 					erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id);
 				}
 
@@ -690,10 +758,10 @@ public class ProjetoService {
 				logger.error(e.getMessage());
 			}
 
-		}else{
+		} else {
 			erros.add("Não foi possível fazer o envio pois o proponente não foi encontrado - projeto id " + id);
 		}
-						
+
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
@@ -707,16 +775,16 @@ public class ProjetoService {
 		logger.info("Buscando projetos vinculados ao programa com id: {}", programa.getId());
 
 		return this.buscarProjetosPorPrograma(programa)
-					.stream()
-					.map(Projeto::getId)
-					.toList();
+				.stream()
+				.map(Projeto::getId)
+				.toList();
 	}
 
 	public List<OpcoesDto> buscarProjetosPropostos(Programa programa) {
 		return this.buscarProjetosPorPrograma(programa)
-					.stream()
-					.map(OpcoesDto::new)
-					.toList();
+				.stream()
+				.map(OpcoesDto::new)
+				.toList();
 	}
 
 	@Transactional
@@ -728,7 +796,8 @@ public class ProjetoService {
 
 		if (!projetoPropostoSet.isEmpty()) {
 			projetoPropostoSet.forEach(projeto -> {
-				if (idProjetoPropostoList.stream().noneMatch(idProjetoProposto -> idProjetoProposto.equals(projeto.getId()))) {
+				if (idProjetoPropostoList.stream()
+						.noneMatch(idProjetoProposto -> idProjetoProposto.equals(projeto.getId()))) {
 					projeto.setPrograma(null);
 				}
 			});
@@ -763,7 +832,6 @@ public class ProjetoService {
 		logger.info("Projetos desvinculados do programa com sucesso");
 	}
 
-
 	public String gerarNomeArquivo(Integer idProjeto) {
 		Projeto projeto = this.buscar(idProjeto.longValue());
 
@@ -774,9 +842,9 @@ public class ProjetoService {
 		String cnpj = this.formatarCnpj(projeto.getOrganizacao().getCnpj());
 
 		return "PROJETO n. " +
-					projeto.getCountAno() + "-" +
-					projeto.getOrganizacao().getNomeFantasia() + "-" +
-					cnpj;
+				projeto.getCountAno() + "-" +
+				projeto.getOrganizacao().getNomeFantasia() + "-" +
+				cnpj;
 	}
 
 	public int buscarQuantidadeProjetos() {
@@ -787,69 +855,68 @@ public class ProjetoService {
 		return localidadeQuantiaService.somarValorEstimadoTodosProjetos();
 	}
 
-	private Projeto buscar(Long id) {
-		//Projeto resultado = repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
+	public Projeto buscar(Long id) {
 		return repository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 	}
 
 	private Long buscarIdResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
-					.filter(ProjetoPessoa::isResponsavelProponente)
-					.findFirst()
-					.map(projetoPessoa -> projetoPessoa.getPessoa().getId())
-					.orElse(null);
+				.filter(ProjetoPessoa::isResponsavelProponente)
+				.findFirst()
+				.map(projetoPessoa -> projetoPessoa.getPessoa().getId())
+				.orElse(null);
 	}
 
 	private String buscarSubResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
-					.filter(ProjetoPessoa::isResponsavelProponente)
-					.findFirst()
-					.map(projetoPessoa -> projetoPessoa.getPessoa().getSub())
-					.orElse(null);
+				.filter(ProjetoPessoa::isResponsavelProponente)
+				.findFirst()
+				.map(projetoPessoa -> projetoPessoa.getPessoa().getSub())
+				.orElse(null);
 	}
 
 	private String buscarSubProponente(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
-					.filter(ProjetoPessoa::isProponente)
-					.findFirst()
-					.map(projetoPessoa -> projetoPessoa.getPessoa().getSub())
-					.orElse(null);
+				.filter(ProjetoPessoa::isProponente)
+				.findFirst()
+				.map(projetoPessoa -> projetoPessoa.getPessoa().getSub())
+				.orElse(null);
 	}
-	
+
 	private String buscarLotacaoResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
-					.filter(ProjetoPessoa::isResponsavelProponente)
-					.findFirst()
-					.map( projetoPessoa -> {
-						String sub = projetoPessoa.getPessoa().getSub();
-            			return acessoCidadaoService.buscarNomePapelPrioritarioPorSub(sub) ;
-					} ) 
-					.orElse(null);
+				.filter(ProjetoPessoa::isResponsavelProponente)
+				.findFirst()
+				.map(projetoPessoa -> {
+					String sub = projetoPessoa.getPessoa().getSub();
+					return acessoCidadaoService.buscarNomePapelPrioritarioPorSub(sub);
+				})
+				.orElse(null);
 	}
 
 	private String buscarNomeResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
-					.filter(ProjetoPessoa::isResponsavelProponente)
-					.findFirst()
-					.map( projetoPessoa -> {
-						return projetoPessoa.getPessoa().getNome();
-					} ) 
-					.orElse(null);
+				.filter(ProjetoPessoa::isResponsavelProponente)
+				.findFirst()
+				.map(projetoPessoa -> {
+					return projetoPessoa.getPessoa().getNome();
+				})
+				.orElse(null);
 	}
 
 	private String buscarNomeProponente(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
-					.filter(ProjetoPessoa::isProponente)
-					.findFirst()
-					.map(projetoPessoa -> projetoPessoa.getPessoa().getNome())
-					.orElse("");
+				.filter(ProjetoPessoa::isProponente)
+				.findFirst()
+				.map(projetoPessoa -> projetoPessoa.getPessoa().getNome())
+				.orElse("");
 	}
 
 	private List<EquipeDto> buscarEquipeElaboracao(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
-					.filter(pessoa -> !pessoa.isResponsavelProponente() && !pessoa.isProponente())
-					.map(EquipeDto::new)
-					.toList();
+				.filter(pessoa -> !pessoa.isResponsavelProponente() && !pessoa.isProponente())
+				.map(EquipeDto::new)
+				.toList();
 	}
 
 	private Set<Projeto> buscarProjetosPorPrograma(Programa programa) {
@@ -869,28 +936,28 @@ public class ProjetoService {
 
 		boolean checkFormIdOrganizacaoExistePorId = !organizacaoService.existePorId(form.idOrganizacao());
 		boolean checkProjetoExistePorSigla = repository.existsBySigla(form.sigla()) && isSalvar;
-		
+
 		if (checkFormIdOrganizacaoExistePorId)
 			erros.add("Erro ao encontrar Organização com id " + form.idOrganizacao());
 
 		if (checkProjetoExistePorSigla)
 			erros.add("Já existe um projeto cadastrado com essa sigla.");
-		
+
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
 		}
 
 	}
-		
+
 	private List<EquipeDto> validarEquipeElaboracao(ProjetoForm form) {
-		
+
 		List<EquipeDto> equipe = new ArrayList<>();
-		
+
 		for (EquipeDto membro : form.equipeElaboracao()) {
 
 			String sub = membro.subPessoa();
-			
+
 			String id = pessoaService.buscarIdPorSub(sub);
 			if (id.isBlank()) {
 				logger.info("Pessoa com sub [{}] não encontrada na base do SISCAP, procedendo para criação.", sub);
@@ -899,18 +966,21 @@ public class ProjetoService {
 				logger.info("Verificar se dados da pessoa com sub [{}] estão batendo com dados da tabela pessoa.", sub);
 				pessoaService.sincronizarDadosAgentePessoaSiscap(Long.valueOf(id), sub);
 			}
-			
-			EquipeDto novoMembro = new EquipeDto( Long.valueOf(id), membro.idPapel(), membro.idStatus(), membro.justificativa(), membro.subPessoa(), membro.nome() );
-			
+
+			EquipeDto novoMembro = new EquipeDto(Long.valueOf(id), membro.idPapel(), membro.idStatus(),
+					membro.justificativa(), membro.subPessoa(), membro.nome());
+
 			equipe.add(novoMembro);
 
 			logger.info("Verificar se pessoa com id [{}] possui organizacao associada na base do SISCAP.", id);
 
-			List<PessoaOrganizacao> organizacoes = pessoaOrganizacaoService.buscarPorIds( List.of(Long.valueOf(id)) );
-			if( organizacoes.isEmpty() ) {
-				logger.info("Pessoa com sub [{}] não possui organizacao associada na base do SISCAP - proceder com atualizacao do AC.", sub );
+			List<PessoaOrganizacao> organizacoes = pessoaOrganizacaoService.buscarPorIds(List.of(Long.valueOf(id)));
+			if (organizacoes.isEmpty()) {
+				logger.info(
+						"Pessoa com sub [{}] não possui organizacao associada na base do SISCAP - proceder com atualizacao do AC.",
+						sub);
 				Set<Organizacao> organizacoesAC = pessoaService.buscarOrganizacoesAssociadas(sub);
-				pessoaService.associarOrganizacoesAPessoa( pessoaService.buscarPorSub(sub), organizacoesAC );
+				pessoaService.associarOrganizacoesAPessoa(pessoaService.buscarPorSub(sub), organizacoesAC);
 			}
 
 		}
@@ -920,34 +990,35 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public boolean enviarEmailGestorAvaliarDic(Long idProjeto, String subResponsavelProponente, String nomeProponente) throws MessagingException, UnsupportedEncodingException {
-		
-		if( idProjeto == null || idProjeto == 0 ){
-			logger.info("ID do projeto não foi informado." );
+	public boolean enviarEmailGestorAvaliarDic(Long idProjeto, String subResponsavelProponente, String nomeProponente)
+			throws MessagingException, UnsupportedEncodingException {
+
+		if (idProjeto == null || idProjeto == 0) {
+			logger.info("ID do projeto não foi informado.");
 			return false;
 		}
 
 		Pessoa dadosResponsavelProponente = pessoaService.buscarPorSub(subResponsavelProponente);
-		
-		if( dadosResponsavelProponente == null ){
-			logger.info("Dados do responsavel proponente sub [{}] não foi encontrado.", subResponsavelProponente );
+
+		if (dadosResponsavelProponente == null) {
+			logger.info("Dados do responsavel proponente sub [{}] não foi encontrado.", subResponsavelProponente);
 			return false;
 		}
 
-		if(dadosResponsavelProponente.getEmail().isEmpty() || dadosResponsavelProponente.getEmail().isBlank() ){
-			logger.info("Responsavel proponente sub [{}] não possui email informado.", subResponsavelProponente );
+		if (dadosResponsavelProponente.getEmail().isEmpty() || dadosResponsavelProponente.getEmail().isBlank()) {
+			logger.info("Responsavel proponente sub [{}] não possui email informado.", subResponsavelProponente);
 			return false;
 		}
 
 		Projeto projeto = repository.findById(idProjeto)
-				.orElse( null );
+				.orElse(null);
 
-		if( projeto == null ){
-			logger.info("Projeto id [{}] não encontrado.", idProjeto );
+		if (projeto == null) {
+			logger.info("Projeto id [{}] não encontrado.", idProjeto);
 			return false;
 		}
 
-		List<String> emailsInteressadosList = Arrays.asList( dadosResponsavelProponente.getEmail() );
+		List<String> emailsInteressadosList = Arrays.asList(dadosResponsavelProponente.getEmail());
 
 		Long idOrganizacaoProjeto = projeto.getOrganizacao().getId();
 
@@ -961,21 +1032,21 @@ public class ProjetoService {
 		}
 
 		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idProjeto;
-		
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
-			nomeProponente,
-			linkEdicao,
-			nomeOrganizacaoProjeto,
-			dadosResponsavelProponente.getNome(),
-			emailsInteressadosList,
-			projeto.getTitulo() );
 
-		boolean confirmacaoEnvioEmail = emailService.enviarEmailAnaliseDIC( envioEmailDicDetalhesDto );
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+				nomeProponente,
+				linkEdicao,
+				nomeOrganizacaoProjeto,
+				dadosResponsavelProponente.getNome(),
+				emailsInteressadosList,
+				projeto.getTitulo());
+
+		boolean confirmacaoEnvioEmail = emailService.enviarEmailAnaliseDIC(envioEmailDicDetalhesDto);
 
 		if (confirmacaoEnvioEmail) {
 			logger.info("Email enviado com sucesso");
 			return true;
-		}else{
+		} else {
 			logger.info("Email não foi enviado");
 			return true;
 		}
@@ -983,25 +1054,26 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public boolean enviarEmailPareceresEstrategicoOrcamentario(Long idProjeto, String subResponsavelProponente, String nomeProponente) throws MessagingException, UnsupportedEncodingException {
-		
-		if( idProjeto == null || idProjeto == 0 ){
-			logger.info("ID do projeto não foi informado." );
+	public boolean enviarEmailPareceresEstrategicoOrcamentario(Long idProjeto, String subResponsavelProponente,
+			String nomeProponente) throws MessagingException, UnsupportedEncodingException {
+
+		if (idProjeto == null || idProjeto == 0) {
+			logger.info("ID do projeto não foi informado.");
 			return false;
 		}
 
 		Pessoa dadosResponsavelProponente = pessoaService.buscarPorSub(subResponsavelProponente);
-		
-		if( dadosResponsavelProponente == null ){
-			logger.info("Dados do responsavel proponente sub [{}] não foi encontrado.", subResponsavelProponente );
+
+		if (dadosResponsavelProponente == null) {
+			logger.info("Dados do responsavel proponente sub [{}] não foi encontrado.", subResponsavelProponente);
 			return false;
 		}
 
 		Projeto projeto = repository.findById(idProjeto)
-				.orElse( null );
+				.orElse(null);
 
-		if( projeto == null ){
-			logger.info("Projeto id [{}] não encontrado.", idProjeto );
+		if (projeto == null) {
+			logger.info("Projeto id [{}] não encontrado.", idProjeto);
 			return false;
 		}
 
@@ -1017,21 +1089,22 @@ public class ProjetoService {
 		}
 
 		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/parecer/" + idProjeto;
-		
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
-			nomeProponente,
-			linkEdicao,
-			nomeOrganizacaoProjeto,
-			dadosResponsavelProponente.getNome(),
-			null,
-			projeto.getTitulo() );
 
-		boolean confirmacaoEnvioEmail = emailService.enviarEmailPareceresEstrategicoOrcamentario( envioEmailDicDetalhesDto );
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+				nomeProponente,
+				linkEdicao,
+				nomeOrganizacaoProjeto,
+				dadosResponsavelProponente.getNome(),
+				null,
+				projeto.getTitulo());
+
+		boolean confirmacaoEnvioEmail = emailService
+				.enviarEmailPareceresEstrategicoOrcamentario(envioEmailDicDetalhesDto);
 
 		if (confirmacaoEnvioEmail) {
 			logger.info("Email enviado com sucesso");
 			return true;
-		}else{
+		} else {
 			logger.info("Email não foi enviado");
 			return true;
 		}
@@ -1057,18 +1130,18 @@ public class ProjetoService {
 	}
 
 	public boolean subEhResponsavelProponenteProjeto(String subUsuario, Long idProjeto) {
-		
+
 		Projeto projeto = this.buscar(idProjeto);
-		
+
 		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
-			.stream()
-			.filter( membro -> membro.isResponsavelProponente() )
-			.findFirst()
-			.map( proponente -> proponente.getPessoa() );
+				.stream()
+				.filter(membro -> membro.isResponsavelProponente())
+				.findFirst()
+				.map(proponente -> proponente.getPessoa());
 
 		return responsavelProponenteProjeto
-			.map(pessoa -> pessoa.getSub().equalsIgnoreCase(subUsuario))
-        	.orElse(false);
+				.map(pessoa -> pessoa.getSub().equalsIgnoreCase(subUsuario))
+				.orElse(false);
 
 	}
 

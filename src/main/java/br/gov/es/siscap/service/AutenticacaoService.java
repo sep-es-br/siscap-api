@@ -61,6 +61,33 @@ public class AutenticacaoService {
 		return authentication.getName(); // fallback
 
 	}
+
+	public List<String> getUsuarioUnidadesOrganizacao() {
+		
+		String subNovo = "";
+		List<String> lotacoes = List.of("");
+		var authentication = SecurityContextHolder.getContext().getAuthentication();
+	
+		if (authentication.getPrincipal() instanceof Jwt jwt) {
+			subNovo = jwt.getClaim("sub");
+		}
+
+		Set<Map<String, Object>> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
+		if (papeisLotacaoGuidSet != null && papeisLotacaoGuidSet.size() == 1) {
+			
+			lotacoes = papeisLotacaoGuidSet.stream()
+				.map(registro -> {
+					Object guidObj = registro.get("lotacaoGuid");
+					return (guidObj != null) ? guidObj.toString().trim() : "";
+				})
+				.filter(guid -> !guid.isEmpty()) 
+				.toList(); 
+
+		}
+	
+		return lotacoes;
+
+	}
 	
 	public UsuarioDto autenticar(String accessToken) {
 		logger.info("Autenticar usuário SisCap.");

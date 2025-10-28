@@ -38,6 +38,11 @@ public class RelatoriosService {
 		return exportarRelatorio(jasperPrint);
 	}
 
+	public Resource gerarArquivoParecerDIC(String nomeArquivo, Long idProjeto, Long idParecer) {
+		JasperPrint jasperPrint = preencherArquivoParecer(recuperarArquivo(nomeArquivo), idProjeto, idParecer);
+		return exportarRelatorio(jasperPrint);
+	}
+
 	private InputStream recuperarArquivo(String nomeArquivo) {
 		try {
 			return new ClassPathResource(raizRelatorios + "/" + nomeArquivo + ".jasper").getInputStream();
@@ -57,6 +62,20 @@ public class RelatoriosService {
 		} catch (JRException | SQLException e) {
 			logger.info("Erro ao preencher o relatório.");
 			throw new SiscapServiceException(List.of("Erro ao preencher o relatório. Contate o suporte."));
+		}
+	}
+
+	private JasperPrint preencherArquivoParecer(InputStream relatorio, Long idProjeto, Long idParecer) {
+		try {
+			HashMap<String, Object> map = new HashMap<>();
+			map.put("idProjeto", idProjeto);
+			map.put("pathRelatorios", raizRelatorios);
+			map.put("idParecer", idParecer);
+			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
+			return JasperFillManager.fillReport(relatorio, map, dataSource.getConnection());
+		} catch (JRException | SQLException e) {
+			logger.info("Erro ao preencher o pdf do parecer.");
+			throw new SiscapServiceException(List.of("Erro ao preencher o pdf do parecer. Contate o suporte."));
 		}
 	}
 
