@@ -13,7 +13,8 @@ public enum StatusProjetoEnum {
 	PARECER_SEP("Parecer SEP"),
 	PARECER_ESTRATEGICO_ORCAMENTARIO("Aguardando Parecer"),
 	COMPLEMETACAO("Em Complementação"),
-	ENCERRADO("Encerrado");
+	ENCERRADO("Encerrado"),
+	ELEGIBILIDADE("Elegibilidade");
 
 	private final String value;
 	
