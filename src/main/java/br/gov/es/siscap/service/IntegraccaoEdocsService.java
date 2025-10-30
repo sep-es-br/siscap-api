@@ -354,7 +354,7 @@ public class IntegraccaoEdocsService {
 		// no minimo havera parecers da SUBEPP E SUBEO..
 		if ( projetoParecerService.verificarEnvioPareceresProjeto( ctx.getProjeto().id() ) ) {
 			if( projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs( ctx.getProjeto().id() ) )
-				projetoService.alterarStatusProjeto( ctx.getProjeto().id(), StatusProjetoEnum.EM_ANALISE.getValue() );
+				projetoService.alterarStatusProjeto( ctx.getProjeto().id(), StatusProjetoEnum.ELEGIBILIDADE.getValue() );
 		}
 
 		return Mono.just("Ok");

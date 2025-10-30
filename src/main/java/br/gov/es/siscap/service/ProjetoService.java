@@ -363,7 +363,7 @@ public class ProjetoService {
 		ProjetoParecerDto projetoParecerDto = form.parecerProjeto();
 		ProjetoParecer projetoParecer = null;
 
-		if (projeto.getStatus().equals(StatusProjetoEnum.PARECER_ESTRATEGICO_ORCAMENTARIO.getValue())) {
+		if (projeto.getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())) {
 			projetoParecerDto = form.parecerProjeto();
 			projetoParecer = projetoParecerService.atualizar(projetoResult, projetoParecerDto, rascunho);
 		}
@@ -378,7 +378,7 @@ public class ProjetoService {
 			if (form.enviarProjetoPedirParecer()) {
 				logger.info("Envio email para solicitar pareceres Estrategico e Orçamentario");
 				if (this.enviarEmailPareceresEstrategicoOrcamentario(id, subResponsavelProponente, nomeProponente)) {
-					this.alterarStatusProjeto(id, StatusProjetoEnum.PARECER_ESTRATEGICO_ORCAMENTARIO.getValue());
+					this.alterarStatusProjeto(id, StatusProjetoEnum.PARECER_SEP.getValue());
 					entityManager.flush();
 				}
 			}
@@ -423,7 +423,7 @@ public class ProjetoService {
 		// porem
 		// registrando uma justificativa obrigatoria..
 		if (List.of(StatusProjetoEnum.EM_ANALISE.getValue(), StatusProjetoEnum.COMPLEMETACAO.getValue(),
-				StatusProjetoEnum.PARECER_ESTRATEGICO_ORCAMENTARIO.getValue())
+				StatusProjetoEnum.PARECER_SEP.getValue())
 				.contains(projeto.getStatus())) {
 
 			if (justificativa == null || justificativa.isEmpty())
