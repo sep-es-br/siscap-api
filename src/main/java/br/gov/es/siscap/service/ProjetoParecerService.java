@@ -4,7 +4,6 @@ import br.gov.es.siscap.dto.ProjetoParecerDto;
 import br.gov.es.siscap.enums.StatusParecerEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
-import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.repository.ProjetoParecerRepository;
@@ -177,6 +176,13 @@ public class ProjetoParecerService {
 			.orElse(false);
 	}
 
+	public Boolean verificarEntranhamentoParecer(Long idParecer){
+		Optional<ProjetoParecer> parecer = projetoParecerRepository.findById(idParecer);
+		return parecer
+			.map(p -> p.getStatusParecer() ==  StatusParecerEnum.ENTRANHADO_EDOCS.getValue() )
+			.orElse(false);
+	}
+
 	public String gerarNomeArquivoParecerDIC(Long id) {
 
 		ProjetoParecer projetoParecer = this.buscar(id);
@@ -230,6 +236,17 @@ public class ProjetoParecerService {
 		projetoParecer.setStatusParecer(StatusParecerEnum.ENVIADO.getValue());
 		projetoParecer.setDataEnvio(LocalDateTime.now());
 		projetoParecer.setSubUsuarioEnviou(subUsuarioLogado);
+
+		projetoParecerRepository.save(projetoParecer);
+
+	}
+
+	@Transactional
+	public void atualizarStatusParecer( Long idParecer, StatusParecerEnum statusParecer ) {
+
+		ProjetoParecer projetoParecer = this.buscar(idParecer);
+
+		projetoParecer.setStatusParecer(statusParecer.getValue());
 
 		projetoParecerRepository.save(projetoParecer);
 

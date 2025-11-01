@@ -86,6 +86,12 @@ public class ProjetoService {
     @Value("${api.parecer.guidSUBEO}")
     private String guidSUBEO;
 
+	@Value("${api.edocs.guiddestinoSUBCAP}")
+    private String guidSUBCAP;
+
+	@Value("${email.gerencia-subcap}")
+	private String DESTINO_GERENCIA_SUBCAP;
+
 	public Page<ProjetoListaDto> listarTodos(
 			Pageable pageable,
 			String siglaOuTitulo,
@@ -132,7 +138,8 @@ public class ProjetoService {
 
 		logger.info("Buscando projeto com id: {}", id);
 
-		Projeto projeto = this.buscar(id);
+		Projeto projeto = Optional.ofNullable(this.buscar(id))
+    		.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + id));
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.buscarPorProjeto(projeto);
 
@@ -166,7 +173,8 @@ public class ProjetoService {
 		LotacaoUsuarioEnum lotacaoUsuario = LotacaoUsuarioEnum.fromGuid(
 			usuarioService.lotacaoGuidUsuario(subUsuario),
 			guidSUBEPP,
-			guidSUBEO
+			guidSUBEO,
+			guidSUBCAP
 		);
 
 		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio,
@@ -686,6 +694,45 @@ public class ProjetoService {
 		}
 
 		return true;
+
+	}
+
+	public void enviarEmailGerenciaSubcap(Long idDIC){
+
+		List<String> erros = new ArrayList<>();
+		boolean confirmacaoEnvioEmail;
+		List<String> emailsInteressadosList = new ArrayList<String>();
+		emailsInteressadosList.add( DESTINO_GERENCIA_SUBCAP ); 
+
+		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
+    		.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
+
+		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idDIC;
+
+		try {
+
+			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGerenciaSubcap( emailsInteressadosList, projeto.getTitulo(), linkEdicao );
+
+			if (confirmacaoEnvioEmail) {
+				logger.info("Email aviso  aviso de parecer gerencia SUBCAP enviado com sucesso.");
+			} else {
+				erros.add("Erro ao enviar aviso de parecer gerencia SUBCAP ");
+			}
+
+		} catch (UnsupportedEncodingException e) {
+			logger.error(e.getMessage());
+			erros.add(e.getMessage());
+		} catch (MessagingException e) {
+			logger.error(e.getMessage());
+			erros.add(e.getMessage());
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		return;
 
 	}
 

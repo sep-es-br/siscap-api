@@ -9,7 +9,8 @@ public enum StatusParecerEnum {
 
 	PENDENTE(1L),
 	ENVIADO(2L),
-	CAPTURADO_EDOCS(3L);
+	CAPTURADO_EDOCS(3L),
+	ENTRANHADO_EDOCS(4L);
 
 	private final Long value;
 
