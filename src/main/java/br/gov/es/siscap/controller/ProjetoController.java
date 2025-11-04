@@ -141,7 +141,7 @@ public class ProjetoController {
 	public ResponseEntity<Resource> assinarCapturaParecerDIC(@PathVariable Long idProjeto,
 			@Valid @RequestBody ProjetoForm form) {
  		ProjetoDto projetoDto = service.atualizar( idProjeto, form, false );
-		asyncExecutorService.assinarCapturaParecerDIC( idProjeto, projetoDto.parecerProjeto().id() );
+		asyncExecutorService.assinarCapturaParecerDIC( idProjeto, projetoDto.parecerProjetoUsuario().id() );
 		return ResponseEntity.accepted().build();
 	}
 

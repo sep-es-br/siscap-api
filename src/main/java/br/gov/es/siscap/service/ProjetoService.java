@@ -177,7 +177,7 @@ public class ProjetoService {
 			guidSUBCAP
 		);
 
-		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio,
+		ProjetoDto projetoDtoRetorno = new ProjetoDto( projeto, valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
 				this.buscarSubResponsavelProponente(projetoPessoaSet),
@@ -193,7 +193,8 @@ public class ProjetoService {
 				projeto.getIdDocumentoCapturadoEdocs(),
 				this.buscarComplementacoes(complementosSeremFeitos),
 				this.buscarParecer(parecerProjeto), 
-				lotacaoUsuario.getValue() );
+				lotacaoUsuario.getValue(),
+				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList() );
 
 		return projetoDtoRetorno;
 
@@ -311,7 +312,7 @@ public class ProjetoService {
 				this.buscarNomeResponsavelProponente(projetoPessoaSet),
 				false,
 				false,
-				false, null, null, null, null, null);
+				false, null, null, null, null, null, projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList() );
 
 	}
 
@@ -355,8 +356,7 @@ public class ProjetoService {
 		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projetoResult,
 				projetoIndicadoresDto);
 
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(),
-				form.rateio());
+		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
@@ -368,12 +368,18 @@ public class ProjetoService {
 
 		String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
 
-		ProjetoParecerDto projetoParecerDto = form.parecerProjeto();
+		ProjetoParecerDto projetoParecerDto = form.parecerProjetoUsuario();
 		ProjetoParecer projetoParecer = null;
 
-		if (projeto.getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())) {
-			projetoParecerDto = form.parecerProjeto();
-			projetoParecer = projetoParecerService.atualizar(projetoResult, projetoParecerDto, rascunho);
+		if ( projeto.getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue() ) ) {
+			
+			projetoParecerDto = form.parecerProjetoUsuario();
+			
+			if( projetoParecerDto.id() == null )
+				projetoParecer = projetoParecerService.cadastrar( projetoResult, projetoParecerDto );
+			else
+				projetoParecer = projetoParecerService.atualizar(projetoResult, projetoParecerDto );
+
 		}
 
 		try {
@@ -402,7 +408,7 @@ public class ProjetoService {
 
 		logger.info("Projeto atualizado com sucesso");
 
-		return new ProjetoDto(projetoResult, valorDto, rateio,
+		return new ProjetoDto( projetoResult, valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
 				subResponsavelProponente,
@@ -416,7 +422,8 @@ public class ProjetoService {
 				false,
 				null, null,
 				null,
-				this.buscarParecer(projetoParecer),null);
+				this.buscarParecer(projetoParecer),null,
+				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList());
 
 	}
 
@@ -524,6 +531,8 @@ public class ProjetoService {
 
 	@Transactional
 	public void alterarStatusProjeto(Long id, String status) {
+
+		logger.info("Alterando status do projeto {} para {}.", id, status);
 
 		Projeto projeto = this.buscar(id);
 

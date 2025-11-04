@@ -49,22 +49,27 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public Set<ProjetoParecer> cadastrar(Projeto projeto, List<ProjetoParecerDto> projetoPareceresDtoList) {
+	public ProjetoParecer cadastrar( Projeto projeto, ProjetoParecerDto projetoParecerUsuarioDto ) {
 
 		logger.info("Cadastrando pareceres DIC com id: {}", projeto.getId());
 
-		Set<ProjetoParecer> ProjetoComplementosSet = new HashSet<>();
+		Set<ProjetoParecer> projetoParecerSet = new HashSet<>();
 
-		projetoPareceresDtoList.forEach(parecerDto -> {
-			ProjetoParecer complementoProjeto = new ProjetoParecer(projeto, parecerDto);
-			ProjetoComplementosSet.add(complementoProjeto);
-		});
+		// ProjetoParecer projetoParecer = new ProjetoParecer( projeto, projetoParecerUsuarioDto );
+		// projetoParecerSet.add ( projetoParecer );
 
-		List<ProjetoParecer> ProjetoComplementoList = projetoParecerRepository.saveAll(ProjetoComplementosSet);
+		String subUsuario = autenticacaoService.getUsuarioLogado();
+		String guidOrgaoLotacaoUsuario = usuarioService.lotacaoGuidUsuario(subUsuario);
 
-		logger.info("Campos a serem complementados para o DIC cadastrada com sucesso");
+		ProjetoParecer projetoParecer = new ProjetoParecer( projeto, guidOrgaoLotacaoUsuario,	projetoParecerUsuarioDto.textoParecer(), StatusParecerEnum.PENDENTE );
 
-		return new HashSet<>(ProjetoComplementoList);
+		projetoParecerSet.add( projetoParecer );
+
+		projetoParecerRepository.saveAllAndFlush( projetoParecerSet );
+
+		logger.info("Parecer referente ao DIC {} cadastrado com sucesso", projeto.getId() );
+
+		return projetoParecer;
 
 	}
 
@@ -93,7 +98,7 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public ProjetoParecer atualizar(Projeto projeto, ProjetoParecerDto projetoParecerDto, boolean isSalvar) {
+	public ProjetoParecer atualizar(Projeto projeto, ProjetoParecerDto projetoParecerDto ) {
 
 		if ( projetoParecerDto.guidDocumentoEdocs() != null && projetoParecerDto.guidDocumentoEdocs().length() > 0 ) {
 			throw new ValidacaoSiscapException(

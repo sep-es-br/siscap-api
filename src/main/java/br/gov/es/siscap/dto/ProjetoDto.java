@@ -37,8 +37,9 @@ public record ProjetoDto(
 		String idProcessoEdocs,
 		String idDocumentoDicEdocs,
 		List<ProjetoCamposComplementacaoDto> camposComplementar,
-		ProjetoParecerDto parecerProjeto,
-		Long lotacaoUsuario) {
+		ProjetoParecerDto parecerProjetoUsuario,
+		Long lotacaoUsuario,
+		List<ProjetoParecerDto> pareceresProjeto ) {
 
 	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente,
 			List<EquipeDto> equipeElaboracao,
@@ -48,7 +49,7 @@ public record ProjetoDto(
 			Boolean podeSolicitarComplementacao,
 			Boolean podeResponderComplementacao, String idProcessoEdocs, String idDocumentoDicEdocs,
 			List<ProjetoCamposComplementacaoDto> camposComplementar,
-			ProjetoParecerDto parecerProjeto, Long lotacaoUsuario) {
+			ProjetoParecerDto parecerProjeto, Long lotacaoUsuario, List<ProjetoParecerDto> pareceresProjeto) {
 		this(projeto.getId(),
 				projeto.getSigla(),
 				projeto.getTitulo(),
@@ -80,7 +81,7 @@ public record ProjetoDto(
 				idProcessoEdocs,
 				idDocumentoDicEdocs,
 				camposComplementar,
-				parecerProjeto, lotacaoUsuario);
+				parecerProjeto, lotacaoUsuario, pareceresProjeto);
 
 	}
 
@@ -116,7 +117,8 @@ public record ProjetoDto(
 				null,
 				null,
 				null,
-				null, null);
+				null, null, 
+				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList() );
 
 	}
 
