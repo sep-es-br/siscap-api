@@ -30,6 +30,9 @@ public class ProjetoParecerService {
 	@Value("${api.parecer.guidSUBEO}")
 	private String guidSUBEO;
 
+	@Value("${api.edocs.guiddestinoSUBCAP}")
+	private String guidSUBCAP;
+
 	@Value("${email.destinatario-subcap}")
 	private String DESTINO_AVISO_PARECER_CAPTURA;
 
@@ -49,25 +52,23 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public ProjetoParecer cadastrar( Projeto projeto, ProjetoParecerDto projetoParecerUsuarioDto ) {
+	public ProjetoParecer cadastrar(Projeto projeto, ProjetoParecerDto projetoParecerUsuarioDto) {
 
 		logger.info("Cadastrando pareceres DIC com id: {}", projeto.getId());
 
 		Set<ProjetoParecer> projetoParecerSet = new HashSet<>();
 
-		// ProjetoParecer projetoParecer = new ProjetoParecer( projeto, projetoParecerUsuarioDto );
-		// projetoParecerSet.add ( projetoParecer );
-
 		String subUsuario = autenticacaoService.getUsuarioLogado();
 		String guidOrgaoLotacaoUsuario = usuarioService.lotacaoGuidUsuario(subUsuario);
 
-		ProjetoParecer projetoParecer = new ProjetoParecer( projeto, guidOrgaoLotacaoUsuario,	projetoParecerUsuarioDto.textoParecer(), StatusParecerEnum.PENDENTE );
+		ProjetoParecer projetoParecer = new ProjetoParecer(projeto, guidOrgaoLotacaoUsuario,
+				projetoParecerUsuarioDto.textoParecer(), StatusParecerEnum.PENDENTE);
 
-		projetoParecerSet.add( projetoParecer );
+		projetoParecerSet.add(projetoParecer);
 
-		projetoParecerRepository.saveAllAndFlush( projetoParecerSet );
+		projetoParecerRepository.saveAllAndFlush(projetoParecerSet);
 
-		logger.info("Parecer referente ao DIC {} cadastrado com sucesso", projeto.getId() );
+		logger.info("Parecer referente ao DIC {} cadastrado com sucesso", projeto.getId());
 
 		return projetoParecer;
 
@@ -98,27 +99,29 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public ProjetoParecer atualizar(Projeto projeto, ProjetoParecerDto projetoParecerDto ) {
+	public ProjetoParecer atualizar(Projeto projeto, ProjetoParecerDto projetoParecerDto) {
 
-		if ( projetoParecerDto.guidDocumentoEdocs() != null && projetoParecerDto.guidDocumentoEdocs().length() > 0 ) {
+		if (projetoParecerDto.guidDocumentoEdocs() != null && projetoParecerDto.guidDocumentoEdocs().length() > 0) {
 			throw new ValidacaoSiscapException(
-						List.of("O parecer já foi enviado e não pode mais ser alterado ou reenviado."));
+					List.of("O parecer já foi enviado e não pode mais ser alterado ou reenviado."));
 		}
 
 		logger.info("Alterando dados de um parecer do Projeto com id: {}", projeto.getId());
 
-		String lotacaoParecer = "";
+		String tipoParecer = "";
 
 		if (projetoParecerDto.guidUnidadeOrganizacao().equals(guidSUBEPP))
-			lotacaoParecer = "ESTRATÉGICO";
+			tipoParecer = "ESTRATÉGICO";
 		else if (projetoParecerDto.guidUnidadeOrganizacao().equals(guidSUBEO))
-			lotacaoParecer = "ORÇAMENTÁRIO";
+			tipoParecer = "ORÇAMENTÁRIO";
+		else if (projetoParecerDto.guidUnidadeOrganizacao().equals(guidSUBCAP))
+			tipoParecer = "GEOC";
 
 		if (projetoParecerDto.id() == null || projetoParecerDto.id() == 0) {
 			if (projetoParecerRepository.existsByProjetoIdAndGuidUnidadeOrganizacao(projeto.getId(),
-				projetoParecerDto.guidUnidadeOrganizacao())) {
+					projetoParecerDto.guidUnidadeOrganizacao())) {
 				throw new ValidacaoSiscapException(
-						List.of("Já existe para esse projeto parecer vinculado ao setor : " + lotacaoParecer));
+						List.of("Já existe para esse projeto parecer vinculado ao setor : " + tipoParecer));
 			}
 		} else {
 			if (projetoParecerDto.guidUnidadeOrganizacao() == null
@@ -137,7 +140,7 @@ public class ProjetoParecerService {
 		Set<ProjetoParecer> ProjetoParecerSet = this.buscarPorProjeto(projeto);
 
 		Set<ProjetoParecer> pareceresProjetoAtualizarSet = this.atualizarPareceresProjeto(projeto, ProjetoParecerSet,
-		projetoParecerDto);
+				projetoParecerDto);
 
 		projetoParecerRepository.saveAllAndFlush(pareceresProjetoAtualizarSet);
 
@@ -174,31 +177,41 @@ public class ProjetoParecerService {
 
 	}
 
-	public Boolean verificarCapturaParecer(Long idParecer){
+	public Boolean verificarCapturaParecer(Long idParecer) {
 		Optional<ProjetoParecer> parecer = projetoParecerRepository.findById(idParecer);
 		return parecer
-			.map(p -> p.getGuidDocumentoEdocs() != null && p.getGuidDocumentoEdocs().length() > 0)
-			.orElse(false);
+				.map(p -> p.getGuidDocumentoEdocs() != null && p.getGuidDocumentoEdocs().length() > 0)
+				.orElse(false);
 	}
 
-	public Boolean verificarEntranhamentoParecer(Long idParecer){
+	public Boolean verificarEntranhamentoParecer(Long idParecer) {
 		Optional<ProjetoParecer> parecer = projetoParecerRepository.findById(idParecer);
 		return parecer
-			.map(p -> p.getStatusParecer() ==  StatusParecerEnum.ENTRANHADO_EDOCS.getValue() )
-			.orElse(false);
+				.map(p -> p.getStatusParecer() == StatusParecerEnum.ENTRANHADO_EDOCS.getValue())
+				.orElse(false);
 	}
 
-	public String gerarNomeArquivoParecerDIC(Long id) {
+	public String buscarTipoParecer(Long idParecer) {
 
-		ProjetoParecer projetoParecer = this.buscar(id);
+		ProjetoParecer projetoParecer = this.buscar(idParecer);
 		String tipoParecer = "";
 
 		if (projetoParecer.getGuidUnidadeOrganizacao().equals(guidSUBEPP))
 			tipoParecer = "ESTRATÉGICO";
 		else if (projetoParecer.getGuidUnidadeOrganizacao().equals(guidSUBEO))
 			tipoParecer = "ORÇAMENTÁRIO";
+		else if (projetoParecer.getGuidUnidadeOrganizacao().equals(guidSUBCAP))
+			tipoParecer = "GEOC";
 
-		return "PARECER " + tipoParecer +
+		return tipoParecer;
+
+	}
+
+	public String gerarNomeArquivoParecerDIC(Long id) {
+
+		ProjetoParecer projetoParecer = this.buscar(id);
+
+		return "PARECER " + this.buscarTipoParecer(id) + " " +
 				projetoParecer.getProjeto().getCountAno() + "-" +
 				projetoParecer.getProjeto().getOrganizacao().getNomeFantasia();
 
@@ -222,7 +235,7 @@ public class ProjetoParecerService {
 						() -> {
 							String subUsuario = autenticacaoService.getUsuarioLogado();
 							String guidOrgaoLotacaoUsuario = usuarioService.lotacaoGuidUsuario(subUsuario);
-							pareceresAdicionarSet.add( new ProjetoParecer(projeto, guidOrgaoLotacaoUsuario,
+							pareceresAdicionarSet.add(new ProjetoParecer(projeto, guidOrgaoLotacaoUsuario,
 									parecerDto.textoParecer(), StatusParecerEnum.PENDENTE));
 						});
 
@@ -247,7 +260,7 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public void atualizarStatusParecer( Long idParecer, StatusParecerEnum statusParecer ) {
+	public void atualizarStatusParecer(Long idParecer, StatusParecerEnum statusParecer) {
 
 		ProjetoParecer projetoParecer = this.buscar(idParecer);
 
@@ -264,13 +277,14 @@ public class ProjetoParecerService {
 
 		boolean confirmacaoEnvioEmail = false;
 		List<String> emailsInteressadosList = new ArrayList<String>();
-		emailsInteressadosList.add( DESTINO_AVISO_PARECER_CAPTURA );
+		emailsInteressadosList.add(DESTINO_AVISO_PARECER_CAPTURA);
 
 		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idProjeto;
 
 		try {
 
-			confirmacaoEnvioEmail = emailService.enviarEmailPareceresCapturadosProjeto(emailsInteressadosList, idProjeto, linkEdicao );
+			confirmacaoEnvioEmail = emailService.enviarEmailPareceresCapturadosProjeto(emailsInteressadosList,
+					idProjeto, linkEdicao);
 
 			if (confirmacaoEnvioEmail) {
 				logger.info(

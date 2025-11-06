@@ -371,14 +371,14 @@ public class ProjetoService {
 		ProjetoParecerDto projetoParecerDto = form.parecerProjetoUsuario();
 		ProjetoParecer projetoParecer = null;
 
-		if ( projeto.getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue() ) ) {
+		if ( projeto.getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue() ) || projeto.getStatus().equals( StatusProjetoEnum.ELEGIBILIDADE.getValue() ) ) {
 			
 			projetoParecerDto = form.parecerProjetoUsuario();
 			
 			if( projetoParecerDto.id() == null )
 				projetoParecer = projetoParecerService.cadastrar( projetoResult, projetoParecerDto );
 			else
-				projetoParecer = projetoParecerService.atualizar(projetoResult, projetoParecerDto );
+				projetoParecer = projetoParecerService.atualizar( projetoResult, projetoParecerDto );
 
 		}
 

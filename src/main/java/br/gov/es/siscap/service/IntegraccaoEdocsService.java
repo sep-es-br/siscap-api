@@ -121,7 +121,7 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	public void assinarCapturaParecerDIC(Long idProjeto, Long idParecer) {
+	public void assinarCapturaParecerDIC( Long idProjeto, Long idParecer ) {
 
 		logger.info("Iniciando processo para Assinar e Capturar Pareceres do projeto {} no E-Docs..", idProjeto);
 
@@ -137,7 +137,7 @@ public class IntegraccaoEdocsService {
 
 		Projeto projeto = projetoService.buscar(idProjeto);
 
-		Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer);
+		Resource resource = relatoriosService.gerarArquivoParecerDIC( "PARECER", idProjeto, idParecer, projetoParecerService.buscarTipoParecer(idParecer) );
 		String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
 		ProjetoDto projetoDto = new ProjetoDto(projeto);
 
