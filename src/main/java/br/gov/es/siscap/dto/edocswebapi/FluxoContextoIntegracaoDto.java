@@ -8,13 +8,15 @@ public class FluxoContextoIntegracaoDto {
 
     private final ProjetoDto projeto;
     private final String token;
+    private String[] idDocumento;
+
     private String idEventoAvocar;
     private String idEventoCaptura;
     private String idEventoDespachar;
     private String idEventoAutuar;
     private String idEventoEntranhamento;
     private String IdEventoDesentranhar;
-    private String idDocumento;
+    
     private String idProcesso;
     private String protocolo;
     private String idDocumentoDesentranhar;
@@ -28,5 +30,16 @@ public class FluxoContextoIntegracaoDto {
     private AtosProcessoEdocsDto dtoAtoProcessoDocs;
 
     private ProcessoDocumentosAtoProcessoDto documentoAtoProcessoDto;
+
+    public FluxoContextoIntegracaoDto(ProjetoDto projeto, String token ) {
+        this.projeto = projeto;
+        this.token = token;
+    }
+
+    public FluxoContextoIntegracaoDto(ProjetoDto projeto, String token, String[] idDocumentos) {
+        this.projeto = projeto;
+        this.token = token;
+        this.idDocumento = idDocumentos;
+    }
 
 }

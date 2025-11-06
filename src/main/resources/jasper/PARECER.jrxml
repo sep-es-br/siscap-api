@@ -11,6 +11,7 @@
 	<parameter name="idParecer" class="java.lang.Long">
 		<defaultValueExpression><![CDATA[3]]></defaultValueExpression>
 	</parameter>
+	<parameter name="descricaoTipoParecer" class="java.lang.String"/>
 	<query language="sql"><![CDATA[select
 	proj.id as id_projeto,
 	proj.criado_em as data_criacao_projeto,
@@ -84,8 +85,8 @@ group by proj.id,
 	<field name="valor_estimado_projeto" class="java.math.BigDecimal"/>
 	<background splitType="Stretch"/>
 	<pageHeader height="86" splitType="Stretch">
-		<element kind="textField" uuid="2d626a4e-c647-42a2-b888-682538d04d1f" x="0" y="61" width="310" height="20" forecolor="#0A588F" fontName="SansSerif" fontSize="10.0" bold="true">
-			<expression><![CDATA["PARECER n. " + $F{contagem_anual_projeto} + "-" + $F{abreviatura_organizacao} + "-" + 
+		<element kind="textField" uuid="2d626a4e-c647-42a2-b888-682538d04d1f" x="0" y="61" width="310" height="20" forecolor="#030303" fontName="SansSerif" fontSize="10.0" bold="true">
+			<expression><![CDATA["DIC:  n. " + $F{contagem_anual_projeto} + "-" + $F{abreviatura_organizacao} + "-" + 
 ($F{cnpj_organizacao} != null && $F{cnpj_organizacao}.length() >= 14 ? 
  String.valueOf($F{cnpj_organizacao}).substring(0,2) + "." +
  String.valueOf($F{cnpj_organizacao}).substring(2,5) + "." +
@@ -102,6 +103,9 @@ group by proj.id,
 		</element>
 		<element kind="image" uuid="467e7e53-0b0d-43df-8226-026b62df8015" x="383" y="0" width="153" height="60">
 			<expression><![CDATA[$P{pathRelatorios} + "/brasao_sep.png"]]></expression>
+		</element>
+		<element kind="textField" uuid="94e0bade-bb38-4720-8310-fa54f57e7a3b" x="-10" y="32" width="380" height="20" forecolor="#0A588F" fontName="SansSerif" fontSize="10.0" bold="true">
+			<expression><![CDATA["Parecer " + $P{descricaoTipoParecer}]]></expression>
 		</element>
 	</pageHeader>
 	<detail>
@@ -142,8 +146,8 @@ group by proj.id,
 			<element kind="textField" uuid="ec1ecf2c-d378-4cfc-b248-f30609e588ec" x="0" y="23" width="535" height="30">
 				<expression><![CDATA[$F{parecer}]]></expression>
 			</element>
-			<element kind="staticText" uuid="e36c32c6-1dc6-421e-8d41-24a4e316c8df" x="0" y="0" width="100" height="20" bold="true">
-				<text><![CDATA[Parecer : ]]></text>
+			<element kind="textField" uuid="f5505670-450d-4e27-b6f6-c7ba33e9fd82" x="1" y="0" width="380" height="20" forecolor="#000000" fontName="SansSerif" fontSize="10.0" bold="true">
+				<expression><![CDATA["Texto do parecer " + $P{descricaoTipoParecer}]]></expression>
 			</element>
 		</band>
 	</detail>

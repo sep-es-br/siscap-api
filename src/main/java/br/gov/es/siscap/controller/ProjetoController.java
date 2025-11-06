@@ -37,8 +37,6 @@ public class ProjetoController {
 	private final RelatoriosService relatoriosService;
 	private final AsyncExecutorService asyncExecutorService;
 	private final IntegraccaoEdocsService integracaoEdocsService;
-	//private final AutenticacaoService autenticacaoService;
-	//private final Logger logger = LogManager.getLogger(RelatoriosService.class);
 
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
@@ -143,7 +141,7 @@ public class ProjetoController {
 	public ResponseEntity<Resource> assinarCapturaParecerDIC(@PathVariable Long idProjeto,
 			@Valid @RequestBody ProjetoForm form) {
  		ProjetoDto projetoDto = service.atualizar( idProjeto, form, false );
-		asyncExecutorService.assinarCapturaParecerDIC( idProjeto, projetoDto.parecerProjeto().id() );
+		asyncExecutorService.assinarCapturaParecerDIC( idProjeto, projetoDto.parecerProjetoUsuario().id() );
 		return ResponseEntity.accepted().build();
 	}
 
@@ -158,6 +156,13 @@ public class ProjetoController {
 			@Valid @RequestBody ProjetoForm form) {
 		service.atualizar(idProjeto, form, false);
 		asyncExecutorService.executarReentranhamentoDicEdocs(idProjeto);
+		return ResponseEntity.accepted().build();
+	}
+
+	@PutMapping("/dic/edocs/entranharpareceres/{idProjeto}")
+	public ResponseEntity<Resource> entranharPareceresDIC(@PathVariable Long idProjeto,
+			@Valid @RequestBody ProjetoForm form) {
+ 		asyncExecutorService.entranharPareceresDIC( idProjeto );
 		return ResponseEntity.accepted().build();
 	}
 
