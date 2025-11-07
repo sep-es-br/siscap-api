@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoParecerDto;
+import br.gov.es.siscap.enums.LotacaoUsuarioEnum;
 import br.gov.es.siscap.enums.StatusParecerEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.ProjetoNaoEncontradoException;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +50,19 @@ public class ProjetoParecerService {
 
 	public Set<ProjetoParecer> buscarPorProjeto(Projeto projeto) {
 		logger.info("Buscando pareceres vinculados ao DIC com id: {}", projeto.getId());
-		return this.projetoParecerRepository.findAllByProjeto(projeto);
+		return this.projetoParecerRepository
+				.findAllByProjeto(projeto)
+				.stream()
+				.map(p -> {
+					LotacaoUsuarioEnum lotacao = LotacaoUsuarioEnum.fromGuid(
+							p.getGuidUnidadeOrganizacao(),
+							guidSUBEPP,
+							guidSUBEO,
+							guidSUBCAP);
+					p.setLotacaoParecer(lotacao);
+					return p;
+				})
+				.collect(Collectors.toSet());
 	}
 
 	@Transactional

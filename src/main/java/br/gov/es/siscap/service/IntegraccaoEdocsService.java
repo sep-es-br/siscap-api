@@ -24,6 +24,7 @@ import reactor.util.retry.Retry;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,7 +122,7 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	public void assinarCapturaParecerDIC( Long idProjeto, Long idParecer ) {
+	public void assinarCapturaParecerDIC(Long idProjeto, Long idParecer) {
 
 		logger.info("Iniciando processo para Assinar e Capturar Pareceres do projeto {} no E-Docs..", idProjeto);
 
@@ -137,7 +138,8 @@ public class IntegraccaoEdocsService {
 
 		Projeto projeto = projetoService.buscar(idProjeto);
 
-		Resource resource = relatoriosService.gerarArquivoParecerDIC( "PARECER", idProjeto, idParecer, projetoParecerService.buscarTipoParecer(idParecer) );
+		Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
+				projetoParecerService.buscarTipoParecer(idParecer));
 		String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
 		ProjetoDto projetoDto = new ProjetoDto(projeto);
 
@@ -145,6 +147,15 @@ public class IntegraccaoEdocsService {
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
 						erro -> logger.info("ERRO: {}", erro));
+
+		// parecer for da SUBCAP sera feito e seu entranhamento no processo e envio de
+		// email
+		// para subsecretaria..
+		if (projetoParecerService.buscarTipoParecer(idParecer).equals("GEOC")) {
+			this.entranharParecerProcesso(projetoDto, idParecer).subscribe(
+					mensagem -> logger.info("SUCESSO: {}", mensagem),
+					erro -> logger.info("ERRO: {}", erro));
+		}
 
 	}
 
@@ -1247,6 +1258,32 @@ public class IntegraccaoEdocsService {
 							.atualizarStatusParecer(parecer.getId(), StatusParecerEnum.ENTRANHADO_EDOCS));
 				})
 				.thenReturn("Entranhamento dos pareceres referente ao DIC concluída com sucesso.");
+
+	}
+
+	private Mono<String> entranharParecerProcesso(ProjetoDto projetoDto, Long idParecer) {
+
+		Projeto projeto = projetoService.buscar(projetoDto.id());
+
+		ProjetoParecer projetoParecer = projetoParecerService.buscarPorProjeto(projeto).stream()
+				.filter(parecer -> parecer.getGuidUnidadeOrganizacao().equals(guiddestinoSUBCAP))
+				.findFirst()
+				.orElse(null);
+
+		if (projetoParecer == null)
+			throw new ValidacaoSiscapException(
+				List.of( String.format("Parecer SUBCAP - GEOC não encontrado para o projeto ID: %d", projetoDto.id() ) ) );
+
+		return buscarTokenReativo()
+				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
+				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token,
+						new String[] { projetoParecer.getGuidDocumentoEdocs() }))
+				.flatMap(ctx -> entranharDocumentoEdocs(ctx))
+				.flatMap(ctx -> consultarSituacaoEntranhamento(ctx))
+				.doOnSuccess(retorno -> {
+					projetoService.enviarEmailSubSecretariaSubcap(projetoDto.id());
+				})
+				.thenReturn("Entranhamento do parecere referente ao DIC concluída com sucesso.");
 
 	}
 
