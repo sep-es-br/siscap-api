@@ -759,10 +759,10 @@ public class ProjetoService {
 
 		try {
 
-			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGerenciaSubcap( emailsInteressadosList, projeto.getTitulo(), linkEdicao );
+			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGeocSubcapRealizado( emailsInteressadosList, projeto.getTitulo(), linkEdicao );
 
 			if (confirmacaoEnvioEmail) {
-				logger.info("Email aviso  aviso de parecer gerencia SUBCAP enviado com sucesso.");
+				logger.info("Email aviso de parecer gerencia SUBCAP entranhado enviado com sucesso.");
 			} else {
 				erros.add("Erro ao enviar aviso de parecer gerencia SUBCAP ");
 			}
