@@ -298,7 +298,7 @@ public class ProjetoParecerService {
 		try {
 
 			confirmacaoEnvioEmail = emailService.enviarEmailPareceresCapturadosProjeto(emailsInteressadosList,
-					idProjeto, linkEdicao);
+					idProjeto, linkEdicao );
 
 			if (confirmacaoEnvioEmail) {
 				logger.info(
