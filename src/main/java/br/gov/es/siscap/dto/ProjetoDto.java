@@ -1,6 +1,5 @@
 package br.gov.es.siscap.dto;
 
-import br.gov.es.siscap.enums.LotacaoUsuarioEnum;
 import br.gov.es.siscap.models.*;
 
 import java.util.List;

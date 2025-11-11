@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.util.retry.Retry;
 
 import java.io.IOException;
@@ -121,7 +122,7 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	public void assinarCapturaParecerDIC( Long idProjeto, Long idParecer ) {
+	public void assinarCapturaParecerDIC(Long idProjeto, Long idParecer) {
 
 		logger.info("Iniciando processo para Assinar e Capturar Pareceres do projeto {} no E-Docs..", idProjeto);
 
@@ -137,14 +138,40 @@ public class IntegraccaoEdocsService {
 
 		Projeto projeto = projetoService.buscar(idProjeto);
 
-		Resource resource = relatoriosService.gerarArquivoParecerDIC( "PARECER", idProjeto, idParecer, projetoParecerService.buscarTipoParecer(idParecer) );
+		Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
+				projetoParecerService.buscarTipoParecer(idParecer));
 		String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
+
 		ProjetoDto projetoDto = new ProjetoDto(projeto);
 
+		// this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo,
+		// idParecer, subUsuarioLogado)
+		// .subscribe(
+		// mensagem -> logger.info("SUCESSO: {}", mensagem),
+		// erro -> logger.info("ERRO: {}", erro));
+		// // parecer for da SUBCAP sera feito e seu entranhamento no processo e envio
+		// de
+		// // email - para subsecretaria..
+		// if (projetoParecerService.buscarTipoParecer(idParecer).equals("GEOC")) {
+		// this.entranharParecerProcesso(projetoDto, idParecer).subscribe(
+		// mensagem -> logger.info("SUCESSO: {}", mensagem),
+		// erro -> logger.info("ERRO: {}", erro));
+		// }
+
+		String subJwt = autenticacaoService.getUsuarioSub();
+
 		this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado)
-				.subscribe(
-						mensagem -> logger.info("SUCESSO: {}", mensagem),
-						erro -> logger.info("ERRO: {}", erro));
+			.flatMap(mensagem -> {
+				logger.info("SUCESSO: {}", mensagem);
+				if (projetoParecerService.buscarTipoParecer(idParecer).equals("GEOC")) {
+					return this.entranharParecerProcesso(projetoDto, idParecer, subJwt);
+				} else {
+					return Mono.empty();
+				}
+			})
+			.subscribe(
+					mensagem -> logger.info("SUCESSO: {}", mensagem),
+					erro -> logger.error("ERRO: {}", erro));
 
 	}
 
@@ -285,6 +312,9 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> consultarSituacaoCaptura(ctx))
 				.doOnSuccess(retorno -> finalizaTodasEtapas(projetoDto.id()))
 				.flatMap(ctx -> atualizarParecer(ctx, idParecer, subUsuarioLogado))
+				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idParecer))
+				.doOnSuccess(v -> logger.info("Parecer {} atualizado com sucesso", idParecer))
+				.doOnError(e -> logger.error("Erro ao atualizar parecer {}", idParecer, e))
 				.thenReturn("Assinatura e Captura do parecer concluída com sucesso.");
 
 	}
@@ -324,8 +354,10 @@ public class IntegraccaoEdocsService {
 	}
 
 	private Mono<FluxoContextoIntegracaoDto> entranharDocumentoEdocs(FluxoContextoIntegracaoDto ctx) {
+
 		logger.info("Iniciar processo de entranhamento do documento ao processo E-Docs - ID {}", ctx.getProjeto().id());
 		logger.info("ID documento a ser entranhado {}", ctx.getIdDocumento()[0]);
+
 		return FeignReativo.fromFeign(() -> entranharDocumentosProcessoEdocs(
 				ctx.getProjeto().idProcessoEdocs(),
 				ctx.getIdDocumento(),
@@ -351,17 +383,31 @@ public class IntegraccaoEdocsService {
 
 	private Mono<String> atualizarParecer(FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado) {
 
-		projetoParecerService.atualizarIdArquivoCapturado(ctx.getIdDocumento()[0], idParecer, subUsuarioLogado);
+		// projetoParecerService.atualizarIdArquivoCapturado(ctx.getIdDocumento()[0],
+		// idParecer, subUsuarioLogado);
+		// // alterar o status do projeto se todos os pareceres foram enviados para o
+		// // E-Docs..
+		// // no minimo havera parecers da SUBEPP E SUBEO..
+		// if
+		// (projetoParecerService.verificarEnvioPareceresProjeto(ctx.getProjeto().id()))
+		// {
+		// if
+		// (projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id()))
+		// projetoService.alterarStatusProjeto(ctx.getProjeto().id(),
+		// StatusProjetoEnum.ELEGIBILIDADE.getValue());
+		// }
+		// return Mono.just("Ok");
 
-		// alterar o status do projeto se todos os pareceres foram enviados para o
-		// E-Docs..
-		// no minimo havera parecers da SUBEPP E SUBEO..
-		if (projetoParecerService.verificarEnvioPareceresProjeto(ctx.getProjeto().id())) {
-			if (projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id()))
-				projetoService.alterarStatusProjeto(ctx.getProjeto().id(), StatusProjetoEnum.ELEGIBILIDADE.getValue());
-		}
-
-		return Mono.just("Ok");
+		return Mono.fromCallable(() -> {
+			projetoParecerService.atualizarIdArquivoCapturado(ctx.getIdDocumento()[0], idParecer, subUsuarioLogado);
+			if (projetoParecerService.verificarEnvioPareceresProjeto(ctx.getProjeto().id())) {
+				if (projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id())) {
+					projetoService.alterarStatusProjeto(ctx.getProjeto().id(),
+							StatusProjetoEnum.ELEGIBILIDADE.getValue());
+				}
+			}
+			return "Ok";
+		});
 
 	}
 
@@ -833,73 +879,19 @@ public class IntegraccaoEdocsService {
 				.thenReturn(ctx);
 	}
 
-	// private Mono<FluxoContextoIntegracaoDto> avocar(FluxoContextoIntegracaoDto
-	// ctx) {
-	// logger.info("Iniciando o processo de Avocacao : ");
-	// return FeignReativo.fromFeign(() -> avocarProcessoEDocs(ctx.getProjeto(),
-	// ctx.getToken()))
-	// .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-	// .switchIfEmpty(Mono.error(new RuntimeException("Falha ao avocar processo via
-	// E-Docs.")))
-	// .doOnSuccess(idEvento -> {
-	// ctx.setIdEventoAvocar(idEvento.replace("\"", ""));
-	// this.atualizarEtapa(
-	// ctx.getProjeto().id(),
-	// EtapasIntegracaoEdocsEnum.AVOCAR,
-	// true,
-	// false);
-	// logger.info("Avocação realizada: {}", idEvento);
-	// })
-	// .doOnError(e -> {
-	// registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.AVOCAR);
-	// projetoService.alterarStatusProjeto(
-	// ctx.getProjeto().id(),
-	// StatusProjetoEnum.COMPLEMETACAO.getValue());
-	// })
-	// .thenReturn(ctx);
-	// }
-
 	private Mono<String> buscarTokenReativo() {
 		String subJwt = autenticacaoService.getUsuarioSub();
 		return Mono.just(AutorizacaoACService.getEdocsToken(subJwt));
+	}
+
+	private Mono<String> buscarTokenReativo(String subJwt) {
+		return Mono.fromSupplier(() -> AutorizacaoACService.getEdocsToken(subJwt));
 	}
 
 	private SituacaoEventoDto consultarSituacaoEventoEdocs(String idEventoEdocs, String token) {
 		logger.info("Iniciar consulta situacao evento id {}.", idEventoEdocs);
 		return EdocsWebClient.buscarSituacaoEvento(token, idEventoEdocs);
 	}
-
-	// private Mono<FluxoContextoIntegracaoDto>
-	// consultarSituacaoEventoAvocar(FluxoContextoIntegracaoDto ctx) {
-	// logger.info("Iniciar consulta situacao evento id {}.",
-	// ctx.getIdEventoAvocar());
-	// return FeignReativo
-	// .fromFeign(() -> EdocsWebClient.buscarSituacaoEvento(ctx.getToken(),
-	// ctx.getIdEventoAvocar()))
-	// .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-	// .filter(dto -> {
-	// boolean isConcluido =
-	// SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
-	// if (!isConcluido) {
-	// logger.warn("Status não concluído: {}", dto.situacao());
-	// }
-	// return isConcluido;
-	// })
-	// .repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
-	// .timeout(Duration.ofMinutes(1))
-	// .switchIfEmpty(
-	// Mono.error(new RuntimeException("Falha ao consultar situacao evento AVOCAR
-	// via E-Docs.")))
-	// .doOnSuccess(resultConsultaEvento ->
-	// ctx.setSituacaoEventoAvocarDto(resultConsultaEvento))
-	// .doOnError(e -> {
-	// registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.AVOCAR);
-	// projetoService.alterarStatusProjeto(
-	// ctx.getProjeto().id(),
-	// StatusProjetoEnum.COMPLEMETACAO.getValue());
-	// })
-	// .thenReturn(ctx);
-	// }
 
 	private ProcessoEdocsDto consultarDadosProcessoEdocs(String idProcessoEdocs, String token) {
 
@@ -1098,27 +1090,6 @@ public class IntegraccaoEdocsService {
 		return this.etapasPorProjeto.get(idProjeto);
 	}
 
-	// private String avocarProcessoEDocs(ProjetoDto projetoDTO, String token) {
-	// String tokenLimpo = token.replace("Bearer ", "").trim();
-	// ACUserInfoDto userInfo =
-	// AcessoCidadaoService.buscarInformacoesUsuario(tokenLimpo);
-	// List<ACAgentePublicoPapelDto> listaPapeisUsuario = AcessoCidadaoService
-	// .listarPapeisAgentePublicoPorSub(userInfo.subNovo());
-	// String guidPapelUsuario = listaPapeisUsuario.stream()
-	// .filter(ACAgentePublicoPapelDto::Prioritario)
-	// .findFirst()
-	// .orElseGet(() -> listaPapeisUsuario.stream().findFirst().orElse(null))
-	// .Guid();
-	// RestricaoAcessoBodyDto restricaoAcessoBodyDto = new
-	// RestricaoAcessoBodyDto(true, null, null);
-	// AvocarProcessoEdocsDto avocarProcessoBodyDto = new AvocarProcessoEdocsDto(
-	// "Avocamento realizado via sistema de captação - SISCAP.",
-	// restricaoAcessoBodyDto,
-	// projetoDTO.idProcessoEdocs(),
-	// guidPapelUsuario);
-	// return EdocsWebClient.avocarProcesso(token, avocarProcessoBodyDto);
-	// }
-
 	private List<ProcessoVinculadoDocumentoDto> consultarProcessosEdocsVinculadosDocumento(String idDocumentoEdocs,
 			String token) {
 		logger.info("Iniciar consulta dos processos vinculados ao documento id {}.", idDocumentoEdocs);
@@ -1232,7 +1203,7 @@ public class IntegraccaoEdocsService {
 
 		if (pareceresProjeto.stream().anyMatch(parecer -> parecer.getGuidDocumentoEdocs().isEmpty()))
 			throw new ValidacaoSiscapException(
-					List.of("Nenhum ID de documento informadeo para entranhamento ao processo no E-Docs."));
+					List.of("Nenhum ID de documento informado para entranhamento ao processo no E-Docs."));
 
 		return buscarTokenReativo()
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
@@ -1242,11 +1213,38 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> entranharDocumentoEdocs(ctx))
 				.flatMap(ctx -> consultarSituacaoEntranhamento(ctx))
 				.doOnSuccess(retorno -> {
-					projetoService.enviarEmailGerenciaSubcap(projetoDto.id());
 					pareceresProjeto.stream().forEach(parecer -> projetoParecerService
 							.atualizarStatusParecer(parecer.getId(), StatusParecerEnum.ENTRANHADO_EDOCS));
+					projetoService.enviarEmailGerenciaSubcap(projetoDto.id());
 				})
 				.thenReturn("Entranhamento dos pareceres referente ao DIC concluída com sucesso.");
+
+	}
+
+	private Mono<String> entranharParecerProcesso(ProjetoDto projetoDto, Long idParecer, String subJwt) {
+
+		Projeto projeto = projetoService.buscar(projetoDto.id());
+
+		ProjetoParecer projetoParecer = projetoParecerService.buscarPorProjeto(projeto).stream()
+				.filter(parecer -> parecer.getGuidUnidadeOrganizacao().equals(guiddestinoSUBCAP))
+				.findFirst()
+				.orElse(null);
+
+		if (projetoParecer == null)
+			throw new ValidacaoSiscapException(
+					List.of(String.format("Parecer SUBCAP - GEOC não encontrado para o projeto ID: %d",
+							projetoDto.id())));
+
+		return buscarTokenReativo(subJwt)
+				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
+				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token,
+						new String[] { projetoParecer.getGuidDocumentoEdocs() }))
+				.flatMap(ctx -> entranharDocumentoEdocs(ctx))
+				.flatMap(ctx -> consultarSituacaoEntranhamento(ctx))
+				.flatMap(retorno -> Mono
+						.fromRunnable(() -> projetoService.enviarEmailSubSecretariaSubcap(projetoDto.id()))
+						.subscribeOn(Schedulers.boundedElastic()) // evita travar o event loop
+						.thenReturn("Entranhamento do parecer referente ao DIC concluído com sucesso."));
 
 	}
 

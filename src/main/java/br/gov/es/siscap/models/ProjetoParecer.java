@@ -1,6 +1,7 @@
 package br.gov.es.siscap.models;
 
 import br.gov.es.siscap.dto.ProjetoParecerDto;
+import br.gov.es.siscap.enums.LotacaoUsuarioEnum;
 import br.gov.es.siscap.enums.StatusParecerEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -52,6 +53,9 @@ public class ProjetoParecer extends ControleHistorico {
 
 	@Column(name = "sub_usuario_enviou", nullable = true, length=50)
 	private String subUsuarioEnviou;
+
+	@Transient
+    private LotacaoUsuarioEnum lotacaoParecer = LotacaoUsuarioEnum.OUTRO;
 
 	public ProjetoParecer(Projeto projeto, ProjetoParecerDto parecer) {
 		this.setProjeto(projeto);

@@ -745,6 +745,45 @@ public class ProjetoService {
 
 	}
 
+	public void enviarEmailSubSecretariaSubcap(Long idDIC){
+
+		List<String> erros = new ArrayList<>();
+		boolean confirmacaoEnvioEmail;
+		List<String> emailsInteressadosList = new ArrayList<String>();
+		emailsInteressadosList.add( DESTINO_GERENCIA_SUBCAP ); 
+
+		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
+    		.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
+
+		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idDIC;
+
+		try {
+
+			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGeocSubcapRealizado( emailsInteressadosList, projeto.getTitulo(), linkEdicao );
+
+			if (confirmacaoEnvioEmail) {
+				logger.info("Email aviso de parecer gerencia SUBCAP entranhado enviado com sucesso.");
+			} else {
+				erros.add("Erro ao enviar aviso de parecer gerencia SUBCAP ");
+			}
+
+		} catch (UnsupportedEncodingException e) {
+			logger.error(e.getMessage());
+			erros.add(e.getMessage());
+		} catch (MessagingException e) {
+			logger.error(e.getMessage());
+			erros.add(e.getMessage());
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		return;
+
+	}
+
 	@Transactional
 	public void enviarAvisoArquivamentoProjeto(Long id, String justificativa, String codigoMotivoArquivamento) {
 
