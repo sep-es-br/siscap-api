@@ -1099,10 +1099,12 @@ public class ProjetoService {
 			logger.info("Dados do responsavel proponente sub [{}] não foi encontrado.", subResponsavelProponente);
 			return false;
 		}
-
-		if (dadosResponsavelProponente.getEmail().isEmpty() || dadosResponsavelProponente.getEmail().isBlank()) {
+		
+		if (dadosResponsavelProponente == null ||
+			dadosResponsavelProponente.getEmail() == null ||
+			dadosResponsavelProponente.getEmail().isBlank()) {
 			logger.info("Responsavel proponente sub [{}] não possui email informado.", subResponsavelProponente);
-			return false;
+				throw new ValidacaoSiscapException( List.of("Responsavel proponente não possui email cadastrado.")  );
 		}
 
 		Projeto projeto = repository.findById(idProjeto)
