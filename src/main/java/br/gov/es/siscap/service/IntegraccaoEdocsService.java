@@ -95,6 +95,22 @@ public class IntegraccaoEdocsService {
 		}
 	}
 
+	public void registrarFalhaEtapa(Long idProjeto, EtapasIntegracaoEdocsEnum etapaEnum, String msgAlerta ) {
+		List<EtapasIntegracaoDto> etapas = etapasPorProjeto.get(idProjeto);
+		if (etapas != null) {
+			for (EtapasIntegracaoDto etapa : etapas) {
+				if (etapa.getEtapa().equals(etapaEnum)) {
+					etapa.setIniciou(false);
+					etapa.setFinalizou(false);
+					etapa.setErro(true);
+					etapa.setMsgAlertaExibir(msgAlerta);
+					break;
+				}
+			}
+		}
+	}
+
+
 	public void limparEtapas(Long idProjeto) {
 		etapasPorProjeto.remove(idProjeto);
 	}
@@ -143,20 +159,6 @@ public class IntegraccaoEdocsService {
 		String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
 
 		ProjetoDto projetoDto = new ProjetoDto(projeto);
-
-		// this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo,
-		// idParecer, subUsuarioLogado)
-		// .subscribe(
-		// mensagem -> logger.info("SUCESSO: {}", mensagem),
-		// erro -> logger.info("ERRO: {}", erro));
-		// // parecer for da SUBCAP sera feito e seu entranhamento no processo e envio
-		// de
-		// // email - para subsecretaria..
-		// if (projetoParecerService.buscarTipoParecer(idParecer).equals("GEOC")) {
-		// this.entranharParecerProcesso(projetoDto, idParecer).subscribe(
-		// mensagem -> logger.info("SUCESSO: {}", mensagem),
-		// erro -> logger.info("ERRO: {}", erro));
-		// }
 
 		String subJwt = autenticacaoService.getUsuarioSub();
 
@@ -334,7 +336,14 @@ public class IntegraccaoEdocsService {
 
 		return buscarTokenReativo()
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token))
+				.map( token -> {
+					if( !this.validarMovimentacaoProcessoEdcos( token, projetoDto.idProcessoEdocs() ) ){
+						String msgAlerta = "Não é possível realizar o reentramento porque o processo está em um local de custódia que impede essa movimentação no E-Docs por você.";
+						this.registrarFalhaEtapa( projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, msgAlerta);
+						throw new ValidacaoSiscapException( List.of(msgAlerta) );
+					}
+					return new FluxoContextoIntegracaoDto(projetoDto, token); 
+				} )
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
 				.flatMap(ctx -> uploadArquivo(ctx, arquivoCorrigido, nomeArquivo))
 				.flatMap(ctx -> capturarAssinar(ctx, nomeArquivo))
@@ -611,7 +620,9 @@ public class IntegraccaoEdocsService {
 	}
 
 	private Mono<FluxoContextoIntegracaoDto> desentranharDocumento(FluxoContextoIntegracaoDto ctx) {
+
 		logger.info("Iniciar desentranhamento documento ID {}", ctx.getProjeto().idDocumentoDicEdocs());
+
 		return FeignReativo.fromFeign(() -> desentranharDocumentoProcessoEdocs(
 				ctx.getProjeto().idProcessoEdocs(),
 				ctx.getDocumentoAtoProcessoDto().sequencial().toString(),
@@ -1018,10 +1029,11 @@ public class IntegraccaoEdocsService {
 
 	private String despacharProcessoOrgaoOrigem(FluxoContextoIntegracaoDto ctx) {
 
-		String mensagem = "Despacho gerado via sistema de captação - SISCAP";
+		logger.info("Despachar processo E-Docs DIC do projeto {} para Orgao de Origem..",
+			ctx.getProjeto().id());
 
 		List<ACAgentePublicoPapelDto> papeisAgentePublico = AcessoCidadaoService
-				.listarPapeisAgentePublicoPorSub(ctx.getProjeto().subResponsavelProponente());
+			.listarPapeisAgentePublicoPorSub(ctx.getProjeto().subResponsavelProponente());
 
 		String idDestino = papeisAgentePublico.stream()
 				.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
@@ -1047,14 +1059,38 @@ public class IntegraccaoEdocsService {
 
 		RestricaoAcessoBodyDto restricaoAcessoBodyDto = new RestricaoAcessoBodyDto(true, null, null);
 
-		String idProjetoEDocs = (ctx.getIdProcesso() != null && !ctx.getIdProcesso().isEmpty()) ? ctx.getIdProcesso()
+		String idProjetoEDocs = ( ctx.getIdProcesso() != null && !ctx.getIdProcesso().isEmpty()) ? ctx.getIdProcesso()
 				: ctx.getProjeto().idProcessoEdocs();
 
-		DespacharProjetoDto despacharProjetoDto = new DespacharProjetoDto(idDestino, mensagem, restricaoAcessoBodyDto,
+		DespacharProjetoDto despacharProjetoDto = new DespacharProjetoDto(idDestino, "Despacho gerado via sistema de captação - SISCAP", restricaoAcessoBodyDto,
 				idProjetoEDocs, guidPapelUsuario);
 
-		return EdocsWebClient.depacharProcesso(ctx.getToken(), despacharProjetoDto);
+		return EdocsWebClient.depacharProcesso( ctx.getToken(), despacharProjetoDto);
 
+	}
+
+	private boolean validarMovimentacaoProcessoEdcos( String token, String IdProcessoEdocs ) {
+		logger.info("Verificar se a movimentação pretendida no E-Docs pode ser feita pelo usuario que está executando a ação.");
+		String guiIdLotacaoUsuario = this.recuperarLotacaoGuiUsuarioExecutandoAcao(token);
+		LocalCustodiaProcessoEdocsDto localCustodia = EdocsWebClient.buscarLocalCustodiaProcessoEdocs( token, IdProcessoEdocs );
+		return localCustodia.id().equals(guiIdLotacaoUsuario);
+	}
+
+	private String recuperarLotacaoGuiUsuarioExecutandoAcao(String token){
+
+		String tokenLimpo = token.replace("Bearer ", "").trim();
+		ACUserInfoDto userInfo = AcessoCidadaoService.buscarInformacoesUsuario(tokenLimpo);
+
+		List<ACAgentePublicoPapelDto> listaPapeisUsuario = AcessoCidadaoService
+				.listarPapeisAgentePublicoPorSub(userInfo.subNovo());
+
+		String guidLotacaoUsuario = listaPapeisUsuario.stream()
+				.filter( papel -> papel.Prioritario() )
+				.findFirst()
+				.orElseGet( () -> listaPapeisUsuario.stream().findFirst().orElse(null))
+				.LotacaoGuid();
+
+		return guidLotacaoUsuario;
 	}
 
 	private String encerrarProcessoEdcosClient(FluxoContextoIntegracaoDto ctx) {
@@ -1064,10 +1100,9 @@ public class IntegraccaoEdocsService {
 		RestricaoAcessoBodyDto restricaoAcessoBodyDto = new RestricaoAcessoBodyDto(true, null, null);
 
 		String idProjetoEDocs = (ctx.getIdProcesso() != null && !ctx.getIdProcesso().isEmpty()) ? ctx.getIdProcesso()
-				: ctx.getProjeto().idProcessoEdocs();
+			: ctx.getProjeto().idProcessoEdocs();
 
 		String tokenLimpo = ctx.getToken().replace("Bearer ", "").trim();
-
 		ACUserInfoDto userInfo = AcessoCidadaoService.buscarInformacoesUsuario(tokenLimpo);
 
 		List<ACAgentePublicoPapelDto> listaPapeisUsuario = AcessoCidadaoService
@@ -1080,7 +1115,7 @@ public class IntegraccaoEdocsService {
 				.Guid();
 
 		EncerrarProcessoEdocsDto encerrarProcessoEdocsDto = new EncerrarProcessoEdocsDto(desfecho,
-				restricaoAcessoBodyDto, idProjetoEDocs, guidPapelUsuario);
+				restricaoAcessoBodyDto, idProjetoEDocs, guidPapelUsuario );
 
 		return EdocsWebClient.encerrarProcesso(ctx.getToken(), encerrarProcessoEdocsDto);
 
@@ -1105,6 +1140,11 @@ public class IntegraccaoEdocsService {
 
 	private List<AtosProcessoEdocsDto> consultarAtosProcessoEdocs(String idProcessoEdocs, String token) {
 		logger.info("Iniciar consulta Atos vinculados a um processo E-Docs id {}.", idProcessoEdocs);
+		return EdocsWebClient.buscarAtosProcessoEdocs(token, idProcessoEdocs);
+	}
+
+	private List<AtosProcessoEdocsDto> consultarLocalCustodiaProcessoEdocs(String idProcessoEdocs, String token) {
+		logger.info("Iniciar consulta do local de custodia do processo no E-Docs id {}.", idProcessoEdocs);
 		return EdocsWebClient.buscarAtosProcessoEdocs(token, idProcessoEdocs);
 	}
 
