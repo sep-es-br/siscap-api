@@ -1,9 +1,12 @@
 package br.gov.es.siscap.service;
 
+import java.util.List;
+
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 import br.gov.es.siscap.dto.ProjetoDto;
 import lombok.RequiredArgsConstructor;
 
@@ -30,8 +33,8 @@ public class AsyncExecutorService {
     }
 
     @Async
-    public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto) {
-        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto.longValue());
+    public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos) {
+        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem( idProjeto.longValue(), complementos );
     }
 
     @Async
