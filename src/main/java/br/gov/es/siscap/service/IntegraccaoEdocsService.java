@@ -161,17 +161,17 @@ public class IntegraccaoEdocsService {
 		String subJwt = autenticacaoService.getUsuarioSub();
 
 		this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado)
-			.flatMap(mensagem -> {
-				logger.info("SUCESSO: {}", mensagem);
-				if (projetoParecerService.buscarTipoParecer(idParecer).equals("GEOC")) {
-					return this.entranharParecerProcesso(projetoDto, idParecer, subJwt);
-				} else {
-					return Mono.empty();
-				}
-			})
-			.subscribe(
-					mensagem -> logger.info("SUCESSO: {}", mensagem),
-					erro -> logger.error("ERRO: {}", erro));
+				.flatMap(mensagem -> {
+					logger.info("SUCESSO: {}", mensagem);
+					if (projetoParecerService.buscarTipoParecer(idParecer).equals("GEOC")) {
+						return this.entranharParecerProcesso(projetoDto, idParecer, subJwt);
+					} else {
+						return Mono.empty();
+					}
+				})
+				.subscribe(
+						mensagem -> logger.info("SUCESSO: {}", mensagem),
+						erro -> logger.error("ERRO: {}", erro));
 
 	}
 
@@ -286,6 +286,7 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> despacharProcessoDIC(ctx))
 				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
 				.flatMap(ctx -> atualizarProjeto(ctx))
+				.doOnSuccess( retorno -> projetoService.enviarEmailGerenciaSubcapDicAutuado(projetoDto.id()) )
 				.thenReturn("Atuação concluída com sucesso.");
 
 	}
