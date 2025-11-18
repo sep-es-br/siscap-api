@@ -92,6 +92,9 @@ public class ProjetoService {
 	@Value("${email.gerencia-subcap}")
 	private String DESTINO_GERENCIA_SUBCAP;
 
+	@Value("${email.destinatario-subcap}")
+	private String DESTINO_SUBCAP;
+
 	public Page<ProjetoListaDto> listarTodos(
 			Pageable pageable,
 			String siglaOuTitulo,
@@ -726,6 +729,45 @@ public class ProjetoService {
 				logger.info("Email aviso  aviso de parecer gerencia SUBCAP enviado com sucesso.");
 			} else {
 				erros.add("Erro ao enviar aviso de parecer gerencia SUBCAP ");
+			}
+
+		} catch (UnsupportedEncodingException e) {
+			logger.error(e.getMessage());
+			erros.add(e.getMessage());
+		} catch (MessagingException e) {
+			logger.error(e.getMessage());
+			erros.add(e.getMessage());
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		return;
+
+	}
+
+	public void enviarEmailGerenciaSubcapDicAutuado(Long idDIC){
+
+		List<String> erros = new ArrayList<>();
+		boolean confirmacaoEnvioEmail;
+		List<String> emailsInteressadosList = new ArrayList<String>();
+		emailsInteressadosList.add( DESTINO_SUBCAP ); 
+
+		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
+    		.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
+
+		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idDIC;
+
+		try {
+
+			confirmacaoEnvioEmail = emailService.enviarEmailAvisoSubcapDicAutuado( emailsInteressadosList, projeto.getTitulo(), linkEdicao );
+
+			if (confirmacaoEnvioEmail) {
+				logger.info("Email aviso DIC autuado enviado com sucesso.");
+			} else {
+				erros.add("Erro ao enviar aviso DIC autuado para SUBCAP ");
 			}
 
 		} catch (UnsupportedEncodingException e) {
