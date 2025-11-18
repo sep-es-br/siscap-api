@@ -14,6 +14,7 @@ public record UsuarioDto(
 			Set<Permissoes> permissoes,
 			Set<Long> idOrganizacoes,
 			Long idPessoa,
-			boolean isProponente
+			boolean isProponente,
+			boolean isSubcap
 ) {
 }

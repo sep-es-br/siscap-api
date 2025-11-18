@@ -45,6 +45,7 @@ public class AutenticacaoService {
 	private final TokenService tokenService;
 	private final UsuarioRepository usuarioRepository;
 	private final Roles roles;
+	private final UsuarioService usuarioService;
 
 	public String getUsuarioLogado() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
@@ -93,10 +94,10 @@ public class AutenticacaoService {
 		logger.info("Autenticar usuário SisCap.");
 
 		ACUserInfoDto userInfo = acessoCidadaoService.buscarInformacoesUsuario(accessToken);
-
+		
 		if ( Boolean.FALSE.equals(userInfo.agentepublico() ) && ( userInfo.role() == null || userInfo.role().isEmpty() ) )
 			throw new UsuarioSemAutorizacaoException();
-
+		
 		boolean isProponente = false;
 
 		if ( userInfo.role() == null || userInfo.role().isEmpty() ) 
@@ -117,9 +118,15 @@ public class AutenticacaoService {
 
 		Set<Long> idOrganizacoes = construirIdOrganizacoesSet(usuario.getPessoa(), usuario.getSub());
 
+		Boolean isLotadoSubcap = verficarUsuarioEstaLotadoSubcap(usuario.getSub(), userInfo.role());
+		
 		return new UsuarioDto(token, usuario.getPessoa().getNome(), getEmailUserInfo(userInfo), usuario.getSub(),
-			imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente );
+			imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente, isLotadoSubcap );
 
+	}
+
+	private Boolean verficarUsuarioEstaLotadoSubcap(String sub, Set<String> roles) {
+		return usuarioService.ehDaSubcap(sub) || roles.stream().anyMatch( r -> r.equals( "SUBCAP" ));
 	}
 
 	private Usuario buscarOuCriarUsuario(ACUserInfoDto userInfo, String accessToken) {
