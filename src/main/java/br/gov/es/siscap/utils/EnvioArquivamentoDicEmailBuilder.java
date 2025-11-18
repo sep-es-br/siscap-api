@@ -3,7 +3,7 @@ package br.gov.es.siscap.utils;
 public abstract class EnvioArquivamentoDicEmailBuilder {
 
 	private static final String CAMPO_APRESENTACAO = "Prezado(a) %s";
-	private static final String CAMPO_CORPO = "Informamos que o projeto [<strong>%S</strong>] será arquivado conforme avaliação técnica e gerencial realizada pelo gestor [<strong>%S</strong>].";
+	private static final String CAMPO_CORPO = "Informamos que o DIC [<strong>%S</strong>] será arquivado conforme avaliação técnica e gerencial realizada pelo gestor [<strong>%S</strong>].";
 	private static final String CAMPO_TITULO_JUSTIFICATIVA = "<strong> Motivo: </strong>";
 		
 	public static String montarAssuntoEmail(String descricaoProjeto) {
