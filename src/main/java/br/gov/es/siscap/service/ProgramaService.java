@@ -5,6 +5,9 @@ import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.form.ProgramaForm;
+import br.gov.es.siscap.form.ProjetoForm;
+import br.gov.es.siscap.models.Organizacao;
+import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
@@ -16,7 +19,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +32,8 @@ public class ProgramaService {
 	private final ProgramaRepository repository;
 	private final ProjetoService projetoService;
 	private final ProgramaPessoaService programaPessoaService;
+	private final PessoaService pessoaService;
+	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
 	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search) {
@@ -62,12 +70,59 @@ public class ProgramaService {
 
 		Programa programa = repository.save(tempPrograma);
 
-		List<EquipeDto> equipeCaptacao = programaPessoaService.cadastrar(programa, form.equipeCaptacao());
+		List<EquipeDto> equipeParaGravar = form.equipeCaptacao();
+
+		List<EquipeDto> equipeCapacitacaoValidada = this.validarEquipeCapacitacao(form);
+		if (!new HashSet<>(form.equipeCaptacao()).equals(new HashSet<>(equipeCapacitacaoValidada))) {
+			equipeParaGravar = equipeCapacitacaoValidada;
+		}
+		
+		List<EquipeDto> equipeCaptacao = programaPessoaService.cadastrar(programa, equipeParaGravar );
 
 		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programa, form.idProjetoPropostoList());
 
 		logger.info("Programa cadastrado com sucesso");
+		
 		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList);
+	}
+
+	private List<EquipeDto> validarEquipeCapacitacao(ProgramaForm form) {
+
+		List<EquipeDto> equipe = new ArrayList<>();
+
+		for ( EquipeDto membro : form.equipeCaptacao() ) {
+
+			String sub = membro.subPessoa();
+
+			String id = pessoaService.buscarIdPorSub(sub);
+			if (id.isBlank()) {
+				logger.info("Pessoa com sub [{}] não encontrada na base do SISCAP, procedendo para criação.", sub);
+				id = pessoaService.sincronizarAgenteCidadaoPessoaSiscap(sub);
+			} else {
+				logger.info("Verificar se dados da pessoa com sub [{}] estão batendo com dados da tabela pessoa.", sub);
+				pessoaService.sincronizarDadosAgentePessoaSiscap(Long.valueOf(id), sub);
+			}
+
+			EquipeDto novoMembro = new EquipeDto(Long.valueOf(id), membro.idPapel(), membro.idStatus(),
+					membro.justificativa(), membro.subPessoa(), membro.nome());
+
+			equipe.add(novoMembro);
+
+			logger.info("Verificar se pessoa com id [{}] possui organizacao associada na base do SISCAP.", id);
+
+			List<PessoaOrganizacao> organizacoes = pessoaOrganizacaoService.buscarPorIds(List.of(Long.valueOf(id)));
+			if (organizacoes.isEmpty()) {
+				logger.info(
+						"Pessoa com sub [{}] não possui organizacao associada na base do SISCAP - proceder com atualizacao do AC.",
+						sub);
+				Set<Organizacao> organizacoesAC = pessoaService.buscarOrganizacoesAssociadas(sub);
+				pessoaService.associarOrganizacoesAPessoa(pessoaService.buscarPorSub(sub), organizacoesAC);
+			}
+
+		}
+
+		return equipe;
+
 	}
 
 	@Transactional
