@@ -82,7 +82,7 @@ public class ProgramaService {
 		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programa, form.idProjetoPropostoList());
 
 		logger.info("Programa cadastrado com sucesso");
-		
+
 		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList);
 	}
 
@@ -127,6 +127,7 @@ public class ProgramaService {
 
 	@Transactional
 	public ProgramaDto atualizar(Long id, ProgramaForm form) {
+
 		logger.info("Atualizando programa com id: {}", id);
 		logger.info("Dados: {}", form);
 
@@ -136,11 +137,19 @@ public class ProgramaService {
 
 		Programa programaResult = repository.save(programa);
 
-		List<EquipeDto> equipeCaptacao = programaPessoaService.atualizar(programaResult, form.equipeCaptacao());
+		List<EquipeDto> equipeParaGravar = form.equipeCaptacao();
+
+		List<EquipeDto> equipeCapacitacaoValidada = this.validarEquipeCapacitacao(form);
+		if (!new HashSet<>(form.equipeCaptacao()).equals(new HashSet<>(equipeCapacitacaoValidada))) {
+			equipeParaGravar = equipeCapacitacaoValidada;
+		}
+
+		List<EquipeDto> equipeCaptacao = programaPessoaService.atualizar(programaResult, equipeParaGravar );
 
 		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programaResult, form.idProjetoPropostoList());
 
 		logger.info("Programa atualizado com sucesso");
+
 		return new ProgramaDto(programaResult, equipeCaptacao, idProjetoPropostoList);
 
 	}
