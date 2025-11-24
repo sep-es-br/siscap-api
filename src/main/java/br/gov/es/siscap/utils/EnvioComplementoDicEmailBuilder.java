@@ -6,7 +6,7 @@ import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 public abstract class EnvioComplementoDicEmailBuilder {
 
 	private static final String CAMPO_APRESENTACAO = "Prezado(a) %s";
-	private static final String CAMPO_CORPO = "Informamos que o projeto [<strong>%S</strong>] precisará ser complementado após avaliação realizada pela SUBCAP.";
+	private static final String CAMPO_CORPO = "Informamos que o DIC [<strong>%S</strong>] precisará ser complementado após avaliação realizada pela SUBCAP.";
 	private static final String CAMPO_TITULO_COMPLEMENTACAO = "<strong> Complementações a serem realizadas: </strong>";
 		
 	public static String montarAssuntoEmail(String descricaoProjeto) {
