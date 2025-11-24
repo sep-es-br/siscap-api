@@ -3,6 +3,7 @@ package br.gov.es.siscap.dto;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.Programa;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public record ProgramaDto(
@@ -13,7 +14,10 @@ public record ProgramaDto(
 			List<Long> idOrgaoExecutorList,
 			List<EquipeDto> equipeCaptacao,
 			List<Long> idProjetoPropostoList,
-			ValorDto valor
+			ValorDto valor,
+			BigDecimal percentualCustoAdministrativo,
+			BigDecimal valorCalculadoTotal
+
 ) {
 
 	public ProgramaDto(Programa programa, List<EquipeDto> equipeCaptacao, List<Long> idProjetoPropostoList) {
@@ -24,7 +28,9 @@ public record ProgramaDto(
 					programa.getOrgaoExecutorSet().stream().map(Organizacao::getId).toList(),
 					equipeCaptacao,
 					idProjetoPropostoList,
-					new ValorDto(programa.getTetoQuantia(), programa.getTipoValor().getId(), programa.getMoeda())
+					new ValorDto(programa.getTetoQuantia(), programa.getTipoValor().getId(), programa.getMoeda()),
+					programa.getPercentualCustoAdministrativo(),
+					programa.getValorCalculadoTotal()
 		);
 	}
 }

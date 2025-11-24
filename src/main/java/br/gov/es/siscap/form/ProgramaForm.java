@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.ValorDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public record ProgramaForm(
@@ -29,6 +30,13 @@ public record ProgramaForm(
 			List<Long> idProjetoPropostoList,
 
 			@Valid
-			ValorDto valor
+			ValorDto valor,
+
+			@Valid
+			BigDecimal percentualCustoAdministrativo,
+
+			@Valid
+			BigDecimal valorCalculadoTotal
+
 ) {
 }
