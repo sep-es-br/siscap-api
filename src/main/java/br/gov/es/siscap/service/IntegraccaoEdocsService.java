@@ -412,28 +412,12 @@ public class IntegraccaoEdocsService {
 
 	private Mono<String> atualizarParecer(FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado) {
 
-		// projetoParecerService.atualizarIdArquivoCapturado(ctx.getIdDocumento()[0],
-		// idParecer, subUsuarioLogado);
-		// // alterar o status do projeto se todos os pareceres foram enviados para o
-		// // E-Docs..
-		// // no minimo havera parecers da SUBEPP E SUBEO..
-		// if
-		// (projetoParecerService.verificarEnvioPareceresProjeto(ctx.getProjeto().id()))
-		// {
-		// if
-		// (projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id()))
-		// projetoService.alterarStatusProjeto(ctx.getProjeto().id(),
-		// StatusProjetoEnum.ELEGIBILIDADE.getValue());
-		// }
-		// return Mono.just("Ok");
-
 		return Mono.fromCallable(() -> {
 			projetoParecerService.atualizarIdArquivoCapturado(ctx.getIdDocumento()[0], idParecer, subUsuarioLogado);
 			if (projetoParecerService.verificarEnvioPareceresProjeto(ctx.getProjeto().id())) {
-				if (projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id())) {
-					projetoService.alterarStatusProjeto(ctx.getProjeto().id(),
-							StatusProjetoEnum.ELEGIBILIDADE.getValue());
-				}
+				projetoService.alterarStatusProjeto(ctx.getProjeto().id(),
+					StatusProjetoEnum.ELEGIBILIDADE.getValue());
+				projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id());
 			}
 			return "Ok";
 		});

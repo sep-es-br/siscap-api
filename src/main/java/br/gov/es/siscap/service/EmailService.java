@@ -17,6 +17,7 @@ import br.gov.es.siscap.utils.EnvioComplementoDicEmailBuilder;
 import br.gov.es.siscap.utils.EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioRevisaoDicEmailBuilder;
 import br.gov.es.siscap.utils.ProspeccaoEmailBuilder;
+import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
@@ -51,9 +52,18 @@ public class EmailService {
 	@Value("${email.destinatario-parecer.estrategico}")
 	private String DESTINO_PARECER_ESTRATEGICO;
 
-	private final JavaMailSenderImpl sender;
+	private final JavaMailSender sender;
 	
 	private final RelatoriosService relatoriosService;
+
+	private Resource imagemLogoES;
+    private Resource imagemLogoSiscap;
+
+    @PostConstruct
+    public void init() {
+        this.imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
+        this.imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
+    }
 
 	public boolean enviarEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto, List<String> emailsInteressadosList, String nomeArquivo) throws MessagingException, UnsupportedEncodingException {
 
@@ -126,10 +136,10 @@ public class EmailService {
 			try {
 
 				// adicionando a imagem inline (do resources)
-				ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
+				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
 				helper.addInline("govES-logo", imagemLogoES );
 
-				ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
+				// ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
 				helper.addInline("Icon-siscap", imagemLogoSiscap );
 
 				this.sender.send(helper.getMimeMessage());
@@ -170,10 +180,10 @@ public class EmailService {
 			try {
 
 				// adicionando a imagem inline (do resources)
-				ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
+				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
 				helper.addInline("govES-logo", imagemLogoES );
 
-				ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
+				// // ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
 				helper.addInline("Icon-siscap", imagemLogoSiscap );
 
 				this.sender.send(helper.getMimeMessage());
@@ -211,10 +221,10 @@ public class EmailService {
 			try {
 				
 				// adicionando a imagem inline (do resources)
-				ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
+				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
 				helper.addInline("govES-logo", imagemLogoES );
 
-				ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
+				// // ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
 				helper.addInline("Icon-siscap", imagemLogoSiscap );
 				
 				this.sender.send(helper.getMimeMessage());
@@ -257,10 +267,10 @@ public class EmailService {
 			try {
 				
 				// adicionando a imagem inline (do resources)
-				ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
+				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
 				helper.addInline("govES-logo", imagemLogoES );
 
-				ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
+				// // ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
 				helper.addInline("Icon-siscap", imagemLogoSiscap );
 
 				this.sender.send(helper.getMimeMessage());
@@ -305,12 +315,10 @@ public class EmailService {
 			helper.setTo(emailInteressado);
 			try {
 				// adicionando as imagens inline (do resources)
-				ClassPathResource imagemLogoES =
-						new ClassPathResource("static/imagens/govES-logo.png");
+				//ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
 				helper.addInline("govES-logo", imagemLogoES);
 
-				ClassPathResource imagemLogoSiscap =
-						new ClassPathResource("static/imagens/siscap-white.png");
+				//ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
 				helper.addInline("Icon-siscap", imagemLogoSiscap);
 
 				this.sender.send(helper.getMimeMessage());
@@ -350,12 +358,10 @@ public class EmailService {
 			helper.setTo(emailInteressado);
 			try {
 				// adicionando as imagens inline (do resources)
-				ClassPathResource imagemLogoES =
-						new ClassPathResource("static/imagens/govES-logo.png");
+				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
 				helper.addInline("govES-logo", imagemLogoES);
 
-				ClassPathResource imagemLogoSiscap =
-						new ClassPathResource("static/imagens/siscap-white.png");
+				// ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
 				helper.addInline("Icon-siscap", imagemLogoSiscap);
 
 				this.sender.send(helper.getMimeMessage());
@@ -388,12 +394,10 @@ public class EmailService {
 		for (String emailInteressado : emailsInteressadosList) {
 			helper.setTo(emailInteressado);
 			try {
-				ClassPathResource imagemLogoES =
-						new ClassPathResource("static/imagens/govES-logo.png");
+				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
 				helper.addInline("govES-logo", imagemLogoES);
 
-				ClassPathResource imagemLogoSiscap =
-						new ClassPathResource("static/imagens/siscap-white.png");
+				// ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
 				helper.addInline("Icon-siscap", imagemLogoSiscap);
 
 				this.sender.send(helper.getMimeMessage());
@@ -426,12 +430,10 @@ public class EmailService {
 			helper.setTo(emailInteressado);
 			try {
 				// adicionando as imagens inline (do resources)
-				ClassPathResource imagemLogoES =
-						new ClassPathResource("static/imagens/govES-logo.png");
+				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
 				helper.addInline("govES-logo", imagemLogoES);
 
-				ClassPathResource imagemLogoSiscap =
-						new ClassPathResource("static/imagens/siscap-white.png");
+				// ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
 				helper.addInline("Icon-siscap", imagemLogoSiscap);
 
 				this.sender.send(helper.getMimeMessage());
@@ -464,12 +466,10 @@ public class EmailService {
 			helper.setTo(emailInteressado);
 			try {
 				// adicionando as imagens inline (do resources)
-				ClassPathResource imagemLogoES =
-						new ClassPathResource("static/imagens/govES-logo.png");
+				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
 				helper.addInline("govES-logo", imagemLogoES);
 
-				ClassPathResource imagemLogoSiscap =
-						new ClassPathResource("static/imagens/siscap-white.png");
+				// ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
 				helper.addInline("Icon-siscap", imagemLogoSiscap);
 
 				this.sender.send(helper.getMimeMessage());
