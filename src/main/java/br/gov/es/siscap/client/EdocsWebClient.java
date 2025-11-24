@@ -9,6 +9,7 @@ import br.gov.es.siscap.dto.edocswebapi.DespacharProjetoDto;
 import br.gov.es.siscap.dto.edocswebapi.EncerrarProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.EntranharDocumentosProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.GerarUrlUploadResponseDto;
+import br.gov.es.siscap.dto.edocswebapi.LocalCustodiaProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.ProcessoDocumentosAtoProcessoDto;
 import br.gov.es.siscap.dto.edocswebapi.ProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.ProcessoVinculadoDocumentoDto;
@@ -80,5 +81,9 @@ public interface EdocsWebClient {
 	@PostMapping("/v2/processos/encerrar")
 	String encerrarProcesso(@RequestHeader("Authorization") String bearerToken,
 			@RequestBody EncerrarProcessoEdocsDto request);
+
+	@GetMapping("/v2/processos/{idProcessoEdocs}/local-custodia")
+	LocalCustodiaProcessoEdocsDto buscarLocalCustodiaProcessoEdocs(@RequestHeader("Authorization") String bearerToken,
+			@PathVariable String idProcessoEdocs);
 
 }

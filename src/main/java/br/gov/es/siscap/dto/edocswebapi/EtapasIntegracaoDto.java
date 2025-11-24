@@ -11,7 +11,8 @@ public class EtapasIntegracaoDto {
     private boolean iniciada;
     private boolean finalizada;
     private boolean erro;
-    
+    private String msgAlertaExibir;
+
     public EtapasIntegracaoDto(Long idProjeto, EtapasIntegracaoEdocsEnum etapa, boolean iniciada, boolean finalizada, boolean erro ) {
         this.idProjeto = idProjeto;
         this.etapa = etapa;
@@ -28,5 +29,8 @@ public class EtapasIntegracaoDto {
     public void setIniciou( boolean iniciou ) { this.iniciada = iniciou; }
     public void setFinalizou( boolean finalizou ) { this.finalizada = finalizou; }
     public void setErro(boolean erro) { this.erro = erro; }
+
+    public void setMsgAlertaExibir(String msgAlertaExibir) { this.msgAlertaExibir = msgAlertaExibir; }
+    public String getMsgAlertaExibir() { return this.msgAlertaExibir; }
 
 }
