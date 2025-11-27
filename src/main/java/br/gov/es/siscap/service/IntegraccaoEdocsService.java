@@ -1156,11 +1156,6 @@ public class IntegraccaoEdocsService {
 		return EdocsWebClient.buscarAtosProcessoEdocs(token, idProcessoEdocs);
 	}
 
-	private List<AtosProcessoEdocsDto> consultarLocalCustodiaProcessoEdocs(String idProcessoEdocs, String token) {
-		logger.info("Iniciar consulta do local de custodia do processo no E-Docs id {}.", idProcessoEdocs);
-		return EdocsWebClient.buscarAtosProcessoEdocs(token, idProcessoEdocs);
-	}
-
 	private String desentranharDocumentoProcessoEdocs(String idProcessoEdocs, String sequencia,
 			String subResponsavelProponente, String token) {
 
