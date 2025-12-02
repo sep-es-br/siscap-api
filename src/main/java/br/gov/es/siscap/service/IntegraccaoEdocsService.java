@@ -19,6 +19,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.retry.Retry;
@@ -247,15 +249,28 @@ public class IntegraccaoEdocsService {
 						false));
 
 		return buscarTokenReativo()
+				.doOnError(erro -> {
+					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
+					logger.error("", erroBuscarToken);
+					this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
+							erro.getMessage());
+				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> {
-					if (!this.validarMovimentacaoProcessoEdcos(token, projetoDto.idProcessoEdocs())) {
-						String msgAlerta = "Não é possível despachar o processo pois o mesmo está em um local de custódia que impede essa movimentação no E-Docs por você.";
-						this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
-								msgAlerta);
-						throw new ValidacaoSiscapException(List.of(msgAlerta));
+					try {
+						if (!this.validarMovimentacaoProcessoEdcos(token, projetoDto.idProcessoEdocs())) {
+							String msgAlerta = "Não é possível despachar o processo pois o mesmo está em um local de custódia que impede essa movimentação no E-Docs por você.";
+							this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
+									msgAlerta);
+							throw new ValidacaoSiscapException(List.of(msgAlerta));
+						}
+						return new FluxoContextoIntegracaoDto(projetoDto, token);
+					} catch (Exception e) {
+						this.registrarFalhaEtapa(
+								projetoDto.id(),
+								EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+						return null;
 					}
-					return new FluxoContextoIntegracaoDto(projetoDto, token);
 				})
 				.flatMap(ctx -> despacharProcessoDICOrgaoOrigem(ctx))
 				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
@@ -272,6 +287,12 @@ public class IntegraccaoEdocsService {
 
 	public Mono<String> encerrarProcessoEdcosReativo(ProjetoDto projetoDto) {
 		return buscarTokenReativo()
+				.doOnError(erro -> {
+					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
+					logger.error("", erroBuscarToken);
+					this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
+							erroBuscarToken);
+				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token))
 				.flatMap(ctx -> encerrarProcessoEdocs(ctx))
@@ -307,7 +328,7 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> despacharProcessoDIC(ctx))
 				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
 				.flatMap(ctx -> atualizarProjeto(ctx))
-				.doOnSuccess( retorno -> projetoService.enviarEmailGerenciaSubcapDicAutuado(projetoDto.id()) )
+				.doOnSuccess(retorno -> projetoService.enviarEmailGerenciaSubcapDicAutuado(projetoDto.id()))
 				.thenReturn("Atuação concluída com sucesso.");
 
 	}
@@ -355,14 +376,29 @@ public class IntegraccaoEdocsService {
 				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
 
 		return buscarTokenReativo()
+				.doOnError(erro -> {
+					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
+					logger.error("Erro ao buscar Token reativo", erro.getMessage());
+					this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+							erroBuscarToken);
+				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> {
-					if (!this.validarMovimentacaoProcessoEdcos(token, projetoDto.idProcessoEdocs())) {
-						String msgAlerta = "Não é possível realizar o reentramento porque o processo está em um local de custódia que impede essa movimentação no E-Docs por você.";
-						this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, msgAlerta);
-						throw new ValidacaoSiscapException(List.of(msgAlerta));
+					try {
+						if (!this.validarMovimentacaoProcessoEdcos(token, projetoDto.idProcessoEdocs())) {
+							String msgAlerta = "Não é possível realizar o reentramento porque o processo está em um local de custódia que impede essa movimentação no E-Docs por você.";
+							this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+									msgAlerta);
+							throw new ValidacaoSiscapException(List.of(msgAlerta));
+						}
+						return new FluxoContextoIntegracaoDto(projetoDto, token);
+					} catch (Exception e) {
+						this.registrarFalhaEtapa(
+								projetoDto.id(),
+								EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+						return null;
 					}
-					return new FluxoContextoIntegracaoDto(projetoDto, token);
+
 				})
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
 				.flatMap(ctx -> uploadArquivo(ctx, arquivoCorrigido, nomeArquivo))
@@ -378,6 +414,11 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> despacharProcessoDIC(ctx))
 				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
 				.flatMap(ctx -> atualizarProjeto(ctx))
+				// .doOnError(erro -> {
+				// logger.error("Erro fazer o reentramento do DIC. {}", erro.getMessage());
+				// this.finalizaTodasEtapas( projetoDto.id() );
+				// })
+				.doOnSuccess(retorno -> this.finalizaTodasEtapas(projetoDto.id()))
 				.thenReturn("Reentranhamento de DIC complementado concluída com sucesso.");
 
 	}
@@ -385,11 +426,11 @@ public class IntegraccaoEdocsService {
 	private Mono<FluxoContextoIntegracaoDto> entranharDocumentoEdocs(FluxoContextoIntegracaoDto ctx) {
 
 		logger.info("Iniciar processo de entranhamento do documento ao processo E-Docs - ID {}", ctx.getProjeto().id());
-		logger.info("ID documento a ser entranhado {}", ctx.getIdDocumento()[0]);
+		logger.info("ID documento a ser entranhado {}", ctx.getIdDocumentos()[0]);
 
 		return FeignReativo.fromFeign(() -> entranharDocumentosProcessoEdocs(
 				ctx.getProjeto().idProcessoEdocs(),
-				ctx.getIdDocumento(),
+				ctx.getIdDocumentos(),
 				ctx.getProjeto().subResponsavelProponente(),
 				ctx.getToken()))
 				.doOnRequest(n -> this.adicionarEtapa(
@@ -413,10 +454,10 @@ public class IntegraccaoEdocsService {
 	private Mono<String> atualizarParecer(FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado) {
 
 		return Mono.fromCallable(() -> {
-			projetoParecerService.atualizarIdArquivoCapturado(ctx.getIdDocumento()[0], idParecer, subUsuarioLogado);
+			projetoParecerService.atualizarIdArquivoCapturado(ctx.getIdDocumentos()[0], idParecer, subUsuarioLogado);
 			if (projetoParecerService.verificarEnvioPareceresProjeto(ctx.getProjeto().id())) {
 				projetoService.alterarStatusProjeto(ctx.getProjeto().id(),
-					StatusProjetoEnum.ELEGIBILIDADE.getValue());
+						StatusProjetoEnum.ELEGIBILIDADE.getValue());
 				projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id());
 			}
 			return "Ok";
@@ -444,9 +485,9 @@ public class IntegraccaoEdocsService {
 						projetoService.atualizarProtocoloProcessoEdocsProjeto(ctx.getProjeto().id(),
 								retornoDadosProcesso.protocolo());
 
-					if (ctx.getIdDocumento() != null && !ctx.getIdDocumento()[0].isEmpty())
+					if (ctx.getIdDocumentos() != null && !ctx.getIdDocumentos()[0].isEmpty())
 						projetoService.atualizarIdArquivoCapturadoProcessoEdocsProjeto(ctx.getProjeto().id(),
-								ctx.getIdDocumento()[0]);
+								ctx.getIdDocumentos()[0]);
 
 					if (idProjetoEDocs != null && !idProjetoEDocs.isEmpty())
 						projetoService.atualizarIdProcessoEdocsProjeto(ctx.getProjeto().id(), idProjetoEDocs);
@@ -534,9 +575,11 @@ public class IntegraccaoEdocsService {
 
 	private Mono<FluxoContextoIntegracaoDto> processosVinculadosDocumento(FluxoContextoIntegracaoDto ctx) {
 
-		String idDocumentoEDocs = (ctx.getIdDocumentoDesentranhar() != null
-				&& !ctx.getIdDocumentoDesentranhar().isEmpty()) ? ctx.getIdDocumentoDesentranhar()
-						: ctx.getProjeto().idDocumentoDicEdocs();
+		String idDocumentoEDocs = Optional.ofNullable(ctx.getIdDocumentoDesentranhar())
+				.filter(s -> !s.isEmpty())
+				.orElseGet(() -> Optional.ofNullable(ctx.getProjeto())
+						.map(p -> p.idDocumentoDicEdocs())
+						.orElse(""));
 
 		if (idDocumentoEDocs == null || idDocumentoEDocs.isEmpty()) {
 			logger.error(
@@ -545,7 +588,7 @@ public class IntegraccaoEdocsService {
 
 		logger.info(
 				"Iniciar consulta processos vinculados ao documento. {}",
-				ctx.getProjeto().idDocumentoDicEdocs());
+				idDocumentoEDocs);
 
 		return FeignReativo.fromFeign(() -> consultarProcessosEdocsVinculadosDocumento(
 				idDocumentoEDocs,
@@ -597,8 +640,45 @@ public class IntegraccaoEdocsService {
 
 	private Mono<FluxoContextoIntegracaoDto> documentosAtosProcesso(FluxoContextoIntegracaoDto ctx) {
 
+		if (ctx.getProjeto() == null || ctx.getProjeto().idProcessoEdocs() == null) {
+			this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
+			return null;
+		}
+
 		logger.info("Iniciar consulta documentos ato ao processo. ID do Processo no Edocs: {}",
 				ctx.getProjeto().idProcessoEdocs());
+
+		if (ctx.getToken() == null) {
+			this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
+			return null;
+		}
+
+		if (ctx.getIdDocumentos() == null && ctx.getIdDocumentoDesentranhar() == null
+				&& ctx.getProjeto().idDocumentoDicEdocs() == null) {
+			this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
+			return null;
+		}
+
+		String idDocumentoEDocs = Optional.ofNullable(ctx.getIdDocumentoDesentranhar())
+				.filter(s -> !s.isEmpty())
+				.orElseGet(() -> Optional.ofNullable(ctx.getProjeto())
+						.map(p -> p.idDocumentoDicEdocs())
+						.orElse(""));
+
+		if (idDocumentoEDocs == null || idDocumentoEDocs.isEmpty()) {
+			this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
+			return null;
+		}
+
+		if (ctx.getProjeto() == null) {
+			this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
+			return null;
+		}
+
+		if (ctx.getDtoAtoProcessoDocs() == null || ctx.getDtoAtoProcessoDocs().id() == null) {
+			this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
+			return null;
+		}
 
 		return FeignReativo.fromFeign(() -> consultarDocumentosAtoProcesso(
 				ctx.getProjeto().idProcessoEdocs(),
@@ -615,17 +695,38 @@ public class IntegraccaoEdocsService {
 					registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
 				})
 				.map(documentos -> {
+
 					documentos.stream()
-							.filter(doc -> doc.documentoId().equals(ctx.getProjeto().idDocumentoDicEdocs()))
+							.filter(doc -> {
+								logger.error("Documento vinculado ao projeto : ", idDocumentoEDocs);
+								return doc.documentoId().equals(idDocumentoEDocs);
+							})
 							.findFirst()
 							.ifPresent(ctx::setDocumentoAtoProcessoDto);
+
 					return ctx;
+
 				});
 	}
 
 	private Mono<FluxoContextoIntegracaoDto> desentranharDocumento(FluxoContextoIntegracaoDto ctx) {
 
 		logger.info("Iniciar desentranhamento documento ID {}", ctx.getProjeto().idDocumentoDicEdocs());
+
+		if (ctx.getToken() == null) {
+			this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
+			throw new ValidacaoSiscapException(List.of("Token não informado no contexto."));
+		}
+
+		if (ctx.getProjeto() == null) {
+			this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
+			throw new ValidacaoSiscapException(List.of("Projeto não encontrado no contexto."));
+		}
+
+		if (ctx.getDocumentoAtoProcessoDto() == null || ctx.getDocumentoAtoProcessoDto().sequencial() == null) {
+			this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
+			throw new ValidacaoSiscapException(List.of("Sequencial do documento não encontrado."));
+		}
 
 		return FeignReativo.fromFeign(() -> desentranharDocumentoProcessoEdocs(
 				ctx.getProjeto().idProcessoEdocs(),
@@ -695,7 +796,7 @@ public class IntegraccaoEdocsService {
 					this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
 				})
 				.doOnSuccess(resultConsultaEvento -> {
-					ctx.setIdDocumento(new String[] { resultConsultaEvento.idDocumento() });
+					ctx.setIdDocumentos(new String[] { resultConsultaEvento.idDocumento() });
 					this.atualizarEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, true);
 				})
 				.thenReturn(ctx);
@@ -816,7 +917,7 @@ public class IntegraccaoEdocsService {
 		return FeignReativo.fromFeign(() -> autuarProcesso(
 				ctx.getProjeto(),
 				ctx.getToken(),
-				ctx.getIdDocumento()[0]))
+				ctx.getIdDocumentos()[0]))
 				.doOnRequest(n -> this.adicionarEtapa(
 						ctx.getProjeto().id(),
 						new EtapasIntegracaoDto(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.AUTUAR, true, false,
@@ -895,8 +996,25 @@ public class IntegraccaoEdocsService {
 	}
 
 	private Mono<String> buscarTokenReativo() {
+
 		String subJwt = autenticacaoService.getUsuarioSub();
-		return Mono.just(AutorizacaoACService.getEdocsToken(subJwt));
+		String tokenArmazenado = AutorizacaoACService.getEdocsToken(subJwt);
+
+		return Mono.fromCallable(() -> {
+			// chamada síncrona ao E-Docs (não reativa)
+			return EdocsWebClient.buscarPapeisUsuarioEdocs(tokenArmazenado);
+		})
+				.flatMap(listaPapeis -> {
+					if (listaPapeis == null || listaPapeis.isEmpty()) {
+						return Mono.error(new ValidacaoSiscapException(List.of(
+								"O token do E-Docs é válido, mas o usuário não possui papéis ativos. " +
+										"Realize um novo login no SISCAP para restaurar a sessão.")));
+					}
+					return Mono.just(tokenArmazenado);
+				})
+				.onErrorResume(WebClientResponseException.Unauthorized.class,
+						ex -> Mono.error(new ValidacaoSiscapException(List.of(
+								"O token do E-Docs expirou. Realize um novo login no SISCAP."))));
 	}
 
 	private Mono<String> buscarTokenReativo(String subJwt) {
