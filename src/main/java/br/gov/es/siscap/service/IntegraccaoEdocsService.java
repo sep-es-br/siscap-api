@@ -155,13 +155,13 @@ public class IntegraccaoEdocsService {
 
 		this.limparEtapas(idProjeto);
 
-		Projeto projeto = projetoService.buscar(idProjeto);
+		// ,Projeto projeto = projetoService.buscar(idProjeto);
 
 		Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
 				projetoParecerService.buscarTipoParecer(idParecer));
 		String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
 
-		ProjetoDto projetoDto = new ProjetoDto(projeto);
+		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);// new ProjetoDto(projeto);
 
 		String subJwt = autenticacaoService.getUsuarioSub();
 
@@ -190,6 +190,7 @@ public class IntegraccaoEdocsService {
 		this.despacharProcessoEdcosDicComplementarReativo(projetoDto)
 				.doOnSuccess(
 						retorno -> projetoService.enviarAvisoSolicitarComplementacaoProjeto(idProjeto, complementos))
+				// .doOnSuccess( retorno -> logger.info("Retorno do Mono: {}", retorno ) )
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
 						erro -> logger.info("ERRO: {}", erro));
@@ -251,9 +252,9 @@ public class IntegraccaoEdocsService {
 		return buscarTokenReativo()
 				.doOnError(erro -> {
 					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
-					logger.error("", erroBuscarToken);
+					logger.error("Erro ao buscar Token", erro.getMessage());
 					this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
-							erro.getMessage());
+							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> {
@@ -317,6 +318,12 @@ public class IntegraccaoEdocsService {
 				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
 
 		return buscarTokenReativo()
+				.doOnError(erro -> {
+					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
+					logger.error("Erro ao buscar Token", erro.getMessage());
+					this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+							erroBuscarToken);
+				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token))
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
@@ -347,6 +354,12 @@ public class IntegraccaoEdocsService {
 				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
 
 		return buscarTokenReativo()
+				.doOnError(erro -> {
+					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
+					logger.error("Erro ao buscar Token", erro.getMessage());
+					this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+							erroBuscarToken);
+				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token))
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
@@ -378,7 +391,7 @@ public class IntegraccaoEdocsService {
 		return buscarTokenReativo()
 				.doOnError(erro -> {
 					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
-					logger.error("Erro ao buscar Token reativo", erro.getMessage());
+					logger.error("Erro ao buscar Token", erro.getMessage());
 					this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
 							erroBuscarToken);
 				})
@@ -414,10 +427,6 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> despacharProcessoDIC(ctx))
 				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
 				.flatMap(ctx -> atualizarProjeto(ctx))
-				// .doOnError(erro -> {
-				// logger.error("Erro fazer o reentramento do DIC. {}", erro.getMessage());
-				// this.finalizaTodasEtapas( projetoDto.id() );
-				// })
 				.doOnSuccess(retorno -> this.finalizaTodasEtapas(projetoDto.id()))
 				.thenReturn("Reentranhamento de DIC complementado concluída com sucesso.");
 
@@ -770,6 +779,7 @@ public class IntegraccaoEdocsService {
 				})
 				.doOnSuccess(resultConsultaEvento -> {
 					ctx.setIdProcesso(resultConsultaEvento.idProcesso());
+					this.atualizarEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.AUTUAR, true, true);
 				})
 				.thenReturn(ctx);
 
@@ -881,6 +891,9 @@ public class IntegraccaoEdocsService {
 								+ ctx.getIdEventoDespachar() + ".")))
 				.doOnRequest(n -> this.atualizarEtapa(ctx.getProjeto().id(),
 						EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true))
+				.doOnSuccess(resultConsultaEvento -> {
+					this.atualizarEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true);
+				})
 				.doOnError(e -> {
 					logger.error("Falha ao verificar situacao do evento de despacho do processo no E-Docs.", e);
 					this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
@@ -1201,8 +1214,8 @@ public class IntegraccaoEdocsService {
 				"Lotação do usuário {}.", guiIdLotacaoUsuario);
 		LocalCustodiaProcessoEdocsDto localCustodia = EdocsWebClient.buscarLocalCustodiaProcessoEdocs(token,
 				IdProcessoEdocs);
-		logger.info(
-				"Local de custoria do processo {}.", localCustodia);
+		// logger.info(
+		// "Local de custoria do processo {}.", localCustodia);
 		return localCustodia.id().equalsIgnoreCase(guiIdLotacaoUsuario);
 	}
 
@@ -1372,6 +1385,12 @@ public class IntegraccaoEdocsService {
 					List.of("Nenhum ID de documento informado para entranhamento ao processo no E-Docs."));
 
 		return buscarTokenReativo()
+				.doOnError(erro -> {
+					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
+					logger.error("Erro ao buscar Token", erro.getMessage());
+					this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO,
+							erroBuscarToken);
+				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token, pareceresProjeto.stream()
 						.map(ProjetoParecer::getGuidDocumentoEdocs)
@@ -1402,6 +1421,12 @@ public class IntegraccaoEdocsService {
 							projetoDto.id())));
 
 		return buscarTokenReativo(subJwt)
+				.doOnError(erro -> {
+					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
+					logger.error("Erro ao buscar Token", erro.getMessage());
+					this.registrarFalhaEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO,
+							erroBuscarToken);
+				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token,
 						new String[] { projetoParecer.getGuidDocumentoEdocs() }))
