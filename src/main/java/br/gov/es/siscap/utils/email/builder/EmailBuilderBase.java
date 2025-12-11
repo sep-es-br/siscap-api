@@ -23,15 +23,15 @@ public abstract class EmailBuilderBase implements EmailBuilder {
         String cabecalhoSuperior =
                 "<tr>" +
                     "<td style=\"padding: 20px; background-color: #7eb4f2; width: 100%;\">" +
-                        "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">" +
+                        "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">" +
                             "<tr>" +
                                 "<td style=\"vertical-align: middle;\">" +
                                     "<img src=\"cid:govES-logo\" style=\"height: 60px; vertical-align: middle; margin-right: 10px;\">" +
                                 "</td>" +
                                 "<td style=\"vertical-align: middle; text-align: right;\">" +
-                                    "<h1 style=\"margin: 0; color: #ffffff; font-size: 16px;\">" +
+                                    "<p style=\"margin: 0; color: #ffffff; font-size: 16px;\">" +
                                         "Captação de Recursos - Governo do Estado do Espírito Santo" +
-                                    "</h1>" +
+                                    "</p>" +
                                 "</td>" +
                             "</tr>" +
                         "</table>" +
@@ -41,15 +41,15 @@ public abstract class EmailBuilderBase implements EmailBuilder {
         String rodapeEmail =
                 "<tr>" +
                     "<td style=\"padding: 20px; background-color: #7eb4f2; width: 100%;\">" +
-                        "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">" +
+                        "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">" +
                             "<tr>" +
                                 "<td style=\"vertical-align: middle;\">" +
                                     "<img src=\"cid:icon-siscap-white\" style=\"height: 30px; vertical-align: middle; margin-right: 10px;\">" +
                                 "</td>" +
                                 "<td style=\"vertical-align: middle; text-align: right;\">" +
-                                    "<h1 style=\"margin: 0; color: #ffffff; font-size: 14px;\">" +
+                                    "<p style=\"margin: 0; color: #ffffff; font-size: 14px;\">" +
                                         "Desenvolvido e mantido pela SEP - Secretaria de Economia e Planejamento." +
-                                    "</h1>" +
+                                    "</p>" +
                                 "</td>" +
                             "</tr>" +
                         "</table>" +
@@ -76,7 +76,7 @@ public abstract class EmailBuilderBase implements EmailBuilder {
                     <table width="100%" cellspacing="0" cellpadding="0" style="background-color: #f5f5f5;">
                       <tr>
                         <td align="center" style="padding: 20px 0;">
-                          <table width="800" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 4px;">
+                          <table width="800" cellspacing="0" cellpadding="0" style="background-color: #ffffff;">
                             {{CABECALHO}}
                             <tr><td style="padding: 0 12px;"><hr style="border: 0; height: 0px; background-color: #e0e0e0; margin: 15px 0;"></td></tr>
                             <tr><td style="padding: 15px 20px; background-color: #fcea8f; font-size: 12;">
