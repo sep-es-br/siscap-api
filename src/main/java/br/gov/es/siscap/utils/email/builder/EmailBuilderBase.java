@@ -87,8 +87,8 @@ public abstract class EmailBuilderBase implements EmailBuilder {
                               <p style="font-size: 12px;">{{TRAT}},</p>
                               <p style="font-size: 12px;">{{CORPO}}</p>
                               {{LINK}}
-                            </td></tr
-                            <tr><td style="padding: 0 20px 20px 20px;"><p style="font-size: 12;">Em caso de dúvidas, estamos à disposição para prestar o suporte necessário.</p></td></tr
+                            </td></tr>
+                            <tr><td style="padding: 0 20px 20px 20px;"><p style="font-size: 12;">Em caso de dúvidas, estamos à disposição para prestar o suporte necessário.</p></td></tr>
                             {{RODAPE}}
                           </table>
                         </td>
