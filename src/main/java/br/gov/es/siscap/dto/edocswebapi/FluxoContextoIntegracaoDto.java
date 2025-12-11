@@ -8,7 +8,7 @@ public class FluxoContextoIntegracaoDto {
 
     private final ProjetoDto projeto;
     private final String token;
-    private String[] idDocumento;
+    private String[] idDocumentos;
 
     private String idEventoAvocar;
     private String idEventoCaptura;
@@ -39,7 +39,7 @@ public class FluxoContextoIntegracaoDto {
     public FluxoContextoIntegracaoDto(ProjetoDto projeto, String token, String[] idDocumentos) {
         this.projeto = projeto;
         this.token = token;
-        this.idDocumento = idDocumentos;
+        this.idDocumentos = idDocumentos;
     }
 
 }
