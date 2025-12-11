@@ -27,7 +27,7 @@ public class EmailSenderBase {
     protected MimeMessageHelper criarMensagemComPadroes() throws Exception {
 
         MimeMessage mensagem = sender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mensagem, true, "UTF-8");
+        MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
         helper.setFrom("naoresponder@siscap.es.gov.br", "SISCAP");
 
         // Imagens padrão
