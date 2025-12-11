@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -37,9 +38,17 @@ public class EmailSenderBase {
         
         helper.setFrom("naoresponder@siscap.es.gov.br", "SISCAP");
         
-        helper.addInline("govESlogo", logoGov);
-        helper.addInline("iconsiscapwhite", logoSiscap);
-        // //helper.addInline("workAround", logoGov); // inclui esse 3 inline para evitar bug de quebrar a segunda imagem.. 
+        // helper.addInline("govESlogo", logoGov);
+        // helper.addInline("iconsiscapwhite", logoSiscap);
+        // // helper.addInline("workAround", logoGov); // inclui esse 3 inline para evitar bug de quebrar a segunda imagem..
+
+        ClassPathResource imagemLogoES =
+						new ClassPathResource("static/imagens/govES-logo.png");
+				helper.addInline("govESlogo", imagemLogoES);
+
+				ClassPathResource imagemLogoSiscap =
+						new ClassPathResource("static/imagens/icon-siscap-white.png");
+				helper.addInline("Iconsiscap", imagemLogoSiscap);
 
         return helper;
 
