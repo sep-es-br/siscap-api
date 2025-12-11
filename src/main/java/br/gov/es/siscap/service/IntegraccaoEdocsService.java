@@ -466,8 +466,8 @@ public class IntegraccaoEdocsService {
 			projetoParecerService.atualizarIdArquivoCapturado(ctx.getIdDocumentos()[0], idParecer, subUsuarioLogado);
 			if (projetoParecerService.verificarEnvioPareceresProjeto(ctx.getProjeto().id())) {
 				projetoService.alterarStatusProjeto(ctx.getProjeto().id(),
-						StatusProjetoEnum.ELEGIBILIDADE.getValue());
-				projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id());
+					StatusProjetoEnum.ELEGIBILIDADE.getValue());
+				projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id(),ctx.getProjeto().sigla());
 			}
 			return "Ok";
 		});

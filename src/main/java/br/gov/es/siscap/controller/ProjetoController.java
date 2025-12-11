@@ -14,8 +14,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,7 +38,7 @@ public class ProjetoController {
 	private final AsyncExecutorService asyncExecutorService;
 	private final IntegraccaoEdocsService integracaoEdocsService;
 
-	private final Logger logger = LogManager.getLogger(ProjetoController.class);
+	// private final Logger logger = LogManager.getLogger(ProjetoController.class);
 
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(

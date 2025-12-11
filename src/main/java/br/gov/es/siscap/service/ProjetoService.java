@@ -678,7 +678,7 @@ public class ProjetoService {
 						proponenteProjeto.get().getNome(),
 						responsavelProponenteProjeto.get().getNome(),
 						projeto.getSigla(),
-						complementos);
+						complementos,projeto.getId());
 
 				if (confirmacaoEnvioEmail) {
 					logger.info(
@@ -719,11 +719,9 @@ public class ProjetoService {
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
     		.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
 
-		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idDIC;
-
 		try {
 
-			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGerenciaSubcap( emailsInteressadosList, projeto.getTitulo(), linkEdicao );
+			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGerenciaSubcap( emailsInteressadosList, projeto.getTitulo(), idDIC );
 
 			if (confirmacaoEnvioEmail) {
 				logger.info("Email aviso  aviso de parecer gerencia SUBCAP enviado com sucesso.");
@@ -758,11 +756,9 @@ public class ProjetoService {
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
     		.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
 
-		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idDIC;
-
 		try {
 
-			confirmacaoEnvioEmail = emailService.enviarEmailAvisoSubcapDicAutuado( emailsInteressadosList, projeto.getTitulo(), linkEdicao );
+			confirmacaoEnvioEmail = emailService.enviarEmailAvisoSubcapDicAutuado( emailsInteressadosList, projeto.getTitulo(), idDIC );
 
 			if (confirmacaoEnvioEmail) {
 				logger.info("Email aviso DIC autuado enviado com sucesso.");
@@ -797,11 +793,9 @@ public class ProjetoService {
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
     		.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
 
-		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idDIC;
-
 		try {
 
-			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGeocSubcapRealizado( emailsInteressadosList, projeto.getTitulo(), linkEdicao );
+			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGeocSubcapRealizado( emailsInteressadosList, projeto.getTitulo(), idDIC );
 
 			if (confirmacaoEnvioEmail) {
 				logger.info("Email aviso de parecer gerencia SUBCAP entranhado enviado com sucesso.");
@@ -873,13 +867,14 @@ public class ProjetoService {
 
 			try {
 
-				confirmacaoEnvioEmail = emailService.enviarEmailArquivamentorProjeto(emailsInteressadosList,
+				confirmacaoEnvioEmail = emailService.enviarEmailArquivamentorProjeto( emailsInteressadosList,
 						justificativa,
 						proponenteProjeto.get().getNome(),
 						projeto.getSigla(),
 						codigoMotivoArquivamento,
 						tipoMotivoArquivamento.getTipo(),
-						responsavelProponenteProjeto.get().getNome());
+						responsavelProponenteProjeto.get().getNome(),
+						projeto.getId() );
 
 				if (confirmacaoEnvioEmail) {
 					logger.info("Email aviso arquivamento projeto enviado com sucesso do projeto id " + id);
@@ -1170,11 +1165,9 @@ public class ProjetoService {
 			throw new RuntimeException("Erro ao buscar dados organizacao projeto.");
 		}
 
-		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idProjeto;
-
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
 				nomeProponente,
-				linkEdicao,
+				"",
 				nomeOrganizacaoProjeto,
 				dadosResponsavelProponente.getNome(),
 				emailsInteressadosList,
@@ -1227,11 +1220,9 @@ public class ProjetoService {
 			throw new RuntimeException("Erro ao buscar dados organizacao projeto.");
 		}
 
-		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/parecer/" + idProjeto;
-
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
 				nomeProponente,
-				linkEdicao,
+				"",
 				nomeOrganizacaoProjeto,
 				dadosResponsavelProponente.getNome(),
 				null,

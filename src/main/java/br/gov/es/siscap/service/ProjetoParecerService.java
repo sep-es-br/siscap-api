@@ -285,7 +285,7 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public boolean enviarAvisoPareceresProjetoCapturadosEdocs(Long idProjeto) {
+	public boolean enviarAvisoPareceresProjetoCapturadosEdocs(Long idProjeto, String siglaProjeto) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -293,12 +293,10 @@ public class ProjetoParecerService {
 		List<String> emailsInteressadosList = new ArrayList<String>();
 		emailsInteressadosList.add(DESTINO_AVISO_PARECER_CAPTURA);
 
-		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idProjeto;
-
 		try {
 
 			confirmacaoEnvioEmail = emailService.enviarEmailPareceresCapturadosProjeto(emailsInteressadosList,
-					idProjeto, linkEdicao );
+					idProjeto, siglaProjeto );
 
 			if (confirmacaoEnvioEmail) {
 				logger.info(

@@ -17,12 +17,12 @@ import br.gov.es.siscap.utils.EnvioComplementoDicEmailBuilder;
 import br.gov.es.siscap.utils.EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioRevisaoDicEmailBuilder;
 import br.gov.es.siscap.utils.ProspeccaoEmailBuilder;
-import jakarta.annotation.PostConstruct;
+import br.gov.es.siscap.utils.email.sender.EmailSenderBase;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -53,19 +53,23 @@ public class EmailService {
 	private String DESTINO_PARECER_ESTRATEGICO;
 
 	private final JavaMailSender sender;
-	
+
 	private final RelatoriosService relatoriosService;
 
-	private Resource imagemLogoES;
-    private Resource imagemLogoSiscap;
+	private final EmailSenderBase emailSender;
 
-    @PostConstruct
-    public void init() {
-        this.imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
-        this.imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
-    }
+	private final EnvioRevisaoDicEmailBuilder builderEnvioEmailRevisao;
+	private final EnvioAnaliseGestorDicEmailBuilder builderEnvioEmailAnaliseGestorDic;
+	private final EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder builderEnvioEmailPedidoParecerSUBEPPSUBEO;
+	private final EnvioArquivamentoDicEmailBuilder builderEnvioEmailArquivamentoDIC;
+	private final EnvioComplementoDicEmailBuilder builderEnvioEmailComplementoDIC;
+	private final EnvioAvisoCapturaPareceresEmailBuilder builderEnvioEmailAvisoCapturaParecer;
+	private final EnvioAvisoSubcapDicAutuadoEmailBuilder builderEnvioEmailAvisoDicAutuado;
+	private final EnvioAvisoPedidoParecerGerenciaSubcapEmailBuilder builderEnvioAvisoPedidoParecerGEOC;
+	private final EnvioAvisoParecerGeocSubcapRealizadoEmailBuilder builderEnvioEmailAvisoParecerGEOCRealizado;
 
-	public boolean enviarEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto, List<String> emailsInteressadosList, String nomeArquivo) throws MessagingException, UnsupportedEncodingException {
+	public boolean enviarEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto, List<String> emailsInteressadosList,
+			String nomeArquivo) throws MessagingException, UnsupportedEncodingException {
 
 		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
 
@@ -95,393 +99,236 @@ public class EmailService {
 		return confirmacaoEnvioEmailList.stream().allMatch(Boolean::booleanValue);
 	}
 
-	private void anexarRelatorios(MimeMessageHelper helper, CartaConsultaDetalhesDto cartaConsultaDetalhesDto, String nomeArquivo) throws MessagingException {
+	private void anexarRelatorios(MimeMessageHelper helper, CartaConsultaDetalhesDto cartaConsultaDetalhesDto,
+			String nomeArquivo) throws MessagingException {
 
 		ObjetoOpcoesDto cartaConsultaObjeto = cartaConsultaDetalhesDto.objeto();
 
 		if (cartaConsultaObjeto.tipo().equals("Projeto")) {
-			this.prepararRecursoRelatorio(helper, cartaConsultaObjeto.id().intValue(),nomeArquivo);
+			this.prepararRecursoRelatorio(helper, cartaConsultaObjeto.id().intValue(), nomeArquivo);
 		}
 
 		List<OpcoesDto> projetosPropostosList = cartaConsultaDetalhesDto.projetosPropostos();
 
 		if (!projetosPropostosList.isEmpty()) {
 			for (OpcoesDto projetoProposto : projetosPropostosList) {
-				this.prepararRecursoRelatorio(helper, projetoProposto.id().intValue(),nomeArquivo);
+				this.prepararRecursoRelatorio(helper, projetoProposto.id().intValue(), nomeArquivo);
 			}
 		}
 	}
 
-	private void prepararRecursoRelatorio(MimeMessageHelper helper, int idProjeto, String nomeArquivo) throws MessagingException {
+	private void prepararRecursoRelatorio(MimeMessageHelper helper, int idProjeto, String nomeArquivo)
+			throws MessagingException {
 		Resource relatorioDIC = this.relatoriosService.gerarArquivo("DIC", idProjeto);
 		helper.addAttachment(nomeArquivo, relatorioDIC);
 	}
 
-	public boolean enviarEmailAnaliseDIC( EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto ) throws MessagingException, UnsupportedEncodingException {
+	public boolean enviarEmailAnaliseDIC(EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto)
+			throws MessagingException, UnsupportedEncodingException {
 
-		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
-		
-		MimeMessage mensagem = this.sender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
-		
-		String assuntoEmail = EnvioAnaliseGestorDicEmailBuilder.montarAssuntoEmail();
-		String corpoEmail = EnvioAnaliseGestorDicEmailBuilder.montarCorpoEmail(envioEmailDicDetalhesDto);
+		builderEnvioEmailAnaliseGestorDic.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 
-		helper.setFrom( REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO );
-		helper.setSubject(assuntoEmail);
-		helper.setText(corpoEmail, true);
+		return emailSender.enviarEmail(builderEnvioEmailAnaliseGestorDic,
+				envioEmailDicDetalhesDto.emailsInteressadosList());
 
-		for (String emailInteressado : envioEmailDicDetalhesDto.emailsInteressadosList()) {
-			helper.setTo(emailInteressado);
-			try {
-
-				// adicionando a imagem inline (do resources)
-				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
-				helper.addInline("govES-logo", imagemLogoES );
-
-				// ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
-				helper.addInline("Icon-siscap", imagemLogoSiscap );
-
-				this.sender.send(helper.getMimeMessage());
-
-				confirmacaoEnvioEmailList.add(true);
-
-			} catch (MailException e) {
-				confirmacaoEnvioEmailList.add(false);
-				throw new RuntimeException(e);
-			}
-		}
-
-		return confirmacaoEnvioEmailList.stream().allMatch(Boolean::booleanValue);
 	}
 
-	public boolean enviarEmailPareceresEstrategicoOrcamentario( EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto ) throws MessagingException, UnsupportedEncodingException {
+	public boolean enviarEmailPareceresEstrategicoOrcamentario(EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto)
+			throws MessagingException, UnsupportedEncodingException {
 
-		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
 		List<String> emailsDestinatarios = new ArrayList<>();
-		
+
 		emailsDestinatarios.add(this.DESTINO_PARECER_ESTRATEGICO);
 		emailsDestinatarios.add(this.DESTINO_PARECER_ORCAMENTARIO);
 
-		MimeMessage mensagem = this.sender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
-		
-		String assuntoEmail = EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder.montarAssuntoEmail();
-		String corpoEmail = EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder.montarCorpoEmail(envioEmailDicDetalhesDto);
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto2 = new EnvioEmailDicDetalhesDto(
+				envioEmailDicDetalhesDto.idProjeto(),
+				envioEmailDicDetalhesDto.nomeResponsavelEnvioEmail(),
+				"",
+				"",
+				envioEmailDicDetalhesDto.nomeGestor(),
+				emailsDestinatarios,
+				envioEmailDicDetalhesDto.tituloProjeto(),
+				"",
+				"",
+				"",
+				"");
 
-		helper.setFrom( REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO );
-		helper.setSubject(assuntoEmail);
-		helper.setText(corpoEmail, true);
+		builderEnvioEmailPedidoParecerSUBEPPSUBEO.setDtoMontagemEmailDic(envioEmailDicDetalhesDto2);
+		builderEnvioEmailPedidoParecerSUBEPPSUBEO.setSiglaProjeto(envioEmailDicDetalhesDto.tituloProjeto());
 
-		for ( String emailInteressado : emailsDestinatarios ) {
-
-			helper.setTo(emailInteressado);
-			
-			try {
-
-				// adicionando a imagem inline (do resources)
-				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
-				helper.addInline("govES-logo", imagemLogoES );
-
-				// // ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
-				helper.addInline("Icon-siscap", imagemLogoSiscap );
-
-				this.sender.send(helper.getMimeMessage());
-
-				confirmacaoEnvioEmailList.add(true);
-
-			} catch (MailException e) {
-				confirmacaoEnvioEmailList.add(false);
-				throw new RuntimeException(e);
-			}
-		}
-
-		return confirmacaoEnvioEmailList.stream().allMatch(Boolean::booleanValue);
+		return emailSender.enviarEmail(builderEnvioEmailPedidoParecerSUBEPPSUBEO,
+				envioEmailDicDetalhesDto2.emailsInteressadosList());
 
 	}
 
-	public boolean enviarEmailRevisarProjeto( List<String> emailsInteressadosList, String justificativa, String nomeResponsavelEnvio, Projeto projeto, String responsavelProponenteProjeto) 
-		throws MessagingException, UnsupportedEncodingException {
-
-		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
-
-		MimeMessage mensagem = this.sender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
-		
-		String descricaoProjeto = projeto.getSigla().concat("-").concat( projeto.getTitulo() );
-		String assuntoEmail = EnvioRevisaoDicEmailBuilder.montarAssuntoEmail();
-		String corpoEmail = EnvioRevisaoDicEmailBuilder.montarCorpoEmail( nomeResponsavelEnvio, justificativa, descricaoProjeto, responsavelProponenteProjeto );
-		
-		helper.setFrom(REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO);
-		helper.setSubject(assuntoEmail);
-		helper.setText(corpoEmail, true);
-		
-		for (String emailInteressado : emailsInteressadosList ) {
-			helper.setTo(emailInteressado);
-			try {
-				
-				// adicionando a imagem inline (do resources)
-				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
-				helper.addInline("govES-logo", imagemLogoES );
-
-				// // ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
-				helper.addInline("Icon-siscap", imagemLogoSiscap );
-				
-				this.sender.send(helper.getMimeMessage());
-
-				confirmacaoEnvioEmailList.add(true);
-
-			} catch (MailException e) {
-				confirmacaoEnvioEmailList.add(false);
-				throw new RuntimeException(e);
-			}
-		}
-
-		return confirmacaoEnvioEmailList.stream().allMatch(Boolean::booleanValue);
-
-	}
-
-	public boolean enviarEmailArquivamentorProjeto( List<String> emailsInteressadosList, String justificativa, String nomeResponsavelEnvio, 
-		String descricaoProjeto, 
-		String codigoMotivoArquivamento,
-		String descricaoTipoMotivoArquivamento,
-		String responsavelProponenteProjeto ) throws MessagingException, UnsupportedEncodingException {
-
-		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
-
-		MimeMessage mensagem = this.sender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
-		
-		String assuntoEmail = EnvioArquivamentoDicEmailBuilder.montarAssuntoEmail(descricaoProjeto);
-		String corpoEmail = EnvioArquivamentoDicEmailBuilder.montarCorpoEmail( nomeResponsavelEnvio, justificativa, descricaoProjeto, 
-			responsavelProponenteProjeto , 
-			codigoMotivoArquivamento, descricaoTipoMotivoArquivamento );
-		
-		helper.setFrom(REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO);
-		helper.setSubject(assuntoEmail);
-		helper.setText(corpoEmail, true);
-		
-		for (String emailInteressado : emailsInteressadosList ) {
-			
-			helper.setTo(emailInteressado);
-			try {
-				
-				// adicionando a imagem inline (do resources)
-				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
-				helper.addInline("govES-logo", imagemLogoES );
-
-				// // ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
-				helper.addInline("Icon-siscap", imagemLogoSiscap );
-
-				this.sender.send(helper.getMimeMessage());
-
-				confirmacaoEnvioEmailList.add(true);
-			} catch (MailException e) {
-				confirmacaoEnvioEmailList.add(false);
-				throw new RuntimeException(e);
-			}
-
-		}
-
-		return confirmacaoEnvioEmailList.stream().allMatch(Boolean::booleanValue);
-
-	}
-
-	public boolean enviarEmailComplemetacaoProjeto(
-        List<String> emailsInteressadosList,
-        String nomeResponsavelEnvio,
-        String responsavelProponenteProjeto,
-        String descricaoProjeto,
-        List<ProjetoCamposComplementacaoDto> camposComplementar)
-        throws MessagingException, UnsupportedEncodingException {
-
-		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
-		MimeMessage mensagem = this.sender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
-
-		String assuntoEmail = EnvioComplementoDicEmailBuilder.montarAssuntoEmail(descricaoProjeto);
-		String corpoEmail = EnvioComplementoDicEmailBuilder.montarCorpoEmail(
-				nomeResponsavelEnvio,
-				descricaoProjeto,
-				responsavelProponenteProjeto,
-				camposComplementar
-		);
-
-		helper.setFrom(REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO);
-		helper.setSubject(assuntoEmail);
-		helper.setText(corpoEmail, true);
-
-		for (String emailInteressado : emailsInteressadosList) {
-			helper.setTo(emailInteressado);
-			try {
-				// adicionando as imagens inline (do resources)
-				//ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
-				helper.addInline("govES-logo", imagemLogoES);
-
-				//ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
-				helper.addInline("Icon-siscap", imagemLogoSiscap);
-
-				this.sender.send(helper.getMimeMessage());
-				confirmacaoEnvioEmailList.add(true);
-
-			} catch (MailException e) {
-				confirmacaoEnvioEmailList.add(false);
-				throw new RuntimeException(e);
-			}
-		}
-
-		return true;
-	}
-
-	public boolean enviarEmailPareceresCapturadosProjeto( List<String> emailsInteressadosList, Long idProjeto, String linkEdicao ) throws MessagingException, UnsupportedEncodingException {
-
-		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
-		MimeMessage mensagem = this.sender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
+	public boolean enviarEmailRevisarProjeto(List<String> emailsInteressadosList, String justificativa,
+			String nomeResponsavelEnvio, Projeto projeto, String responsavelProponenteProjeto)
+			throws MessagingException, UnsupportedEncodingException {
 
 		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+				projeto.getId(),
+				nomeResponsavelEnvio,
 				"",
-				linkEdicao,
+				"",
+				responsavelProponenteProjeto,
+				emailsInteressadosList,
+				projeto.getSigla(),
+				"",
+				"",
+				"",
+				justificativa);
+
+		builderEnvioEmailRevisao.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		builderEnvioEmailRevisao.setSiglaProjeto(projeto.getSigla());
+
+		return emailSender.enviarEmail(builderEnvioEmailRevisao, envioEmailDicDetalhesDto.emailsInteressadosList());
+
+	}
+
+	public boolean enviarEmailArquivamentorProjeto(List<String> emailsInteressadosList, String justificativa,
+			String nomeResponsavelEnvio,
+			String descricaoProjeto,
+			String codigoMotivoArquivamento,
+			String descricaoTipoMotivoArquivamento,
+			String responsavelProponenteProjeto,
+			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
+
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+				idProjeto,
+				nomeResponsavelEnvio,
+				"",
+				"",
+				responsavelProponenteProjeto,
+				emailsInteressadosList,
+				descricaoProjeto,
+				codigoMotivoArquivamento,
+				descricaoTipoMotivoArquivamento,
+				justificativa, "");
+
+		builderEnvioEmailArquivamentoDIC.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		builderEnvioEmailArquivamentoDIC.setSiglaProjeto(descricaoProjeto);
+
+		return emailSender.enviarEmail(builderEnvioEmailArquivamentoDIC,
+				envioEmailDicDetalhesDto.emailsInteressadosList());
+
+	}
+
+	public boolean enviarEmailComplemetacaoProjeto(List<String> emailsInteressadosList,
+			String nomeResponsavelEnvio,
+			String responsavelProponenteProjeto,
+			String descricaoProjeto,
+			List<ProjetoCamposComplementacaoDto> camposComplementar,
+			Long idProjeto)
+			throws MessagingException, UnsupportedEncodingException {
+
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+				idProjeto,
+				nomeResponsavelEnvio,
+				"",
+				"",
+				responsavelProponenteProjeto,
+				emailsInteressadosList,
+				descricaoProjeto,
+				"",
+				"",
+				"", "");
+
+		builderEnvioEmailComplementoDIC.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		builderEnvioEmailComplementoDIC.setSiglaProjeto(descricaoProjeto);
+
+		return emailSender.enviarEmail(builderEnvioEmailComplementoDIC,
+				envioEmailDicDetalhesDto.emailsInteressadosList());
+
+	}
+
+	public boolean enviarEmailPareceresCapturadosProjeto( List<String> emailsInteressadosList, Long idProjeto, String siglaProjeto )
+			throws MessagingException, UnsupportedEncodingException {
+
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+				idProjeto,
+				"",
+				"",
 				"",
 				"",
 				emailsInteressadosList,
+				"",
+				"",
+				"",
+				"",
 				"");
 
-		String assuntoEmail = EnvioAvisoCapturaPareceresEmailBuilder.montarAssuntoEmail();
-		String corpoEmail = EnvioAvisoCapturaPareceresEmailBuilder.montarCorpoEmail( envioEmailDicDetalhesDto ) ;
-
-		helper.setFrom(REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO);
-		helper.setSubject(assuntoEmail);
-		helper.setText(corpoEmail, true);
-
-		for (String emailInteressado : emailsInteressadosList) {
-			helper.setTo(emailInteressado);
-			try {
-				// adicionando as imagens inline (do resources)
-				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
-				helper.addInline("govES-logo", imagemLogoES);
-
-				// ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
-				helper.addInline("Icon-siscap", imagemLogoSiscap);
-
-				this.sender.send(helper.getMimeMessage());
-				confirmacaoEnvioEmailList.add(true);
-
-			} catch (MailException e) {
-				confirmacaoEnvioEmailList.add(false);
-				throw new RuntimeException(e);
-			}
-		}
-
-		return true;
+		builderEnvioEmailAvisoCapturaParecer.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		builderEnvioEmailAvisoCapturaParecer.setSiglaProjeto(siglaProjeto);
+		
+		return emailSender.enviarEmail(builderEnvioEmailAvisoCapturaParecer,
+				envioEmailDicDetalhesDto.emailsInteressadosList());
 
 	}
 
-	
-	public boolean enviarEmailAvisoSubcapDicAutuado( List<String> emailsInteressadosList, String descricaoDic, String linkEdicao ) throws MessagingException, UnsupportedEncodingException {
+	public boolean enviarEmailAvisoSubcapDicAutuado(List<String> emailsInteressadosList, String descricaoDic,
+			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
 
-		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
-		MimeMessage mensagem = this.sender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
-		
-		String assuntoEmail = EnvioAvisoSubcapDicAutuadoEmailBuilder.montarAssuntoEmail(descricaoDic);
-		String corpoEmail = EnvioAvisoSubcapDicAutuadoEmailBuilder.montarCorpoEmail(linkEdicao) ;
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
+				"",
+				"",
+				"",
+				"",
+				emailsInteressadosList,
+				"",
+				"",
+				"",
+				"", "");
 
-		helper.setFrom(REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO);
-		helper.setSubject(assuntoEmail);
-		helper.setText(corpoEmail, true);
+		builderEnvioEmailAvisoDicAutuado.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		builderEnvioEmailAvisoDicAutuado.setSiglaProjeto(descricaoDic);
 
-		for (String emailInteressado : emailsInteressadosList) {
-			helper.setTo(emailInteressado);
-			try {
-				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
-				helper.addInline("govES-logo", imagemLogoES);
-
-				// ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
-				helper.addInline("Icon-siscap", imagemLogoSiscap);
-
-				this.sender.send(helper.getMimeMessage());
-				confirmacaoEnvioEmailList.add(true);
-
-			} catch (MailException e) {
-				confirmacaoEnvioEmailList.add(false);
-				throw new RuntimeException(e);
-			}
-		}
-
-		return true;
+		return emailSender.enviarEmail(builderEnvioEmailAvisoDicAutuado,
+				envioEmailDicDetalhesDto.emailsInteressadosList());
 
 	}
 
-	public boolean enviarEmailAvisoParecerGerenciaSubcap( List<String> emailsInteressadosList, String descricaoDic, String linkEdicao ) throws MessagingException, UnsupportedEncodingException {
+	public boolean enviarEmailAvisoParecerGerenciaSubcap(List<String> emailsInteressadosList, String descricaoDic,
+			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
 
-		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
-		MimeMessage mensagem = this.sender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
-		
-		String assuntoEmail = EnvioAvisoPedidoParecerGerenciaSubcapEmailBuilder.montarAssuntoEmail(descricaoDic);
-		String corpoEmail = EnvioAvisoPedidoParecerGerenciaSubcapEmailBuilder.montarCorpoEmail(linkEdicao) ;
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
+				"",
+				"",
+				"",
+				"",
+				emailsInteressadosList,
+				"",
+				"",
+				"",
+				"", "");
 
-		helper.setFrom(REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO);
-		helper.setSubject(assuntoEmail);
-		helper.setText(corpoEmail, true);
+		builderEnvioAvisoPedidoParecerGEOC.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		builderEnvioAvisoPedidoParecerGEOC.setSiglaProjeto(descricaoDic);
 
-		for (String emailInteressado : emailsInteressadosList) {
-			helper.setTo(emailInteressado);
-			try {
-				// adicionando as imagens inline (do resources)
-				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
-				helper.addInline("govES-logo", imagemLogoES);
-
-				// ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
-				helper.addInline("Icon-siscap", imagemLogoSiscap);
-
-				this.sender.send(helper.getMimeMessage());
-				confirmacaoEnvioEmailList.add(true);
-
-			} catch (MailException e) {
-				confirmacaoEnvioEmailList.add(false);
-				throw new RuntimeException(e);
-			}
-		}
-
-		return true;
+		return emailSender.enviarEmail(builderEnvioAvisoPedidoParecerGEOC,
+				envioEmailDicDetalhesDto.emailsInteressadosList());
 
 	}
 
-	public boolean enviarEmailAvisoParecerGeocSubcapRealizado( List<String> emailsInteressadosList, String descricaoDic, String linkEdicao ) throws MessagingException, UnsupportedEncodingException {
+	public boolean enviarEmailAvisoParecerGeocSubcapRealizado(List<String> emailsInteressadosList, String descricaoDic,
+			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
 
-		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
-		MimeMessage mensagem = this.sender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
-		
-		String assuntoEmail = EnvioAvisoParecerGeocSubcapRealizadoEmailBuilder.montarAssuntoEmail(descricaoDic);
-		String corpoEmail = EnvioAvisoParecerGeocSubcapRealizadoEmailBuilder.montarCorpoEmail(linkEdicao) ;
+		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
+				"",
+				"",
+				"",
+				"",
+				emailsInteressadosList,
+				"",
+				"",
+				"",
+				"", "");
 
-		helper.setFrom(REMETENTE_ENDERECO_NAO_RESPONDA, REMETENTE_APELIDO);
-		helper.setSubject(assuntoEmail);
-		helper.setText(corpoEmail, true);
+		builderEnvioEmailAvisoParecerGEOCRealizado.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		builderEnvioEmailAvisoParecerGEOCRealizado.setSiglaProjeto(descricaoDic);
 
-		for (String emailInteressado : emailsInteressadosList) {
-			helper.setTo(emailInteressado);
-			try {
-				// adicionando as imagens inline (do resources)
-				// ClassPathResource imagemLogoES = new ClassPathResource("static/imagens/govES-logo.png");
-				helper.addInline("govES-logo", imagemLogoES);
-
-				// ClassPathResource imagemLogoSiscap = new ClassPathResource("static/imagens/siscap-white.png");
-				helper.addInline("Icon-siscap", imagemLogoSiscap);
-
-				this.sender.send(helper.getMimeMessage());
-				confirmacaoEnvioEmailList.add(true);
-
-			} catch (MailException e) {
-				confirmacaoEnvioEmailList.add(false);
-				throw new RuntimeException(e);
-			}
-		}
-
-		return true;
+		return emailSender.enviarEmail(builderEnvioEmailAvisoParecerGEOCRealizado,
+				envioEmailDicDetalhesDto.emailsInteressadosList());
 
 	}
 
