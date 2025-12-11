@@ -26,7 +26,7 @@ public abstract class EmailBuilderBase implements EmailBuilder {
                         "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">" +
                             "<tr>" +
                                 "<td style=\"vertical-align: middle;\">" +
-                                    "<img src=\"cid:govES-logo\" style=\"height: 60px; vertical-align: middle; margin-right: 10px;\">" +
+                                    "<img src=\"cid:govESlogo\" style=\"height: 60px; vertical-align: middle; margin-right: 10px;\">" +
                                 "</td>" +
                                 "<td style=\"vertical-align: middle; text-align: right;\">" +
                                     "<p style=\"margin: 0; color: #ffffff; font-size: 16px;\">" +
@@ -44,7 +44,7 @@ public abstract class EmailBuilderBase implements EmailBuilder {
                         "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">" +
                             "<tr>" +
                                 "<td style=\"vertical-align: middle;\">" +
-                                    "<img src=\"cid:icon-siscap-white\" style=\"height: 30px; vertical-align: middle; margin-right: 10px;\">" +
+                                    "<img src=\"cid:iconsiscapwhite\" style=\"height: 30px; vertical-align: middle; margin-right: 10px;\">" +
                                 "</td>" +
                                 "<td style=\"vertical-align: middle; text-align: right;\">" +
                                     "<p style=\"margin: 0; color: #ffffff; font-size: 14px;\">" +
