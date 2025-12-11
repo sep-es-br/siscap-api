@@ -21,19 +21,22 @@ public class EmailSenderBase {
     @Value("classpath:static/imagens/govES-logo.png")
     private Resource logoGov;
 
-    @Value("classpath:static/imagens/siscap-white.png")
+    @Value("classpath:static/imagens/icon-siscap-white.png")
     private Resource logoSiscap;
 
     protected MimeMessageHelper criarMensagemComPadroes() throws Exception {
+
         MimeMessage mensagem = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mensagem, true, "UTF-8");
         helper.setFrom("naoresponder@siscap.es.gov.br", "SISCAP");
 
         // Imagens padrão
         helper.addInline("govES-logo", logoGov);
-        helper.addInline("Icon-siscap", logoSiscap);
+        helper.addInline("icon-siscap-white", logoSiscap);
+        helper.addInline("workAround", logoGov); // inclui esse 3 inline para evitar bug de quebrar a segunda imagem.. 
 
         return helper;
+
     }
 
     protected boolean enviarParaLista(MimeMessageHelper helper, List<String> destinatarios) {

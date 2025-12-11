@@ -293,12 +293,10 @@ public class ProjetoParecerService {
 		List<String> emailsInteressadosList = new ArrayList<String>();
 		emailsInteressadosList.add(DESTINO_AVISO_PARECER_CAPTURA);
 
-		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + idProjeto;
-
 		try {
 
 			confirmacaoEnvioEmail = emailService.enviarEmailPareceresCapturadosProjeto(emailsInteressadosList,
-					idProjeto, linkEdicao );
+					idProjeto );
 
 			if (confirmacaoEnvioEmail) {
 				logger.info(

@@ -3,6 +3,7 @@ package br.gov.es.siscap.dto;
 import java.util.List;
 
 public record EnvioEmailDicDetalhesDto(
+    Long idProjeto,
 	String nomeResponsavelEnvioEmail,
 	String linkAcessoProjeto,
 	String descricaoOrganizacaoGestor,
@@ -11,10 +12,12 @@ public record EnvioEmailDicDetalhesDto(
 	String tituloProjeto,
 	String codigoMotivoArquivamento,
 	String descricaoTipoMotivoArquivamento,
-	String justificaivaArquivamento
+	String justificaivaArquivamento,
+	String justificativaRevisao
 ) {
 
 	public EnvioEmailDicDetalhesDto(
+        Long idProjeto,
         String nomeResponsavelEnvioEmail,
         String linkAcessoProjeto,
         String descricaoOrganizacaoGestor,
@@ -23,14 +26,16 @@ public record EnvioEmailDicDetalhesDto(
         String tituloProjeto
     ) {
         this(
+            idProjeto,
             nomeResponsavelEnvioEmail,
             linkAcessoProjeto,
             descricaoOrganizacaoGestor,
             nomeGestor,
             emailsInteressadosList,
             tituloProjeto,
-            "",      // codigoMotivoArquivamento
-            "",       // descricaoTipoMotivoArquivamento
+            "",  
+            "", 
+			"",
 			""
         );
     }

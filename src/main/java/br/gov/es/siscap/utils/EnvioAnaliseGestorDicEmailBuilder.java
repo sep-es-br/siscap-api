@@ -1,26 +1,29 @@
 package br.gov.es.siscap.utils;
 
+import org.springframework.stereotype.Component;
+
 import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
 import br.gov.es.siscap.utils.email.builder.EmailBuilderBase;
 
+@Component
 public class EnvioAnaliseGestorDicEmailBuilder extends EmailBuilderBase {
 	
-	public EnvioAnaliseGestorDicEmailBuilder(EnvioEmailDicDetalhesDto dto) {
-		super(dto);
-	}
+	// public EnvioAnaliseGestorDicEmailBuilder(EnvioEmailDicDetalhesDto dto) {
+	// 	super(dto);
+	// }
 
 	@Override
     protected String montarCampoTratamento(EnvioEmailDicDetalhesDto dto) {
         return "Prezada(o) Gestora(or) do(a) <strong>" + dto.descricaoOrganizacaoGestor() + "</strong>";
     }
 
-    @Override
-    protected String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
-        return """
-            <p>Acesse o sistema SISCAP em:</p>
-            <a href="%s">%s</a>
-        """.formatted(dto.linkAcessoProjeto(), dto.linkAcessoProjeto());
-    }
+    // @Override
+    // protected String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
+    //     return """
+    //         <p>Acesse o sistema SISCAP em:</p>
+    //         <a href="%s">%s</a>
+    //     """.formatted(dto.linkAcessoProjeto(), dto.linkAcessoProjeto());
+    // }
 
 	@Override
 	public String montarAssuntoEmail() {
