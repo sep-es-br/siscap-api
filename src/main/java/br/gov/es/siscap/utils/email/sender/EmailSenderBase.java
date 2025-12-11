@@ -33,18 +33,32 @@ public class EmailSenderBase {
 
     protected MimeMessageHelper criarMensagemComPadroes() throws MessagingException, UnsupportedEncodingException {
 
-        MimeMessage mensagem = sender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
+        // MimeMessage mensagem = sender.createMimeMessage();
+        // MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
         
-        helper.setFrom("gp.sep@sep.es.gov.br", "SISCAP");
+        // helper.setFrom("gp.sep@sep.es.gov.br", "SISCAP");
         
-        ClassPathResource imagemLogoES =
-                new ClassPathResource("static/imagens/govES-logo.png");
-        helper.addInline("govESlogo", imagemLogoES);
+        // ClassPathResource imagemLogoES =
+        //         new ClassPathResource("static/imagens/govES-logo.png");
+        // helper.addInline("govESlogo", imagemLogoES);
 
-        ClassPathResource imagemLogoSiscap =
-                new ClassPathResource("static/imagens/icon-siscap-white.png");
-        helper.addInline("Iconsiscap", imagemLogoSiscap);
+        // ClassPathResource imagemLogoSiscap =
+        //         new ClassPathResource("static/imagens/icon-siscap-white.png");
+        // helper.addInline("iconsiscapwhite", imagemLogoSiscap);
+
+        MimeMessage mensagem = sender.createMimeMessage();
+
+        // Garante estrutura de email compatível com Gmail
+        MimeMessageHelper helper =
+            new MimeMessageHelper(
+                    mensagem,
+                    MimeMessageHelper.MULTIPART_MODE_RELATED,
+                    "UTF-8");
+
+        helper.setFrom("naoresponder@siscap.es.gov.br", "SISCAP");
+
+        helper.addInline("govESlogo", logoGov);
+        helper.addInline("iconsiscapwhite", logoSiscap);
 
         return helper;
 
@@ -70,30 +84,6 @@ public class EmailSenderBase {
 
             helper.setSubject(builder.montarAssuntoEmail());
             helper.setText(builder.montarCorpoEmail(), true);
-
-            // MimeMultipart multipart = new MimeMultipart("related");
-
-            // // Parte HTML
-            // MimeBodyPart htmlPart = new MimeBodyPart();
-            // htmlPart.setContent(builder.montarCorpoEmail(), "text/html; charset=UTF-8");
-            // multipart.addBodyPart(htmlPart);
-
-            // // Imagem 1
-            // MimeBodyPart img1 = new MimeBodyPart();
-            // img1.attachFile((File) logoGov);
-            // img1.setContentID("<govES-logo>");
-            // img1.setDisposition(MimeBodyPart.INLINE);
-            // multipart.addBodyPart(img1);
-
-            // // Imagem 2
-            // MimeBodyPart img2 = new MimeBodyPart();
-            // img2.attachFile((File) logoSiscap);
-            // img2.setContentID("<icon-siscap-white>");
-            // img2.setDisposition(MimeBodyPart.INLINE);
-            // multipart.addBodyPart(img2);
-
-            // msg.setContent(multipart);
-            // msg.setFrom(new InternetAddress("naoresponder@siscap.es.gov.br", "SISCAP"));
 
             return enviarParaLista( helper, emails );
 
