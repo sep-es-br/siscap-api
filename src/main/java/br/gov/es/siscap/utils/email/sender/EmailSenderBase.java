@@ -31,8 +31,8 @@ public class EmailSenderBase {
         helper.setFrom("naoresponder@siscap.es.gov.br", "SISCAP");
 
         // Imagens padrão
-        helper.addInline("govES-logo", logoGov);
-        helper.addInline("icon-siscap-white", logoSiscap);
+        //helper.addInline("govES-logo", logoGov);
+        //helper.addInline("icon-siscap-white", logoSiscap);
         // helper.addInline("workAround", logoGov); // inclui esse 3 inline para evitar bug de quebrar a segunda imagem.. 
 
         return helper;
