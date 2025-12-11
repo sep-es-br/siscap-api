@@ -35,25 +35,24 @@ public class EmailSenderBase {
 
         // MimeMessage mensagem = sender.createMimeMessage();
         // MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
-        
+
         // helper.setFrom("gp.sep@sep.es.gov.br", "SISCAP");
-        
+
         // ClassPathResource imagemLogoES =
-        //         new ClassPathResource("static/imagens/govES-logo.png");
+        // new ClassPathResource("static/imagens/govES-logo.png");
         // helper.addInline("govESlogo", imagemLogoES);
 
         // ClassPathResource imagemLogoSiscap =
-        //         new ClassPathResource("static/imagens/icon-siscap-white.png");
+        // new ClassPathResource("static/imagens/icon-siscap-white.png");
         // helper.addInline("iconsiscapwhite", imagemLogoSiscap);
 
         MimeMessage mensagem = sender.createMimeMessage();
 
         // Garante estrutura de email compatível com Gmail
-        MimeMessageHelper helper =
-            new MimeMessageHelper(
-                    mensagem,
-                    MimeMessageHelper.MULTIPART_MODE_RELATED,
-                    "UTF-8");
+        MimeMessageHelper helper = new MimeMessageHelper(
+                mensagem,
+                MimeMessageHelper.MULTIPART_MODE_RELATED,
+                "UTF-8");
 
         helper.setFrom("naoresponder@siscap.es.gov.br", "SISCAP");
 
@@ -80,12 +79,25 @@ public class EmailSenderBase {
 
         try {
 
-            MimeMessageHelper helper = criarMensagemComPadroes();
+            // MimeMessageHelper helper = criarMensagemComPadroes();
+
+            MimeMessage mensagem = sender.createMimeMessage();
+
+            // Garante estrutura de email compatível com Gmail
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    mensagem,
+                    MimeMessageHelper.MULTIPART_MODE_RELATED,
+                    "UTF-8");
 
             helper.setSubject(builder.montarAssuntoEmail());
             helper.setText(builder.montarCorpoEmail(), true);
 
-            return enviarParaLista( helper, emails );
+            helper.setFrom("naoresponder@siscap.es.gov.br", "SISCAP");
+
+            helper.addInline("govESlogo", logoGov);
+            helper.addInline("iconsiscapwhite", logoSiscap);
+
+            return enviarParaLista(helper, emails);
 
         } catch (Exception e) {
             throw new RuntimeException("Erro ao enviar e-mail", e);
@@ -94,5 +106,3 @@ public class EmailSenderBase {
     }
 
 }
-
-
