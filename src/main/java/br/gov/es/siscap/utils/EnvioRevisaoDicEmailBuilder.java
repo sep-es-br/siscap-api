@@ -1,8 +1,6 @@
 package br.gov.es.siscap.utils;
 
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-
 import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
 import br.gov.es.siscap.utils.email.builder.EmailBuilderBase;
 import lombok.Getter;
