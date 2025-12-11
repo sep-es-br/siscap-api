@@ -14,28 +14,10 @@ public class EnvioAvisoCapturaPareceresEmailBuilder extends EmailBuilderBase {
 	
 	String siglaProjeto;
 
-	// public EnvioAvisoCapturaPareceresEmailBuilder(EnvioEmailDicDetalhesDto dto) {
-	// 	super(dto);
-	// }
-
 	@Override
 	protected String montarCampoTratamento(EnvioEmailDicDetalhesDto dto) {
 		return "Prezado(a)s";
 	}
-
-	// @Override
-	// protected String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
-
-	// 	if (dto.linkAcessoProjeto() == null || dto.linkAcessoProjeto().isBlank()) {
-	// 		return "";
-	// 	}
-
-	// 	return """
-	// 			    <p>Acesse o sistema SISCAP em:</p>
-	// 			    <a href="%s">%s</a>
-	// 			""".formatted(dto.linkAcessoProjeto(), dto.tituloProjeto());
-
-	// }
 
 	@Override
 	public String montarAssuntoEmail() {
@@ -44,11 +26,7 @@ public class EnvioAvisoCapturaPareceresEmailBuilder extends EmailBuilderBase {
 
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) {
-
-		String corpoEmail = "Os pareceres Orçamentário e Estratégico do DIC já foram capturados, e o processo pode seguir para a próxima fase de análise.";
-
-		return corpoEmail;
-
+		return "Os pareceres Orçamentário e Estratégico do DIC já foram capturados, e o processo pode seguir para a próxima fase de análise.";
 	}
 
 }

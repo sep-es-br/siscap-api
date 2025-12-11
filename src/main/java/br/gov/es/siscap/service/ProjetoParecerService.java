@@ -285,7 +285,7 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public boolean enviarAvisoPareceresProjetoCapturadosEdocs(Long idProjeto) {
+	public boolean enviarAvisoPareceresProjetoCapturadosEdocs(Long idProjeto, String siglaProjeto) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -296,7 +296,7 @@ public class ProjetoParecerService {
 		try {
 
 			confirmacaoEnvioEmail = emailService.enviarEmailPareceresCapturadosProjeto(emailsInteressadosList,
-					idProjeto );
+					idProjeto, siglaProjeto );
 
 			if (confirmacaoEnvioEmail) {
 				logger.info(

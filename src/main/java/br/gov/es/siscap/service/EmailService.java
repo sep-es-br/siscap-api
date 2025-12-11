@@ -242,7 +242,7 @@ public class EmailService {
 
 	}
 
-	public boolean enviarEmailPareceresCapturadosProjeto(List<String> emailsInteressadosList, Long idProjeto)
+	public boolean enviarEmailPareceresCapturadosProjeto( List<String> emailsInteressadosList, Long idProjeto, String siglaProjeto )
 			throws MessagingException, UnsupportedEncodingException {
 
 		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
@@ -252,14 +252,15 @@ public class EmailService {
 				"",
 				"",
 				emailsInteressadosList,
-				"", // projeto.getSigla(),
+				"",
 				"",
 				"",
 				"",
 				"");
 
 		builderEnvioEmailAvisoCapturaParecer.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
-
+		builderEnvioEmailAvisoCapturaParecer.setSiglaProjeto(siglaProjeto);
+		
 		return emailSender.enviarEmail(builderEnvioEmailAvisoCapturaParecer,
 				envioEmailDicDetalhesDto.emailsInteressadosList());
 

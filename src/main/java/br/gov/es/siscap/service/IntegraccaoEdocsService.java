@@ -417,7 +417,7 @@ public class IntegraccaoEdocsService {
 			if (projetoParecerService.verificarEnvioPareceresProjeto(ctx.getProjeto().id())) {
 				projetoService.alterarStatusProjeto(ctx.getProjeto().id(),
 					StatusProjetoEnum.ELEGIBILIDADE.getValue());
-				projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id());
+				projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id(),ctx.getProjeto().sigla());
 			}
 			return "Ok";
 		});
