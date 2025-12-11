@@ -36,19 +36,15 @@ public class EmailSenderBase {
         MimeMessage mensagem = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
         
-        helper.setFrom("naoresponder@siscap.es.gov.br", "SISCAP");
+        helper.setFrom("gp.sep@sep.es.gov.br", "SISCAP");
         
-        // helper.addInline("govESlogo", logoGov);
-        // helper.addInline("iconsiscapwhite", logoSiscap);
-        // // helper.addInline("workAround", logoGov); // inclui esse 3 inline para evitar bug de quebrar a segunda imagem..
-
         ClassPathResource imagemLogoES =
-						new ClassPathResource("static/imagens/govES-logo.png");
-				helper.addInline("govESlogo", imagemLogoES);
+                new ClassPathResource("static/imagens/govES-logo.png");
+        helper.addInline("govESlogo", imagemLogoES);
 
-				ClassPathResource imagemLogoSiscap =
-						new ClassPathResource("static/imagens/icon-siscap-white.png");
-				helper.addInline("Iconsiscap", imagemLogoSiscap);
+        ClassPathResource imagemLogoSiscap =
+                new ClassPathResource("static/imagens/icon-siscap-white.png");
+        helper.addInline("Iconsiscap", imagemLogoSiscap);
 
         return helper;
 
