@@ -1,5 +1,8 @@
 package br.gov.es.siscap.form;
 
+import java.util.List;
+
+import br.gov.es.siscap.dto.CartaConsultaDestinatariosDto;
 import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -16,6 +19,10 @@ public record CartaConsultaForm(
 			Long operacao,
 
 			@NotBlank
-			String corpo
+			String corpo,
+
+			@Valid
+			List<CartaConsultaDestinatariosDto> destinatarios
+
 ) {
 }

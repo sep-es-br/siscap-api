@@ -6,7 +6,9 @@ import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.exception.CartaConsultaObjetoInvalidoException;
 import br.gov.es.siscap.form.CartaConsultaForm;
 import br.gov.es.siscap.models.CartaConsulta;
+import br.gov.es.siscap.models.CartaConsultaDestinatario;
 import br.gov.es.siscap.models.LocalidadeQuantia;
+import br.gov.es.siscap.models.ProjetoIndicador;
 import br.gov.es.siscap.repository.CartaConsultaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -30,6 +33,7 @@ public class CartaConsultaService {
 	private final ProjetoService projetoService;
 	private final LocalidadeQuantiaService localidadeQuantiaService;
 	private final Logger logger = LogManager.getLogger(CartaConsultaService.class);
+	private final CartaConsultaDestinatariosService cartaConsultaDestinatariosService;
 
 	public Page<CartaConsultaListaDto> listarTodos(Pageable pageable) {
 
@@ -40,7 +44,8 @@ public class CartaConsultaService {
 		} catch (Exception e) {
 			if (e.getClass().equals(EntityNotFoundException.class)) {
 				logger.error("Erro ao listar as cartas consulta: {}", e.getMessage());
-				throw new CartaConsultaObjetoInvalidoException("Não foi possível localizar o objeto de alguma carta consulta.");
+				throw new CartaConsultaObjetoInvalidoException(
+						"Não foi possível localizar o objeto de alguma carta consulta.");
 			}
 		}
 
@@ -57,7 +62,14 @@ public class CartaConsultaService {
 
 		String corpo = documentosService.buscarCartaConsultaCorpo(cartaConsulta.getNomeDocumento());
 
-		return new CartaConsultaDto(cartaConsulta, corpo);
+		CartaConsultaDto teste = new CartaConsultaDto( cartaConsulta, corpo,
+			this.buscarCartaConsultaDestinatarios( cartaConsulta.getCartaConsultaDestinatarioSet() ) );
+
+		logger.info(teste);
+
+		return new CartaConsultaDto( cartaConsulta, corpo,
+				this.buscarCartaConsultaDestinatarios( cartaConsulta.getCartaConsultaDestinatarioSet() ) );
+
 	}
 
 	public CartaConsultaDetalhesDto buscarDetalhesPorId(Long id) {
@@ -75,28 +87,52 @@ public class CartaConsultaService {
 
 	@Transactional
 	public CartaConsultaDto cadastrar(CartaConsultaForm form) {
+
 		CartaConsulta cartaConsulta = new CartaConsulta(form);
+
+		// List<OpcoesDto> equipeParaGravar = form.destinatarios();
+
+		List<CartaConsultaDestinatariosDto> destinatariosCartaConsultaValidada = this
+				.validarDestinatariosCartaConsulta(form);
+
+		// if (!new HashSet<>(form.equipeElaboracao()).equals(new
+		// HashSet<>(equipeElaboracaoValidada))) {
+		// equipeParaGravar = equipeElaboracaoValidada;
+		// }
 
 		String nomeDocumento = documentosService.cadastrarCartaConsultaCorpo(form.corpo());
 
 		cartaConsulta.setNomeDocumento(nomeDocumento);
 
-		repository.save(cartaConsulta);
+		cartaConsulta = repository.save(cartaConsulta);
 
-		return new CartaConsultaDto(cartaConsulta, form.corpo());
+		Set<CartaConsultaDestinatario> destinatariosCartaConsulta = cartaConsultaDestinatariosService
+				.cadastrar(cartaConsulta, destinatariosCartaConsultaValidada);
+
+		return new CartaConsultaDto(cartaConsulta, form.corpo(),
+				this.buscarCartaConsultaDestinatarios(destinatariosCartaConsulta));
+
 	}
 
 	@Transactional
 	public CartaConsultaDto atualizar(Long id, CartaConsultaForm form) {
+
 		CartaConsulta cartaConsulta = this.buscarCartaConsulta(id);
 
 		cartaConsulta.atualizarCartaConsulta(form);
 
 		documentosService.atualizarCartaConsultaCorpo(cartaConsulta.getNomeDocumento(), form.corpo());
 
+		List<CartaConsultaDestinatariosDto> destinatariosDtoList = form.destinatarios().stream()
+        .map( d -> new CartaConsultaDestinatariosDto( d.id(), d.idCartaConsulta(), d.id() ) )
+        .toList(); 
+
+		cartaConsultaDestinatariosService.atualizar( cartaConsulta, destinatariosDtoList );
+
 		CartaConsulta cartaConsultaResultado = repository.save(cartaConsulta);
 
-		return new CartaConsultaDto(cartaConsultaResultado, form.corpo());
+		return new CartaConsultaDto( cartaConsultaResultado, form.corpo(), this.buscarCartaConsultaDestinatarios(cartaConsultaResultado.getCartaConsultaDestinatarioSet()));
+
 	}
 
 	@Transactional
@@ -135,15 +171,40 @@ public class CartaConsultaService {
 
 	private ValorDto construirValorDto(CartaConsulta cartaConsulta) {
 		if (cartaConsulta.getPrograma() != null && cartaConsulta.getProjeto() == null) {
-			Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorPrograma(cartaConsulta.getPrograma());
+			Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService
+					.buscarPorPrograma(cartaConsulta.getPrograma());
 			return localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 		}
 
 		if (cartaConsulta.getProjeto() != null && cartaConsulta.getPrograma() == null) {
-			Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(cartaConsulta.getProjeto());
+			Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService
+					.buscarPorProjeto(cartaConsulta.getProjeto());
 			return localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 		}
 
 		return null;
 	}
+
+	private List<CartaConsultaDestinatariosDto> validarDestinatariosCartaConsulta(CartaConsultaForm form) {
+
+		List<CartaConsultaDestinatariosDto> destinatarios = new ArrayList<>();
+
+		for (CartaConsultaDestinatariosDto destinatario : form.destinatarios()) {
+
+			CartaConsultaDestinatariosDto novoDestinatario = new CartaConsultaDestinatariosDto(destinatario.id(), destinatario.idCartaConsulta(), destinatario.idOrganizacao());
+			destinatarios.add(novoDestinatario);
+
+		}
+
+		return destinatarios;
+
+	}
+
+	private List<CartaConsultaDestinatariosDto> buscarCartaConsultaDestinatarios(
+			Set<CartaConsultaDestinatario> cartaConsultaDestinatarioSet) {
+		return cartaConsultaDestinatarioSet.stream()
+				.map(CartaConsultaDestinatariosDto::new)
+				.toList();
+	}
+
 }
