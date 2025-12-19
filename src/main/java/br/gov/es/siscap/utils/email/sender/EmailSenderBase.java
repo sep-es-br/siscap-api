@@ -21,40 +21,8 @@ public class EmailSenderBase {
     @Value("classpath:static/imagens/govES-logo.png")
     private Resource logoGov;
 
-    @Value("classpath:static/imagens/icon-siscap-white.png")
+    @Value("classpath:static/imagens/siscap-white.png")
     private Resource logoSiscap;
-
-    // protected MimeMessageHelper criarMensagemComPadroes() throws MessagingException, UnsupportedEncodingException {
-
-    //     // MimeMessage mensagem = sender.createMimeMessage();
-    //     // MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
-
-    //     // helper.setFrom("gp.sep@sep.es.gov.br", "SISCAP");
-
-    //     // ClassPathResource imagemLogoES =
-    //     // new ClassPathResource("static/imagens/govES-logo.png");
-    //     // helper.addInline("govESlogo", imagemLogoES);
-
-    //     // ClassPathResource imagemLogoSiscap =
-    //     // new ClassPathResource("static/imagens/icon-siscap-white.png");
-    //     // helper.addInline("iconsiscapwhite", imagemLogoSiscap);
-
-    //     MimeMessage mensagem = sender.createMimeMessage();
-
-    //     // Garante estrutura de email compatível com Gmail
-    //     MimeMessageHelper helper = new MimeMessageHelper(
-    //             mensagem,
-    //             MimeMessageHelper.MULTIPART_MODE_RELATED,
-    //             "UTF-8");
-
-    //     helper.setFrom("naoresponder@siscap.es.gov.br", "SISCAP");
-
-    //     helper.addInline("govESlogo", logoGov);
-    //     helper.addInline("iconsiscapwhite", logoSiscap);
-
-    //     return helper;
-
-    // }
 
     protected boolean enviarParaLista(MimeMessageHelper helper, List<String> destinatarios) {
         for (String destino : destinatarios) {

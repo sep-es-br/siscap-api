@@ -23,9 +23,8 @@ public class CartaConsultaDestinatariosService {
 	private final OrganizacaoService organizacaoService;
 	private final Logger logger = LogManager.getLogger(LocalidadeQuantiaService.class.getName());
 
-
 	@Transactional
-	public Set<CartaConsultaDestinatario> cadastrar( CartaConsulta cartaConsulta,
+	public Set<CartaConsultaDestinatario> cadastrar(CartaConsulta cartaConsulta,
 			List<CartaConsultaDestinatariosDto> cartaConsultaDestinatariosDtoList) {
 
 		logger.info("Cadastrando Organizações Pesquisa Intituições Financeiro com id: {}",
@@ -33,9 +32,10 @@ public class CartaConsultaDestinatariosService {
 
 		Set<CartaConsultaDestinatario> cartaConsultaDestinatariosSet = new HashSet<>();
 
-		cartaConsultaDestinatariosDtoList.forEach( destinatario -> {
+		cartaConsultaDestinatariosDtoList.forEach(destinatario -> {
 			Organizacao organizacao = organizacaoService.buscar(destinatario.idOrganizacao());
-			CartaConsultaDestinatario cartaConsultaDestinatario = new CartaConsultaDestinatario( cartaConsulta, organizacao );
+			CartaConsultaDestinatario cartaConsultaDestinatario = new CartaConsultaDestinatario(cartaConsulta,
+					organizacao);
 			cartaConsultaDestinatariosSet.add(cartaConsultaDestinatario);
 		});
 
@@ -48,57 +48,47 @@ public class CartaConsultaDestinatariosService {
 
 	}
 
-	// private Set<CartaConsultaDestinatario> atualizarDestinatariosCartaConsulta(CartaConsulta cartaConsulta,
-	// 		Set<CartaConsultaDestinatario> destinatariosExistentes, List<CartaConsultaDestinatariosDto> dtoList) {
-
-	// 	Map<Long, CartaConsultaDestinatario> destinatariosExistentesMap = destinatariosExistentes.stream()
-	// 			.filter(dest -> dest.getOrganizacao().getId() != null)
-	// 			.collect(Collectors.toMap(CartaConsultaDestinatario::getOrganizacaoId, Function.identity()));
-
-	// 	return dtoList.stream()
-	// 			.map(dto -> {
-	// 				CartaConsultaDestinatario destinatario;
-	// 				if (dto.id() != null && destinatariosExistentesMap.containsKey(dto.id())) {
-	// 					destinatario = destinatariosExistentesMap.get(dto.id());
-	// 					destinatario.setId(dto.id());
-	// 					destinatario.setCartaConsulta(cartaConsulta);
-	// 					destinatario.setOrganizacao(organizacaoService.buscar(dto.idOrganizacao()));
-	// 				} else {
-	// 					Organizacao organizacaoDestinatario = organizacaoService.buscar(dto.idOrganizacao());
-	// 					destinatario = new CartaConsultaDestinatario(cartaConsulta, organizacaoDestinatario);
-	// 				}
-	// 				return destinatario;
-	// 			})
-	// 			.collect(Collectors.toSet());
-
-	// }
-
 	@Transactional
 	public Set<CartaConsultaDestinatario> atualizar(CartaConsulta cartaConsulta,
-			List<CartaConsultaDestinatariosDto> destinatariosDtoList) {
+			List<CartaConsultaDestinatariosDto> destinatariosDtoList ) {
+
+		Set<CartaConsultaDestinatario> destinatariosCartaAtualizarSet = new HashSet<>();
 
 		logger.info("Atualizando dados dos destinatários da Pesquisa de Fontes de Financiamento id: {}",
 				cartaConsulta.getId());
 
-		Set<CartaConsultaDestinatario> destinatariosCartaSet = this.buscarPorCartaConsulta(cartaConsulta);
-
-		Set<CartaConsultaDestinatario> destinatariosCartaAdicionarSet = new HashSet<>();
-		Set<CartaConsultaDestinatario> destinatariosCartaRemoverSet = new HashSet<>();
-		Set<CartaConsultaDestinatario> destinatariosCartaAlterarSet = new HashSet<>();
-
-		destinatariosCartaSet.forEach(destinatariosCarta -> {
-			if (destinatariosDtoList.stream()
-					.noneMatch(rateioDto -> rateioDto.idOrganizacao().equals(destinatariosCarta.getOrganizacaoId()))) {
-				//destinatariosCarta.apagarLocalidadeQuantia();
-				destinatariosCartaRemoverSet.add(destinatariosCarta);
+		Set<CartaConsultaDestinatario> destinatariosCartaAdicionarSet = new HashSet<>(); // nao possuem id de
+																							// destinatario
+		destinatariosDtoList.forEach(destinatarioDto -> {
+			if (destinatarioDto.id() == null || destinatarioDto.id() == 0) {
+				Organizacao organizacao = organizacaoService.buscar(destinatarioDto.idOrganizacao());
+				destinatariosCartaAdicionarSet.add(new CartaConsultaDestinatario(cartaConsulta, organizacao));
 			}
 		});
 
-		destinatariosCartaRemoverSet.addAll(destinatariosCartaAlterarSet);
-		destinatariosCartaRemoverSet.addAll(destinatariosCartaAdicionarSet);
+		Set<CartaConsultaDestinatario> destinatariosCartaRemoverSet = new HashSet<>(); // nao estao no set atual mas
+																						// possuem id de destinatario
+		Set<CartaConsultaDestinatario> destinatariosCartaAlterarSet = new HashSet<>(); // estao no set atual, tem id
+																						// destinatario e id da carta -
+																						// nao mudou
+
+		Set<CartaConsultaDestinatario> destinatariosCartaSet = this.buscarPorCartaConsulta(cartaConsulta);
+		destinatariosCartaSet.forEach(destinatarioCarta -> {
+			if (!destinatariosDtoList.stream().anyMatch(destinatarioDto -> destinatarioDto.id() != null
+					&& destinatarioDto.id().equals(destinatarioCarta.getId()))) {
+				destinatariosCartaRemoverSet.add(destinatarioCarta);
+			} else {
+				destinatariosCartaAlterarSet.add(destinatarioCarta);
+			}
+		});
+
+		repository.deleteAll(destinatariosCartaRemoverSet);
+
+		destinatariosCartaAtualizarSet.addAll(destinatariosCartaAlterarSet);
+		destinatariosCartaAtualizarSet.addAll(destinatariosCartaAdicionarSet);
 
 		List<CartaConsultaDestinatario> cartaConsultaDestinatariosSetResult = repository
-				.saveAllAndFlush(destinatariosCartaRemoverSet);
+				.saveAllAndFlush(destinatariosCartaAtualizarSet);
 
 		logger.info("Destinatários para fonte de pesquisa atualizado com sucesso");
 
@@ -106,44 +96,8 @@ public class CartaConsultaDestinatariosService {
 
 	}
 
-	// @Transactional
-	// public void excluir(Projeto projeto) {
-	// logger.info("Excluindo dados do rateio para o Projeto com id: {}",
-	// projeto.getId());
-
-	// Set<LocalidadeQuantia> localidadeQuantiaSet = this.buscarPorProjeto(projeto);
-	// localidadeQuantiaSet.forEach(LocalidadeQuantia::apagarLocalidadeQuantia);
-	// repository.saveAllAndFlush(localidadeQuantiaSet);
-
-	// logger.info("Rateio para o Projeto excluído com sucesso");
-	// }
-
-	// @Transactional
-	// public void excluirFisicamentePorProjeto(Projeto projeto) {
-	// logger.info("Excluindo fisicamente dados do rateio para o Projeto com id:
-	// {}", projeto.getId());
-
-	// repository.deleteFisicoPorProjeto(projeto.getId());
-
-	// logger.info("Rateio para o Projeto excluído fisicamente com sucesso");
-	// }
-
-	// private BigDecimal calcularValorTotal(Set<LocalidadeQuantia>
-	// localidadeQuantiaSet) {
-	// return localidadeQuantiaSet.stream()
-	// .map(LocalidadeQuantia::getQuantia)
-	// .reduce(BigDecimal.ZERO, BigDecimal::add);
-	// }
-
 	private Set<CartaConsultaDestinatario> buscarPorCartaConsulta(CartaConsulta cartaConsulta) {
 		return repository.findAllByCartaConsulta(cartaConsulta);
 	}
-
-	// private Optional<LocalidadeQuantia> filtrarPorLocalidade(Set<LocalidadeQuantia> localidadeQuantiaSet,
-	// 		Long idLocalidade) {
-	// 	return localidadeQuantiaSet.stream()
-	// 			.filter(localidadeQuantia -> localidadeQuantia.getLocalidade().getId().equals(idLocalidade))
-	// 			.findFirst();
-	// }
 
 }

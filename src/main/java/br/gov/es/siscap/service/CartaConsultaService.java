@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -62,13 +63,13 @@ public class CartaConsultaService {
 
 		String corpo = documentosService.buscarCartaConsultaCorpo(cartaConsulta.getNomeDocumento());
 
-		CartaConsultaDto teste = new CartaConsultaDto( cartaConsulta, corpo,
-			this.buscarCartaConsultaDestinatarios( cartaConsulta.getCartaConsultaDestinatarioSet() ) );
+		CartaConsultaDto teste = new CartaConsultaDto(cartaConsulta, corpo,
+				this.buscarCartaConsultaDestinatarios(cartaConsulta.getCartaConsultaDestinatarioSet()));
 
 		logger.info(teste);
 
-		return new CartaConsultaDto( cartaConsulta, corpo,
-				this.buscarCartaConsultaDestinatarios( cartaConsulta.getCartaConsultaDestinatarioSet() ) );
+		return new CartaConsultaDto(cartaConsulta, corpo,
+				this.buscarCartaConsultaDestinatarios(cartaConsulta.getCartaConsultaDestinatarioSet()));
 
 	}
 
@@ -123,20 +124,31 @@ public class CartaConsultaService {
 
 		documentosService.atualizarCartaConsultaCorpo(cartaConsulta.getNomeDocumento(), form.corpo());
 
-		List<CartaConsultaDestinatariosDto> destinatariosDtoList = form.destinatarios().stream()
-        .map( d -> new CartaConsultaDestinatariosDto( d.id(), d.idCartaConsulta(), d.id() ) )
-        .toList(); 
+		// List<CartaConsultaDestinatariosDto> destinatariosDtoList =
+		// form.destinatarios().stream()
+		// .map( d -> new CartaConsultaDestinatariosDto( d.id(), d.idCartaConsulta(),
+		// d.id() ) )
+		// .toList();
+		// cartaConsultaDestinatariosService.atualizar( cartaConsulta, destinatariosDtoList );
 
-		cartaConsultaDestinatariosService.atualizar( cartaConsulta, destinatariosDtoList );
+		// List<CartaConsultaDestinatariosDto> destinatariosCartaParaGravar = form.destinatarios();
+		// List<CartaConsultaDestinatariosDto> destinatariosCartaValidada = this.validarDestinatariosCartaConsulta(form);
+		// if (!new HashSet<>(form.destinatarios()).equals(new HashSet<>(destinatariosCartaValidada))) {
+		// 	destinatariosCartaParaGravar = destinatariosCartaValidada;
+		// }
+
+		cartaConsultaDestinatariosService.atualizar( cartaConsulta, form.destinatarios() );
 
 		CartaConsulta cartaConsultaResultado = repository.save(cartaConsulta);
 
-		return new CartaConsultaDto( cartaConsultaResultado, form.corpo(), this.buscarCartaConsultaDestinatarios(cartaConsultaResultado.getCartaConsultaDestinatarioSet()));
+		return new CartaConsultaDto(cartaConsultaResultado, form.corpo(),
+				this.buscarCartaConsultaDestinatarios(cartaConsultaResultado.getCartaConsultaDestinatarioSet()));
 
 	}
 
 	@Transactional
 	public void excluir(Long id) {
+
 		CartaConsulta cartaConsulta = this.buscarCartaConsulta(id);
 
 		cartaConsulta.apagarCartaConsulta();
@@ -191,7 +203,8 @@ public class CartaConsultaService {
 
 		for (CartaConsultaDestinatariosDto destinatario : form.destinatarios()) {
 
-			CartaConsultaDestinatariosDto novoDestinatario = new CartaConsultaDestinatariosDto(destinatario.id(), destinatario.idCartaConsulta(), destinatario.idOrganizacao());
+			CartaConsultaDestinatariosDto novoDestinatario = new CartaConsultaDestinatariosDto(destinatario.id(),
+					destinatario.idCartaConsulta(), destinatario.idOrganizacao());
 			destinatarios.add(novoDestinatario);
 
 		}

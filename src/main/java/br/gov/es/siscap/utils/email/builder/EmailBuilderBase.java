@@ -22,7 +22,7 @@ public abstract class EmailBuilderBase implements EmailBuilder {
 
         String cabecalhoSuperior =
                 "<tr>" +
-                    "<td style=\"padding: 20px; background-color: #7eb4f2; width: 100%;\">" +
+                    "<td style=\"padding: 20px; background-color:rgb(69, 150, 243); width: 100%;\">" +
                         "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">" +
                             "<tr>" +
                                 "<td style=\"vertical-align: middle;\">" +
@@ -40,7 +40,7 @@ public abstract class EmailBuilderBase implements EmailBuilder {
 
         String rodapeEmail =
                 "<tr>" +
-                    "<td style=\"padding: 20px; background-color: #7eb4f2; width: 100%;\">" +
+                    "<td style=\"padding: 20px; background-color: rgb(69, 150, 243); width: 100%;\">" +
                         "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">" +
                             "<tr>" +
                                 "<td style=\"vertical-align: middle;\">" +
@@ -88,7 +88,6 @@ public abstract class EmailBuilderBase implements EmailBuilder {
                               <p style="font-size: 12px;">{{CORPO}}</p>
                               {{LINK}}
                             </td></tr>
-                            <tr><td style="padding: 0 20px 20px 20px;"><p style="font-size: 12;">Em caso de dúvidas, estamos à disposição para prestar o suporte necessário.</p></td></tr>
                             {{RODAPE}}
                           </table>
                         </td>
@@ -125,9 +124,8 @@ public abstract class EmailBuilderBase implements EmailBuilder {
 		}
 
 		return """
-				    <p style="font-size: 12px;" >Acesse o sistema SISCAP em:</p>
-				    <a style="font-size: 12px;" href="%s">%s</a>
-				""".formatted( linkEdicao, "Clique aqui para acessar" );
+				    <p style="font-size: 12px;" >Acesse o sistema SISCAP em: <a style="font-size: 12px;" href="%s">%s</a> </p>
+				""".formatted( linkEdicao, linkEdicao );
 
 	}
 

@@ -335,6 +335,7 @@ public class ProjetoService {
 		Projeto projetoResult = repository.save(projeto);
 
 		Set<ProjetoPessoa> projetoPessoaSet;
+		
 		List<EquipeDto> equipeParaGravar = form.equipeElaboracao();
 
 		List<EquipeDto> equipeElaboracaoValidada = this.validarEquipeElaboracao(form);
