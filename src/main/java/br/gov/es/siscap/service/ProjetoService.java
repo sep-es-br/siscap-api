@@ -197,7 +197,8 @@ public class ProjetoService {
 				this.buscarComplementacoes(complementosSeremFeitos),
 				this.buscarParecer(parecerProjeto), 
 				lotacaoUsuario.getValue(),
-				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList() );
+				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
+				this.buscarNomeProponente(projetoPessoaSet) );
 
 		return projetoDtoRetorno;
 
@@ -315,7 +316,8 @@ public class ProjetoService {
 				this.buscarNomeResponsavelProponente(projetoPessoaSet),
 				false,
 				false,
-				false, null, null, null, null, null, projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList() );
+				false, null, null, null, null, null, projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
+				this.buscarNomeProponente(projetoPessoaSet) );
 
 	}
 
@@ -427,7 +429,8 @@ public class ProjetoService {
 				null, null,
 				null,
 				this.buscarParecer(projetoParecer),null,
-				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList());
+				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
+				this.buscarNomeProponente(projetoPessoaSet));
 
 	}
 
@@ -1015,6 +1018,7 @@ public class ProjetoService {
 				.map(projetoPessoa -> projetoPessoa.getPessoa().getSub())
 				.orElse(null);
 	}
+	
 
 	private String buscarLotacaoResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
