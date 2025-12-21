@@ -289,7 +289,9 @@ public class ProjetoService {
 
 				String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
 
-				String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
+				PessoaDto pessoaProponenteDto = pessoaService.buscarPorId(this.buscarIdProponente(projetoPessoaSet) );
+				
+				String nomeProponente = pessoaProponenteDto.nome();
 
 				this.enviarEmailGestorAvaliarDic(projeto.getId(), subResponsavelProponente, nomeProponente);
 
@@ -297,6 +299,8 @@ public class ProjetoService {
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
 		} catch (MessagingException e) {
+			logger.error(e.getMessage());
+		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
 
@@ -1047,6 +1051,14 @@ public class ProjetoService {
 				.findFirst()
 				.map(projetoPessoa -> projetoPessoa.getPessoa().getNome())
 				.orElse("");
+	}
+
+	private Long buscarIdProponente(Set<ProjetoPessoa> projetoPessoaSet) {
+		return projetoPessoaSet.stream()
+				.filter(ProjetoPessoa::isProponente)
+				.findFirst()
+				.map(projetoPessoa -> projetoPessoa.getPessoa().getId())
+				.orElse(null);
 	}
 
 	private List<EquipeDto> buscarEquipeElaboracao(Set<ProjetoPessoa> projetoPessoaSet) {
