@@ -8,7 +8,7 @@
 	pap.tipo as papel,
 	(select org.nome
 	from organizacao org
-		join pessoa_organizacao po on po.id_organizacao = org.id and po.id_pessoa = pes.id
+		join pessoa_organizacao po on po.id_organizacao = org.id and po.id_pessoa = pes.id and po.apagado = false and data_fim is null
 		limit 1) as entidade
 from projeto proj
 	right join projeto_pessoa pp on pp.id_projeto = proj.id

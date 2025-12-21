@@ -11,7 +11,6 @@ import lombok.Setter;
 @Getter
 public abstract class EmailBuilderBase implements EmailBuilder {
 
-
     private EnvioEmailDicDetalhesDto dtoMontagemEmailDic = null;
 
     @Autowired
@@ -87,8 +86,7 @@ public abstract class EmailBuilderBase implements EmailBuilder {
                             <tr><td style="padding: 0 20px;"><hr style="border: 0; height: 0px; background-color: #e0e0e0; margin: 15px 0;"></td></tr>
                             <tr><td style="padding: 0 20px 20px 20px;">
                               <p style="font-size: 12px;">{{TRAT}},</p>
-                              <p style="font-size: 12px;">{{CORPO}}</p>
-                              {{LINK}}
+                              <p style="font-size: 12px;">{{CORPO}}{{LINK}}</p>
                               {{AVISOATENCAO}}
                             </td></tr>
                             {{RODAPE}}
@@ -113,7 +111,7 @@ public abstract class EmailBuilderBase implements EmailBuilder {
 
     protected abstract String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) ;
 
-    private String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
+    protected String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
 
         String frontEndHost = env.getProperty("frontend.host");
 
