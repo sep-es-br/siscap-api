@@ -13,7 +13,8 @@ public record EnvioEmailDicDetalhesDto(
 	String codigoMotivoArquivamento,
 	String descricaoTipoMotivoArquivamento,
 	String justificaivaArquivamento,
-	String justificativaRevisao
+	String justificativaRevisao,
+    List<ProjetoCamposComplementacaoDto> camposSeremComplementados
 ) {
 
 	public EnvioEmailDicDetalhesDto(
@@ -23,7 +24,8 @@ public record EnvioEmailDicDetalhesDto(
         String descricaoOrganizacaoGestor,
         String nomeGestor,
         List<String> emailsInteressadosList,
-        String tituloProjeto
+        String tituloProjeto,
+        List<ProjetoCamposComplementacaoDto> camposSeremComplementados
     ) {
         this(
             idProjeto,
@@ -36,7 +38,7 @@ public record EnvioEmailDicDetalhesDto(
             "",  
             "", 
 			"",
-			""
+			"", camposSeremComplementados
         );
     }
 

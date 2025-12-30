@@ -1184,11 +1184,11 @@ public class ProjetoService {
 
 		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
 				nomeProponente,
-				"",
+				null,
 				nomeOrganizacaoProjeto,
 				dadosResponsavelProponente.getNome(),
 				emailsInteressadosList,
-				projeto.getTitulo());
+				projeto.getTitulo(),null);
 
 		boolean confirmacaoEnvioEmail = emailService.enviarEmailAnaliseDIC(envioEmailDicDetalhesDto);
 
@@ -1239,11 +1239,11 @@ public class ProjetoService {
 
 		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
 				nomeProponente,
-				"",
+				null,
 				nomeOrganizacaoProjeto,
 				dadosResponsavelProponente.getNome(),
 				null,
-				projeto.getTitulo());
+				projeto.getTitulo(),null);
 
 		boolean confirmacaoEnvioEmail = emailService
 				.enviarEmailPareceresEstrategicoOrcamentario(envioEmailDicDetalhesDto);

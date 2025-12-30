@@ -8,7 +8,6 @@ import br.gov.es.siscap.form.CartaConsultaForm;
 import br.gov.es.siscap.models.CartaConsulta;
 import br.gov.es.siscap.models.CartaConsultaDestinatario;
 import br.gov.es.siscap.models.LocalidadeQuantia;
-import br.gov.es.siscap.models.ProjetoIndicador;
 import br.gov.es.siscap.repository.CartaConsultaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
