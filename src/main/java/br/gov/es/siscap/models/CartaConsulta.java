@@ -41,9 +41,8 @@ public class CartaConsulta extends ControleHistorico {
 	@JoinColumn(name = "id_programa")
 	private Programa programa;
 
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_operacao", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "id_operacao", nullable = true)
 	private TipoOperacao tipoOperacao;
 
 	@Column(name = "prospectado", nullable = false)
@@ -58,13 +57,19 @@ public class CartaConsulta extends ControleHistorico {
 
 	public CartaConsulta(CartaConsultaForm form) {
 		this.setCartaConsultaObjeto(form.objeto());
-		this.setTipoOperacao(new TipoOperacao(form.operacao()));
+		if (form.operacao() == null)
+			this.setTipoOperacao(null);
+		else
+			this.setTipoOperacao(new TipoOperacao(form.operacao()));
 		this.setProspectado(false);
 	}
 
 	public void atualizarCartaConsulta(CartaConsultaForm form) {
 		this.setCartaConsultaObjeto(form.objeto());
-		this.setTipoOperacao(new TipoOperacao(form.operacao()));
+		if (form.operacao() == null)
+			this.setTipoOperacao(null);
+		else
+			this.setTipoOperacao(new TipoOperacao(form.operacao()));
 		super.atualizarHistorico();
 	}
 
@@ -77,26 +82,32 @@ public class CartaConsulta extends ControleHistorico {
 	}
 
 	public String formatarCartaConsultaNomeOpcaoDto() {
-		if (this.getProjeto() != null) return this.getProjeto().getSigla() + " - " + this.getProjeto().getTitulo();
-		if (this.getPrograma() != null) return this.getPrograma().getSigla() + " - " + this.getPrograma().getTitulo();
+		if (this.getProjeto() != null)
+			return this.getProjeto().getSigla() + " - " + this.getProjeto().getTitulo();
+		if (this.getPrograma() != null)
+			return this.getPrograma().getSigla() + " - " + this.getPrograma().getTitulo();
 		return null;
 	}
 
 	public ObjetoOpcoesDto getCartaConsultaObjeto() {
-		if (this.getProjeto() != null) return new ObjetoOpcoesDto(this.getProjeto());
-		if (this.getPrograma() != null) return new ObjetoOpcoesDto(this.getPrograma());
+		if (this.getProjeto() != null)
+			return new ObjetoOpcoesDto(this.getProjeto());
+		if (this.getPrograma() != null)
+			return new ObjetoOpcoesDto(this.getPrograma());
 		return null;
 	}
 
 	private void setCartaConsultaObjeto(ObjetoOpcoesDto formObjeto) {
 		if (formObjeto.tipo().equals("Projeto")) {
 			this.setProjeto(new Projeto(formObjeto.id()));
-			if (this.getPrograma() != null) this.setPrograma(null);
+			if (this.getPrograma() != null)
+				this.setPrograma(null);
 		}
 
 		if (formObjeto.tipo().equals("Programa")) {
 			this.setPrograma(new Programa(formObjeto.id()));
-			if (this.getProjeto() != null) this.setProjeto(null);
+			if (this.getProjeto() != null)
+				this.setProjeto(null);
 		}
 	}
 

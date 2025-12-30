@@ -15,7 +15,7 @@ public class EnvioAnaliseGestorDicEmailBuilder extends EmailBuilderBase {
 
 	@Override
 	public String montarAssuntoEmail() {
-		return "DIC disponível para análise e autuação via E-Docs.";
+		return "DIC disponível para análise e autuação.";
 	}
 
 	@Override

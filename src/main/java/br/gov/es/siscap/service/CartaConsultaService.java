@@ -63,11 +63,6 @@ public class CartaConsultaService {
 
 		String corpo = documentosService.buscarCartaConsultaCorpo(cartaConsulta.getNomeDocumento());
 
-		CartaConsultaDto teste = new CartaConsultaDto(cartaConsulta, corpo,
-				this.buscarCartaConsultaDestinatarios(cartaConsulta.getCartaConsultaDestinatarioSet()));
-
-		logger.info(teste);
-
 		return new CartaConsultaDto(cartaConsulta, corpo,
 				this.buscarCartaConsultaDestinatarios(cartaConsulta.getCartaConsultaDestinatarioSet()));
 
@@ -91,15 +86,8 @@ public class CartaConsultaService {
 
 		CartaConsulta cartaConsulta = new CartaConsulta(form);
 
-		// List<OpcoesDto> equipeParaGravar = form.destinatarios();
-
 		List<CartaConsultaDestinatariosDto> destinatariosCartaConsultaValidada = this
 				.validarDestinatariosCartaConsulta(form);
-
-		// if (!new HashSet<>(form.equipeElaboracao()).equals(new
-		// HashSet<>(equipeElaboracaoValidada))) {
-		// equipeParaGravar = equipeElaboracaoValidada;
-		// }
 
 		String nomeDocumento = documentosService.cadastrarCartaConsultaCorpo(form.corpo());
 
@@ -124,20 +112,7 @@ public class CartaConsultaService {
 
 		documentosService.atualizarCartaConsultaCorpo(cartaConsulta.getNomeDocumento(), form.corpo());
 
-		// List<CartaConsultaDestinatariosDto> destinatariosDtoList =
-		// form.destinatarios().stream()
-		// .map( d -> new CartaConsultaDestinatariosDto( d.id(), d.idCartaConsulta(),
-		// d.id() ) )
-		// .toList();
-		// cartaConsultaDestinatariosService.atualizar( cartaConsulta, destinatariosDtoList );
-
-		// List<CartaConsultaDestinatariosDto> destinatariosCartaParaGravar = form.destinatarios();
-		// List<CartaConsultaDestinatariosDto> destinatariosCartaValidada = this.validarDestinatariosCartaConsulta(form);
-		// if (!new HashSet<>(form.destinatarios()).equals(new HashSet<>(destinatariosCartaValidada))) {
-		// 	destinatariosCartaParaGravar = destinatariosCartaValidada;
-		// }
-
-		cartaConsultaDestinatariosService.atualizar( cartaConsulta, form.destinatarios() );
+		cartaConsultaDestinatariosService.atualizar(cartaConsulta, form.destinatarios());
 
 		CartaConsulta cartaConsultaResultado = repository.save(cartaConsulta);
 

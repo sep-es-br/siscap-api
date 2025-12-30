@@ -17,7 +17,7 @@ public record CartaConsultaDto(
 		this(
 				cartaConsulta.getId(),
 				cartaConsulta.getCartaConsultaObjeto(),
-				cartaConsulta.getTipoOperacao().getId(),
+				cartaConsulta.getTipoOperacao() == null ? null :  cartaConsulta.getTipoOperacao().getId(),
 				corpo,
 				destinatariosCartaConsulta);
 	}
