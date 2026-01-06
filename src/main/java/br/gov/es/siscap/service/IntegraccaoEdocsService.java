@@ -64,6 +64,7 @@ public class IntegraccaoEdocsService {
 		List<EtapasIntegracaoDto> etapas = etapasPorProjeto.get(idProjeto);
 		if (etapas != null) {
 			for (EtapasIntegracaoDto etapa : etapas) {
+				logger.info("Etapa atualizada : {}", etapa.getEtapa().name());
 				if (etapa.getEtapa().equals(etapaEnum)) {
 					etapa.setIniciou(iniciou);
 					etapa.setFinalizou(finalizou);
@@ -119,6 +120,7 @@ public class IntegraccaoEdocsService {
 	}
 
 	public void adicionarEtapa(Long idProjeto, EtapasIntegracaoDto etapa) {
+		logger.info("Etapa adicionada : {}", etapa.getEtapa().name());
 		etapasPorProjeto
 				.computeIfAbsent(idProjeto, k -> new ArrayList<>()) // cria lista se não existir
 				.add(etapa);
@@ -155,8 +157,6 @@ public class IntegraccaoEdocsService {
 
 		this.limparEtapas(idProjeto);
 
-		// ,Projeto projeto = projetoService.buscar(idProjeto);
-
 		Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
 				projetoParecerService.buscarTipoParecer(idParecer));
 		String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
@@ -185,12 +185,13 @@ public class IntegraccaoEdocsService {
 		logger.info("Iniciando processo para despachar processo E-Docs DIC do projeto {} para Orgao de Origem..",
 				idProjeto);
 
+		this.limparEtapas(idProjeto);
+
 		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 
 		this.despacharProcessoEdcosDicComplementarReativo(projetoDto)
 				.doOnSuccess(
 						retorno -> projetoService.enviarAvisoSolicitarComplementacaoProjeto(idProjeto, complementos))
-				// .doOnSuccess( retorno -> logger.info("Retorno do Mono: {}", retorno ) )
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
 						erro -> logger.info("ERRO: {}", erro));
@@ -317,6 +318,13 @@ public class IntegraccaoEdocsService {
 		this.adicionarEtapa(projetoDto.id(),
 				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
 
+		this.adicionarEtapa(projetoDto.id(),
+				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.AUTUAR, false, false, false));
+
+		this.adicionarEtapa(projetoDto.id(),
+				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, false, false,
+						false));
+
 		return buscarTokenReativo()
 				.doOnError(erro -> {
 					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
@@ -335,7 +343,10 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> despacharProcessoDIC(ctx))
 				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
 				.flatMap(ctx -> atualizarProjeto(ctx))
-				.doOnSuccess(retorno -> projetoService.enviarEmailGerenciaSubcapDicAutuado(projetoDto.id()))
+				.doOnSuccess(retorno -> {
+					this.atualizarEtapa(projetoDto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true);
+					projetoService.enviarEmailGerenciaSubcapDicAutuado(projetoDto.id());
+				})
 				.thenReturn("Atuação concluída com sucesso.");
 
 	}
@@ -388,6 +399,15 @@ public class IntegraccaoEdocsService {
 		this.adicionarEtapa(projetoDto.id(),
 				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
 
+		this.adicionarEtapa(projetoDto.id(),
+				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO , false, false, false));
+
+		this.adicionarEtapa(projetoDto.id(),
+				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR , false, false, false));
+
+		this.adicionarEtapa(projetoDto.id(),
+				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO , false, false, false));
+		
 		return buscarTokenReativo()
 				.doOnError(erro -> {
 					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
@@ -419,15 +439,17 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> consultarSituacaoCaptura(ctx))
 				.flatMap(ctx -> entranharDocumentoEdocs(ctx))
 				.flatMap(ctx -> consultarSituacaoEntranhamento(ctx))
+
 				.flatMap(ctx -> processosVinculadosDocumento(ctx))
 				.flatMap(ctx -> atosVinculadosProcesso(ctx))
 				.flatMap(ctx -> documentosAtosProcesso(ctx))
 				.flatMap(ctx -> desentranharDocumento(ctx))
 				.flatMap(ctx -> consultarSituacaoDesentranhamento(ctx))
+
 				.flatMap(ctx -> despacharProcessoDIC(ctx))
 				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
 				.flatMap(ctx -> atualizarProjeto(ctx))
-				.doOnSuccess(retorno -> this.finalizaTodasEtapas(projetoDto.id()))
+				.doOnSuccess( retorno -> this.finalizaTodasEtapas(projetoDto.id() ) )
 				.thenReturn("Reentranhamento de DIC complementado concluída com sucesso.");
 
 	}
@@ -442,15 +464,14 @@ public class IntegraccaoEdocsService {
 				ctx.getIdDocumentos(),
 				ctx.getProjeto().subResponsavelProponente(),
 				ctx.getToken()))
-				.doOnRequest(n -> this.adicionarEtapa(
-						ctx.getProjeto().id(),
-						new EtapasIntegracaoDto(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO, true,
-								false, false)))
+				// .doOnRequest(n -> this.adicionarEtapa(
+				// 		ctx.getProjeto().id(),
+				// 		new EtapasIntegracaoDto(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO, true,
+				// 				false, false)))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
 				.timeout(Duration.ofMinutes(1))
-				.switchIfEmpty(
-						Mono.error(new RuntimeException("Falha ao consultar situacao do evento de entranhamento.")))
+				.switchIfEmpty(	Mono.error(new RuntimeException("Falha ao consultar situacao do evento de entranhamento.")))
 				.doOnSuccess(retorno -> ctx.setIdEventoEntranhamento(retorno.replace("\"", "")))
 				.doOnError(e -> {
 					logger.error("Falha ao executar chamada ao endpoint para entranhamento de um documento via E-Docs.",
@@ -466,8 +487,9 @@ public class IntegraccaoEdocsService {
 			projetoParecerService.atualizarIdArquivoCapturado(ctx.getIdDocumentos()[0], idParecer, subUsuarioLogado);
 			if (projetoParecerService.verificarEnvioPareceresProjeto(ctx.getProjeto().id())) {
 				projetoService.alterarStatusProjeto(ctx.getProjeto().id(),
-					StatusProjetoEnum.ELEGIBILIDADE.getValue());
-				projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id(),ctx.getProjeto().sigla());
+						StatusProjetoEnum.ELEGIBILIDADE.getValue());
+				projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(ctx.getProjeto().id(),
+						ctx.getProjeto().sigla());
 			}
 			return "Ok";
 		});
@@ -505,7 +527,8 @@ public class IntegraccaoEdocsService {
 				.doOnError(e -> {
 					logger.error("Falha ao executar chamada ao endpoint para consultar dados de um processo no E-Docs.",
 							e);
-					this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+					// this.registrarFalhaEtapa(ctx.getProjeto().id(),
+					// EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
 				})
 				.thenReturn("Atualização DIC complementado concluída com sucesso.");
 
@@ -516,14 +539,14 @@ public class IntegraccaoEdocsService {
 		logger.info("Iniciar processo de despachar processo E-Docs DIC Id: {}.", ctx.getProjeto().id());
 
 		return FeignReativo.fromFeign(() -> despacharProcessoOrgaoOrigem(ctx))
-				.doOnRequest(n -> this.adicionarEtapa(
-						ctx.getProjeto().id(),
-						new EtapasIntegracaoDto(
-								ctx.getProjeto().id(),
-								EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
-								true,
-								false,
-								false)))
+				// .doOnRequest(n -> this.adicionarEtapa(
+				// ctx.getProjeto().id(),
+				// new EtapasIntegracaoDto(
+				// ctx.getProjeto().id(),
+				// EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
+				// true,
+				// false,
+				// false)))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.switchIfEmpty(
 						Mono.error(new RuntimeException(
@@ -560,14 +583,6 @@ public class IntegraccaoEdocsService {
 		logger.info("Iniciar processo de despachar processo E-Docs DIC Id: {}.", ctx.getProjeto().id());
 
 		return FeignReativo.fromFeign(() -> despacharProcessoSUBCAP(ctx))
-				.doOnRequest(n -> this.adicionarEtapa(
-						ctx.getProjeto().id(),
-						new EtapasIntegracaoDto(
-								ctx.getProjeto().id(),
-								EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
-								true,
-								false,
-								false)))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.switchIfEmpty(
 						Mono.error(new RuntimeException(
@@ -604,16 +619,8 @@ public class IntegraccaoEdocsService {
 				ctx.getToken()))
 				.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
 				.timeout(Duration.ofMinutes(1))
-				.switchIfEmpty(
-						Mono.error(new RuntimeException("Falha ao consultar processos vinculados ao documento.")))
-				.doOnRequest(n -> this.adicionarEtapa(
-						ctx.getProjeto().id(),
-						new EtapasIntegracaoDto(
-								ctx.getProjeto().id(),
-								EtapasIntegracaoEdocsEnum.DESENTRANHAR,
-								true,
-								false,
-								false)))
+				.switchIfEmpty(Mono.error(new RuntimeException("Falha ao consultar processos vinculados ao documento.")))
+				.doOnRequest(n -> this.atualizarEtapa( ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR, true, false ) )
 				.doOnError(e -> {
 					logger.error(
 							"Falha ao consultar lista de processos vinculados ao documento a ser desentranhado.", e);
@@ -696,9 +703,9 @@ public class IntegraccaoEdocsService {
 				.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
 				.timeout(Duration.ofMinutes(1))
 				.switchIfEmpty(Mono.error(new RuntimeException("Falha ao consultar documentos do ato do processo.")))
-				.doOnSuccess(documentos -> documentos.forEach(
-						doc -> logger.info("Documento -> {}, {}, {}", doc.documentoId(), doc.documentoNome(),
-								doc.sequencial())))
+				// .doOnSuccess(documentos -> documentos.forEach(
+				// 		doc -> logger.info("Documento -> {}, {}, {}", doc.documentoId(), doc.documentoNome(),
+				// 				doc.sequencial())))
 				.doOnError(e -> {
 					logger.error("Erro ao consultar documentos do ato do processo.", e);
 					registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESENTRANHAR);
@@ -737,7 +744,7 @@ public class IntegraccaoEdocsService {
 			throw new ValidacaoSiscapException(List.of("Sequencial do documento não encontrado."));
 		}
 
-		return FeignReativo.fromFeign(() -> desentranharDocumentoProcessoEdocs(
+		return FeignReativo.fromFeign( () -> desentranharDocumentoProcessoEdocs(
 				ctx.getProjeto().idProcessoEdocs(),
 				ctx.getDocumentoAtoProcessoDto().sequencial().toString(),
 				ctx.getProjeto().subResponsavelProponente(),
@@ -890,10 +897,7 @@ public class IntegraccaoEdocsService {
 						.error(new RuntimeException("Falha ao consultar situacao do evento de DESPACHO do processo ID "
 								+ ctx.getIdEventoDespachar() + ".")))
 				.doOnRequest(n -> this.atualizarEtapa(ctx.getProjeto().id(),
-						EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true))
-				.doOnSuccess(resultConsultaEvento -> {
-					this.atualizarEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true);
-				})
+						EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, false))
 				.doOnError(e -> {
 					logger.error("Falha ao verificar situacao do evento de despacho do processo no E-Docs.", e);
 					this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
@@ -931,10 +935,12 @@ public class IntegraccaoEdocsService {
 				ctx.getProjeto(),
 				ctx.getToken(),
 				ctx.getIdDocumentos()[0]))
-				.doOnRequest(n -> this.adicionarEtapa(
-						ctx.getProjeto().id(),
-						new EtapasIntegracaoDto(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.AUTUAR, true, false,
-								false)))
+				// .doOnRequest(n -> this.adicionarEtapa(
+				// ctx.getProjeto().id(),
+				// new EtapasIntegracaoDto(ctx.getProjeto().id(),
+				// EtapasIntegracaoEdocsEnum.AUTUAR, true, false,
+				// false)
+				// ))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.switchIfEmpty(Mono.error(new RuntimeException(
 						"Falha ao executar chamada ao endpoint para autuar um processo via E-Docs.")))
@@ -1214,8 +1220,6 @@ public class IntegraccaoEdocsService {
 				"Lotação do usuário {}.", guiIdLotacaoUsuario);
 		LocalCustodiaProcessoEdocsDto localCustodia = EdocsWebClient.buscarLocalCustodiaProcessoEdocs(token,
 				IdProcessoEdocs);
-		// logger.info(
-		// "Local de custoria do processo {}.", localCustodia);
 		return localCustodia.id().equalsIgnoreCase(guiIdLotacaoUsuario);
 	}
 
@@ -1369,6 +1373,13 @@ public class IntegraccaoEdocsService {
 
 		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 
+		this.adicionarEtapa(
+			idProjeto,
+				new EtapasIntegracaoDto(idProjeto,
+				EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO , true, false,
+				false)
+				);
+
 		this.entranharDocumentosProcesso(projetoDto, pareceresProjeto)
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
@@ -1398,8 +1409,7 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> entranharDocumentoEdocs(ctx))
 				.flatMap(ctx -> consultarSituacaoEntranhamento(ctx))
 				.doOnSuccess(retorno -> {
-					pareceresProjeto.stream().forEach(parecer -> projetoParecerService
-							.atualizarStatusParecer(parecer.getId(), StatusParecerEnum.ENTRANHADO_EDOCS));
+					pareceresProjeto.stream().forEach(parecer -> projetoParecerService.atualizarStatusParecer(parecer.getId(), StatusParecerEnum.ENTRANHADO_EDOCS));
 					projetoService.enviarEmailGerenciaSubcap(projetoDto.id());
 				})
 				.thenReturn("Entranhamento dos pareceres referente ao DIC concluída com sucesso.");

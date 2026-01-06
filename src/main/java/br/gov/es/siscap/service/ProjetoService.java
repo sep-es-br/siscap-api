@@ -197,7 +197,8 @@ public class ProjetoService {
 				this.buscarComplementacoes(complementosSeremFeitos),
 				this.buscarParecer(parecerProjeto), 
 				lotacaoUsuario.getValue(),
-				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList() );
+				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
+				this.buscarNomeProponente(projetoPessoaSet) );
 
 		return projetoDtoRetorno;
 
@@ -288,7 +289,9 @@ public class ProjetoService {
 
 				String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
 
-				String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
+				PessoaDto pessoaProponenteDto = pessoaService.buscarPorId(this.buscarIdProponente(projetoPessoaSet) );
+				
+				String nomeProponente = pessoaProponenteDto.nome();
 
 				this.enviarEmailGestorAvaliarDic(projeto.getId(), subResponsavelProponente, nomeProponente);
 
@@ -296,6 +299,8 @@ public class ProjetoService {
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
 		} catch (MessagingException e) {
+			logger.error(e.getMessage());
+		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
 
@@ -315,7 +320,8 @@ public class ProjetoService {
 				this.buscarNomeResponsavelProponente(projetoPessoaSet),
 				false,
 				false,
-				false, null, null, null, null, null, projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList() );
+				false, null, null, null, null, null, projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
+				this.buscarNomeProponente(projetoPessoaSet) );
 
 	}
 
@@ -335,6 +341,7 @@ public class ProjetoService {
 		Projeto projetoResult = repository.save(projeto);
 
 		Set<ProjetoPessoa> projetoPessoaSet;
+		
 		List<EquipeDto> equipeParaGravar = form.equipeElaboracao();
 
 		List<EquipeDto> equipeElaboracaoValidada = this.validarEquipeElaboracao(form);
@@ -426,7 +433,8 @@ public class ProjetoService {
 				null, null,
 				null,
 				this.buscarParecer(projetoParecer),null,
-				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList());
+				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
+				this.buscarNomeProponente(projetoPessoaSet));
 
 	}
 
@@ -533,13 +541,15 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public void alterarStatusProjeto(Long id, String status) {
+	public void alterarStatusProjeto(Long id, String novoStatus) {
 
-		logger.info("Alterando status do projeto {} para {}.", id, status);
+		logger.info("Alterando status do projeto {} para {}.", id, novoStatus);
 
 		Projeto projeto = this.buscar(id);
 
-		projeto.setStatus(status);
+		projeto.setStatus(novoStatus);
+
+		StatusProjetoEnum.valueOf(novoStatus).validar(projeto);
 
 		repository.save(projeto);
 	}
@@ -1014,6 +1024,7 @@ public class ProjetoService {
 				.map(projetoPessoa -> projetoPessoa.getPessoa().getSub())
 				.orElse(null);
 	}
+	
 
 	private String buscarLotacaoResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
@@ -1042,6 +1053,14 @@ public class ProjetoService {
 				.findFirst()
 				.map(projetoPessoa -> projetoPessoa.getPessoa().getNome())
 				.orElse("");
+	}
+
+	private Long buscarIdProponente(Set<ProjetoPessoa> projetoPessoaSet) {
+		return projetoPessoaSet.stream()
+				.filter(ProjetoPessoa::isProponente)
+				.findFirst()
+				.map(projetoPessoa -> projetoPessoa.getPessoa().getId())
+				.orElse(null);
 	}
 
 	private List<EquipeDto> buscarEquipeElaboracao(Set<ProjetoPessoa> projetoPessoaSet) {
@@ -1167,11 +1186,11 @@ public class ProjetoService {
 
 		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
 				nomeProponente,
-				"",
+				null,
 				nomeOrganizacaoProjeto,
 				dadosResponsavelProponente.getNome(),
 				emailsInteressadosList,
-				projeto.getTitulo());
+				projeto.getTitulo(),null);
 
 		boolean confirmacaoEnvioEmail = emailService.enviarEmailAnaliseDIC(envioEmailDicDetalhesDto);
 
@@ -1222,11 +1241,11 @@ public class ProjetoService {
 
 		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
 				nomeProponente,
-				"",
+				null,
 				nomeOrganizacaoProjeto,
 				dadosResponsavelProponente.getNome(),
 				null,
-				projeto.getTitulo());
+				projeto.getTitulo(),null);
 
 		boolean confirmacaoEnvioEmail = emailService
 				.enviarEmailPareceresEstrategicoOrcamentario(envioEmailDicDetalhesDto);

@@ -16,27 +16,13 @@ import lombok.Setter;
 public class EnvioComplementoDicEmailBuilder extends EmailBuilderBase {
 
 	String siglaProjeto;
-	List<ProjetoCamposComplementacaoDto> complementacaoDtos;
 
-	// public EnvioComplementoDicEmailBuilder(EnvioEmailDicDetalhesDto dto) {
-	// 	super(dto);
-	// }
+	// List<ProjetoCamposComplementacaoDto> complementacaoDtos;
 
 	@Override
 	protected String montarCampoTratamento(EnvioEmailDicDetalhesDto dto) {
 		return "Prezado(a) %s".formatted(dto.nomeGestor());
 	}
-
-	// @Override
-	// protected String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
-	// 	if (dto.linkAcessoProjeto() == null || dto.linkAcessoProjeto().isBlank()) {
-	// 		return "";
-	// 	}
-	// 	return """
-	// 			    <p>Acesse o sistema SISCAP em:</p>
-	// 			    <a href="%s">%s</a>
-	// 			""".formatted(dto.linkAcessoProjeto(), dto.tituloProjeto());
-	// }
 
 	@Override
 	public String montarAssuntoEmail() {
@@ -47,9 +33,9 @@ public class EnvioComplementoDicEmailBuilder extends EmailBuilderBase {
 	protected String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) {
 
 		String corpoEmail = "Informamos que o DIC [<strong>%S</strong>] precisará ser complementado após avaliação realizada pela SUBCAP."
-				.formatted(dto.tituloProjeto()) + "<p style=\"font-size: 12px; color: #000000; margin-bottom: 5px;\" > <strong> Complementações a serem realizadas: </strong>"
-				+ " </p> <br> <p style=\"font-size: 12px; color: #000000; margin-bottom: 5px;\" > "
-				+ gerarListaComplementosOrdenadaHtml(this.getComplementacaoDtos()) + " </p> ";
+				.formatted(dto.tituloProjeto())
+				+ "<p style=\"font-size: 12px; color: #000000; margin-bottom: 5px;\" > <strong> Complementações a serem realizadas: </strong>"
+				+ gerarListaComplementosOrdenadaHtml(dto.camposSeremComplementados()) + " </p> ";
 		;
 
 		return corpoEmail;
@@ -59,7 +45,7 @@ public class EnvioComplementoDicEmailBuilder extends EmailBuilderBase {
 	private static String gerarListaComplementosOrdenadaHtml(
 			List<ProjetoCamposComplementacaoDto> complementacoes) {
 
-		StringBuilder html = new StringBuilder("<ol>");
+		StringBuilder html = new StringBuilder("<ol style=\"font-size: 12px; color: #000000; margin-bottom: 5px;\">");
 
 		complementacoes.stream()
 				.forEach(complemento -> html.append("<li>")

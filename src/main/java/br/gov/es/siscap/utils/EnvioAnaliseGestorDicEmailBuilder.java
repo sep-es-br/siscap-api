@@ -7,34 +7,43 @@ import br.gov.es.siscap.utils.email.builder.EmailBuilderBase;
 
 @Component
 public class EnvioAnaliseGestorDicEmailBuilder extends EmailBuilderBase {
-	
-	// public EnvioAnaliseGestorDicEmailBuilder(EnvioEmailDicDetalhesDto dto) {
-	// 	super(dto);
-	// }
 
 	@Override
-    protected String montarCampoTratamento(EnvioEmailDicDetalhesDto dto) {
-        return "Prezada(o) Gestora(or) do(a) <strong>" + dto.descricaoOrganizacaoGestor() + "</strong>";
-    }
-
-    // @Override
-    // protected String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
-    //     return """
-    //         <p>Acesse o sistema SISCAP em:</p>
-    //         <a href="%s">%s</a>
-    //     """.formatted(dto.linkAcessoProjeto(), dto.linkAcessoProjeto());
-    // }
+	protected String montarCampoTratamento(EnvioEmailDicDetalhesDto dto) {
+		return "Prezado(a) Gestor(a)";
+	}
 
 	@Override
 	public String montarAssuntoEmail() {
-		return "DIC disponível para análise e autuação via E-Docs.";
+		return "DIC disponível para análise e autuação.";
 	}
 
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) {
-		return "Informamos que há um DIC (Documento Inicial para Captação) disponível para análise e tramitação diretamente no SISCAP.<br><br>" +
-		"Todo o acompanhamento, assinatura e andamento do processo devem ser realizados exclusivamente pelo sistema SISCAP, não sendo necessário acessar o E-Docs manualmente.";
+		return ("O(A) servidor(a) %s elaborou um DIC (Documento Inicial para Captação) de Recursos, que está disponível para a sua análise e tramitação diretamente no SISCAP")
+				.formatted(dto.nomeResponsavelEnvioEmail());
 	}
 
+	@Override
+	protected String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
+
+		String frontEndHost = this.getEnv().getProperty("frontend.host");
+
+		if (frontEndHost == null || frontEndHost.isBlank()) {
+			return "";
+		}
+
+		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + dto.idProjeto();
+
+		if (linkEdicao == null || linkEdicao.isBlank()) {
+			return "";
+		}
+
+		return """
+					em, <a style="font-size: 12px;" href="%s">%s</a>
+				"""
+				.formatted(linkEdicao, linkEdicao);
+
+	}
 
 }

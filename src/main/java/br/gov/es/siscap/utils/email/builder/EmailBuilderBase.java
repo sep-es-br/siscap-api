@@ -11,7 +11,6 @@ import lombok.Setter;
 @Getter
 public abstract class EmailBuilderBase implements EmailBuilder {
 
-
     private EnvioEmailDicDetalhesDto dtoMontagemEmailDic = null;
 
     @Autowired
@@ -22,7 +21,7 @@ public abstract class EmailBuilderBase implements EmailBuilder {
 
         String cabecalhoSuperior =
                 "<tr>" +
-                    "<td style=\"padding: 20px; background-color: #7eb4f2; width: 100%;\">" +
+                    "<td style=\"padding: 20px; background-color:rgb(69, 150, 243); width: 100%;\">" +
                         "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">" +
                             "<tr>" +
                                 "<td style=\"vertical-align: middle;\">" +
@@ -40,7 +39,7 @@ public abstract class EmailBuilderBase implements EmailBuilder {
 
         String rodapeEmail =
                 "<tr>" +
-                    "<td style=\"padding: 20px; background-color: #7eb4f2; width: 100%;\">" +
+                    "<td style=\"padding: 20px; background-color: rgb(69, 150, 243); width: 100%;\">" +
                         "<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">" +
                             "<tr>" +
                                 "<td style=\"vertical-align: middle;\">" +
@@ -56,11 +55,12 @@ public abstract class EmailBuilderBase implements EmailBuilder {
                     "</td>" +
                 "</tr>";
 
+        String avisoAtencao = "<p style=\"font-size: 12px;\" > <strong style=\"color: #d32f2f;\">Atenção:</strong> Todos os trâmites do processo devem ser realizados exclusivamente pelo sistema SISCAP. <u>Não tramite diretamente no E-Docs</u>.</p>";
         String campoTratamento = montarCampoTratamento(dtoMontagemEmailDic);
         String campoCorpo = montarCorpoPrincipal(dtoMontagemEmailDic);
         String linkAcesso = montarLinkAcesso(dtoMontagemEmailDic);
 
-        return montarHtmlTemplate(cabecalhoSuperior, campoTratamento, campoCorpo, linkAcesso, rodapeEmail);
+        return montarHtmlTemplate(cabecalhoSuperior, campoTratamento, campoCorpo, linkAcesso, rodapeEmail, avisoAtencao);
 
     }
 
@@ -68,7 +68,8 @@ public abstract class EmailBuilderBase implements EmailBuilder {
             String campoTratamento,
             String campoCorpoPrincipal,
             String linkAcessoDic,
-            String rodapeEmail) {
+            String rodapeEmail,
+            String avisoAtencao) {
 
         String html = "<html>" +
 					"<body style=\"margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;\">" +
@@ -80,15 +81,14 @@ public abstract class EmailBuilderBase implements EmailBuilder {
                             {{CABECALHO}}
                             <tr><td style="padding: 0 12px;"><hr style="border: 0; height: 0px; background-color: #e0e0e0; margin: 15px 0;"></td></tr>
                             <tr><td style="padding: 15px 20px; background-color: #fcea8f; font-size: 12;">
-                              <strong style="color: #d32f2f;">Atenção:</strong> Este é um e-mail automático. Favor não responder.</td>
+                               Este é um e-mail automático. Favor não responder.</td>
                             </tr>
                             <tr><td style="padding: 0 20px;"><hr style="border: 0; height: 0px; background-color: #e0e0e0; margin: 15px 0;"></td></tr>
                             <tr><td style="padding: 0 20px 20px 20px;">
                               <p style="font-size: 12px;">{{TRAT}},</p>
-                              <p style="font-size: 12px;">{{CORPO}}</p>
-                              {{LINK}}
+                              <p style="font-size: 12px;">{{CORPO}}{{LINK}}</p>
+                              {{AVISOATENCAO}}
                             </td></tr>
-                            <tr><td style="padding: 0 20px 20px 20px;"><p style="font-size: 12;">Em caso de dúvidas, estamos à disposição para prestar o suporte necessário.</p></td></tr>
                             {{RODAPE}}
                           </table>
                         </td>
@@ -100,6 +100,7 @@ public abstract class EmailBuilderBase implements EmailBuilder {
                 .replace("{{TRAT}}", campoTratamento)
                 .replace("{{CORPO}}", campoCorpoPrincipal)
                 .replace("{{LINK}}", linkAcessoDic)
+                .replace("{{AVISOATENCAO}}", avisoAtencao)
                 .replace("{{RODAPE}}", rodapeEmail);
 
         return html;
@@ -110,7 +111,7 @@ public abstract class EmailBuilderBase implements EmailBuilder {
 
     protected abstract String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) ;
 
-    private String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
+    protected String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
 
         String frontEndHost = env.getProperty("frontend.host");
 
@@ -125,9 +126,8 @@ public abstract class EmailBuilderBase implements EmailBuilder {
 		}
 
 		return """
-				    <p style="font-size: 12px;" >Acesse o sistema SISCAP em:</p>
-				    <a style="font-size: 12px;" href="%s">%s</a>
-				""".formatted( linkEdicao, "Clique aqui para acessar" );
+				    <p style="font-size: 12px;" >Acesse o sistema SISCAP em: <a style="font-size: 12px;" href="%s">%s</a> </p>
+				""".formatted( linkEdicao, linkEdicao );
 
 	}
 

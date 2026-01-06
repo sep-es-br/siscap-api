@@ -20,9 +20,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AcessoCidadaoService {
 
-    
-    //@Value("${listarpapeisprioritarios}")
-	//private Boolean listarPapeisPrioritarios;
+    // @Value("${listarpapeisprioritarios}")
+    // private Boolean listarPapeisPrioritarios;
 
     private final AcessoCidadaoAutorizacaoService ACAuthService;
     private final AcessoCidadaoWebClient ACWebClient;
@@ -46,17 +45,17 @@ public class AcessoCidadaoService {
         return buscarPapeisAgentePublicoPorSub(sub);
     }
 
-    public String buscarNomePapelPrioritarioPorSub(String sub){
+    public String buscarNomePapelPrioritarioPorSub(String sub) {
         List<ACAgentePublicoPapelDto> papeisAgentePublico = this.listarPapeisAgentePublicoPorSub(sub);
         return papeisAgentePublico
-            .stream()
-            .filter( papel -> Boolean.TRUE.equals(papel.Prioritario()))
-            .findFirst()
-            .map(ACAgentePublicoPapelDto::Nome)
-			.orElseGet( () -> papeisAgentePublico.stream()
-				.findFirst()
-				.map(ACAgentePublicoPapelDto::Nome)
-				.orElse(""));
+                .stream()
+                .filter(papel -> Boolean.TRUE.equals(papel.Prioritario()))
+                .findFirst()
+                .map(ACAgentePublicoPapelDto::Nome)
+                .orElseGet(() -> papeisAgentePublico.stream()
+                        .findFirst()
+                        .map(ACAgentePublicoPapelDto::Nome)
+                        .orElse(""));
     }
 
     public ACAgentePublicoPapelDto buscarGestorNovoConjuntoPorGuidOrganizacao(String guid) {
@@ -68,11 +67,13 @@ public class AcessoCidadaoService {
     }
 
     private AgentePublicoACDto buscarAgentePublicoPorSub(String sub) {
-        return new AgentePublicoACDto(ACWebClient.buscarAgentePublicoPorSub(ACAuthService.getAuthorizationHeader(), sub));
+        return new AgentePublicoACDto(
+                ACWebClient.buscarAgentePublicoPorSub(ACAuthService.getAuthorizationHeader(), sub));
     }
 
     private ACUserInfoDto buscarAcessoCidadaoUserInfo(String accessToken) {
-        LinkedHashMap<String, Object> userInfoObj = ACUserInfoClient.buscarUserInfoAcessoCidadao(ACAuthService.getAccessTokenAuthorizationHeader(accessToken));
+        LinkedHashMap<String, Object> userInfoObj = ACUserInfoClient
+                .buscarUserInfoAcessoCidadao(ACAuthService.getAccessTokenAuthorizationHeader(accessToken));
         return new ACUserInfoDto(userInfoObj);
     }
 
@@ -81,18 +82,25 @@ public class AcessoCidadaoService {
     }
 
     public List<ResponsavelProponenteOpcoesDto> buscarPessoasUnidadePapelPrioritario(String unidadeGuid) {
-                
-        List<ResponsavelProponenteOpcoesDto> result = ACWebClient.buscarAgentesPublicosPapeisPorGuidUnidade( ACAuthService.getAuthorizationHeader(), unidadeGuid, true )
-        .stream()
-        .map( dto -> new ResponsavelProponenteOpcoesDto(
-            0L, 
-            dto.AgentePublicoNome(), 
-            dto.Nome().toUpperCase(),
-            dto.AgentePublicoSub(),
-            false
-        ))
-        .sorted((a, b) -> a.nome().compareToIgnoreCase(b.nome()))
-        .collect(Collectors.toList());
+
+        List<ResponsavelProponenteOpcoesDto> result = ACWebClient.buscarAgentesPublicosPapeisPorGuidUnidade(
+                ACAuthService.getAuthorizationHeader(), unidadeGuid, true)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        a -> a.AgentePublicoNome()))
+                .values()
+                .stream()
+                .flatMap(listaPorNome -> listaPorNome.stream().anyMatch(a -> Boolean.TRUE.equals(a.Prioritario()))
+                        ? listaPorNome.stream().filter(a -> Boolean.TRUE.equals(a.Prioritario()))
+                        : listaPorNome.stream().limit(1))
+                .map(dto -> new ResponsavelProponenteOpcoesDto(
+                        0L,
+                        dto.AgentePublicoNome(),
+                        dto.Nome().toUpperCase(),
+                        dto.AgentePublicoSub(),
+                        false))
+                .sorted((a, b) -> a.nome().compareToIgnoreCase(b.nome()))
+                .collect(Collectors.toList());
 
         return result;
 
@@ -101,11 +109,12 @@ public class AcessoCidadaoService {
     public String buscarGestorPorGuidUnidade(String unidadeGuid) {
         try {
             AgentePublicoACResponseDto gestorUnidade = ACWebClient.buscarGestorPorGuidUnidade(
-                ACAuthService.getAuthorizationHeader(), unidadeGuid
-            );
+                    ACAuthService.getAuthorizationHeader(), unidadeGuid);
             return gestorUnidade.Sub();
         } catch (Exception e) {
-            logger.error("Erro ao buscar gestor da unidade [guid: {}] - devolver lista de agentes publicos da unidade para seleção manual.", unidadeGuid );
+            logger.error(
+                    "Erro ao buscar gestor da unidade [guid: {}] - devolver lista de agentes publicos da unidade para seleção manual.",
+                    unidadeGuid);
         }
         return "";
     }
