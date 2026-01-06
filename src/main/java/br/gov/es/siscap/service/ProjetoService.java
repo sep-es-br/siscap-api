@@ -541,13 +541,15 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public void alterarStatusProjeto(Long id, String status) {
+	public void alterarStatusProjeto(Long id, String novoStatus) {
 
-		logger.info("Alterando status do projeto {} para {}.", id, status);
+		logger.info("Alterando status do projeto {} para {}.", id, novoStatus);
 
 		Projeto projeto = this.buscar(id);
 
-		projeto.setStatus(status);
+		projeto.setStatus(novoStatus);
+
+		StatusProjetoEnum.valueOf(novoStatus).validar(projeto);
 
 		repository.save(projeto);
 	}

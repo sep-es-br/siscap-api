@@ -112,9 +112,7 @@ public class ProjetoController {
 	public ResponseEntity<String> enviarProjetoParaComplementacao(
 			@PathVariable @NotNull Long id,
 			@RequestBody List<ProjetoCamposComplementacaoDto> complementos) {
-		// if (service.enviarAvisoSolicitarComplementacaoProjeto(id, complementos)) {
 		asyncExecutorService.despacharProcessoOrgaoOrigemEdocs(id, complementos);
-		// }
 		return ResponseEntity.ok().body("Aviso de complementação enviada com sucesso!");
 	}
 
