@@ -81,13 +81,13 @@ public class ProjetoService {
 	private String frontEndHost;
 
 	@Value("${api.parecer.guidSUBEPP}")
-    private String guidSUBEPP;
+	private String guidSUBEPP;
 
-    @Value("${api.parecer.guidSUBEO}")
-    private String guidSUBEO;
+	@Value("${api.parecer.guidSUBEO}")
+	private String guidSUBEO;
 
 	@Value("${api.edocs.guiddestinoSUBCAP}")
-    private String guidSUBCAP;
+	private String guidSUBCAP;
 
 	@Value("${email.gerencia-subcap}")
 	private String DESTINO_GERENCIA_SUBCAP;
@@ -142,7 +142,7 @@ public class ProjetoService {
 		logger.info("Buscando projeto com id: {}", id);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(id))
-    		.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + id));
+				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + id));
 
 		Set<ProjetoPessoa> projetoPessoaSet = projetoPessoaService.buscarPorProjeto(projeto);
 
@@ -174,13 +174,12 @@ public class ProjetoService {
 				.orElse(null);
 
 		LotacaoUsuarioEnum lotacaoUsuario = LotacaoUsuarioEnum.fromGuid(
-			usuarioService.lotacaoGuidUsuario(subUsuario),
-			guidSUBEPP,
-			guidSUBEO,
-			guidSUBCAP
-		);
+				usuarioService.lotacaoGuidUsuario(subUsuario),
+				guidSUBEPP,
+				guidSUBEO,
+				guidSUBCAP);
 
-		ProjetoDto projetoDtoRetorno = new ProjetoDto( projeto, valorDto, rateio,
+		ProjetoDto projetoDtoRetorno = new ProjetoDto(projeto, valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
 				this.buscarSubResponsavelProponente(projetoPessoaSet),
@@ -195,10 +194,10 @@ public class ProjetoService {
 				projeto.getIdProcessoEdocs(),
 				projeto.getIdDocumentoCapturadoEdocs(),
 				this.buscarComplementacoes(complementosSeremFeitos),
-				this.buscarParecer(parecerProjeto), 
+				this.buscarParecer(parecerProjeto),
 				lotacaoUsuario.getValue(),
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
-				this.buscarNomeProponente(projetoPessoaSet) );
+				this.buscarNomeProponente(projetoPessoaSet));
 
 		return projetoDtoRetorno;
 
@@ -228,17 +227,17 @@ public class ProjetoService {
 
 	private ProjetoParecerDto buscarParecer(ProjetoParecer projetoParecer) {
 
-		if( projetoParecer == null )
+		if (projetoParecer == null)
 			return null;
 
 		String nomeUsuarioEnviou = "";
-		if(projetoParecer.getSubUsuarioEnviou() != null){
+		if (projetoParecer.getSubUsuarioEnviou() != null) {
 			Pessoa pessoa = pessoaService.buscarPorSub(projetoParecer.getSubUsuarioEnviou());
 			nomeUsuarioEnviou = pessoa.getNome();
 		}
 
 		return new ProjetoParecerDto(projetoParecer, nomeUsuarioEnviou);
-		
+
 	}
 
 	@Transactional
@@ -289,8 +288,8 @@ public class ProjetoService {
 
 				String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
 
-				PessoaDto pessoaProponenteDto = pessoaService.buscarPorId(this.buscarIdProponente(projetoPessoaSet) );
-				
+				PessoaDto pessoaProponenteDto = pessoaService.buscarPorId(this.buscarIdProponente(projetoPessoaSet));
+
 				String nomeProponente = pessoaProponenteDto.nome();
 
 				this.enviarEmailGestorAvaliarDic(projeto.getId(), subResponsavelProponente, nomeProponente);
@@ -320,8 +319,9 @@ public class ProjetoService {
 				this.buscarNomeResponsavelProponente(projetoPessoaSet),
 				false,
 				false,
-				false, null, null, null, null, null, projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
-				this.buscarNomeProponente(projetoPessoaSet) );
+				false, null, null, null, null, null,
+				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
+				this.buscarNomeProponente(projetoPessoaSet));
 
 	}
 
@@ -341,7 +341,7 @@ public class ProjetoService {
 		Projeto projetoResult = repository.save(projeto);
 
 		Set<ProjetoPessoa> projetoPessoaSet;
-		
+
 		List<EquipeDto> equipeParaGravar = form.equipeElaboracao();
 
 		List<EquipeDto> equipeElaboracaoValidada = this.validarEquipeElaboracao(form);
@@ -366,7 +366,8 @@ public class ProjetoService {
 		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projetoResult,
 				projetoIndicadoresDto);
 
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
+		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(),
+				form.rateio());
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
@@ -381,14 +382,15 @@ public class ProjetoService {
 		ProjetoParecerDto projetoParecerDto = form.parecerProjetoUsuario();
 		ProjetoParecer projetoParecer = null;
 
-		if ( projeto.getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue() ) || projeto.getStatus().equals( StatusProjetoEnum.ELEGIBILIDADE.getValue() ) ) {
-			
+		if (projeto.getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())
+				|| projeto.getStatus().equals(StatusProjetoEnum.ELEGIBILIDADE.getValue())) {
+
 			projetoParecerDto = form.parecerProjetoUsuario();
-			
-			if( projetoParecerDto.id() == null )
-				projetoParecer = projetoParecerService.cadastrar( projetoResult, projetoParecerDto );
+
+			if (projetoParecerDto.id() == null)
+				projetoParecer = projetoParecerService.cadastrar(projetoResult, projetoParecerDto);
 			else
-				projetoParecer = projetoParecerService.atualizar( projetoResult, projetoParecerDto );
+				projetoParecer = projetoParecerService.atualizar(projetoResult, projetoParecerDto);
 
 		}
 
@@ -418,7 +420,7 @@ public class ProjetoService {
 
 		logger.info("Projeto atualizado com sucesso");
 
-		return new ProjetoDto( projetoResult, valorDto, rateio,
+		return new ProjetoDto(projetoResult, valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
 				subResponsavelProponente,
@@ -432,7 +434,7 @@ public class ProjetoService {
 				false,
 				null, null,
 				null,
-				this.buscarParecer(projetoParecer),null,
+				this.buscarParecer(projetoParecer), null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet));
 
@@ -545,13 +547,16 @@ public class ProjetoService {
 
 		logger.info("Alterando status do projeto {} para {}.", id, novoStatus);
 
+		StatusProjetoEnum novoStatusEnum = StatusProjetoEnum.fromDescricao(novoStatus);
+
 		Projeto projeto = this.buscar(id);
 
 		projeto.setStatus(novoStatus);
 
-		StatusProjetoEnum.valueOf(novoStatus).validar(projeto);
+		novoStatusEnum.validar(projeto);
 
 		repository.save(projeto);
+		
 	}
 
 	@Transactional
@@ -688,7 +693,7 @@ public class ProjetoService {
 						proponenteProjeto.get().getNome(),
 						responsavelProponenteProjeto.get().getNome(),
 						projeto.getSigla(),
-						complementos,projeto.getId());
+						complementos, projeto.getId());
 
 				if (confirmacaoEnvioEmail) {
 					logger.info(
@@ -719,19 +724,20 @@ public class ProjetoService {
 
 	}
 
-	public void enviarEmailGerenciaSubcap(Long idDIC){
+	public void enviarEmailGerenciaSubcap(Long idDIC) {
 
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
 		List<String> emailsInteressadosList = new ArrayList<String>();
-		emailsInteressadosList.add( DESTINO_GERENCIA_SUBCAP ); 
+		emailsInteressadosList.add(DESTINO_GERENCIA_SUBCAP);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
-    		.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
+				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
 
 		try {
 
-			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGerenciaSubcap( emailsInteressadosList, projeto.getTitulo(), idDIC );
+			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGerenciaSubcap(emailsInteressadosList,
+					projeto.getTitulo(), idDIC);
 
 			if (confirmacaoEnvioEmail) {
 				logger.info("Email aviso  aviso de parecer gerencia SUBCAP enviado com sucesso.");
@@ -756,19 +762,20 @@ public class ProjetoService {
 
 	}
 
-	public void enviarEmailGerenciaSubcapDicAutuado(Long idDIC){
+	public void enviarEmailGerenciaSubcapDicAutuado(Long idDIC) {
 
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
 		List<String> emailsInteressadosList = new ArrayList<String>();
-		emailsInteressadosList.add( DESTINO_SUBCAP ); 
+		emailsInteressadosList.add(DESTINO_SUBCAP);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
-    		.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
+				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
 
 		try {
 
-			confirmacaoEnvioEmail = emailService.enviarEmailAvisoSubcapDicAutuado( emailsInteressadosList, projeto.getTitulo(), idDIC );
+			confirmacaoEnvioEmail = emailService.enviarEmailAvisoSubcapDicAutuado(emailsInteressadosList,
+					projeto.getTitulo(), idDIC);
 
 			if (confirmacaoEnvioEmail) {
 				logger.info("Email aviso DIC autuado enviado com sucesso.");
@@ -793,19 +800,20 @@ public class ProjetoService {
 
 	}
 
-	public void enviarEmailSubSecretariaSubcap(Long idDIC){
+	public void enviarEmailSubSecretariaSubcap(Long idDIC) {
 
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
 		List<String> emailsInteressadosList = new ArrayList<String>();
-		emailsInteressadosList.add( DESTINO_GERENCIA_SUBCAP ); 
+		emailsInteressadosList.add(DESTINO_GERENCIA_SUBCAP);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
-    		.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
+				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
 
 		try {
 
-			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGeocSubcapRealizado( emailsInteressadosList, projeto.getTitulo(), idDIC );
+			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGeocSubcapRealizado(emailsInteressadosList,
+					projeto.getTitulo(), idDIC);
 
 			if (confirmacaoEnvioEmail) {
 				logger.info("Email aviso de parecer gerencia SUBCAP entranhado enviado com sucesso.");
@@ -877,14 +885,14 @@ public class ProjetoService {
 
 			try {
 
-				confirmacaoEnvioEmail = emailService.enviarEmailArquivamentorProjeto( emailsInteressadosList,
+				confirmacaoEnvioEmail = emailService.enviarEmailArquivamentorProjeto(emailsInteressadosList,
 						justificativa,
 						proponenteProjeto.get().getNome(),
 						projeto.getSigla(),
 						codigoMotivoArquivamento,
 						tipoMotivoArquivamento.getTipo(),
 						responsavelProponenteProjeto.get().getNome(),
-						projeto.getId() );
+						projeto.getId());
 
 				if (confirmacaoEnvioEmail) {
 					logger.info("Email aviso arquivamento projeto enviado com sucesso do projeto id " + id);
@@ -1024,7 +1032,6 @@ public class ProjetoService {
 				.map(projetoPessoa -> projetoPessoa.getPessoa().getSub())
 				.orElse(null);
 	}
-	
 
 	private String buscarLotacaoResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
@@ -1155,12 +1162,12 @@ public class ProjetoService {
 			logger.info("Dados do responsavel proponente sub [{}] não foi encontrado.", subResponsavelProponente);
 			return false;
 		}
-		
+
 		if (dadosResponsavelProponente == null ||
-			dadosResponsavelProponente.getEmail() == null ||
-			dadosResponsavelProponente.getEmail().isBlank()) {
+				dadosResponsavelProponente.getEmail() == null ||
+				dadosResponsavelProponente.getEmail().isBlank()) {
 			logger.info("Responsavel proponente sub [{}] não possui email informado.", subResponsavelProponente);
-				throw new ValidacaoSiscapException( List.of("Responsavel proponente não possui email cadastrado.")  );
+			throw new ValidacaoSiscapException(List.of("Responsavel proponente não possui email cadastrado."));
 		}
 
 		Projeto projeto = repository.findById(idProjeto)
@@ -1190,7 +1197,7 @@ public class ProjetoService {
 				nomeOrganizacaoProjeto,
 				dadosResponsavelProponente.getNome(),
 				emailsInteressadosList,
-				projeto.getTitulo(),null);
+				projeto.getTitulo(), null);
 
 		boolean confirmacaoEnvioEmail = emailService.enviarEmailAnaliseDIC(envioEmailDicDetalhesDto);
 
@@ -1245,7 +1252,7 @@ public class ProjetoService {
 				nomeOrganizacaoProjeto,
 				dadosResponsavelProponente.getNome(),
 				null,
-				projeto.getTitulo(),null);
+				projeto.getTitulo(), null);
 
 		boolean confirmacaoEnvioEmail = emailService
 				.enviarEmailPareceresEstrategicoOrcamentario(envioEmailDicDetalhesDto);
