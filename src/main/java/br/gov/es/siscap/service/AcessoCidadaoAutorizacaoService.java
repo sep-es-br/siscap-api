@@ -5,6 +5,9 @@ import br.gov.es.siscap.dto.acessocidadaoapi.LoginACResponseDto;
 import br.gov.es.siscap.models.TokenAc;
 import br.gov.es.siscap.repository.TokenAcRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +41,8 @@ public class AcessoCidadaoAutorizacaoService {
 
 	private final AcessoCidadaoTokenClient ACTokenClient;
 
+	private final Logger logger = LogManager.getLogger(AutenticacaoService.class);
+
 	public HashMap<String, Object> getAuthorizationHeader() {
 		return buildAuthorizationHeader();
 	}
@@ -52,7 +57,12 @@ public class AcessoCidadaoAutorizacaoService {
 		Map<String, Object> basicTokenHeaders = buildBasicTokenHeaders(basicToken);
 		String basicTokenForm = buildBasicTokenForm();
 
+		logger.error("TOKEN REQUEST → form={}", basicTokenForm);
+
 		LoginACResponseDto loginACResponseDto = ACTokenClient.login(basicTokenHeaders, basicTokenForm);
+
+		logger.error("TOKEN RESPONSE → token recebido? {}",
+            loginACResponseDto != null && loginACResponseDto.accessToken() != null);
 
 		return buildAuthHeaderHashMap(loginACResponseDto.accessToken());
 	}
