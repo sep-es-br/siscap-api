@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.ProjetoAcaoDto;
 import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.dto.ValorDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorDto;
+import br.gov.es.siscap.dto.ProjetoParecerDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
@@ -69,7 +70,18 @@ public record ProjetoForm(
 
 			@NotBlank
 			@Size(max = 2000)
-			String pecasPlanejamento
+			String pecasPlanejamento,
+
+			@NotNull
+			boolean enviarProjetoGestor,
+			
+			@Size(max = 15)
+			String protocoloEdocs,
+
+			@NotNull
+			boolean enviarProjetoPedirParecer,
+
+			ProjetoParecerDto parecerProjetoUsuario
 
 ) {
 }

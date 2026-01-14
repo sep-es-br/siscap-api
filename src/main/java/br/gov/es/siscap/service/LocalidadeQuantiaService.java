@@ -142,6 +142,15 @@ public class LocalidadeQuantiaService {
 		logger.info("Rateio para o Projeto excluído com sucesso");
 	}
 
+	@Transactional
+	public void excluirFisicamentePorProjeto(Projeto projeto) {
+		logger.info("Excluindo fisicamente dados do rateio para o Projeto com id: {}", projeto.getId());
+
+		repository.deleteFisicoPorProjeto(projeto.getId());
+
+		logger.info("Rateio para o Projeto excluído fisicamente com sucesso");
+	}
+
 
 	private BigDecimal calcularValorTotal(Set<LocalidadeQuantia> localidadeQuantiaSet) {
 		return localidadeQuantiaSet.stream()

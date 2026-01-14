@@ -78,6 +78,12 @@ public class Programa extends ControleHistorico {
 	@Column(name = "count_ano", nullable = false)
 	private String countAno;
 
+	@Column(name = "percentual_custo_administrativo", nullable = true)
+	private BigDecimal percentualCustoAdministrativo;
+	
+	@Column(name = "valor_calculado_total", nullable = true)
+	private BigDecimal valorCalculadoTotal;
+
 	public Programa(Long id) {
 		this.setId(id);
 	}
@@ -110,5 +116,7 @@ public class Programa extends ControleHistorico {
 		this.setTetoQuantia(form.valor().quantia());
 		this.setTipoValor(new TipoValor(form.valor().tipo()));
 		this.setMoeda(form.valor().moeda());
+		this.setPercentualCustoAdministrativo(form.percentualCustoAdministrativo());
+		this.setValorCalculadoTotal(form.valorCalculadoTotal());
 	}
 }

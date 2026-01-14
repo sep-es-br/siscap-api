@@ -144,7 +144,7 @@ public class OrganizacaoService {
 		return repository.findByCnpj(cnpj);
 	}
 
-	private Organizacao buscar(Long id) {
+	public Organizacao buscar(Long id) {
 		return repository.findById(id).orElseThrow(() -> new OrganizacaoNaoEncontradaException(id));
 	}
 

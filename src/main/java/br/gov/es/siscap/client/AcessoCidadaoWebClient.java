@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
@@ -32,10 +33,11 @@ public interface AcessoCidadaoWebClient {
 
 	@GetMapping("/api/conjunto/{guidUnidadeOrganizacao}/agentesPublicos")
 	List<AgentePublicoACDto> buscarAgentesPublicosPorGuidUnidade(@RequestHeader Map<String, Object> headers, @PathVariable String guid);
-
+	
 	@GetMapping("/api/conjunto/{guid}/papeis")
-	List<ACAgentePublicoPapelDto> buscarAgentesPublicosPapeisPorGuidUnidade(@RequestHeader Map<String, Object> headers, @PathVariable String guid);
-
+	List<ACAgentePublicoPapelDto> buscarAgentesPublicosPapeisPorGuidUnidade( @RequestHeader Map<String, Object> headers, @PathVariable String guid, //);
+		@RequestParam(value = "operacional", required = false) Boolean operacional );
+		
 	@GetMapping("/api/conjunto/{guid}/gestor")
 	AgentePublicoACResponseDto buscarGestorPorGuidUnidade(@RequestHeader Map<String, Object> headers, @PathVariable String guid);
 

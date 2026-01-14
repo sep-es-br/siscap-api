@@ -136,7 +136,7 @@ public class PessoaOrganizacaoService {
 		pessoaOrganizacaoNovoResponsavel.setIsResponsavel(true);
 
 		pessoaOrganizacaoRepository.saveAndFlush(pessoaOrganizacao);
-		PessoaOrganizacao pessoaOrganizacaoResultado = pessoaOrganizacaoRepository.save(pessoaOrganizacaoNovoResponsavel);
+		//PessoaOrganizacao pessoaOrganizacaoResultado = pessoaOrganizacaoRepository.save(pessoaOrganizacaoNovoResponsavel);
 
 		logger.info("Vinculo entre Pessoa e Organizacao por Organizacao atualizado com sucesso");
 		return this.buscarPorOrganizacao(organizacao);

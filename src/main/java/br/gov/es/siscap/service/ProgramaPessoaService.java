@@ -72,9 +72,10 @@ public class ProgramaPessoaService {
 
 		membrosEquipeAlterarSet.addAll(membrosEquipeAdicionarSet);
 
-		List<ProgramaPessoa> programaPessoaList = repository.saveAllAndFlush(membrosEquipeAlterarSet);
+		repository.saveAllAndFlush(membrosEquipeAlterarSet);
 
 		logger.info("Equipe do programa alterada com sucesso");
+		
 		return this.buscarPorPrograma(programa);
 	}
 

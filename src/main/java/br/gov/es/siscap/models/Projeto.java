@@ -104,6 +104,32 @@ public class Projeto extends ControleHistorico {
 	@Column(name = "pecas_planejamento", nullable = false, length = 2000)
 	private String pecasPlanejamento;
 
+	@Column(name = "protocolo_edocs", nullable = false, length = 15)
+	private String protocoloEdocs;
+
+	@ManyToOne
+	@JoinColumn(name = "id_tipo_motivo_arquivamento")
+	@SQLJoinTableRestriction("apagado = FALSE")
+	private TipoMotivoArquivamento tipoMotivoArquivamento;
+
+	@Column(name = "justificativa_arquivamento", nullable = false, length = 255)
+	private String justificativaArquivamento;
+
+	@Column(name = "id_documento_edocs", nullable = false, length = 50)
+	private String idDocumentoCapturadoEdocs;
+	
+	@Column(name = "id_processo_edocs", nullable = false, length = 50)
+	private String idProcessoEdocs;
+
+	@OneToMany(mappedBy = "projeto")
+	private Set<ProjetoCamposComplementacao> projetoComplementoSet;
+
+	@Column(name = "justificativa_exclusao_logica", nullable = true, length = 500)
+	private String justificativaExclusaoLogica;
+
+	@OneToMany(mappedBy = "projeto")
+	private Set<ProjetoParecer> projetoParecerSet;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
@@ -149,7 +175,8 @@ public class Projeto extends ControleHistorico {
 		this.setImpactos(form.impactos());
 		this.setArranjosInstitucionais(form.arranjosInstitucionais());
 		this.setFase("DIC");
-		this.setPecasPlanejamento(form.pecasPlanejamento());;
+		this.setPecasPlanejamento(form.pecasPlanejamento());
+		this.setProtocoloEdocs(form.protocoloEdocs());
 	}
 
 }

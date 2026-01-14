@@ -2,8 +2,6 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.util.JRLoader;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +15,10 @@ import javax.sql.DataSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 @Service
 public class RelatoriosService {
@@ -40,6 +35,11 @@ public class RelatoriosService {
 
 	public Resource gerarArquivo(String nomeArquivo, Integer idProjeto) {
 		JasperPrint jasperPrint = preencherArquivo(recuperarArquivo(nomeArquivo), idProjeto);
+		return exportarRelatorio(jasperPrint);
+	}
+
+	public Resource gerarArquivoParecerDIC(String nomeArquivo, Long idProjeto, Long idParecer, String descricaoTipoParecer) {
+		JasperPrint jasperPrint = preencherArquivoParecer(recuperarArquivo(nomeArquivo), idProjeto, idParecer, descricaoTipoParecer);
 		return exportarRelatorio(jasperPrint);
 	}
 
@@ -62,6 +62,21 @@ public class RelatoriosService {
 		} catch (JRException | SQLException e) {
 			logger.info("Erro ao preencher o relatório.");
 			throw new SiscapServiceException(List.of("Erro ao preencher o relatório. Contate o suporte."));
+		}
+	}
+
+	private JasperPrint preencherArquivoParecer(InputStream relatorio, Long idProjeto, Long idParecer, String descricaoTipoParecer) {
+		try {
+			HashMap<String, Object> map = new HashMap<>();
+			map.put("idProjeto", idProjeto);
+			map.put("pathRelatorios", raizRelatorios);
+			map.put("idParecer", idParecer);
+			map.put("descricaoTipoParecer", descricaoTipoParecer);
+			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
+			return JasperFillManager.fillReport(relatorio, map, dataSource.getConnection());
+		} catch (JRException | SQLException e) {
+			logger.info("Erro ao preencher o pdf do parecer.");
+			throw new SiscapServiceException(List.of("Erro ao preencher o pdf do parecer. Contate o suporte."));
 		}
 	}
 

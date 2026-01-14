@@ -1,10 +1,8 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoIndicador;
-import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.models.TipoStatus;
 import br.gov.es.siscap.repository.ProjetoIndicadorRepository;
 import lombok.RequiredArgsConstructor;
@@ -75,6 +73,15 @@ public class ProjetoIndicadorService {
 		projetoIndicadorRepository.deleteAll(projetoIndicadorList);
 		
 		logger.info("Indicadores do projeto excluídos com sucesso" );
+	}
+
+	@Transactional
+	public void excluirFisicamentePorProjeto(Projeto projeto) {
+		logger.info("Excluindo fisicamente indicadores do Projeto com id: {}", projeto.getId());
+		
+		projetoIndicadorRepository.deleteFisicoPorProjeto(projeto.getId());
+		
+		logger.info("Indicadores do projeto excluídos fisicamente com sucesso" );
 	}
 	
     private Set<ProjetoIndicador> atualizarIndicadoresProjeto( Projeto projeto,  Set<ProjetoIndicador> indicadoresExistentes, List<ProjetoIndicadorDto> dtoList) {

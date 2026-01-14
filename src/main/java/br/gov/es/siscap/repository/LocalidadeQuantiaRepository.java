@@ -4,7 +4,9 @@ import br.gov.es.siscap.models.LocalidadeQuantia;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -24,4 +26,9 @@ public interface LocalidadeQuantiaRepository extends JpaRepository<LocalidadeQua
 
 	@Query("select sum(lq.quantia) from LocalidadeQuantia lq where lq.apagado = false")
 	BigDecimal somarValorEstimadoTodosProjetos();
+
+	@Modifying
+    @Query(value = "DELETE FROM localidade_quantia WHERE id_projeto = :idProjeto", nativeQuery = true)
+    void deleteFisicoPorProjeto(@Param("idProjeto") Long id);
+
 }

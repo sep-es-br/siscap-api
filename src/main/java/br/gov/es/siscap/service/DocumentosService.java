@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,7 +36,13 @@ public class DocumentosService {
 	}
 
 	public String buscarCartaConsultaCorpo(String nomeDocumento) {
+
 		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento + extensaoArquivo);
+
+		if (Files.notExists(caminhoDocumento)) {
+			logger.warn("Arquivo da carta de consulta não encontrado: {}", caminhoDocumento);
+			return "";
+		}
 
 		try {
 			return Files.readString(caminhoDocumento);
@@ -45,13 +50,16 @@ public class DocumentosService {
 			logger.error(e.getMessage());
 			throw new RuntimeException("Erro ao buscar corpo da carta de consulta");
 		}
+
 	}
 
 	public String cadastrarCartaConsultaCorpo(String corpo) {
+		
 		String nomeDocumento = gerarNomeDocumentoCartaConsulta();
 		Path caminhoDocumento = diretorioCartaConsulta.resolve(nomeDocumento + extensaoArquivo);
 
 		try {
+			Files.createDirectories(diretorioCartaConsulta);
 			Files.writeString(caminhoDocumento, corpo);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
@@ -59,6 +67,7 @@ public class DocumentosService {
 		}
 
 		return nomeDocumento;
+
 	}
 
 	public void atualizarCartaConsultaCorpo(String nomeDocumento, String corpo) {

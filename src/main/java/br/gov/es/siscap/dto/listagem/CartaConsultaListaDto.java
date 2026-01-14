@@ -6,22 +6,20 @@ import br.gov.es.siscap.utils.FormatadorData;
 
 public record CartaConsultaListaDto(
 
-			Long id,
-			String codigoCartaConsulta,
-			String nomeTipoOperacao,
-			String nomeObjeto,
-			String data,
-			boolean prospectado
-) {
+		Long id,
+		String codigoCartaConsulta,
+		String nomeTipoOperacao,
+		String nomeObjeto,
+		String data,
+		boolean prospectado) {
 
 	public CartaConsultaListaDto(CartaConsulta cartaConsulta) {
 		this(
-					cartaConsulta.getId(),
-					cartaConsulta.gerarCodigoCartaConsulta(),
-					cartaConsulta.getTipoOperacao().getTipo(),
-					cartaConsulta.getCartaConsultaObjeto().nome(),
-					FormatadorData.format(cartaConsulta.getCriadoEm(), FormatoDataEnum.SIMPLES),
-					cartaConsulta.isProspectado()
-		);
+				cartaConsulta.getId(),
+				cartaConsulta.gerarCodigoCartaConsulta(),
+				cartaConsulta.getTipoOperacao() == null ? null : cartaConsulta.getTipoOperacao().getTipo(),
+				cartaConsulta.getCartaConsultaObjeto().nome(),
+				FormatadorData.format(cartaConsulta.getCriadoEm(), FormatoDataEnum.SIMPLES),
+				cartaConsulta.isProspectado());
 	}
 }

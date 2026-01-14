@@ -40,47 +40,59 @@ public class ProjetoPessoaService {
 
 	@Transactional
 	public Set<ProjetoPessoa> cadastrar(Projeto projeto, Long idResponsavelProponente, List<EquipeDto> equipeDtoList) {
+		
 		logger.info("Cadastrando equipe do Projeto com id: {}", projeto.getId());
 
 		Set<ProjetoPessoa> projetoPessoaSet = new HashSet<>();
 
-		ProjetoPessoa responsavelProponente = new ProjetoPessoa(projeto, idResponsavelProponente);
+		String subResponsavelProponente = pessoaRepository.findById(idResponsavelProponente)
+			.map(Pessoa::getSub)
+			.orElse(null);
+
+		ProjetoPessoa responsavelProponente = new ProjetoPessoa( projeto, idResponsavelProponente );
+
+		responsavelProponente.getPessoa().setSub(subResponsavelProponente);
+
 		projetoPessoaSet.add(responsavelProponente);
 
 		equipeDtoList.forEach(equipeDto -> {
 			ProjetoPessoa projetoPessoa = new ProjetoPessoa(projeto, equipeDto);
+			projetoPessoa.getPessoa().setSub(equipeDto.subPessoa());
 			projetoPessoaSet.add(projetoPessoa);
 		});
 
 		List<ProjetoPessoa> projetoPessoaList = projetoPessoaRepository.saveAll(projetoPessoaSet);
 
 		logger.info("Equipe do projeto cadastrada com sucesso");
+
 		return new HashSet<>(projetoPessoaList);
 	}
 
 	@Transactional
 	public Set<ProjetoPessoa> atualizar(Projeto projeto, Long idResponsavelProponente, List<EquipeDto> equipeDtoList) {
+
 		logger.info("Alterando dados da equipe do Projeto com id: {}", projeto.getId());
 
 		Set<ProjetoPessoa> projetoPessoaSet = this.buscarPorProjeto(projeto);
 
 		ProjetoPessoa responsavelProponente = this.buscarResponsavelProponente(projetoPessoaSet);
-
+		
 		if (!this.compararIdsResponsavelProponente(responsavelProponente.getPessoa().getId(), idResponsavelProponente)) {
 			responsavelProponente.atualizarResponsavelProponente(TipoStatusEnum.INATIVO.getValue());
 			projetoPessoaRepository.save(responsavelProponente);
-
 			projetoPessoaRepository.save(new ProjetoPessoa(projeto, idResponsavelProponente));
 		}
 
 		Set<ProjetoPessoa> membrosEquipeSet = this.buscarMembrosEquipe(projetoPessoaSet);
 
 		Set<ProjetoPessoa> membrosEquipeAtualizarSet = this.atualizarMembrosEquipe(projeto, membrosEquipeSet, equipeDtoList);
-
+		
 		projetoPessoaRepository.saveAllAndFlush(membrosEquipeAtualizarSet);
 
 		logger.info("Equipe do projeto alterada com sucesso");
+
 		return this.buscarPorProjeto(projeto);
+		
 	}
 
 	@Transactional
@@ -96,6 +108,16 @@ public class ProjetoPessoaService {
 		projetoPessoaRepository.deleteAll(projetoPessoaList);
 
 		logger.info("Equipe do projeto excluida com sucesso");
+	}
+
+	@Transactional
+	public void excluirFisicamentePorProjeto(Projeto projeto) {
+		logger.info("Excluindo fisicamente equipe do Projeto com id: {}", projeto.getId());
+
+		//Set<ProjetoPessoa> projetoPessoaSet = this.buscarPorProjeto(projeto);
+		projetoPessoaRepository.deleteFisicoPorProjeto(projeto.getId());
+
+		logger.info("Equipe do projeto excluida fisicamente com sucesso");
 	}
 
 	@Transactional
@@ -138,7 +160,6 @@ public class ProjetoPessoaService {
 	private Set<ProjetoPessoa> atualizarMembrosEquipe(Projeto projeto, Set<ProjetoPessoa> membrosEquipeSet, List<EquipeDto> equipeDtoList) {
 
 		Set<ProjetoPessoa> membrosEquipeAlterarSet = new HashSet<>();
-
 		Set<ProjetoPessoa> membrosEquipeAdicionarSet = new HashSet<>();
 
 		equipeDtoList.forEach(equipeDto -> {
@@ -147,18 +168,24 @@ public class ProjetoPessoaService {
 						.filter(projetoPessoa -> projetoPessoa.compararIdPessoaComEquipeDto(equipeDto))
 						.findFirst()
 						.ifPresentOrElse(
-									(projetoPessoa) -> {
-										projetoPessoa.atualizarMembroEquipe(equipeDto);
-										membrosEquipeAlterarSet.add(projetoPessoa);
-									},
-									() -> {
-										membrosEquipeAdicionarSet.add(new ProjetoPessoa(projeto, equipeDto));
-									}
+							(projetoPessoa) -> {
+								if (equipeDto.idStatus() != null && equipeDto.idStatus().equals(TipoStatusEnum.EXCLUIDO.getValue())) {
+									projetoPessoaRepository.deleteFisico(projetoPessoa.getId()); // excluir fisicamente da tabela
+								} else {
+									projetoPessoa.atualizarMembroEquipe(equipeDto);
+									membrosEquipeAlterarSet.add(projetoPessoa);
+								}
+							},
+							() -> {
+								membrosEquipeAdicionarSet.add(new ProjetoPessoa(projeto, equipeDto));
+							}
 						);
 		});
 
 		membrosEquipeAdicionarSet.addAll(membrosEquipeAlterarSet);
 
 		return membrosEquipeAdicionarSet;
+
 	}
+
 }

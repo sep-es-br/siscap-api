@@ -33,6 +33,7 @@ public class ProspeccaoService {
 	private final EmailService emailService;
 
 	private final Logger logger = LogManager.getLogger(ProspeccaoService.class);
+	private final ProjetoService projetoService;
 
 	public Page<ProspeccaoListaDto> listarTodos(Pageable pageable, String search) {
 		logger.info("Buscando todas as prospeccoes");
@@ -117,7 +118,9 @@ public class ProspeccaoService {
 
 		List<String> emailsInteressadosList = prospeccaoInteressadoService.buscarEmailsInteressadosPorPropeccao(this.buscar(id));
 
-		boolean confirmacaoEnvioEmail = emailService.enviarEmail(prospeccaoDetalhesDto, emailsInteressadosList);
+		String nomeArquivo = this.projetoService.gerarNomeArquivo(id.intValue()) + ".pdf";
+
+		boolean confirmacaoEnvioEmail = emailService.enviarEmail(prospeccaoDetalhesDto, emailsInteressadosList, nomeArquivo);
 
 		if (confirmacaoEnvioEmail) {
 			this.alterarDadosProspeccaoEnvioEmail(id);

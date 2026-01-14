@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import br.gov.es.siscap.dto.UsuarioDto;
@@ -43,17 +45,59 @@ public class AutenticacaoService {
 	private final TokenService tokenService;
 	private final UsuarioRepository usuarioRepository;
 	private final Roles roles;
+	private final UsuarioService usuarioService;
+
+	public String getUsuarioLogado() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+	public String getUsuarioSub() {
+		
+		var authentication = SecurityContextHolder.getContext().getAuthentication();
+	
+		if (authentication.getPrincipal() instanceof Jwt jwt) {
+			return jwt.getClaim("sub"); // aqui pega o 'sub' do token
+		}
+	
+		return authentication.getName(); // fallback
+
+	}
+
+	public List<String> getUsuarioUnidadesOrganizacao() {
+		
+		String subNovo = "";
+		List<String> lotacoes = List.of("");
+		var authentication = SecurityContextHolder.getContext().getAuthentication();
+	
+		if (authentication.getPrincipal() instanceof Jwt jwt) {
+			subNovo = jwt.getClaim("sub");
+		}
+
+		Set<Map<String, Object>> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
+		if (papeisLotacaoGuidSet != null && papeisLotacaoGuidSet.size() == 1) {
+			
+			lotacoes = papeisLotacaoGuidSet.stream()
+				.map(registro -> {
+					Object guidObj = registro.get("lotacaoGuid");
+					return (guidObj != null) ? guidObj.toString().trim() : "";
+				})
+				.filter(guid -> !guid.isEmpty()) 
+				.toList(); 
+
+		}
+	
+		return lotacoes;
+
+	}
 	
 	public UsuarioDto autenticar(String accessToken) {
 		logger.info("Autenticar usuário SisCap.");
 
 		ACUserInfoDto userInfo = acessoCidadaoService.buscarInformacoesUsuario(accessToken);
-
-		logger.info("Informações do usuario : {}", userInfo );
-						
+		
 		if ( Boolean.FALSE.equals(userInfo.agentepublico() ) && ( userInfo.role() == null || userInfo.role().isEmpty() ) )
 			throw new UsuarioSemAutorizacaoException();
-
+		
 		boolean isProponente = false;
 
 		if ( userInfo.role() == null || userInfo.role().isEmpty() ) 
@@ -65,11 +109,8 @@ public class AutenticacaoService {
 		if ( isProponente )
 			userInfo.role().add("PROPONENTE");
 
-		logger.info("Perfis do usuario : {}", userInfo.role() );
-
 		Usuario usuario = buscarOuCriarUsuario(userInfo, accessToken);
 		String token = tokenService.gerarToken(usuario);
-		logger.info("Token JWT gerado.");
 
 		byte[] imagemPerfil = construirImagemPerfilUsuario(usuario.getPessoa().getNomeImagem());
 		
@@ -77,11 +118,15 @@ public class AutenticacaoService {
 
 		Set<Long> idOrganizacoes = construirIdOrganizacoesSet(usuario.getPessoa(), usuario.getSub());
 
-		logger.info( "Tamanho lista organizacoes : {} " , idOrganizacoes.size() );
-				
+		Boolean isLotadoSubcap = verficarUsuarioEstaLotadoSubcap(usuario.getSub(), userInfo.role());
+		
 		return new UsuarioDto(token, usuario.getPessoa().getNome(), getEmailUserInfo(userInfo), usuario.getSub(),
-			imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente );
+			imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente, isLotadoSubcap );
 
+	}
+
+	private Boolean verficarUsuarioEstaLotadoSubcap(String sub, Set<String> roles) {
+		return usuarioService.ehDaSubcap(sub) || roles.stream().anyMatch( r -> r.equals( "SUBCAP" ));
 	}
 
 	private Usuario buscarOuCriarUsuario(ACUserInfoDto userInfo, String accessToken) {
@@ -186,8 +231,8 @@ public class AutenticacaoService {
 			Set<Map<String,Object>> organizacoesAc = getOrganizacoesDaPessoaAC( usuarioPessoa, subNovo );
 
 			Set<Long> idsPrioritarios = organizacoesAc.stream()
-				.filter(map -> Boolean.TRUE.equals(map.get("prioritario"))) // Só os prioritários
-				.map(map -> ( (Organizacao) map.get("organizacao")).getId()) // Extrai o ID
+				.filter( map -> "true".equalsIgnoreCase((String) map.get("prioritario"))) // Boolean.TRUE.equals(map.get("prioritario"))) // Só os prioritários
+				.map( map -> ( (Organizacao) map.get("organizacao")).getId() ) // Extrai o ID
 				.collect(Collectors.toSet());
 
 			// busca as organizações segundo o banco atual
@@ -262,7 +307,7 @@ public class AutenticacaoService {
 	}
 
 	private Set<Map<String,Object>> getOrganizacoesDaPessoaAC(Pessoa pessoa, String subNovo){
-				
+						
 		Set< Map< String, Object > > organizacoesSet = new HashSet<>();
 
 		Set<Map<String, Object>> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
