@@ -155,22 +155,22 @@ group by
 	</pageHeader>
 	<detail>
 		<band height="91">
-			<element kind="staticText" uuid="3a32ca85-421c-48f9-8fc2-b6ed11deb489" x="0" y="0" width="80" height="20" forecolor="#000000" fontName="SansSerif" removeLineWhenBlank="true" bold="true" hTextAlign="Left">
+			<element kind="staticText" uuid="3a32ca85-421c-48f9-8fc2-b6ed11deb489" x="0" y="0" width="100" height="20" forecolor="#000000" fontName="SansSerif" removeLineWhenBlank="true" bold="true" hTextAlign="Left">
 				<text><![CDATA[Proponente:]]></text>
 			</element>
-			<element kind="textField" uuid="5a66b220-3e62-4c8b-bbc5-9f1ded02f704" x="90" y="0" width="260" height="20" fontName="SansSerif">
+			<element kind="textField" uuid="5a66b220-3e62-4c8b-bbc5-9f1ded02f704" x="100" y="0" width="260" height="20" fontName="SansSerif">
 				<expression><![CDATA[$F{nome_organizacao}]]></expression>
 			</element>
-			<element kind="staticText" uuid="87dbbc22-c52b-4717-bb9c-31d6d21c65e5" x="0" y="20" width="80" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
-				<text><![CDATA[Responsável:]]></text>
+			<element kind="staticText" uuid="87dbbc22-c52b-4717-bb9c-31d6d21c65e5" x="0" y="20" width="100" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
+				<text><![CDATA[Gestor Proponente:]]></text>
 			</element>
-			<element kind="textField" uuid="1915b241-0475-4bed-a4fe-67020322bdd1" x="90" y="20" width="260" height="20" fontName="SansSerif">
+			<element kind="textField" uuid="1915b241-0475-4bed-a4fe-67020322bdd1" x="100" y="20" width="260" height="20" fontName="SansSerif">
 				<expression><![CDATA[$F{pessoa_responsavel_projeto}]]></expression>
 			</element>
-			<element kind="staticText" uuid="e2e28298-9170-4f70-a7fb-87d8c81d4ffe" x="0" y="40" width="90" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
+			<element kind="staticText" uuid="e2e28298-9170-4f70-a7fb-87d8c81d4ffe" x="0" y="40" width="100" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
 				<text><![CDATA[Valor Estimado:]]></text>
 			</element>
-			<element kind="textField" uuid="5bb00598-fe07-411e-9713-4f54cf97aa44" x="90" y="40" width="134" height="20" fontName="SansSerif" pattern="¤ #,##0.00;¤ -#,##0.00">
+			<element kind="textField" uuid="5bb00598-fe07-411e-9713-4f54cf97aa44" x="100" y="40" width="134" height="20" fontName="SansSerif" pattern="¤ #,##0.00;¤ -#,##0.00">
 				<expression><![CDATA[$F{valor_estimado_projeto}]]></expression>
 			</element>
 			<element kind="staticText" uuid="eede5ff3-528e-4cd9-9689-e4e90b8a8f3d" x="400" y="0" width="45" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">

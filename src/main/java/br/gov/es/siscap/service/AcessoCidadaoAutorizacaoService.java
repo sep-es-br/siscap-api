@@ -57,12 +57,7 @@ public class AcessoCidadaoAutorizacaoService {
 		Map<String, Object> basicTokenHeaders = buildBasicTokenHeaders(basicToken);
 		String basicTokenForm = buildBasicTokenForm();
 
-		logger.error("TOKEN REQUEST → form={}", basicTokenForm);
-
 		LoginACResponseDto loginACResponseDto = ACTokenClient.login(basicTokenHeaders, basicTokenForm);
-
-		logger.error("TOKEN RESPONSE → token recebido? {}",
-            loginACResponseDto != null && loginACResponseDto.accessToken() != null);
 
 		return buildAuthHeaderHashMap(loginACResponseDto.accessToken());
 	}
