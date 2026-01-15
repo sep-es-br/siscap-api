@@ -134,7 +134,7 @@ group by
 	<background splitType="Stretch"/>
 	<pageHeader height="86" splitType="Stretch">
 		<element kind="textField" uuid="2d626a4e-c647-42a2-b888-682538d04d1f" x="0" y="40" width="310" height="20" forecolor="#0A588F" fontName="SansSerif" fontSize="10.0" bold="true">
-			<expression><![CDATA["PROJETO n. " + $F{contagem_anual_projeto} + "-" + $F{abreviatura_organizacao} + "-" + 
+			<expression><![CDATA["DIC n. " + $F{contagem_anual_projeto} + "-" + $F{abreviatura_organizacao} + "-" + 
 ($F{cnpj_organizacao} != null && $F{cnpj_organizacao}.length() >= 14 ? 
  String.valueOf($F{cnpj_organizacao}).substring(0,2) + "." +
  String.valueOf($F{cnpj_organizacao}).substring(2,5) + "." +

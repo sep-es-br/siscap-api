@@ -967,7 +967,7 @@ public class ProjetoService {
 
 	@Transactional
 	public void desvincularProjetosDoPrograma(Programa programa) {
-		logger.info("Desvinculando projetos ao programa com id: {}", programa.getId());
+		logger.info("Desvinculando DIC´s do programa com id: {}", programa.getId());
 
 		Set<Projeto> projetoPropostoSet = repository.findAllByPrograma(programa);
 
@@ -979,7 +979,7 @@ public class ProjetoService {
 			repository.saveAllAndFlush(projetoPropostoSet);
 		}
 
-		logger.info("Projetos desvinculados do programa com sucesso");
+		logger.info("DIC´s desvinculados do programa com sucesso");
 	}
 
 	public String gerarNomeArquivo(Integer idProjeto) {
@@ -991,7 +991,7 @@ public class ProjetoService {
 
 		String cnpj = this.formatarCnpj(projeto.getOrganizacao().getCnpj());
 
-		return "PROJETO n. " +
+		return "DIC n. " +
 				projeto.getCountAno() + "-" +
 				projeto.getOrganizacao().getNomeFantasia() + "-" +
 				cnpj;
