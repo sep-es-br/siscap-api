@@ -12,9 +12,10 @@ public record ProjetoListaDto(
 			String status,
 			BigDecimal valorEstimado,
 			boolean isRascunho,
-			String protocoloEdocs
+			String protocoloEdocs,
+			Long lotacaoUsuario
 ) {
-	public ProjetoListaDto(Projeto projeto, BigDecimal valorEstimado) {
+	public ProjetoListaDto(Projeto projeto, BigDecimal valorEstimado, Long lotacaoUsuario) {
 		this(
 			projeto.getId(),
 			projeto.getSigla(),
@@ -22,7 +23,8 @@ public record ProjetoListaDto(
 			projeto.getStatus(),
 			valorEstimado,
 			projeto.isRascunho(),
-			projeto.getProtocoloEdocs()
+			projeto.getProtocoloEdocs(),
+			lotacaoUsuario
 		);
 	}
 }
