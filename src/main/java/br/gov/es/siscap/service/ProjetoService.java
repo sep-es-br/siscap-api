@@ -1072,7 +1072,7 @@ public class ProjetoService {
 
 	private List<EquipeDto> buscarEquipeElaboracao(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
-				.filter(pessoa -> !pessoa.isResponsavelProponente() && !pessoa.isProponente())
+				.filter(pessoa -> !pessoa.isResponsavelProponente())
 				.map(EquipeDto::new)
 				.toList();
 	}
