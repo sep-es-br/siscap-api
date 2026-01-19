@@ -10,15 +10,17 @@ public record ProjetoPropostoOpcoesDto(
 			Long id,
 			String nome,
 			BigDecimal valorEstimado,
-			Long idPrograma
+			Long idPrograma,
+			boolean parecerGEOCEnviado
 ) {
 
-	public ProjetoPropostoOpcoesDto(Projeto projeto, ValorDto valorDto) {
+	public ProjetoPropostoOpcoesDto(Projeto projeto, ValorDto valorDto, boolean parecerGEOCEnviado) {
 		this(
 					projeto.getId(),
 					(projeto.getSigla() + " - " + projeto.getTitulo()),
 					valorDto.quantia(),
-					projeto.getPrograma() != null ? projeto.getPrograma().getId() : null
+					projeto.getPrograma() != null ? projeto.getPrograma().getId() : null,
+					parecerGEOCEnviado
 		);
 	}
 }

@@ -14,7 +14,7 @@ public record ProjetoListaDto(
 			boolean isRascunho,
 			String protocoloEdocs
 ) {
-	public ProjetoListaDto(Projeto projeto, BigDecimal valorEstimado) {
+	public ProjetoListaDto( Projeto projeto, BigDecimal valorEstimado ) {
 		this(
 			projeto.getId(),
 			projeto.getSigla(),
