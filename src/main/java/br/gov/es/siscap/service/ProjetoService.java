@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
+import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
@@ -108,10 +109,39 @@ public class ProjetoService {
 		Specification<Projeto> especificacaoStatus = status.equals("Status") ? null
 				: ProjetoSpecification.filtroStatus(status);
 
-		Specification<Projeto> filtroPesquisa = Specification
+		// Specification<Projeto> filtroPesquisa = Specification
+		// .where(especificacaoSiglaTitulo)
+		// .and(especificacaoIdOrganizacao)
+		// .and(especificacaoStatus);
+
+		String subUsuario = autenticacaoService.getUsuarioLogado();
+
+		LotacaoUsuarioEnum lotacaoUsuario = LotacaoUsuarioEnum.fromGuid(
+				usuarioService.lotacaoGuidUsuario(subUsuario),
+				guidSUBEPP,
+				guidSUBEO,
+				guidSUBCAP);
+
+		boolean podeVerParecerSEP = lotacaoUsuario == LotacaoUsuarioEnum.SUBEPP
+				|| lotacaoUsuario == LotacaoUsuarioEnum.SUBEO;
+
+		Specification<Projeto> filtroBase = Specification
 				.where(especificacaoSiglaTitulo)
-				.and(especificacaoIdOrganizacao)
 				.and(especificacaoStatus);
+
+		Specification<Projeto> filtroOrganizacao = especificacaoIdOrganizacao;
+
+		Specification<Projeto> filtroParecerSEP = ProjetoSpecification.filtroStatusParecerSEP();
+
+		Specification<Projeto> filtroPesquisa;
+
+		if (podeVerParecerSEP) {
+			filtroPesquisa = filtroBase.and(
+					Specification.where(filtroOrganizacao)
+							.or(filtroParecerSEP));
+		} else {
+			filtroPesquisa = filtroBase.and(filtroOrganizacao);
+		}
 
 		return repository.findAll(filtroPesquisa, pageable)
 				.map(projeto -> {
@@ -119,8 +149,9 @@ public class ProjetoService {
 
 					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
-					return new ProjetoListaDto(projeto, valorDto.quantia());
+					return new ProjetoListaDto(projeto, valorDto.quantia(), lotacaoUsuario.getValue());
 				});
+
 	}
 
 	public List<ProjetoPropostoOpcoesDto> listarOpcoesDropdown() {
@@ -556,7 +587,7 @@ public class ProjetoService {
 		novoStatusEnum.validar(projeto);
 
 		repository.save(projeto);
-		
+
 	}
 
 	@Transactional
@@ -1156,20 +1187,6 @@ public class ProjetoService {
 			return false;
 		}
 
-		Pessoa dadosResponsavelProponente = pessoaService.buscarPorSub(subResponsavelProponente);
-
-		if (dadosResponsavelProponente == null) {
-			logger.info("Dados do responsavel proponente sub [{}] não foi encontrado.", subResponsavelProponente);
-			return false;
-		}
-
-		if (dadosResponsavelProponente == null ||
-				dadosResponsavelProponente.getEmail() == null ||
-				dadosResponsavelProponente.getEmail().isBlank()) {
-			logger.info("Responsavel proponente sub [{}] não possui email informado.", subResponsavelProponente);
-			throw new ValidacaoSiscapException(List.of("Responsavel proponente não possui email cadastrado."));
-		}
-
 		Projeto projeto = repository.findById(idProjeto)
 				.orElse(null);
 
@@ -1178,11 +1195,21 @@ public class ProjetoService {
 			return false;
 		}
 
-		List<String> emailsInteressadosList = Arrays.asList(dadosResponsavelProponente.getEmail());
+		Pessoa dadosResponsavelProponente = pessoaService.buscarPorSub(subResponsavelProponente);
+
+		if (dadosResponsavelProponente == null) {
+			logger.info("Dados do responsavel proponente sub [{}] não foi encontrado.", subResponsavelProponente);
+			return false;
+		}
+
+		String emailValido = pessoaService.obterEmailValido(dadosResponsavelProponente);
+
+		List<String> emailsInteressadosList = Arrays.asList(emailValido);
 
 		Long idOrganizacaoProjeto = projeto.getOrganizacao().getId();
 
 		String nomeOrganizacaoProjeto = "";
+		
 		try {
 			OrganizacaoDto organizacaoDto = organizacaoService.buscarPorId(idOrganizacaoProjeto);
 			nomeOrganizacaoProjeto = String.format("%s - %s", organizacaoDto.abreviatura(), organizacaoDto.nome());

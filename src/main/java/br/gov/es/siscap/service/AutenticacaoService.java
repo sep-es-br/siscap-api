@@ -48,85 +48,98 @@ public class AutenticacaoService {
 	private final UsuarioService usuarioService;
 
 	public String getUsuarioLogado() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
-    }
+		return SecurityContextHolder.getContext().getAuthentication().getName();
+	}
 
 	public String getUsuarioSub() {
-		
+
 		var authentication = SecurityContextHolder.getContext().getAuthentication();
-	
+
 		if (authentication.getPrincipal() instanceof Jwt jwt) {
 			return jwt.getClaim("sub"); // aqui pega o 'sub' do token
 		}
-	
+
 		return authentication.getName(); // fallback
 
 	}
 
 	public List<String> getUsuarioUnidadesOrganizacao() {
-		
+
 		String subNovo = "";
 		List<String> lotacoes = List.of("");
 		var authentication = SecurityContextHolder.getContext().getAuthentication();
-	
+
 		if (authentication.getPrincipal() instanceof Jwt jwt) {
 			subNovo = jwt.getClaim("sub");
 		}
 
 		Set<Map<String, Object>> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
 		if (papeisLotacaoGuidSet != null && papeisLotacaoGuidSet.size() == 1) {
-			
+
 			lotacoes = papeisLotacaoGuidSet.stream()
-				.map(registro -> {
-					Object guidObj = registro.get("lotacaoGuid");
-					return (guidObj != null) ? guidObj.toString().trim() : "";
-				})
-				.filter(guid -> !guid.isEmpty()) 
-				.toList(); 
+					.map(registro -> {
+						Object guidObj = registro.get("lotacaoGuid");
+						return (guidObj != null) ? guidObj.toString().trim() : "";
+					})
+					.filter(guid -> !guid.isEmpty())
+					.toList();
 
 		}
-	
+
 		return lotacoes;
 
 	}
-	
+
 	public UsuarioDto autenticar(String accessToken) {
 		logger.info("Autenticar usuário SisCap.");
 
 		ACUserInfoDto userInfo = acessoCidadaoService.buscarInformacoesUsuario(accessToken);
-		
-		if ( Boolean.FALSE.equals(userInfo.agentepublico() ) && ( userInfo.role() == null || userInfo.role().isEmpty() ) )
+
+		if (Boolean.FALSE.equals(userInfo.agentepublico()) && (userInfo.role() == null || userInfo.role().isEmpty()))
 			throw new UsuarioSemAutorizacaoException();
-		
+
 		boolean isProponente = false;
 
-		if ( userInfo.role() == null || userInfo.role().isEmpty() ) 
-			isProponente = true ;
-		
-		if ( Boolean.FALSE.equals(isProponente) && ( userInfo.role() == null || userInfo.role().isEmpty() ) )
+		if (userInfo.role() == null || userInfo.role().isEmpty())
+			isProponente = true;
+
+		if (Boolean.FALSE.equals(isProponente) && (userInfo.role() == null || userInfo.role().isEmpty()))
 			throw new UsuarioSemAutorizacaoException();
 
-		if ( isProponente )
+		if (isProponente)
 			userInfo.role().add("PROPONENTE");
 
 		Usuario usuario = buscarOuCriarUsuario(userInfo, accessToken);
 		String token = tokenService.gerarToken(usuario);
 
 		byte[] imagemPerfil = construirImagemPerfilUsuario(usuario.getPessoa().getNomeImagem());
-		
+
 		Set<Permissoes> permissoes = construirPermissoesSet(usuario.getPapeis());
 
 		Set<Long> idOrganizacoes = construirIdOrganizacoesSet(usuario.getPessoa(), usuario.getSub());
 
 		Boolean isLotadoSubcap = verficarUsuarioEstaLotadoSubcap(usuario.getSub(), userInfo.role());
-		
+
+		Boolean isLotadoSubepp = verficarUsuarioEstaLotadoSubepp(usuario.getSub(), userInfo.role());
+
+		Boolean isLotadoSubeo = verficarUsuarioEstaLotadoSubeo(usuario.getSub(), userInfo.role());
+
 		return new UsuarioDto(token, usuario.getPessoa().getNome(), getEmailUserInfo(userInfo), usuario.getSub(),
-			imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente, isLotadoSubcap );
+				imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente, isLotadoSubcap,
+				isLotadoSubepp, isLotadoSubeo);
 
 	}
 
 	private Boolean verficarUsuarioEstaLotadoSubcap(String sub, Set<String> roles) {
-		return usuarioService.ehDaSubcap(sub) || roles.stream().anyMatch( r -> r.equals( "SUBCAP" ));
+		return usuarioService.ehDaSubcap(sub) || roles.stream().anyMatch(r -> r.equals("SUBCAP"));
+	}
+
+	private Boolean verficarUsuarioEstaLotadoSubepp(String sub, Set<String> roles) {
+		return usuarioService.ehDaSubepp(sub);
+	}
+
+	private Boolean verficarUsuarioEstaLotadoSubeo(String sub, Set<String> roles) {
+		return usuarioService.ehDaSubeo(sub);
 	}
 
 	private Usuario buscarOuCriarUsuario(ACUserInfoDto userInfo, String accessToken) {
@@ -188,7 +201,8 @@ public class AutenticacaoService {
 
 	private Set<String> validarPapeisUsuario(ACUserInfoDto userInfo) {
 		Set<String> usuarioPapeis = userInfo.role();
-		if (usuarioPapeis != null && !usuarioPapeis.isEmpty()) return usuarioPapeis;
+		if (usuarioPapeis != null && !usuarioPapeis.isEmpty())
+			return usuarioPapeis;
 		return new HashSet<>();
 	}
 
@@ -210,7 +224,7 @@ public class AutenticacaoService {
 		if (usuarioPapeis != null && !usuarioPapeis.isEmpty()) {
 			logger.info("Buscando permissões de usuário");
 			permissoes = usuarioPapeis.stream().map(r -> roles.getRoles().get(r)).toList()
-						.stream().flatMap(List::stream).collect(Collectors.toSet());
+					.stream().flatMap(List::stream).collect(Collectors.toSet());
 			logger.info("Permissões de usuário encontradas com sucesso.");
 		}
 
@@ -228,69 +242,73 @@ public class AutenticacaoService {
 			logger.info("Organizações do usuário encontradas com sucesso.");
 
 			// busca as organizações segundo acesso cidadão que estão no banco
-			Set<Map<String,Object>> organizacoesAc = getOrganizacoesDaPessoaAC( usuarioPessoa, subNovo );
+			Set<Map<String, Object>> organizacoesAc = getOrganizacoesDaPessoaAC(usuarioPessoa, subNovo);
 
 			Set<Long> idsPrioritarios = organizacoesAc.stream()
-				.filter( map -> "true".equalsIgnoreCase((String) map.get("prioritario"))) // Boolean.TRUE.equals(map.get("prioritario"))) // Só os prioritários
-				.map( map -> ( (Organizacao) map.get("organizacao")).getId() ) // Extrai o ID
-				.collect(Collectors.toSet());
+					.filter(map -> "true".equalsIgnoreCase((String) map.get("prioritario"))) // Boolean.TRUE.equals(map.get("prioritario")))
+																								// // Só os prioritários
+					.map(map -> ((Organizacao) map.get("organizacao")).getId()) // Extrai o ID
+					.collect(Collectors.toSet());
 
 			// busca as organizações segundo o banco atual
 			Set<PessoaOrganizacao> organizacoesBanco = pessoaOrganizacaoService.buscarPorPessoa(usuarioPessoa);
 
 			// desvincular as organizacoes que estão sobrando no banco
 			Set<PessoaOrganizacao> organizacoesSobrando = organizacoesBanco.stream()
-															.filter(o -> {
-																return o.getOrganizacao().getGuid() != null &&
-																		!o.getOrganizacao().getGuid().isBlank() &&
-																		!organizacoesAc.stream()
-																		.map( map -> (Organizacao) map.get("organizacao") )
-																		.map(Organizacao::getGuid) 
-																		.toList().contains(o.getOrganizacao().getGuid());
-															}).collect(Collectors.toSet());
+					.filter(o -> {
+						return o.getOrganizacao().getGuid() != null &&
+								!o.getOrganizacao().getGuid().isBlank() &&
+								!organizacoesAc.stream()
+										.map(map -> (Organizacao) map.get("organizacao"))
+										.map(Organizacao::getGuid)
+										.toList().contains(o.getOrganizacao().getGuid());
+					}).collect(Collectors.toSet());
 
-			pessoaOrganizacaoService.excluirTodosPorId(organizacoesSobrando.stream().map(PessoaOrganizacao::getId).toList());
-			
-            final Set<PessoaOrganizacao> organizacoesBancoFinal = organizacoesBanco;
+			pessoaOrganizacaoService
+					.excluirTodosPorId(organizacoesSobrando.stream().map(PessoaOrganizacao::getId).toList());
+
+			final Set<PessoaOrganizacao> organizacoesBancoFinal = organizacoesBanco;
 
 			// vincular as organizações que estão faltando
 			Set<Organizacao> organizacoesFaltando = organizacoesAc.stream()
-														.map( map -> (Organizacao) map.get("organizacao") )
-														.filter( organizacao -> {
-															return !organizacoesBancoFinal.stream()
-																.map(PessoaOrganizacao::getOrganizacao)
-																.map(Organizacao::getGuid)
-																.toList().contains(organizacao.getGuid());
-														}).collect(Collectors.toSet());
-															
+					.map(map -> (Organizacao) map.get("organizacao"))
+					.filter(organizacao -> {
+						return !organizacoesBancoFinal.stream()
+								.map(PessoaOrganizacao::getOrganizacao)
+								.map(Organizacao::getGuid)
+								.toList().contains(organizacao.getGuid());
+					}).collect(Collectors.toSet());
+
 			HashSet<PessoaOrganizacao> pessoaOrganizacaosFaltando = new HashSet<>();
 			for (Organizacao organizacao : organizacoesFaltando) {
 				PessoaOrganizacao pessoaOrganizacao = new PessoaOrganizacao(usuarioPessoa, organizacao);
 				pessoaOrganizacaosFaltando.add(pessoaOrganizacao);
 			}
 
-			pessoaOrganizacaosFaltando = new HashSet<>(pessoaOrganizacaoService.salvarPessoaOrganizacaoSetAutenticacaoUsuario(pessoaOrganizacaosFaltando));
+			pessoaOrganizacaosFaltando = new HashSet<>(
+					pessoaOrganizacaoService.salvarPessoaOrganizacaoSetAutenticacaoUsuario(pessoaOrganizacaosFaltando));
 
 			// vinculo do banco menos os que foram removidos
 			organizacoesBanco = new HashSet<>(organizacoesBanco.stream()
-								.filter(oBanco -> !organizacoesSobrando.stream().map(PessoaOrganizacao::getId).toList().contains(oBanco.getId()))
-								.toList());
-			
+					.filter(oBanco -> !organizacoesSobrando.stream().map(PessoaOrganizacao::getId).toList()
+							.contains(oBanco.getId()))
+					.toList());
+
 			// mais o que estavam faltando
 			organizacoesBanco.addAll(pessoaOrganizacaosFaltando);
 
 			return organizacoesBanco.stream()
-				.map(PessoaOrganizacao::getOrganizacao)
-				.sorted((org1, org2) -> {
-					boolean isPrioritario1 = idsPrioritarios.contains(org1.getId());
-					boolean isPrioritario2 = idsPrioritarios.contains(org2.getId());
-					if (isPrioritario1 != isPrioritario2) {
-						return isPrioritario1 ? -1 : 1; // Prioritário vem antes
-					}
-					return org1.getNome().compareToIgnoreCase(org2.getNome());
-				})
-				.map(Organizacao::getId)
-				.collect(Collectors.toCollection(LinkedHashSet::new));
+					.map(PessoaOrganizacao::getOrganizacao)
+					.sorted((org1, org2) -> {
+						boolean isPrioritario1 = idsPrioritarios.contains(org1.getId());
+						boolean isPrioritario2 = idsPrioritarios.contains(org2.getId());
+						if (isPrioritario1 != isPrioritario2) {
+							return isPrioritario1 ? -1 : 1; // Prioritário vem antes
+						}
+						return org1.getNome().compareToIgnoreCase(org2.getNome());
+					})
+					.map(Organizacao::getId)
+					.collect(Collectors.toCollection(LinkedHashSet::new));
 
 		} else {
 			logger.info("Usuário não está vinculado a nenhuma organizacao.");
@@ -298,29 +316,30 @@ public class AutenticacaoService {
 			Set<PessoaOrganizacao> pessoaOrganizacaoSetNovo = vincularPessoaOrganizacoes(usuarioPessoa, subNovo);
 			logger.info("Vínculo entre pessoa e organizações realizado com sucesso.");
 			return pessoaOrganizacaoSetNovo
-				.stream()
-				.map(PessoaOrganizacao::getOrganizacao)
-				.sorted((a, b) -> a.getNome()
-				.compareToIgnoreCase(b.getNome())).map(Organizacao::getId).collect(Collectors.toSet());
+					.stream()
+					.map(PessoaOrganizacao::getOrganizacao)
+					.sorted((a, b) -> a.getNome()
+							.compareToIgnoreCase(b.getNome()))
+					.map(Organizacao::getId).collect(Collectors.toSet());
 		}
 
 	}
 
-	private Set<Map<String,Object>> getOrganizacoesDaPessoaAC(Pessoa pessoa, String subNovo){
-						
-		Set< Map< String, Object > > organizacoesSet = new HashSet<>();
+	private Set<Map<String, Object>> getOrganizacoesDaPessoaAC(Pessoa pessoa, String subNovo) {
+
+		Set<Map<String, Object>> organizacoesSet = new HashSet<>();
 
 		Set<Map<String, Object>> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
-		
+
 		if (papeisLotacaoGuidSet != null && papeisLotacaoGuidSet.size() == 1) {
-			
+
 			boolean possuiLotacaoVazia = papeisLotacaoGuidSet.stream()
-				.anyMatch(registro -> {
-					Object guidObj = registro.get("lotacaoGuid");
-					String guid = (guidObj != null) ? guidObj.toString().trim() : "";
-					return guid.isEmpty();
-				});
-			
+					.anyMatch(registro -> {
+						Object guidObj = registro.get("lotacaoGuid");
+						String guid = (guidObj != null) ? guidObj.toString().trim() : "";
+						return guid.isEmpty();
+					});
+
 			if (possuiLotacaoVazia) {
 				logger.info("Papeis do usuário não possuem GUID de Lotação.");
 				return organizacoesSet;
@@ -329,24 +348,25 @@ public class AutenticacaoService {
 		}
 
 		if (papeisLotacaoGuidSet != null) {
-			
-			for ( Map<String, Object> papelMap : papeisLotacaoGuidSet ) {
 
-				String lotacaoGuid = papelMap.get("lotacaoGuid") != null 
-								? papelMap.get("lotacaoGuid").toString() 
-								: "";
+			for (Map<String, Object> papelMap : papeisLotacaoGuidSet) {
 
-				String prioritario = papelMap.get("prioritario") != null 
-								? papelMap.get("prioritario").toString()
-								: "false";
+				String lotacaoGuid = papelMap.get("lotacaoGuid") != null
+						? papelMap.get("lotacaoGuid").toString()
+						: "";
 
-				String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
+				String prioritario = papelMap.get("prioritario") != null
+						? papelMap.get("prioritario").toString()
+						: "false";
+
+				String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid)
+						.guidOrganizacao();
 				String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
-				
+
 				Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
-				
+
 				if (organizacaoOptional.isPresent()) {
-					organizacoesSet.add( Map.of( "organizacao", organizacaoOptional.get(), "prioritario", prioritario ) );
+					organizacoesSet.add(Map.of("organizacao", organizacaoOptional.get(), "prioritario", prioritario));
 				} else {
 					logger.info("Organização não encontrada para o CNPJ fornecido: [{}].", cnpjOrganizacao);
 				}
@@ -367,14 +387,14 @@ public class AutenticacaoService {
 		Set<Map<String, Object>> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(subNovo);
 
 		if (papeisLotacaoGuidSet != null && papeisLotacaoGuidSet.size() == 1) {
-			
+
 			boolean possuiLotacaoVazia = papeisLotacaoGuidSet.stream()
-				.anyMatch(registro -> {
-					Object guidObj = registro.get("lotacaoGuid");
-					String guid = (guidObj != null) ? guidObj.toString().trim() : "";
-					return guid.isEmpty();
-				});
-			
+					.anyMatch(registro -> {
+						Object guidObj = registro.get("lotacaoGuid");
+						String guid = (guidObj != null) ? guidObj.toString().trim() : "";
+						return guid.isEmpty();
+					});
+
 			if (possuiLotacaoVazia) {
 				logger.info("Papeis do usuário não possuem GUID de Lotação.");
 				return pessoaOrganizacaoSet;
@@ -384,34 +404,36 @@ public class AutenticacaoService {
 
 		if (papeisLotacaoGuidSet != null) {
 
-			//for ( String lotacaoGuid : papeisLotacaoGuidSet ) {
-			for ( Map<String, Object> papelMap : papeisLotacaoGuidSet ) {
+			// for ( String lotacaoGuid : papeisLotacaoGuidSet ) {
+			for (Map<String, Object> papelMap : papeisLotacaoGuidSet) {
 
-				String lotacaoGuid = papelMap.get("lotacaoGuid") != null 
-							? papelMap.get("lotacaoGuid").toString() 
-							: "";
+				String lotacaoGuid = papelMap.get("lotacaoGuid") != null
+						? papelMap.get("lotacaoGuid").toString()
+						: "";
 
-				String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
+				String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid)
+						.guidOrganizacao();
 				String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
 
 				/*
-					30/12/2024
-					PROBLEMA:
-						METODO organizacaoService.buscarPorCnpj TRAZIA ENTIDADE Organizacao
-						|-> NAO CONTEMPLAVA CASO DE NAO ENCONTRAR ORGANIZACAO COM O CNPJ FORNECIDO (TRAZIA Organizacao = null)
-					ABORDAGEM:
-						METODO AGORA TRAZ Optional<Organizacao> E TRATA CASO DE ORGANIZACAO AUSENTE
-						DENTRO DESTE METODO
-						|-> SEM throw new RunTimeException PARA EVITAR DE IMPEDIR ACESSO DO USUARIO
-					OBSERVACAO:
-						ABORDAGEM CORRETA SERIA PREENCHER O CNPJ DAS ORGANIZACOES APROPRIADAMENTE
-						DE ACORDO COM O RETORNO DA API DO ORGANOGRAMA
-						|-> LEVANTA QUESTAO SINCRONIA DO BANCO DO SISCAP COM A API:
-								* MELHOR SERIA A ABORDAGEM DO VAGNER DE TRAZER OS DADOS
-								DA(S) ORGANIZACAO(OES) DIRETO DE UMA REQUISICAO
-								PRA API DO ORGANOGRAMA
-									|-> POREM SEM TEMPO
-				*/
+				 * 30/12/2024
+				 * PROBLEMA:
+				 * METODO organizacaoService.buscarPorCnpj TRAZIA ENTIDADE Organizacao
+				 * |-> NAO CONTEMPLAVA CASO DE NAO ENCONTRAR ORGANIZACAO COM O CNPJ FORNECIDO
+				 * (TRAZIA Organizacao = null)
+				 * ABORDAGEM:
+				 * METODO AGORA TRAZ Optional<Organizacao> E TRATA CASO DE ORGANIZACAO AUSENTE
+				 * DENTRO DESTE METODO
+				 * |-> SEM throw new RunTimeException PARA EVITAR DE IMPEDIR ACESSO DO USUARIO
+				 * OBSERVACAO:
+				 * ABORDAGEM CORRETA SERIA PREENCHER O CNPJ DAS ORGANIZACOES APROPRIADAMENTE
+				 * DE ACORDO COM O RETORNO DA API DO ORGANOGRAMA
+				 * |-> LEVANTA QUESTAO SINCRONIA DO BANCO DO SISCAP COM A API:
+				 * MELHOR SERIA A ABORDAGEM DO VAGNER DE TRAZER OS DADOS
+				 * DA(S) ORGANIZACAO(OES) DIRETO DE UMA REQUISICAO
+				 * PRA API DO ORGANOGRAMA
+				 * |-> POREM SEM TEMPO
+				 */
 
 				Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
 
@@ -429,22 +451,23 @@ public class AutenticacaoService {
 			}
 
 		}
-		
-		return pessoaOrganizacaoSet.isEmpty() ? pessoaOrganizacaoSet : pessoaOrganizacaoService.salvarPessoaOrganizacaoSetAutenticacaoUsuario(pessoaOrganizacaoSet);
+
+		return pessoaOrganizacaoSet.isEmpty() ? pessoaOrganizacaoSet
+				: pessoaOrganizacaoService.salvarPessoaOrganizacaoSetAutenticacaoUsuario(pessoaOrganizacaoSet);
 
 	}
 
 	private Set<Map<String, Object>> listarPapeisLotacaoGuid(String subNovo) {
 		return acessoCidadaoService.listarPapeisAgentePublicoPorSub(subNovo).stream()
-			.map( papel -> { 
-				Map<String, Object> orgInfo = new HashMap<>();
-				orgInfo.put("lotacaoGuid", papel.LotacaoGuid() != null ? papel.LotacaoGuid().toLowerCase() : "");
-				orgInfo.put("prioritario", papel.Prioritario() ? papel.Prioritario() : false );
-				return orgInfo;
-				}  )
-			.collect(Collectors.toSet());
+				.map(papel -> {
+					Map<String, Object> orgInfo = new HashMap<>();
+					orgInfo.put("lotacaoGuid", papel.LotacaoGuid() != null ? papel.LotacaoGuid().toLowerCase() : "");
+					orgInfo.put("prioritario", papel.Prioritario() ? papel.Prioritario() : false);
+					return orgInfo;
+				})
+				.collect(Collectors.toSet());
 	}
-	
+
 	private static String getEmailUserInfo(ACUserInfoDto userInfo) {
 		return userInfo.emailCorporativo() != null ? userInfo.emailCorporativo() : userInfo.email();
 	}
