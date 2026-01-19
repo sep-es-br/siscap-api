@@ -15,7 +15,7 @@ public record ProjetoListaDto(
 			String protocoloEdocs,
 			Long lotacaoUsuario
 ) {
-	public ProjetoListaDto(Projeto projeto, BigDecimal valorEstimado, Long lotacaoUsuario) {
+	public ProjetoListaDto( Projeto projeto, BigDecimal valorEstimado, Long lotacaoUsuario ) {
 		this(
 			projeto.getId(),
 			projeto.getSigla(),

@@ -296,7 +296,7 @@ public class ProjetoParecerService {
 		try {
 
 			confirmacaoEnvioEmail = emailService.enviarEmailPareceresCapturadosProjeto(emailsInteressadosList,
-					idProjeto, siglaProjeto );
+					idProjeto, siglaProjeto);
 
 			if (confirmacaoEnvioEmail) {
 				logger.info(
@@ -317,6 +317,17 @@ public class ProjetoParecerService {
 		}
 
 		return true;
+
+	}
+
+	public Boolean verificarEnvioParecereGEOCProjeto(Long idProjeto) {
+
+		var pareceres = projetoParecerRepository.findAllByProjetoId(idProjeto);
+
+		return pareceres.stream()
+				.anyMatch(p -> p.getGuidDocumentoEdocs() != null
+						&& p.getStatusParecer() == StatusParecerEnum.ENVIADO.getValue()
+						&& p.getGuidUnidadeOrganizacao().equals(guidSUBCAP));
 
 	}
 

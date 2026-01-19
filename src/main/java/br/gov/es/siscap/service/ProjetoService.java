@@ -163,7 +163,9 @@ public class ProjetoService {
 
 					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
-					return new ProjetoPropostoOpcoesDto(projeto, valorDto);
+					boolean parecerGEOCEnviado = projetoParecerService.verificarEnvioParecereGEOCProjeto(projeto.getId());
+
+					return new ProjetoPropostoOpcoesDto(projeto, valorDto, parecerGEOCEnviado);
 				})
 				.toList();
 	}
