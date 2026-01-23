@@ -72,7 +72,7 @@ public class ProgramaController {
 		return ResponseEntity.ok("Programa excluido com sucesso!");
 	}
 
-	@GetMapping("/programa/{idPrograma}")
+	@GetMapping("/programa/{idPrograma}/baixar-pdf")
 	public ResponseEntity<Resource> gerarPDFPrograma(@PathVariable Integer idPrograma) {
 		Resource resource = relatoriosService.gerarArquivo("PROGRAMA", idPrograma);
 		String nomeArquivo = service.gerarNomeArquivo(idPrograma);
