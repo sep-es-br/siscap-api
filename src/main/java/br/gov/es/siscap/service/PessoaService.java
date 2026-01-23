@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ResponsavelProponenteOpcoesDto;
@@ -473,6 +474,30 @@ public class PessoaService {
 		String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid).guidOrganizacao();
 		String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
 		return organizacaoService.buscarPorCnpj(cnpjOrganizacao);
+	}
+
+	public String obterEmailValido(Pessoa pessoa) {
+
+		if (pessoa.getEmail() != null && !pessoa.getEmail().isBlank()) {
+			return pessoa.getEmail();
+		}
+
+		logger.warn("Pessoa sub [{}] sem e-mail no SISCAP. Buscando no Acesso Cidadão.", pessoa.getSub());
+
+		EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(pessoa.getSub());
+
+		if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
+			pessoa.setEmail(emailsSub.corporativo());
+			return emailsSub.corporativo();
+		}
+
+		if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+			pessoa.setEmail(emailsSub.email());
+			return emailsSub.email();
+		}
+
+		throw new ValidacaoSiscapException(
+				List.of("Pessoa não possui e-mail cadastrado."));
 	}
 
 }

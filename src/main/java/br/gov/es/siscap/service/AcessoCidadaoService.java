@@ -13,6 +13,7 @@ import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto.AgentePublicoACResponseDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.opcoes.ResponsavelProponenteOpcoesDto;
 import lombok.RequiredArgsConstructor;
 
@@ -117,6 +118,11 @@ public class AcessoCidadaoService {
                     unidadeGuid);
         }
         return "";
+    }
+
+    public EmailSubResponseDto buscarEmailsPorSub(String sub) {
+        return new EmailSubResponseDto(
+            ACWebClient.buscarEmailCorporativoPorSub(ACAuthService.getAuthorizationHeader(), sub));
     }
 
 }

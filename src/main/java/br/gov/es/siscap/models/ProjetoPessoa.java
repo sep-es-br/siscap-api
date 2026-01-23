@@ -115,7 +115,7 @@ public class ProjetoPessoa extends ControleHistorico {
 
 	public boolean isProponente() {
 		return this.getTipoPapel() != null &&
-			   Objects.equals(this.getTipoPapel().getId(), TipoPapelEnum.PROPONENTE.getValue());
+			   Objects.equals(this.getTipoPapel().getId(), TipoPapelEnum.REDATOR.getValue());
 	}	
 
 	public boolean compararIdPessoaComEquipeDto(EquipeDto equipeDto) {
