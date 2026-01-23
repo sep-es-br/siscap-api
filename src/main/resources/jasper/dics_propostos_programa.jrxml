@@ -1,0 +1,32 @@
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<jasperReport name="equipe_capacitacao_programa" language="java" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="88ff3a60-9e8a-449e-a525-ee0f352cf53c">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
+	<parameter name="idPrograma" class="java.lang.Integer"/>
+	<parameter name="pathRelatorios" class="java.lang.String"/>
+	<query language="sql"><![CDATA[select proj.id as idDIC
+	from programa prog
+	join projeto proj on
+	proj.id_programa = prog.id
+	where prog.id = $P{idPrograma} and proj.apagado = false ]]></query>
+	<field name="idDIC" class="java.lang.Integer"/>
+	<detail>
+		<band height="32" splitType="Stretch">
+			<element kind="subreport" uuid="96b5d164-f7f8-49d9-b6d3-7fc2fa04220d" x="0" y="0" width="575" height="32">
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<expression><![CDATA[$P{pathRelatorios} +"/DIC.jasper"]]></expression>
+				<parameter name="idProjeto">
+					<expression><![CDATA[$F{idDIC}]]></expression>
+				</parameter>
+				<parameter name="pathRelatorios">
+					<expression><![CDATA[$P{pathRelatorios}]]></expression>
+				</parameter>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+		<band height="54">
+			<element kind="textField" uuid="2e726e13-7131-40b2-ac79-a9d9dc1819e7" x="9" y="10" width="100" height="30">
+				<expression><![CDATA[$F{idDIC}]]></expression>
+			</element>
+		</band>
+	</detail>
+</jasperReport>

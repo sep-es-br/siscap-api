@@ -77,14 +77,14 @@
 		</element>
 	</pageHeader>
 	<detail>
-		<band height="42">
+		<band height="65">
 			<element kind="staticText" uuid="3a32ca85-421c-48f9-8fc2-b6ed11deb489" x="0" y="0" width="100" height="20" forecolor="#000000" fontName="SansSerif" removeLineWhenBlank="true" bold="true" hTextAlign="Left">
 				<text><![CDATA[Título:]]></text>
 			</element>
 			<element kind="staticText" uuid="e2e28298-9170-4f70-a7fb-87d8c81d4ffe" x="0" y="22" width="100" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
 				<text><![CDATA[Valor Estimado:]]></text>
 			</element>
-			<element kind="textField" uuid="5bb00598-fe07-411e-9713-4f54cf97aa44" x="100" y="22" width="134" height="20" fontName="SansSerif" pattern="¤ #,##0.00;¤ -#,##0.00">
+			<element kind="textField" uuid="5bb00598-fe07-411e-9713-4f54cf97aa44" x="100" y="22" width="270" height="20" fontName="SansSerif" pattern="¤ #,##0.00;¤ -#,##0.00">
 				<expression><![CDATA[$F{valor_estimado_programa}]]></expression>
 			</element>
 			<element kind="staticText" uuid="eede5ff3-528e-4cd9-9689-e4e90b8a8f3d" x="400" y="0" width="45" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
@@ -97,7 +97,42 @@
 				<expression><![CDATA[$F{titulo_programa}]]></expression>
 			</element>
 		</band>
-		<band height="50"/>
+		<band height="40">
+			<element kind="staticText" uuid="69618320-44df-4041-a018-699f3cfa6811" x="0" y="0" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[1.0 Órgão(s) Executor(es)]]></text>
+			</element>
+			<element kind="line" uuid="773202b1-b73f-4396-8181-65719dd5d8f8" x="0" y="20" width="536" height="1" forecolor="#B2B2B2"/>
+			<element kind="subreport" uuid="2404867c-4e8e-4bb1-b04c-a02d660eed00" x="0" y="21" width="533" height="19">
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<expression><![CDATA[$P{pathRelatorios} + "/orgaos_executores_programa.jasper"]]></expression>
+				<parameter name="idPrograma">
+					<expression><![CDATA[$P{idPrograma}]]></expression>
+				</parameter>
+			</element>
+		</band>
+		<band height="40">
+			<element kind="staticText" uuid="5235acd3-2191-4ed3-86db-270a5327b724" x="0" y="0" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[2.0 Equipe de Capacitação]]></text>
+			</element>
+			<element kind="line" uuid="4c0e296d-b0cc-413a-a090-02d72ead8b00" x="0" y="20" width="536" height="1" forecolor="#B2B2B2"/>
+			<element kind="subreport" uuid="5077890e-fbf6-4b33-aa22-58353804dca0" x="0" y="21" width="533" height="19">
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<expression><![CDATA[$P{pathRelatorios} + "/equipe_capacitacao_programa.jasper"]]></expression>
+				<parameter name="idPrograma">
+					<expression><![CDATA[$P{idPrograma}]]></expression>
+				</parameter>
+			</element>
+		</band>
+		<band height="50">
+			<element kind="staticText" uuid="81f67c07-d229-4e46-ba15-194f5e8dc95c" x="0" y="0" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[3.0 DIC´s Propostos]]></text>
+			</element>
+			<element kind="line" uuid="2eba17e5-1662-477b-ad99-4912d582a036" x="0" y="20" width="536" height="1" forecolor="#B2B2B2"/>
+			<element kind="subreport" uuid="887bd182-bd1b-4697-ac85-836500faa43f" x="0" y="21" width="535" height="29">
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<expression><![CDATA[$P{pathRelatorios} + "/dics_propostos_programa.jasper"]]></expression>
+			</element>
+		</band>
 	</detail>
 	<pageFooter height="42" splitType="Stretch">
 		<element kind="staticText" uuid="bbd021c3-5e53-4eb9-a462-b0010db26fbe" x="0" y="20" width="535" height="22" forecolor="#838383" fontName="SansSerif" hTextAlign="Center" vTextAlign="Bottom">
