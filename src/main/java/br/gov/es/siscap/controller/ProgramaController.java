@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -24,7 +26,7 @@ import java.util.List;
 public class ProgramaController {
 
 	private final ProgramaService service;
-
+	
 	@GetMapping
 	public Page<ProgramaListaDto> listarTodos(
 				@PageableDefault(size = 15, sort = "sigla") Pageable pageable,
@@ -65,4 +67,12 @@ public class ProgramaController {
 		service.excluir(id);
 		return ResponseEntity.ok("Programa excluido com sucesso!");
 	}
+
+	@PutMapping("/programa/{idPrograma}/edocs/solicitarassinaturas") 
+	public ResponseEntity<Resource> solicitarAssinaturasProgramaEdocs(@PathVariable Long idPrograma) {
+		service.criarArquivoProgramaEdocsAssinaturaPendentes(idPrograma);
+		return ResponseEntity.accepted().build();
+	}
+
+
 }

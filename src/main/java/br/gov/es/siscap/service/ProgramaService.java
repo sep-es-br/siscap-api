@@ -13,6 +13,8 @@ import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,13 +35,24 @@ public class ProgramaService {
 	private final ProgramaPessoaService programaPessoaService;
 	private final PessoaService pessoaService;
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
+	private final AsyncExecutorService asyncExecutorService;
+
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
+
+	@Value("${api.programa.assinantes.gestorSUBCAP}")
+	private String assinanteEdocsProgramaGestorSUBCAP;
+
+	@Value("${api.programa.assinantes.gestorSEP}")
+	private String assinanteEdocsProgramaGestorSEP;
+
+	@Value("${api.programa.assinantes.gestorGOVES}")
+	private String assinanteEdocsProgramaGestorGOVES;
 
 	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search) {
 		logger.info("Buscando todos os programas");
 
 		return repository.paginarProgramasPorFiltroPesquisaSimples(search, pageable)
-					.map(ProgramaListaDto::new);
+				.map(ProgramaListaDto::new);
 	}
 
 	public List<OpcoesDto> listarOpcoesDropdown() {
@@ -75,10 +88,11 @@ public class ProgramaService {
 		if (!new HashSet<>(form.equipeCaptacao()).equals(new HashSet<>(equipeCapacitacaoValidada))) {
 			equipeParaGravar = equipeCapacitacaoValidada;
 		}
-		
-		List<EquipeDto> equipeCaptacao = programaPessoaService.cadastrar(programa, equipeParaGravar );
 
-		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programa, form.idProjetoPropostoList());
+		List<EquipeDto> equipeCaptacao = programaPessoaService.cadastrar(programa, equipeParaGravar);
+
+		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programa,
+				form.idProjetoPropostoList());
 
 		logger.info("Programa cadastrado com sucesso");
 
@@ -89,7 +103,7 @@ public class ProgramaService {
 
 		List<EquipeDto> equipe = new ArrayList<>();
 
-		for ( EquipeDto membro : form.equipeCaptacao() ) {
+		for (EquipeDto membro : form.equipeCaptacao()) {
 
 			String sub = membro.subPessoa();
 
@@ -143,9 +157,10 @@ public class ProgramaService {
 			equipeParaGravar = equipeCapacitacaoValidada;
 		}
 
-		List<EquipeDto> equipeCaptacao = programaPessoaService.atualizar(programaResult, equipeParaGravar );
+		List<EquipeDto> equipeCaptacao = programaPessoaService.atualizar(programaResult, equipeParaGravar);
 
-		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programaResult, form.idProjetoPropostoList());
+		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programaResult,
+				form.idProjetoPropostoList());
 
 		logger.info("Programa atualizado com sucesso");
 
@@ -178,4 +193,17 @@ public class ProgramaService {
 	private String buscarCountAnoFormatado() {
 		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
 	}
+
+	public String gerarNomeArquivo(Long idPrograma) {
+		Programa programa = this.buscar(idPrograma.longValue());
+		return "PROGRAMA n. " +
+				programa.getCountAno();
+	}
+
+	public void criarArquivoProgramaEdocsAssinaturaPendentes(Long idPrograma) {
+		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
+		List<String> assinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP, assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
+		asyncExecutorService.criarArquivoFaseAssinaturaEdocsServidor( idPrograma, assinantesEdocsPrograma, nomeArquivo ); 
+	}
+
 }

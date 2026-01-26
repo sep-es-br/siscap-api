@@ -47,10 +47,14 @@ public class AsyncExecutorService {
         integracaoEdocsService.assinarCapturaParecerDIC( idProjeto, idParecer );
     }
 
-    
     @Async
     public void entranharPareceresDIC( Long idProjeto ) {
         integracaoEdocsService.entranharPareceresDIC( idProjeto );
+    }
+
+    @Async
+    public void criarArquivoFaseAssinaturaEdocsServidor( Long idPrograma, List<String> assinantes, String nomeArquivo ) {
+        integracaoEdocsService.enviarArquivoAssinaturasPendentes( idPrograma, assinantes, nomeArquivo );
     }
 
 }
