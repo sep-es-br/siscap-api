@@ -4,10 +4,12 @@ import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
+import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
@@ -195,7 +197,9 @@ public class ProgramaService {
 	}
 
 	public String gerarNomeArquivo(Long idPrograma) {
+
 		Programa programa = this.buscar(idPrograma.longValue());
+
 		return "PROGRAMA n. " +
 				programa.getCountAno();
 	}

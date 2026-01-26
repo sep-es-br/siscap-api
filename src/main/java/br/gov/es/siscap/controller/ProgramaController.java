@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.service.ProgramaService;
+import br.gov.es.siscap.service.RelatoriosService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -14,7 +15,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +30,8 @@ public class ProgramaController {
 
 	private final ProgramaService service;
 	
+	private final RelatoriosService relatoriosService;
+
 	@GetMapping
 	public Page<ProgramaListaDto> listarTodos(
 				@PageableDefault(size = 15, sort = "sigla") Pageable pageable,
@@ -74,5 +79,16 @@ public class ProgramaController {
 		return ResponseEntity.accepted().build();
 	}
 
+
+	@GetMapping("/programa/{idPrograma}/baixar-pdf")
+	public ResponseEntity<Resource> gerarPDFPrograma(@PathVariable Integer idPrograma) {
+		Resource resource = relatoriosService.gerarArquivo("PROGRAMA", idPrograma);
+		String nomeArquivo = service.gerarNomeArquivo(idPrograma.longValue());
+		String contentType = "application/pdf";
+		return ResponseEntity.ok()
+				.contentType(MediaType.parseMediaType(contentType))
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + ".pdf\"")
+				.body(resource);
+	}
 
 }
