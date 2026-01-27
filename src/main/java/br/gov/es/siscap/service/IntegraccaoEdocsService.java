@@ -21,8 +21,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.retry.Retry;
@@ -56,7 +54,7 @@ public class IntegraccaoEdocsService {
 	private final AutenticacaoService autenticacaoService;
 	private final RelatoriosService relatoriosService;
 	private final ProjetoParecerService projetoParecerService;
-	//private final ProgramaService programaService;
+	// private final ProgramaService programaService;
 
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
@@ -1439,7 +1437,6 @@ public class IntegraccaoEdocsService {
 		logger.info("Iniciando processo para criar arquivo no E-Docs com pendencia de suas assinaturas..");
 
 		Resource resourceArquivo = relatoriosService.gerarArquivo("PROGRAMA", idPrograma.intValue());
-		//String nomeArquivo = programaService.gerarNomeArquivo(idPrograma);
 
 		String subJwt = autenticacaoService.getUsuarioSub();
 		String tokenArmazenado = AutorizacaoACService.getEdocsToken(subJwt);
@@ -1457,8 +1454,10 @@ public class IntegraccaoEdocsService {
 				.orElseGet(() -> listaPapeisUsuario.stream().findFirst().orElse(null))
 				.Guid();
 
-		// this.capturarArquivoAssinaturaPendentesReativo(idPrograma, resourceArquivo, nomeArquivo, guidPapelUsuario,
-		// 		assinantes);
+		this.capturarArquivoAssinaturaPendentesReativo(idPrograma, resourceArquivo, nomeArquivo, guidPapelUsuario, assinantes)
+		.subscribe(
+				mensagem -> logger.info("SUCESSO: {}", mensagem),
+				erro -> logger.info("ERRO: {}", erro));
 
 		return;
 
@@ -1488,7 +1487,7 @@ public class IntegraccaoEdocsService {
 				.map(token -> new FluxoContextoIntegracaoDto(token, assinantes))
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
 				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
-				.flatMap(ctx -> enviarArquivoFaseAssinatura(ctx, arquivo, nomeArquivo, idPapelCapturador))
+				.flatMap(ctx -> enviarArquivoFaseAssinatura(ctx, arquivo, nomeArquivo, idPapelCapturador, idPrograma))
 				.doOnSuccess(retorno -> finalizaTodasEtapas(idPrograma))
 				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idPrograma))
 				.doOnSuccess(v -> logger.info("Parecer {} atualizado com sucesso", idPrograma))
@@ -1498,12 +1497,12 @@ public class IntegraccaoEdocsService {
 	}
 
 	private Mono<FluxoContextoIntegracaoDto> enviarArquivoFaseAssinatura(FluxoContextoIntegracaoDto ctx,
-			Resource arquivo, String nomeArquivo, String idPapelCapturador) {
+			Resource arquivo, String nomeArquivo, String idPapelCapturador, Long idPrograma) {
 
 		logger.info("Iniciar processo de enviar arquivo para o E-Docs em fase de assinatura.");
 
 		return FeignReativo
-				.fromFeign(() -> enviarDocumentoFaseAssinaturaEdocs(ctx.getToken(), 
+				.fromFeign(() -> enviarDocumentoFaseAssinaturaEdocs(ctx.getToken(),
 						idPapelCapturador,
 						ctx.getAssinantes(), nomeArquivo,
 						ctx.getDtoUploadArquivoResponse().identificadorTemporarioArquivoNaNuvem()))
@@ -1513,14 +1512,10 @@ public class IntegraccaoEdocsService {
 				.switchIfEmpty(
 						Mono.error(new RuntimeException(
 								"Falha ao consultar situacao do evento de envio do arquivo fase de assinatura.")))
-				.doOnSuccess(retorno -> ctx.setIdEventoEntranhamento(retorno.replace("\"",
-						"")))
+				.doOnSuccess( retorno -> ctx.setIdEventoEntranhamento(retorno.replace("\"","") ) )
 				.doOnError(e -> {
-					logger.error(
-							"Falha ao executar chamada ao endpoint para envio do arquivo fase de assinatura via E-Docs.",
-							e);
-					this.registrarFalhaEtapa(ctx.getProjeto().id(),
-							EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO);
+					logger.error("Falha ao executar chamada ao endpoint para envio do arquivo fase de assinatura via E-Docs.",	e);
+					this.registrarFalhaEtapa(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE );
 				})
 				.thenReturn(ctx);
 
@@ -1535,7 +1530,7 @@ public class IntegraccaoEdocsService {
 
 		EnviaArquivoFaseAssinaturaBodyDto enviaArquivoFaseAssinaturaBodyDto = new EnviaArquivoFaseAssinaturaBodyDto(
 				idPapelCapturadorAssinante,
-				"",
+				classeDocumentoId,
 				assinantes.toArray(new String[0]),
 				nomeArquivo,
 				true,

@@ -4,8 +4,8 @@
 	<parameter name="idPrograma" class="java.lang.Integer"/>
 	<parameter name="pathRelatorios" class="java.lang.String"/>
 	<query language="sql"><![CDATA[select proj.id as idDIC, 
-	protocolo_edocs as protocolo_edocs_dic,
-	id_documento_edocs as id_edcos_documento_dic,
+	proj.protocolo_edocs as protocolo_edocs_dic,
+	proj.id_documento_edocs as id_edcos_documento_dic,
 	proj.sigla as sigla_dic,
 	proj.titulo as titulo_dic
 	from programa prog
@@ -18,7 +18,7 @@
 	<field name="sigla_dic" class="java.lang.String"/>
 	<field name="titulo_dic" class="java.lang.String"/>
 	<detail>
-		<band height="20" splitType="Stretch">
+		<band height="23" splitType="Stretch">
 			<element kind="textField" uuid="39fd44e3-a3e9-418a-be5f-004deb3b0463" x="0" y="2" width="100" height="20" forecolor="#0A588F">
 				<expression><![CDATA["3.1." + $V{REPORT_COUNT} + " " + $F{sigla_dic}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>

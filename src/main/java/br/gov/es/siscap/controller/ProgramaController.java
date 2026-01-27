@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.core.io.Resource;
 
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -77,7 +76,7 @@ public class ProgramaController {
 
 	@PutMapping("/programa/{idPrograma}/edocs/solicitarassinaturas") 
 	public ResponseEntity<Resource> solicitarAssinaturasProgramaEdocs(@PathVariable Long idPrograma) {
-		service.criarArquivoProgramaEdocsAssinaturaPendentes(idPrograma);
+		service.criarArquivoProgramaEdocsAssinaturasPendentes(idPrograma);
 		return ResponseEntity.accepted().build();
 	}
 

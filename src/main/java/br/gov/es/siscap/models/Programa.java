@@ -83,6 +83,18 @@ public class Programa extends ControleHistorico {
 	
 	@Column(name = "valor_calculado_total", nullable = true)
 	private BigDecimal valorCalculadoTotal;
+	
+	@Column(name = "protocolo_edocs", nullable = false, length = 15)
+	private String protocoloEdocs;
+
+	@Column(name = "id_documento_edocs", nullable = false, length = 50)
+	private String idDocumentoCapturadoEdocs;
+	
+	@Column(name = "id_processo_edocs", nullable = false, length = 50)
+	private String idProcessoEdocs;
+
+	@OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
+	private Set<ProgramaAssinaturaEdocs> programaAssinantesEdocsSet;
 
 	public Programa(Long id) {
 		this.setId(id);
