@@ -4,10 +4,12 @@ import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
+import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +41,7 @@ public class ProgramaService {
 		logger.info("Buscando todos os programas");
 
 		return repository.paginarProgramasPorFiltroPesquisaSimples(search, pageable)
-					.map(ProgramaListaDto::new);
+				.map(ProgramaListaDto::new);
 	}
 
 	public List<OpcoesDto> listarOpcoesDropdown() {
@@ -75,10 +77,11 @@ public class ProgramaService {
 		if (!new HashSet<>(form.equipeCaptacao()).equals(new HashSet<>(equipeCapacitacaoValidada))) {
 			equipeParaGravar = equipeCapacitacaoValidada;
 		}
-		
-		List<EquipeDto> equipeCaptacao = programaPessoaService.cadastrar(programa, equipeParaGravar );
 
-		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programa, form.idProjetoPropostoList());
+		List<EquipeDto> equipeCaptacao = programaPessoaService.cadastrar(programa, equipeParaGravar);
+
+		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programa,
+				form.idProjetoPropostoList());
 
 		logger.info("Programa cadastrado com sucesso");
 
@@ -89,7 +92,7 @@ public class ProgramaService {
 
 		List<EquipeDto> equipe = new ArrayList<>();
 
-		for ( EquipeDto membro : form.equipeCaptacao() ) {
+		for (EquipeDto membro : form.equipeCaptacao()) {
 
 			String sub = membro.subPessoa();
 
@@ -143,9 +146,10 @@ public class ProgramaService {
 			equipeParaGravar = equipeCapacitacaoValidada;
 		}
 
-		List<EquipeDto> equipeCaptacao = programaPessoaService.atualizar(programaResult, equipeParaGravar );
+		List<EquipeDto> equipeCaptacao = programaPessoaService.atualizar(programaResult, equipeParaGravar);
 
-		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programaResult, form.idProjetoPropostoList());
+		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programaResult,
+				form.idProjetoPropostoList());
 
 		logger.info("Programa atualizado com sucesso");
 
@@ -178,4 +182,13 @@ public class ProgramaService {
 	private String buscarCountAnoFormatado() {
 		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
 	}
+
+	public String gerarNomeArquivo(Integer idPrograma) {
+
+		Programa programa = this.buscar(idPrograma.longValue());
+
+		return "PROGRAMA n. " +
+				programa.getCountAno();
+	}
+
 }
