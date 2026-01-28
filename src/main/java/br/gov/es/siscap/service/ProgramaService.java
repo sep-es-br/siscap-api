@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
 import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
@@ -41,6 +42,7 @@ public class ProgramaService {
 	private final AsyncExecutorService asyncExecutorService;
 	private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
 	private final EmailService emailService;
+	private final AcessoCidadaoService acessoCidadaoService;
 
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
@@ -175,6 +177,7 @@ public class ProgramaService {
 
 	@Transactional
 	public void excluir(Long id) {
+		
 		logger.info("Excluindo programa com id: {}", id);
 
 		Programa programa = this.buscar(id);
@@ -185,6 +188,7 @@ public class ProgramaService {
 		projetoService.desvincularProjetosDoPrograma(programa);
 
 		logger.info("Programa excluído com sucesso");
+
 	}
 
 	public Integer buscarQuantidadeProgramas() {
@@ -214,6 +218,7 @@ public class ProgramaService {
 				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
 		this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma);
 		asyncExecutorService.criarArquivoFaseAssinaturaEdocsServidor(idPrograma, assinantesEdocsPrograma, nomeArquivo);
+		this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma,assinantesEdocsPrograma);
 	}
 
 	private void marcarComoAguardandoAssinaturas(Long idPrograma, List<String> assinantesEdocsPrograma) {
@@ -238,7 +243,19 @@ public class ProgramaService {
 		List<String> emailsInteressadosList = new ArrayList<String>();
 
 		// para cada sub vai buscar o email no acesso cidadao..
-		subAssinantes.forEach(sub -> emailsInteressadosList.add("proponenteProjeto.get().getEmail()"));
+		subAssinantes.forEach( sub -> {
+
+			EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
+
+			if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
+				emailsInteressadosList.add(emailsSub.corporativo());
+			}else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+				emailsInteressadosList.add(emailsSub.email());
+			}
+
+			}
+
+		);
 
 		Programa programa = this.buscar(idPrograma);
 
@@ -258,10 +275,7 @@ public class ProgramaService {
 
 			if (confirmacaoEnvioEmail) {
 				logger.info(
-						"Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id "
-								+ idPrograma);
-				// this.alterarStatusProjeto(id, StatusProjetoEnum.COMPLEMETACAO.getValue());
-				// this.inserirComplementacoesSeremRealizadasDIC(projeto, complementos);
+						"Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id " + idPrograma);
 			} else {
 				erros.add("Erro ao enviar aviso para solicitacao de assinaturas do programa id " + idPrograma);
 			}
@@ -271,11 +285,6 @@ public class ProgramaService {
 		} catch (MessagingException e) {
 			logger.error(e.getMessage());
 		}
-
-		// } else {
-		// erros.add("Não foi possível fazer o envio pois o proponente não foi
-		// encontrado - projeto id " + id);
-		// }
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);

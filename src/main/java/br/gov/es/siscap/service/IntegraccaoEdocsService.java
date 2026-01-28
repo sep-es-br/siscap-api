@@ -1440,7 +1440,6 @@ public class IntegraccaoEdocsService {
 
 		String subJwt = autenticacaoService.getUsuarioSub();
 		String tokenArmazenado = AutorizacaoACService.getEdocsToken(subJwt);
-
 		String tokenLimpo = tokenArmazenado.replace("Bearer ", "").trim();
 
 		ACUserInfoDto userInfo = AcessoCidadaoService.buscarInformacoesUsuario(tokenLimpo);
@@ -1454,10 +1453,11 @@ public class IntegraccaoEdocsService {
 				.orElseGet(() -> listaPapeisUsuario.stream().findFirst().orElse(null))
 				.Guid();
 
-		this.capturarArquivoAssinaturaPendentesReativo(idPrograma, resourceArquivo, nomeArquivo, guidPapelUsuario, assinantes)
-		.subscribe(
-				mensagem -> logger.info("SUCESSO: {}", mensagem),
-				erro -> logger.info("ERRO: {}", erro));
+		this.capturarArquivoAssinaturaPendentesReativo(idPrograma, resourceArquivo, nomeArquivo, guidPapelUsuario,
+				assinantes)
+				.subscribe(
+						mensagem -> logger.info("SUCESSO: {}", mensagem),
+						erro -> logger.info("ERRO: {}", erro));
 
 		return;
 
@@ -1489,9 +1489,11 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
 				.flatMap(ctx -> enviarArquivoFaseAssinatura(ctx, arquivo, nomeArquivo, idPapelCapturador, idPrograma))
 				.doOnSuccess(retorno -> finalizaTodasEtapas(idPrograma))
-				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idPrograma))
-				.doOnSuccess(v -> logger.info("Parecer {} atualizado com sucesso", idPrograma))
-				.doOnError(e -> logger.error("Erro ao atualizar parecer {}", idPrograma, e))
+				.doOnSubscribe( sub -> logger.info("Iniciando atualização do parecer {}", idPrograma))
+				.doOnSuccess( sucesso -> { 
+					logger.info("Parecer {} atualizado com sucesso", idPrograma);
+				 } )
+				.doOnError( e -> logger.error("Erro ao atualizar parecer {}", idPrograma, e) )
 				.thenReturn("Criação arquivo com assinaturas pendentes concluída com sucesso.");
 
 	}
@@ -1512,10 +1514,12 @@ public class IntegraccaoEdocsService {
 				.switchIfEmpty(
 						Mono.error(new RuntimeException(
 								"Falha ao consultar situacao do evento de envio do arquivo fase de assinatura.")))
-				.doOnSuccess( retorno -> ctx.setIdEventoEntranhamento(retorno.replace("\"","") ) )
+				.doOnSuccess(retorno -> ctx.setIdEventoEntranhamento(retorno.replace("\"", "")))
 				.doOnError(e -> {
-					logger.error("Falha ao executar chamada ao endpoint para envio do arquivo fase de assinatura via E-Docs.",	e);
-					this.registrarFalhaEtapa(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE );
+					logger.error(
+							"Falha ao executar chamada ao endpoint para envio do arquivo fase de assinatura via E-Docs.",
+							e);
+					this.registrarFalhaEtapa(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE);
 				})
 				.thenReturn(ctx);
 
