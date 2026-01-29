@@ -9,7 +9,8 @@ public record ProgramaAssinaturaEdocsDto(
 	Long idPrograma,
     Long idPessoa,
 	Integer statusAssinatura,
-	LocalDateTime dataAssinatura
+	LocalDateTime dataAssinatura,
+	String nomeAssinante
 	) {
 
 	public ProgramaAssinaturaEdocsDto(ProgramaAssinaturaEdocs entity) {
@@ -18,7 +19,8 @@ public record ProgramaAssinaturaEdocsDto(
 			entity.getPrograma().getId(),
 			entity.getPessoa().getId(),
             entity.getStatusAssinatura(),
-			entity.getDataAssinatura()
+			entity.getDataAssinatura(),
+			entity.getPessoa().getNome()
         );
     }
 

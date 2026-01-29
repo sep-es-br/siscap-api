@@ -124,6 +124,5 @@ public class RelatoriosService {
 			throw new SiscapServiceException(List.of("Erro ao preencher o relatório. Contate o suporte."));
 		}
 	}
-
-
+	
 }

@@ -12,7 +12,7 @@
 	data_envio as data_envio_parecer,
 	guid_documento_edocs as guid_doc_edocs,
 	guid_unidade_organizacao as guid_elaborou_parecer,
-	'--' as registro_documento_edocs
+	registro_arquivo_edocs as registro_documento_edocs
 	from projeto proj
 	inner join projeto_parecer parecer on
 	proj.id = parecer.id_projeto
@@ -45,7 +45,7 @@ br.gov.es.siscap.enums.LotacaoUsuarioEnum
 			</element>
 			<element kind="textField" uuid="78172a9d-e9b0-40d0-a9c4-a765f9f60998" x="246" y="3" width="248" height="20" forecolor="#0A588F" linkType="Reference" linkTarget="Self" bold="true" hTextAlign="Left">
 				<expression><![CDATA[$F{registro_documento_edocs}]]></expression>
-				<hyperlinkReferenceExpression><![CDATA[$P{edocsBaseUrl} + "/Processo/Protocolo/" + $F{registro_documento_edocs}]]></hyperlinkReferenceExpression>
+				<hyperlinkReferenceExpression><![CDATA[$P{edocsBaseUrl} + "/documento/registro/" + $F{registro_documento_edocs}]]></hyperlinkReferenceExpression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>

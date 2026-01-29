@@ -13,7 +13,8 @@ public record ProjetoParecerDto(
 		LocalDateTime dataEnvio,
 		String guidDocumentoEdocs,
 		String usuarioFezEnvioParecer,
-		Long parecerLotacao) {
+		Long parecerLotacao,
+		String registroArquivoEdocs) {
 
 	public ProjetoParecerDto(ProjetoParecer projetoParecer, String usuarioFezEnvioParecer) {
 		this(
@@ -25,7 +26,8 @@ public record ProjetoParecerDto(
 				projetoParecer.getDataEnvio(),
 				projetoParecer.getGuidDocumentoEdocs(),
 				usuarioFezEnvioParecer,
-				projetoParecer.getLotacaoParecer().getValue());
+				projetoParecer.getLotacaoParecer().getValue(),
+				projetoParecer.getRegistroArquivoEdocs());
 	}
 
 	public ProjetoParecerDto(ProjetoParecer projetoParecer) {
@@ -38,7 +40,8 @@ public record ProjetoParecerDto(
 				projetoParecer.getDataEnvio(),
 				projetoParecer.getGuidDocumentoEdocs(),
 				projetoParecer.getSubUsuarioEnviou(),
-				projetoParecer.getLotacaoParecer().getValue());
+				projetoParecer.getLotacaoParecer().getValue(),
+				projetoParecer.getRegistroArquivoEdocs());
 	}
 
 }

@@ -4,6 +4,7 @@ import br.gov.es.siscap.dto.edocswebapi.AtosProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.AutuarProjetoDto;
 import br.gov.es.siscap.dto.edocswebapi.AvocarProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.CapturaAssinaturaBodyDto;
+import br.gov.es.siscap.dto.edocswebapi.DadosDocumentoDto;
 import br.gov.es.siscap.dto.edocswebapi.DesentranharArquivoProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.DespacharProjetoDto;
 import br.gov.es.siscap.dto.edocswebapi.EncerrarProcessoEdocsDto;
@@ -94,5 +95,9 @@ public interface EdocsWebClient {
 	@PostMapping("/v2/documentos/fase-assinatura/enviar/servidor")
 	String enviarDocumentoFaseAssinatura(@RequestHeader("Authorization") String bearerToken,
 			@RequestBody EnviaArquivoFaseAssinaturaBodyDto request);
+
+	@GetMapping("/v2/documentos/{idDocumento}")
+	DadosDocumentoDto buscarDadosArquivo(@RequestHeader("Authorization") String bearerToken,
+			@PathVariable String idDocumento);
 
 }

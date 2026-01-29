@@ -57,6 +57,9 @@ public class ProjetoParecer extends ControleHistorico {
 	@Transient
     private LotacaoUsuarioEnum lotacaoParecer = LotacaoUsuarioEnum.OUTRO;
 
+	@Column(name = "registro_arquivo_edocs", nullable = true, length=50)
+	private String registroArquivoEdocs;
+
 	public ProjetoParecer(Projeto projeto, ProjetoParecerDto parecer) {
 		this.setProjeto(projeto);
 		this.setId(parecer.id());
@@ -65,6 +68,7 @@ public class ProjetoParecer extends ControleHistorico {
 		this.setStatusParecer(parecer.statusParecer());
 		this.setDataEnvio(parecer.dataEnvio());
 		this.setGuidDocumentoEdocs(parecer.guidDocumentoEdocs());
+		this.setRegistroArquivoEdocs(parecer.registroArquivoEdocs());
 	}
 
 	public ProjetoParecer(Projeto projeto, String guidUnidadeOrganizacao , String textoParecer, StatusParecerEnum statusParecer ) {

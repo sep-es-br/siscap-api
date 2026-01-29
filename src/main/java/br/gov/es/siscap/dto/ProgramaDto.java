@@ -32,11 +32,16 @@ public record ProgramaDto(
 				new ValorDto(programa.getTetoQuantia(), programa.getTipoValor().getId(), programa.getMoeda()),
 				programa.getPercentualCustoAdministrativo(),
 				programa.getValorCalculadoTotal(),
-				programa.getProgramaAssinantesEdocsSet().stream()
-					.map( assinante -> new ProgramaAssinaturaEdocsDto( assinante.getId(), 
-						assinante.getPrograma().getId(),
-						assinante.getPessoa().getId(),
-						assinante.getStatusAssinatura(),
-						assinante.getDataAssinatura() ) ).toList() );
+				programa.getProgramaAssinantesEdocsSet() == null
+						? null
+						: programa.getProgramaAssinantesEdocsSet().stream()
+								.map(assinante -> new ProgramaAssinaturaEdocsDto(
+										assinante.getId(),
+										assinante.getPrograma().getId(),
+										assinante.getPessoa().getId(),
+										assinante.getStatusAssinatura(),
+										assinante.getDataAssinatura(),
+										assinante.getPessoa().getNome()))
+								.toList());
 	}
 }

@@ -260,7 +260,7 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public void atualizarIdArquivoCapturado(String guidArquivoCapturado, Long idParecer, String subUsuarioLogado) {
+	public void atualizarIdArquivoCapturado(String guidArquivoCapturado, Long idParecer, String subUsuarioLogado, String codigoRegistroEdocs) {
 
 		ProjetoParecer projetoParecer = this.buscar(idParecer);
 
@@ -268,7 +268,8 @@ public class ProjetoParecerService {
 		projetoParecer.setStatusParecer(StatusParecerEnum.ENVIADO.getValue());
 		projetoParecer.setDataEnvio(LocalDateTime.now());
 		projetoParecer.setSubUsuarioEnviou(subUsuarioLogado);
-
+		projetoParecer.setRegistroArquivoEdocs(codigoRegistroEdocs);
+		
 		projetoParecerRepository.save(projetoParecer);
 
 	}
