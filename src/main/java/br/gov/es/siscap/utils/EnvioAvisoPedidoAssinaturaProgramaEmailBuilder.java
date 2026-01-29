@@ -20,7 +20,7 @@ public class EnvioAvisoPedidoAssinaturaProgramaEmailBuilder extends EmailBuilder
 
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) {
-		return ("O Programa %s foi criado com o objetivo de prospecção de recursos.Para dar continuidade ao processo na SUBCAP, é necessária a assinatura do referido programa. <br> A assinatura poderá ser realizada por meio do link abaixo, em tela específica do sistema SISCAP, que realiza a integração com o e-Docs.")
+		return ("O Programa %s foi criado com o objetivo de prospecção de recursos.Para dar continuidade ao processo na SUBCAP, é necessária a assinatura do referido programa. <br><br> A assinatura poderá ser realizada por meio do link abaixo, em tela específica do sistema SISCAP, que realiza a integração com o e-Docs.<br>")
 				.formatted(dto.nomeResponsavelEnvioEmail());
 	}
 
@@ -33,16 +33,15 @@ public class EnvioAvisoPedidoAssinaturaProgramaEmailBuilder extends EmailBuilder
 			return "";
 		}
 
-		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/programas/" + dto.idPrograma();
+		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/programas/editar/" + dto.idPrograma();
 
 		if (linkEdicao == null || linkEdicao.isBlank()) {
 			return "";
 		}
 
 		return """
-					em, <a style="font-size: 12px;" href="%s">%s</a>
-				"""
-				.formatted(linkEdicao, linkEdicao);
+				    <p style="font-size: 12px;" >Acesse o sistema SISCAP em: <a style="font-size: 12px;" href="%s">%s</a> </p>
+				""".formatted( linkEdicao, linkEdicao );
 
 	}
 

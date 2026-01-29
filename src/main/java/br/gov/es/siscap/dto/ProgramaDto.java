@@ -32,6 +32,11 @@ public record ProgramaDto(
 				new ValorDto(programa.getTetoQuantia(), programa.getTipoValor().getId(), programa.getMoeda()),
 				programa.getPercentualCustoAdministrativo(),
 				programa.getValorCalculadoTotal(),
-				programa.getProgramaAssinantesEdocsSet().stream().map(ProgramaAssinaturaEdocsDto::new).toList());
+				programa.getProgramaAssinantesEdocsSet().stream()
+					.map( assinante -> new ProgramaAssinaturaEdocsDto( assinante.getId(), 
+						assinante.getPrograma().getId(),
+						assinante.getPessoa().getId(),
+						assinante.getStatusAssinatura(),
+						assinante.getDataAssinatura() ) ).toList() );
 	}
 }
