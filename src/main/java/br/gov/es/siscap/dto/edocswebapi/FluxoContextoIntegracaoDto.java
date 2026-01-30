@@ -34,6 +34,7 @@ public class FluxoContextoIntegracaoDto {
     private ProcessoDocumentosAtoProcessoDto documentoAtoProcessoDto;
 
     private List<String> assinantes;
+    private String idDocumentoAssinarFaseAssinatura;
 
     public FluxoContextoIntegracaoDto(ProjetoDto projeto, String token ) {
         this.projeto = projeto;
@@ -49,6 +50,11 @@ public class FluxoContextoIntegracaoDto {
     public FluxoContextoIntegracaoDto( String token, List<String> assinantes ) {
         this.token = token;
         this.assinantes = assinantes;
+    }
+
+    public FluxoContextoIntegracaoDto( String token, String idDocumentoAssinarFaseAssinatura ) {
+        this.token = token;
+        this.idDocumentoAssinarFaseAssinatura = idDocumentoAssinarFaseAssinatura;
     }
 
 }

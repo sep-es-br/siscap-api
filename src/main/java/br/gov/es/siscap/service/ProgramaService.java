@@ -11,6 +11,7 @@ import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
+import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import jakarta.mail.MessagingException;
@@ -177,7 +178,7 @@ public class ProgramaService {
 
 	@Transactional
 	public void excluir(Long id) {
-		
+
 		logger.info("Excluindo programa com id: {}", id);
 
 		Programa programa = this.buscar(id);
@@ -218,7 +219,7 @@ public class ProgramaService {
 				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
 		this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma);
 		asyncExecutorService.criarArquivoFaseAssinaturaEdocsServidor(idPrograma, assinantesEdocsPrograma, nomeArquivo);
-		this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma,assinantesEdocsPrograma);
+		this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, assinantesEdocsPrograma);
 	}
 
 	private void marcarComoAguardandoAssinaturas(Long idPrograma, List<String> assinantesEdocsPrograma) {
@@ -243,17 +244,17 @@ public class ProgramaService {
 		List<String> emailsInteressadosList = new ArrayList<String>();
 
 		// para cada sub vai buscar o email no acesso cidadao..
-		subAssinantes.forEach( sub -> {
+		subAssinantes.forEach(sub -> {
 
 			EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
 
 			if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
 				emailsInteressadosList.add(emailsSub.corporativo());
-			}else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+			} else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
 				emailsInteressadosList.add(emailsSub.email());
 			}
 
-			}
+		}
 
 		);
 
@@ -275,7 +276,8 @@ public class ProgramaService {
 
 			if (confirmacaoEnvioEmail) {
 				logger.info(
-						"Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id " + idPrograma);
+						"Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id "
+								+ idPrograma);
 			} else {
 				erros.add("Erro ao enviar aviso para solicitacao de assinaturas do programa id " + idPrograma);
 			}
@@ -292,6 +294,37 @@ public class ProgramaService {
 		}
 
 		return true;
+
+	}
+
+	public void assinarProgramaEdocs(Long idPrograma, String subAssinante) {
+
+		List<String> erros = new ArrayList<>();
+
+		Programa programa = this.buscar(idPrograma);
+
+		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
+
+		if (!assinantesDevemAssinarPrograma.stream()
+				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante))) {
+			erros.add(
+					"Assinante informado, sub " + subAssinante + ", não faz parte da lista de assinantes do programa.");
+		}
+
+		if (assinantesDevemAssinarPrograma.stream()
+				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante)
+						&& assinante.getDataAssinatura() != null)) {
+			erros.add("Documento já foi assinado pelo sub " + subAssinante + ".");
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor( programa.getIdDocumentoCapturadoEdocs() );
+
+		// this.marcarProgramaAssinado(idPrograma, assinante);
 
 	}
 

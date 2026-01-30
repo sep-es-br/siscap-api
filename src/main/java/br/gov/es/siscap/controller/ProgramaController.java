@@ -87,4 +87,12 @@ public class ProgramaController {
 				.body(resource);
 	}
 
+	@PutMapping("/programa/{idPrograma}/edocs/solicitarassinaturas")
+	public ResponseEntity<Resource> assinarProgramaEdocs(@PathVariable Long idPrograma, 
+		@Valid @RequestBody String subAssinante
+	) {
+		service.assinarProgramaEdocs(idPrograma, subAssinante);
+		return ResponseEntity.accepted().build();
+	}
+
 }
