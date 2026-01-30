@@ -1,25 +1,29 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
 import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
-import br.gov.es.siscap.exception.RelatorioNomeArquivoException;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
-import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +39,21 @@ public class ProgramaService {
 	private final ProgramaPessoaService programaPessoaService;
 	private final PessoaService pessoaService;
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
+	private final AsyncExecutorService asyncExecutorService;
+	private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
+	private final EmailService emailService;
+	private final AcessoCidadaoService acessoCidadaoService;
+
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
+
+	@Value("${api.programa.assinantes.gestorSUBCAP}")
+	private String assinanteEdocsProgramaGestorSUBCAP;
+
+	@Value("${api.programa.assinantes.gestorSEP}")
+	private String assinanteEdocsProgramaGestorSEP;
+
+	@Value("${api.programa.assinantes.gestorGOVES}")
+	private String assinanteEdocsProgramaGestorGOVES;
 
 	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search) {
 		logger.info("Buscando todos os programas");
@@ -159,6 +177,7 @@ public class ProgramaService {
 
 	@Transactional
 	public void excluir(Long id) {
+		
 		logger.info("Excluindo programa com id: {}", id);
 
 		Programa programa = this.buscar(id);
@@ -169,6 +188,7 @@ public class ProgramaService {
 		projetoService.desvincularProjetosDoPrograma(programa);
 
 		logger.info("Programa excluído com sucesso");
+
 	}
 
 	public Integer buscarQuantidadeProgramas() {
@@ -183,12 +203,96 @@ public class ProgramaService {
 		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
 	}
 
-	public String gerarNomeArquivo(Integer idPrograma) {
+	public String gerarNomeArquivo(Long idPrograma) {
 
 		Programa programa = this.buscar(idPrograma.longValue());
 
 		return "PROGRAMA n. " +
 				programa.getCountAno();
+	}
+
+	@Transactional
+	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma) {
+		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
+		List<String> assinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
+				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
+		this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma);
+		asyncExecutorService.criarArquivoFaseAssinaturaEdocsServidor(idPrograma, assinantesEdocsPrograma, nomeArquivo);
+		this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma,assinantesEdocsPrograma);
+	}
+
+	private void marcarComoAguardandoAssinaturas(Long idPrograma, List<String> assinantesEdocsPrograma) {
+		logger.info("Registra as pendencias de assinatura no programa;");
+		Programa programa = this.buscar(idPrograma);
+		if (programaAssinaturaEdocsService.buscarPorPrograma(programa).isEmpty()) {
+			programaAssinaturaEdocsService.cadastrar(programa, assinantesEdocsPrograma);
+		}
+	}
+
+	@Transactional
+	public boolean enviarAvisoSolicitarAssinaturaPrograma(Long idPrograma, List<String> subAssinantes) {
+
+		List<String> erros = new ArrayList<>();
+
+		if (subAssinantes.isEmpty()) {
+			erros.add("Erro ao enviar solicitação para assinatura do programa id " + idPrograma
+					+ " assinaturas não informadas.");
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		List<String> emailsInteressadosList = new ArrayList<String>();
+
+		// para cada sub vai buscar o email no acesso cidadao..
+		subAssinantes.forEach( sub -> {
+
+			EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
+
+			if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
+				emailsInteressadosList.add(emailsSub.corporativo());
+			}else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+				emailsInteressadosList.add(emailsSub.email());
+			}
+
+			}
+
+		);
+
+		Programa programa = this.buscar(idPrograma);
+
+		String tituloPrograma = programa.getTitulo();
+
+		boolean confirmacaoEnvioEmail;
+
+		try {
+
+			EnvioEmailDicDetalhesDto envioEmailDetalhesDto = new EnvioEmailDicDetalhesDto(idPrograma,
+					"",
+					"",
+					emailsInteressadosList,
+					tituloPrograma);
+
+			confirmacaoEnvioEmail = emailService.enviarEmailSolicitandoAssinaturasPrograma(envioEmailDetalhesDto);
+
+			if (confirmacaoEnvioEmail) {
+				logger.info(
+						"Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id " + idPrograma);
+			} else {
+				erros.add("Erro ao enviar aviso para solicitacao de assinaturas do programa id " + idPrograma);
+			}
+
+		} catch (UnsupportedEncodingException e) {
+			logger.error(e.getMessage());
+		} catch (MessagingException e) {
+			logger.error(e.getMessage());
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		return true;
+
 	}
 
 }

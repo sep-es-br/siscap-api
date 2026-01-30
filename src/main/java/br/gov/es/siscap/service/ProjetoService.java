@@ -1,7 +1,6 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
-import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
