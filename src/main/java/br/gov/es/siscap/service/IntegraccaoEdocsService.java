@@ -1592,36 +1592,23 @@ public class IntegraccaoEdocsService {
 		return EdocsWebClient.buscarDadosArquivo(token, idDocumento);
 	}
 
-	public void assinarArquivoFaseAssinaturaEdocsServidor(String idDocumentoAssinarFaseAssinatura) {
+	public Mono<Void> assinarArquivoFaseAssinaturaEdocsServidor(
+			Long idPrograma,
+			String idDocumentoAssinarFaseAssinatura) {
 
 		logger.info("Iniciando processo para assinar arquivo no E-Docs com pendência de assinatura.");
 
-//		String subJwt = autenticacaoService.getUsuarioSub();
-//		String tokenArmazenado = AutorizacaoACService.getEdocsToken(subJwt);
-		// String tokenLimpo = tokenArmazenado.replace("Bearer ", "").trim();
-		// ACUserInfoDto userInfo =
-		// AcessoCidadaoService.buscarInformacoesUsuario(tokenLimpo);
-		// List<ACAgentePublicoPapelDto> listaPapeisUsuario = AcessoCidadaoService
-		// .listarPapeisAgentePublicoPorSub(userInfo.subNovo());
-		// String guidPapelUsuario = listaPapeisUsuario.stream()
-		// .filter(papel -> papel.Prioritario())
-		// .findFirst()
-		// .orElseGet(() -> listaPapeisUsuario.stream().findFirst().orElse(null))
-		// .Guid();
-
-		this.assinarArquivoPendenteReativo(idDocumentoAssinarFaseAssinatura)
-				.subscribe(
-						mensagem -> logger.info("SUCESSO: {}", mensagem),
-						erro -> logger.info("ERRO: {}", erro));
-
-		return;
-
+		return assinarArquivoPendenteReativo(idPrograma, idDocumentoAssinarFaseAssinatura)
+				.doOnSuccess(mensagem -> logger.info("SUCESSO: {}", mensagem))
+				.doOnError(erro -> logger.error("ERRO:", erro))
+				.then(); // transforma Mono<String> em Mono<Void>
 	}
 
 	private Mono<String> assinarArquivoPendenteReativo(Long idPrograma, String idDocumentoAssinarFaseAssinatura) {
-		
+
 		this.adicionarEtapa(idPrograma,
-				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE , true, false, false));
+				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE, true, false,
+						false));
 
 		return buscarTokenReativo()
 				.doOnError(erro -> {
@@ -1632,8 +1619,10 @@ public class IntegraccaoEdocsService {
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(token, idDocumentoAssinarFaseAssinatura))
-				
+
 				.flatMap(ctx -> assinarArquivoFaseAssinatura(ctx, idPrograma))
+				.flatMap(retorno -> atualizarDataAssinaturaPrograma(ctx, idPrograma)
+						.thenReturn(retorno))
 				.doOnSuccess(retorno -> finalizaTodasEtapas(idPrograma))
 				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idPrograma))
 				.doOnSuccess(sucesso -> {
@@ -1644,14 +1633,15 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	private Mono<FluxoContextoIntegracaoDto> assinarArquivoFaseAssinatura( FluxoContextoIntegracaoDto ctx, Long idPrograma ) {
+	private Mono<FluxoContextoIntegracaoDto> assinarArquivoFaseAssinatura(FluxoContextoIntegracaoDto ctx,
+			Long idPrograma) {
 
 		logger.info("Iniciar processo para assinar arquivo com pendencia de assinatura para o E-Docs.");
 
 		return FeignReativo
-				.fromFeign(() -> assinaArquivo( ctx.getToken(), ctx.getIdDocumentoAssinarFaseAssinatura() ) )
-				.retryWhen( Retry.fixedDelay(3, Duration.ofSeconds(2) ) )
-				.repeatWhenEmpty( flux -> flux.delayElements(Duration.ofSeconds(2) ) )
+				.fromFeign(() -> assinaArquivo(ctx.getToken(), ctx.getIdDocumentoAssinarFaseAssinatura()))
+				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+				.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
 				.timeout(Duration.ofMinutes(1))
 				.switchIfEmpty(
 						Mono.error(new RuntimeException(
@@ -1661,7 +1651,7 @@ public class IntegraccaoEdocsService {
 					logger.error(
 							"Falha ao executar chamada ao endpoint para assinar arquivo fase de assinatura via E-Docs.",
 							e);
-					this.registrarFalhaEtapa( idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE );
+					this.registrarFalhaEtapa(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE);
 				})
 				.thenReturn(ctx);
 

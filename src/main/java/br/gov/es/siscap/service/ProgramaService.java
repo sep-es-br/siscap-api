@@ -16,6 +16,8 @@ import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +47,7 @@ public class ProgramaService {
 	private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
 	private final EmailService emailService;
 	private final AcessoCidadaoService acessoCidadaoService;
+	private final IntegraccaoEdocsService integracaoEdocsService;
 
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
@@ -297,34 +301,57 @@ public class ProgramaService {
 
 	}
 
-	public void assinarProgramaEdocs(Long idPrograma, String subAssinante) {
+	public Mono<Void> assinarProgramaEdocs(Long idPrograma, String subAssinante) {
 
-		List<String> erros = new ArrayList<>();
+		// List<String> erros = new ArrayList<>();
 
-		Programa programa = this.buscar(idPrograma);
+		// Programa programa = this.buscar(idPrograma);
 
-		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
+		// Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma =
+		// programa.getProgramaAssinantesEdocsSet();
 
-		if (!assinantesDevemAssinarPrograma.stream()
-				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante))) {
-			erros.add(
-					"Assinante informado, sub " + subAssinante + ", não faz parte da lista de assinantes do programa.");
-		}
+		// if (!assinantesDevemAssinarPrograma.stream()
+		// .anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante)))
+		// {
+		// erros.add(
+		// "Assinante informado, sub " + subAssinante + ", não faz parte da lista de
+		// assinantes do programa.");
+		// }
 
-		if (assinantesDevemAssinarPrograma.stream()
-				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante)
-						&& assinante.getDataAssinatura() != null)) {
-			erros.add("Documento já foi assinado pelo sub " + subAssinante + ".");
-		}
+		// if (assinantesDevemAssinarPrograma.stream()
+		// .anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante)
+		// && assinante.getDataAssinatura() != null)) {
+		// erros.add("Documento já foi assinado pelo sub " + subAssinante + ".");
+		// }
 
-		if (!erros.isEmpty()) {
-			erros.forEach(logger::error);
-			throw new ValidacaoSiscapException(erros);
-		}
+		// if (!erros.isEmpty()) {
+		// erros.forEach(logger::error);
+		// throw new ValidacaoSiscapException(erros);
+		// }
 
-		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor( programa.getIdDocumentoCapturadoEdocs() );
+		return Mono.fromCallable(() -> this.buscar(idPrograma))
+				.flatMap(programa -> {
+					// validarAssinatura(programa, subAssinante);
+					return integracaoEdocsService
+							.assinarArquivoFaseAssinaturaEdocsServidor(
+									idPrograma,
+									programa.getIdDocumentoCapturadoEdocs())
+							.flatMap(retorno -> marcarProgramaAssinado(idPrograma, subAssinante));
+				});
 
-		// this.marcarProgramaAssinado(idPrograma, assinante);
+	}
+
+	@Transactional
+	public Mono<Void> marcarProgramaAssinado(Long idPrograma, String subAssinante) {
+
+		Programa programa = repository.findById(idPrograma)
+        .orElseThrow(() -> new ValidacaoSiscapException(Arrays.asList("Programa não encontrado.")));
+
+    // programa.marcarAssinatura(subAssinante);
+
+    repository.save(programa);
+
+    return Mono.empty();
 
 	}
 

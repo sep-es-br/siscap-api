@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 import org.springframework.core.io.Resource;
 
@@ -87,12 +88,12 @@ public class ProgramaController {
 				.body(resource);
 	}
 
-	@PutMapping("/programa/{idPrograma}/edocs/solicitarassinaturas")
-	public ResponseEntity<Resource> assinarProgramaEdocs(@PathVariable Long idPrograma, 
-		@Valid @RequestBody String subAssinante
-	) {
+	@PutMapping("/programa/{idPrograma}/edocs/assinar")
+	public Mono<ResponseEntity<Void>> assinarProgramaEdocs(@PathVariable Long idPrograma,
+			@Valid @RequestBody String subAssinante) {
 		service.assinarProgramaEdocs(idPrograma, subAssinante);
-		return ResponseEntity.accepted().build();
+		return service.assinarProgramaEdocs(idPrograma, subAssinante)
+				.thenReturn(ResponseEntity.accepted().build());
 	}
 
 }

@@ -57,9 +57,9 @@ public class AsyncExecutorService {
         integracaoEdocsService.enviarArquivoAssinaturasPendentes( idPrograma, assinantes, nomeArquivo );
     }
 
-    @Async
-    public void assinarArquivoFaseAssinaturaEdocsServidor( String idDocumentoCapturadoEdocs ) {
-        integracaoEdocsService.assinarArquivoFaseAssinaturaEdocsServidor( idDocumentoCapturadoEdocs );
-    }
+    // @Async
+    // public void assinarArquivoFaseAssinaturaEdocsServidor( Long idPrograma, String idDocumentoCapturadoEdocs ) {
+    //     integracaoEdocsService.assinarArquivoFaseAssinaturaEdocsServidor( idPrograma, idDocumentoCapturadoEdocs );
+    // }
 
 }
