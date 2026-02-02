@@ -1619,10 +1619,7 @@ public class IntegraccaoEdocsService {
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(token, idDocumentoAssinarFaseAssinatura))
-
 				.flatMap(ctx -> assinarArquivoFaseAssinatura(ctx, idPrograma))
-				.flatMap(retorno -> atualizarDataAssinaturaPrograma(ctx, idPrograma)
-						.thenReturn(retorno))
 				.doOnSuccess(retorno -> finalizaTodasEtapas(idPrograma))
 				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idPrograma))
 				.doOnSuccess(sucesso -> {

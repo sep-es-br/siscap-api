@@ -303,41 +303,41 @@ public class ProgramaService {
 
 	public Mono<Void> assinarProgramaEdocs(Long idPrograma, String subAssinante) {
 
-		// List<String> erros = new ArrayList<>();
-
-		// Programa programa = this.buscar(idPrograma);
-
-		// Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma =
-		// programa.getProgramaAssinantesEdocsSet();
-
-		// if (!assinantesDevemAssinarPrograma.stream()
-		// .anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante)))
-		// {
-		// erros.add(
-		// "Assinante informado, sub " + subAssinante + ", não faz parte da lista de
-		// assinantes do programa.");
-		// }
-
-		// if (assinantesDevemAssinarPrograma.stream()
-		// .anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante)
-		// && assinante.getDataAssinatura() != null)) {
-		// erros.add("Documento já foi assinado pelo sub " + subAssinante + ".");
-		// }
-
-		// if (!erros.isEmpty()) {
-		// erros.forEach(logger::error);
-		// throw new ValidacaoSiscapException(erros);
-		// }
-
 		return Mono.fromCallable(() -> this.buscar(idPrograma))
 				.flatMap(programa -> {
-					// validarAssinatura(programa, subAssinante);
+					validarAssinatura(programa, subAssinante);
 					return integracaoEdocsService
 							.assinarArquivoFaseAssinaturaEdocsServidor(
 									idPrograma,
 									programa.getIdDocumentoCapturadoEdocs())
-							.flatMap(retorno -> marcarProgramaAssinado(idPrograma, subAssinante));
+							.flatMap(retorno -> marcarProgramaAssinado(idPrograma, subAssinante))
+							.thenReturn(null);
 				});
+
+	}
+
+	private void validarAssinatura(Programa programa, String subAssinante) {
+
+		List<String> erros = new ArrayList<>();
+
+		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
+
+		if (!assinantesDevemAssinarPrograma.stream()
+				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante))) {
+			erros.add(
+					"Assinante informado, sub " + subAssinante + ", não faz parte da lista de assinantes do programa.");
+		}
+
+		if (assinantesDevemAssinarPrograma.stream()
+				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante)
+						&& assinante.getDataAssinatura() != null)) {
+			erros.add("Documento já foi assinado pelo sub " + subAssinante + ".");
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
 
 	}
 
@@ -345,13 +345,13 @@ public class ProgramaService {
 	public Mono<Void> marcarProgramaAssinado(Long idPrograma, String subAssinante) {
 
 		Programa programa = repository.findById(idPrograma)
-        .orElseThrow(() -> new ValidacaoSiscapException(Arrays.asList("Programa não encontrado.")));
+				.orElseThrow(() -> new ValidacaoSiscapException(Arrays.asList("Programa não encontrado.")));
 
-    // programa.marcarAssinatura(subAssinante);
+		// programa.marcarAssinatura(subAssinante);
 
-    repository.save(programa);
+		repository.save(programa);
 
-    return Mono.empty();
+		return Mono.empty();
 
 	}
 
