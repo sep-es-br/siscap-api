@@ -1601,7 +1601,7 @@ public class IntegraccaoEdocsService {
 		return assinarArquivoPendenteReativo(idPrograma, idDocumentoAssinarFaseAssinatura)
 				.doOnSuccess(mensagem -> logger.info("SUCESSO: {}", mensagem))
 				.doOnError(erro -> logger.error("ERRO:", erro))
-				.then(); // transforma Mono<String> em Mono<Void>
+				.then();
 	}
 
 	private Mono<String> assinarArquivoPendenteReativo(Long idPrograma, String idDocumentoAssinarFaseAssinatura) {

@@ -91,7 +91,6 @@ public class ProgramaController {
 	@PutMapping("/programa/{idPrograma}/edocs/assinar")
 	public Mono<ResponseEntity<Void>> assinarProgramaEdocs(@PathVariable Long idPrograma,
 			@Valid @RequestBody String subAssinante) {
-		service.assinarProgramaEdocs(idPrograma, subAssinante);
 		return service.assinarProgramaEdocs(idPrograma, subAssinante)
 				.thenReturn(ResponseEntity.accepted().build());
 	}
