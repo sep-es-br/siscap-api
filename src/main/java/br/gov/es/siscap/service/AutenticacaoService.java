@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +48,12 @@ public class AutenticacaoService {
 	private final UsuarioRepository usuarioRepository;
 	private final Roles roles;
 	private final UsuarioService usuarioService;
+
+	public Mono<String> getUsuarioSubReativo() {
+		return ReactiveSecurityContextHolder.getContext()
+				.map(ctx -> ctx.getAuthentication())
+				.map(auth -> auth.getName() ) ;
+	}
 
 	public String getUsuarioLogado() {
 		return SecurityContextHolder.getContext().getAuthentication().getName();

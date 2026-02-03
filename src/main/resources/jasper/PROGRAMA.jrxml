@@ -124,7 +124,7 @@
 		</band>
 		<band height="63">
 			<element kind="staticText" uuid="5235acd3-2191-4ed3-86db-270a5327b724" x="0" y="0" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[2.0 Equipe de Capacitação]]></text>
+				<text><![CDATA[2.0 Equipe de Captação]]></text>
 			</element>
 			<element kind="line" uuid="4c0e296d-b0cc-413a-a090-02d72ead8b00" x="0" y="20" width="536" height="1" forecolor="#B2B2B2"/>
 			<element kind="subreport" uuid="5077890e-fbf6-4b33-aa22-58353804dca0" x="0" y="44" width="533" height="19">

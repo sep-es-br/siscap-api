@@ -1,5 +1,6 @@
 package br.gov.es.siscap.controller;
 
+import br.gov.es.siscap.dto.AssinanteRequestDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
@@ -90,8 +91,8 @@ public class ProgramaController {
 
 	@PostMapping("/programa/{idPrograma}/edocs/assinar")
 	public Mono<ResponseEntity<Void>> assinarProgramaEdocs(@PathVariable Long idPrograma,
-			@Valid @RequestBody String subAssinante) {
-		return service.assinarProgramaEdocs(idPrograma, subAssinante)
+			@Valid @RequestBody AssinanteRequestDto request ) {
+		return service.assinarProgramaEdocs( idPrograma, request.subAssinante() )
 				.thenReturn(ResponseEntity.accepted().build());
 	}
 

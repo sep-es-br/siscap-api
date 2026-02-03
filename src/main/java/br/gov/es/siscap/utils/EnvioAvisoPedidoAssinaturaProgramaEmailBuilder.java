@@ -1,5 +1,7 @@
 package br.gov.es.siscap.utils;
 
+import java.util.Objects;
+
 import org.springframework.stereotype.Component;
 
 import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
@@ -10,18 +12,26 @@ public class EnvioAvisoPedidoAssinaturaProgramaEmailBuilder extends EmailBuilder
 
 	@Override
 	protected String montarCampoTratamento(EnvioEmailDicDetalhesDto dto) {
-		return "Prezado(a) Gestor(a)";
+		return "Senhor(a) Subsecretário(a)<br>\r\n" + //
+				"ANDRESSA RODRIGUES PAVÃO,<br>\r\n" + //
+				"<br>\r\n" + //
+				"Excelentíssimo(a) Senhor(a) Secretário(a)<br>\r\n" + //
+				"ÁLVARO ROGÉRIO DUBOC FAJARDO,<br>\r\n" + //
+				"<br>\r\n" + //
+				"Excelentíssimo(a) Senhor(a) Governador(a)<br>\r\n" + //
+				"JOSÉ RENATO CASAGRANDE";
 	}
 
 	@Override
 	public String montarAssuntoEmail() {
-		return "Assinar programa para captação.";
+		return "Autorizar programa para captação.";
 	}
 
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) {
-		return ("O Programa %s foi criado com o objetivo de prospecção de recursos.Para dar continuidade ao processo na SUBCAP, é necessária a assinatura do referido programa. <br><br> A assinatura poderá ser realizada por meio do link abaixo, em tela específica do sistema SISCAP, que realiza a integração com o e-Docs.<br>")
-				.formatted(dto.nomeResponsavelEnvioEmail());
+		return ("A minuta do programa de captação de recursos %s - %s foi criada no Siscap - Sistema de Captação de Recursos do Estado do Espírito Santo - e aguarda a sua análise e autorização, se de acordo.")
+				.formatted(Objects.toString(dto.siglaPrograma(), ""),
+						Objects.toString(dto.tituloPrograma(), ""));
 	}
 
 	@Override
@@ -33,15 +43,16 @@ public class EnvioAvisoPedidoAssinaturaProgramaEmailBuilder extends EmailBuilder
 			return "";
 		}
 
-		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/programas/editar/" + dto.idPrograma();
+		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/programas/" + dto.idPrograma() + "/assinaturas";
 
 		if (linkEdicao == null || linkEdicao.isBlank()) {
 			return "";
 		}
 
 		return """
-				    <p style="font-size: 12px;" >Acesse o sistema SISCAP em: <a style="font-size: 12px;" href="%s">%s</a> </p>
-				""".formatted( linkEdicao, linkEdicao );
+				    <p style="font-size: 12px;" >Para acessar e autorizar, clique no link: <a style="font-size: 12px;" href="%s">%s</a> </p>
+				"""
+				.formatted(linkEdicao, linkEdicao);
 
 	}
 

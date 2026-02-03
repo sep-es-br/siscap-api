@@ -545,7 +545,7 @@ public class IntegraccaoEdocsService {
 		String idProjetoEDocs = (ctx.getIdProcesso() != null && !ctx.getIdProcesso().isEmpty()) ? ctx.getIdProcesso()
 				: ctx.getProjeto().idProcessoEdocs();
 
-		return FeignReativo.fromFeign( () -> consultarDadosProcessoEdocs(
+		return FeignReativo.fromFeign(() -> consultarDadosProcessoEdocs(
 				idProjetoEDocs,
 				ctx.getToken()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
@@ -1049,7 +1049,6 @@ public class IntegraccaoEdocsService {
 		String tokenArmazenado = AutorizacaoACService.getEdocsToken(subJwt);
 
 		return Mono.fromCallable(() -> {
-			// chamada síncrona ao E-Docs (não reativa)
 			return EdocsWebClient.buscarPapeisUsuarioEdocs(tokenArmazenado);
 		})
 				.flatMap(listaPapeis -> {
@@ -1063,6 +1062,28 @@ public class IntegraccaoEdocsService {
 				.onErrorResume(WebClientResponseException.Unauthorized.class,
 						ex -> Mono.error(new ValidacaoSiscapException(List.of(
 								"O token do E-Docs expirou. Realize um novo login no SISCAP."))));
+
+		// return autenticacaoService.getUsuarioSubReativo()
+        // .flatMap( subJwt -> {
+        //     String tokenArmazenado = AutorizacaoACService.getEdocsToken(subJwt);
+        //     return Mono.fromCallable(() ->
+        //             EdocsWebClient.buscarPapeisUsuarioEdocs(tokenArmazenado)
+        //     )
+        //     .flatMap(listaPapeis -> {
+        //         if (listaPapeis == null || listaPapeis.isEmpty()) {
+        //             return Mono.error(new ValidacaoSiscapException(List.of(
+        //                 "O token do E-Docs é válido, mas o usuário não possui papéis ativos. " +
+        //                 "Realize um novo login no SISCAP para restaurar a sessão."
+        //             )));
+        //         }
+        //         return Mono.just(tokenArmazenado);
+        //     });
+        // })
+        // .onErrorResume(WebClientResponseException.Unauthorized.class,
+        //     ex -> Mono.error(new ValidacaoSiscapException(List.of(
+        //         "O token do E-Docs expirou. Realize um novo login no SISCAP."
+        //     ))));
+
 	}
 
 	private Mono<String> buscarTokenReativo(String subJwt) {
@@ -1615,7 +1636,7 @@ public class IntegraccaoEdocsService {
 				.doOnError(erro -> {
 					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
 					logger.error("Erro ao buscar Token", erro.getMessage());
-					this.registrarFalhaEtapa(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+					this.registrarFalhaEtapa(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE,
 							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
@@ -1623,11 +1644,8 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> assinarArquivoFaseAssinatura(ctx, idPrograma))
 				.doOnSuccess(retorno -> finalizaTodasEtapas(idPrograma))
 				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idPrograma))
-				.doOnSuccess(sucesso -> {
-					logger.info("Parecer {} atualizado com sucesso", idPrograma);
-				})
 				.doOnError(e -> logger.error("Erro ao atualizar parecer {}", idPrograma, e))
-				.thenReturn("Criação arquivo com assinaturas pendentes concluída com sucesso.");
+				.thenReturn("Assinaturas pendentes concluída com sucesso.");
 
 	}
 
@@ -1661,9 +1679,9 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	public Mono<FluxoContextoIntegracaoDto> autuarProgramaProjetoReativo( Long idPrograma, String idDocumentoEdocs ) {
+	public Mono<FluxoContextoIntegracaoDto> autuarProgramaProjetoReativo(Long idPrograma, String idDocumentoEdocs) {
 
-		String[] documentoEntranhar  = { idDocumentoEdocs };
+		String[] documentoEntranhar = { idDocumentoEdocs };
 
 		this.adicionarEtapa(idPrograma,
 				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
@@ -1683,12 +1701,13 @@ public class IntegraccaoEdocsService {
 							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.map(token -> new FluxoContextoIntegracaoDto(token, idPrograma, documentoEntranhar ) )
+				.map(token -> new FluxoContextoIntegracaoDto(token, idPrograma, documentoEntranhar))
 				.flatMap(ctx -> autuarProcessoMono(ctx))
 				.flatMap(ctx -> consultarSituacaoEventoAtuacao(ctx))
 				.flatMap(ctx -> despacharProcessoDIC(ctx))
 				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
-				.doOnSuccess( retorno -> this.atualizarEtapa(idPrograma, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true ) );
+				.doOnSuccess(retorno -> this.atualizarEtapa(idPrograma, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
+						true, true));
 
 	}
 

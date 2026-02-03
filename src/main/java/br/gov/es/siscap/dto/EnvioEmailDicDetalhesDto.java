@@ -16,7 +16,8 @@ public record EnvioEmailDicDetalhesDto(
 	String justificativaRevisao,
     List<ProjetoCamposComplementacaoDto> camposSeremComplementados,
     Long idPrograma,
-    String tituloPrograma
+    String tituloPrograma,
+    String siglaPrograma
 ) {
 
 	public EnvioEmailDicDetalhesDto(
@@ -41,7 +42,7 @@ public record EnvioEmailDicDetalhesDto(
             "", 
 			"",
 			"",
-            camposSeremComplementados, null, ""
+            camposSeremComplementados, null, "", ""
         );
     }
 
@@ -50,7 +51,8 @@ public record EnvioEmailDicDetalhesDto(
         String nomeResponsavelEnvioEmail,
         String linkAcessoProjeto,
         List<String> emailsInteressadosList,
-        String tituloPrograma
+        String tituloPrograma,
+        String siglaPrograma
     ) {
         this(
             null,
@@ -66,7 +68,8 @@ public record EnvioEmailDicDetalhesDto(
 			"",
             null, 
             idPrograma, 
-            tituloPrograma
+            tituloPrograma,
+            siglaPrograma
         );
     }
 

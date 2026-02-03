@@ -7,6 +7,7 @@ import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.enums.TipoStatusAssinaturaEnum;
+import br.gov.es.siscap.enums.edocs.EtapasIntegracaoEdocsEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.Organizacao;
@@ -271,6 +272,7 @@ public class ProgramaService {
 		Programa programa = this.buscar(idPrograma);
 
 		String tituloPrograma = programa.getTitulo();
+		String siglaPrograma = programa.getSigla();
 
 		boolean confirmacaoEnvioEmail;
 
@@ -280,7 +282,8 @@ public class ProgramaService {
 					"",
 					"",
 					emailsInteressadosList,
-					tituloPrograma);
+					tituloPrograma,
+					siglaPrograma);
 
 			confirmacaoEnvioEmail = emailService.enviarEmailSolicitandoAssinaturasPrograma(envioEmailDetalhesDto);
 
@@ -307,29 +310,12 @@ public class ProgramaService {
 
 	}
 
-	// public Mono<Void> assinarProgramaEdocs(Long idPrograma, String subAssinante)
-	// {
-
-	// return Mono.fromCallable(() -> this.buscar(idPrograma))
-	// .flatMap(programa -> {
-	// validarAssinatura(programa, subAssinante);
-	// return integracaoEdocsService
-	// .assinarArquivoFaseAssinaturaEdocsServidor(
-	// idPrograma,
-	// programa.getIdDocumentoCapturadoEdocs())
-	// .flatMap(retorno -> marcarProgramaAssinado(idPrograma, subAssinante))
-	// .thenReturn(null);
-	// });
-
-	// }
-
 	public Mono<Void> assinarProgramaEdocs(Long idPrograma, String subAssinante) {
 
-		return Mono.fromCallable(() -> this.buscar(idPrograma))
+		return Mono.fromCallable(() -> this.buscarComAssinaturasEPessoas(idPrograma))
 				.subscribeOn(Schedulers.boundedElastic()) // JPA aqui
 				.flatMap(programa -> {
 					validarAssinatura(programa, subAssinante);
-
 					return integracaoEdocsService
 							.assinarArquivoFaseAssinaturaEdocsServidor(
 									idPrograma,
@@ -338,7 +324,12 @@ public class ProgramaService {
 									retorno -> Mono.fromRunnable(() -> marcarProgramaAssinado(idPrograma, subAssinante))
 											.subscribeOn(Schedulers.boundedElastic()));
 				})
+				.doOnError(erro -> {
+					String erroBuscarToken = "Erro ao executar processo de assinatura do programa.";
+					logger.error(erroBuscarToken, erro.getMessage());
+				})
 				.then();
+
 	}
 
 	private void validarAssinatura(Programa programa, String subAssinante) {
@@ -347,8 +338,15 @@ public class ProgramaService {
 
 		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
 
+		if (assinantesDevemAssinarPrograma == null) {
+			erros.add(
+					"Nenhum ssinante encontrado para o programa id " + programa.getId() + ".");
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
 		if (!assinantesDevemAssinarPrograma.stream()
-				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante))) {
+				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante.trim().toLowerCase()))) {
 			erros.add(
 					"Assinante informado, sub " + subAssinante + ", não faz parte da lista de assinantes do programa.");
 		}
@@ -438,6 +436,10 @@ public class ProgramaService {
 			throw new ValidacaoSiscapException(erros);
 		}
 
+	}
+
+	private Programa buscarComAssinaturasEPessoas(Long id) {
+		return repository.buscarPorIdComAssinantesEPessoa(id);
 	}
 
 }

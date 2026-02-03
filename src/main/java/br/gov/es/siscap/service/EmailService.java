@@ -154,7 +154,7 @@ public class EmailService {
 				null,
 				null,
 				null,
-				null, null, null, "");
+				null, null, null, "", "");
 
 		builderEnvioEmailPedidoParecerSUBEPPSUBEO.setDtoMontagemEmailDic(envioEmailDicDetalhesDto2);
 		builderEnvioEmailPedidoParecerSUBEPPSUBEO.setSiglaProjeto(envioEmailDicDetalhesDto.tituloProjeto());
@@ -179,7 +179,7 @@ public class EmailService {
 				null,
 				null,
 				null,
-				justificativa, null, null, "");
+				justificativa, null, null, "", "");
 
 		builderEnvioEmailRevisao.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioEmailRevisao.setSiglaProjeto(projeto.getSigla());
@@ -206,7 +206,7 @@ public class EmailService {
 				descricaoProjeto,
 				codigoMotivoArquivamento,
 				descricaoTipoMotivoArquivamento,
-				justificativa, null, null, null, "");
+				justificativa, null, null, null, "", "");
 
 		builderEnvioEmailArquivamentoDIC.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioEmailArquivamentoDIC.setSiglaProjeto(descricaoProjeto);
@@ -234,7 +234,7 @@ public class EmailService {
 				descricaoProjeto,
 				null,
 				null,
-				null, null, camposComplementar, null, "");
+				null, null, camposComplementar, null, "", "");
 
 		builderEnvioEmailComplementoDIC.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioEmailComplementoDIC.setSiglaProjeto(descricaoProjeto);
@@ -258,7 +258,7 @@ public class EmailService {
 				null,
 				null,
 				null,
-				null, null, null, "");
+				null, null, null, "", "");
 
 		builderEnvioEmailAvisoCapturaParecer.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioEmailAvisoCapturaParecer.setSiglaProjeto(siglaProjeto);
@@ -280,7 +280,7 @@ public class EmailService {
 				null,
 				null,
 				null,
-				null, null, null, null, "");
+				null, null, null, null, "", "");
 
 		builderEnvioEmailAvisoDicAutuado.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioEmailAvisoDicAutuado.setSiglaProjeto(descricaoDic);
@@ -302,7 +302,7 @@ public class EmailService {
 				null,
 				null,
 				null,
-				null, null, null, null, "");
+			null, null, null, null, "", "");
 
 		builderEnvioAvisoPedidoParecerGEOC.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioAvisoPedidoParecerGEOC.setSiglaProjeto(descricaoDic);
@@ -324,7 +324,7 @@ public class EmailService {
 				null,
 				null,
 				null,
-				null, null, null, null, "");
+				null, null, null, null, "", "");
 
 		builderEnvioEmailAvisoParecerGEOCRealizado.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioEmailAvisoParecerGEOCRealizado.setSiglaProjeto(descricaoDic);
