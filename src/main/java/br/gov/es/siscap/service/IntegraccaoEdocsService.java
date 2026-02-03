@@ -28,6 +28,7 @@ import reactor.util.retry.Retry;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -544,7 +545,7 @@ public class IntegraccaoEdocsService {
 		String idProjetoEDocs = (ctx.getIdProcesso() != null && !ctx.getIdProcesso().isEmpty()) ? ctx.getIdProcesso()
 				: ctx.getProjeto().idProcessoEdocs();
 
-		return FeignReativo.fromFeign(() -> consultarDadosProcessoEdocs(
+		return FeignReativo.fromFeign( () -> consultarDadosProcessoEdocs(
 				idProjetoEDocs,
 				ctx.getToken()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
@@ -1657,6 +1658,37 @@ public class IntegraccaoEdocsService {
 	private String assinaArquivo(String token, String idDocumentoFaseAssinatura) {
 
 		return EdocsWebClient.assinarDocumentoEDocsFaseAssinatura(token, idDocumentoFaseAssinatura);
+
+	}
+
+	public Mono<FluxoContextoIntegracaoDto> autuarProgramaProjetoReativo( Long idPrograma, String idDocumentoEdocs ) {
+
+		String[] documentoEntranhar  = { idDocumentoEdocs };
+
+		this.adicionarEtapa(idPrograma,
+				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
+
+		this.adicionarEtapa(idPrograma,
+				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.AUTUAR, false, false, false));
+
+		this.adicionarEtapa(idPrograma,
+				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, false, false,
+						false));
+
+		return buscarTokenReativo()
+				.doOnError(erro -> {
+					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
+					logger.error("Erro ao buscar Token", erro.getMessage());
+					this.registrarFalhaEtapa(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+							erroBuscarToken);
+				})
+				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
+				.map(token -> new FluxoContextoIntegracaoDto(token, idPrograma, documentoEntranhar ) )
+				.flatMap(ctx -> autuarProcessoMono(ctx))
+				.flatMap(ctx -> consultarSituacaoEventoAtuacao(ctx))
+				.flatMap(ctx -> despacharProcessoDIC(ctx))
+				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
+				.doOnSuccess( retorno -> this.atualizarEtapa(idPrograma, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true ) );
 
 	}
 
