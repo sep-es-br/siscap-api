@@ -90,10 +90,10 @@ public class ProgramaController {
 	}
 
 	@PostMapping("/programa/{idPrograma}/edocs/assinar")
-	public Mono<ResponseEntity<Void>> assinarProgramaEdocs(@PathVariable Long idPrograma,
+	public ResponseEntity<Resource> assinarProgramaEdocs(@PathVariable Long idPrograma,
 			@Valid @RequestBody AssinanteRequestDto request ) {
-		return service.assinarProgramaEdocs( idPrograma, request.subAssinante() )
-				.thenReturn(ResponseEntity.accepted().build());
+		service.assinarProgramaEdocs( idPrograma, request.subAssinante() );
+		return ResponseEntity.accepted().build();
 	}
 
 	@PostMapping("/programa/{idPrograma}/edocs/autuar")

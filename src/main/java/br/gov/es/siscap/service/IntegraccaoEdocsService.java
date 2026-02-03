@@ -1064,25 +1064,25 @@ public class IntegraccaoEdocsService {
 								"O token do E-Docs expirou. Realize um novo login no SISCAP."))));
 
 		// return autenticacaoService.getUsuarioSubReativo()
-        // .flatMap( subJwt -> {
-        //     String tokenArmazenado = AutorizacaoACService.getEdocsToken(subJwt);
-        //     return Mono.fromCallable(() ->
-        //             EdocsWebClient.buscarPapeisUsuarioEdocs(tokenArmazenado)
-        //     )
-        //     .flatMap(listaPapeis -> {
-        //         if (listaPapeis == null || listaPapeis.isEmpty()) {
-        //             return Mono.error(new ValidacaoSiscapException(List.of(
-        //                 "O token do E-Docs é válido, mas o usuário não possui papéis ativos. " +
-        //                 "Realize um novo login no SISCAP para restaurar a sessão."
-        //             )));
-        //         }
-        //         return Mono.just(tokenArmazenado);
-        //     });
-        // })
-        // .onErrorResume(WebClientResponseException.Unauthorized.class,
-        //     ex -> Mono.error(new ValidacaoSiscapException(List.of(
-        //         "O token do E-Docs expirou. Realize um novo login no SISCAP."
-        //     ))));
+		// .flatMap( subJwt -> {
+		// String tokenArmazenado = AutorizacaoACService.getEdocsToken(subJwt);
+		// return Mono.fromCallable(() ->
+		// EdocsWebClient.buscarPapeisUsuarioEdocs(tokenArmazenado)
+		// )
+		// .flatMap(listaPapeis -> {
+		// if (listaPapeis == null || listaPapeis.isEmpty()) {
+		// return Mono.error(new ValidacaoSiscapException(List.of(
+		// "O token do E-Docs é válido, mas o usuário não possui papéis ativos. " +
+		// "Realize um novo login no SISCAP para restaurar a sessão."
+		// )));
+		// }
+		// return Mono.just(tokenArmazenado);
+		// });
+		// })
+		// .onErrorResume(WebClientResponseException.Unauthorized.class,
+		// ex -> Mono.error(new ValidacaoSiscapException(List.of(
+		// "O token do E-Docs expirou. Realize um novo login no SISCAP."
+		// ))));
 
 	}
 
@@ -1624,6 +1624,7 @@ public class IntegraccaoEdocsService {
 				.doOnSuccess(mensagem -> logger.info("SUCESSO: {}", mensagem))
 				.doOnError(erro -> logger.error("ERRO:", erro))
 				.then();
+
 	}
 
 	private Mono<String> assinarArquivoPendenteReativo(Long idPrograma, String idDocumentoAssinarFaseAssinatura) {
@@ -1642,8 +1643,8 @@ public class IntegraccaoEdocsService {
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(token, idDocumentoAssinarFaseAssinatura))
 				.flatMap(ctx -> assinarArquivoFaseAssinatura(ctx, idPrograma))
-				.doOnSuccess(retorno -> finalizaTodasEtapas(idPrograma))
-				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idPrograma))
+				.doOnSuccess( retorno -> finalizaTodasEtapas(idPrograma) )
+				//.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idPrograma))
 				.doOnError(e -> logger.error("Erro ao atualizar parecer {}", idPrograma, e))
 				.thenReturn("Assinaturas pendentes concluída com sucesso.");
 

@@ -7,7 +7,6 @@ import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.enums.TipoStatusAssinaturaEnum;
-import br.gov.es.siscap.enums.edocs.EtapasIntegracaoEdocsEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.Organizacao;
@@ -20,8 +19,6 @@ import br.gov.es.siscap.utils.FormatadorCountAno;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,10 +26,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -233,6 +228,41 @@ public class ProgramaService {
 		this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, assinantesEdocsPrograma);
 	}
 
+	@Transactional
+	public void assinarProgramaEdocs(Long idPrograma, String subAssinante) {
+
+		Programa programa = buscar(idPrograma);
+
+		validarAssinatura(programa, subAssinante);
+
+		String idDocumentoCapturadoEdocs = programa.getIdDocumentoCapturadoEdocs();
+
+		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor(idPrograma, idDocumentoCapturadoEdocs);
+
+		marcarProgramaAssinado(idPrograma, subAssinante);
+
+		// return Mono.fromCallable(() -> this.buscarComAssinaturasEPessoas(idPrograma))
+		// .subscribeOn(Schedulers.boundedElastic()) // JPA aqui
+		// .flatMap(programa -> {
+		// validarAssinatura( programa, subAssinante );
+		// return integracaoEdocsService
+		// .assinarArquivoFaseAssinaturaEdocsServidor(
+		// idPrograma,
+		// programa.getIdDocumentoCapturadoEdocs())
+		// .flatMap(
+		// retorno -> Mono.fromRunnable(() -> marcarProgramaAssinado(idPrograma,
+		// subAssinante))
+		// .subscribeOn(Schedulers.boundedElastic()));
+		// })
+		// .doOnError(erro -> {
+		// String erroBuscarToken = "Erro ao executar processo de assinatura do
+		// programa.";
+		// logger.error(erroBuscarToken, erro.getMessage());
+		// })
+		// .then();
+
+	}
+
 	private void marcarComoAguardandoAssinaturas(Long idPrograma, List<String> assinantesEdocsPrograma) {
 		logger.info("Registra as pendencias de assinatura no programa;");
 		Programa programa = this.buscar(idPrograma);
@@ -310,28 +340,6 @@ public class ProgramaService {
 
 	}
 
-	public Mono<Void> assinarProgramaEdocs(Long idPrograma, String subAssinante) {
-
-		return Mono.fromCallable(() -> this.buscarComAssinaturasEPessoas(idPrograma))
-				.subscribeOn(Schedulers.boundedElastic()) // JPA aqui
-				.flatMap(programa -> {
-					validarAssinatura(programa, subAssinante);
-					return integracaoEdocsService
-							.assinarArquivoFaseAssinaturaEdocsServidor(
-									idPrograma,
-									programa.getIdDocumentoCapturadoEdocs())
-							.flatMap(
-									retorno -> Mono.fromRunnable(() -> marcarProgramaAssinado(idPrograma, subAssinante))
-											.subscribeOn(Schedulers.boundedElastic()));
-				})
-				.doOnError(erro -> {
-					String erroBuscarToken = "Erro ao executar processo de assinatura do programa.";
-					logger.error(erroBuscarToken, erro.getMessage());
-				})
-				.then();
-
-	}
-
 	private void validarAssinatura(Programa programa, String subAssinante) {
 
 		List<String> erros = new ArrayList<>();
@@ -380,7 +388,10 @@ public class ProgramaService {
 		assinatura.setDataAssinatura(LocalDateTime.now());
 		assinatura.setStatusAssinatura(TipoStatusAssinaturaEnum.ASSINADO.getValue());
 
-		programaAssinaturaEdocsRepository.save(assinatura);
+		// logger.info("Transaction active? {}",
+		// 		TransactionSynchronizationManager.isActualTransactionActive());
+
+		programaAssinaturaEdocsRepository.saveAndFlush(assinatura);
 
 	}
 

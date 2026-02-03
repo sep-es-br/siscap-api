@@ -29,12 +29,13 @@ public class AsyncExecutorService {
     public void executarReentranhamentoDicEdocs(Long idProjeto) {
         Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue());
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
-        integracaoEdocsService.reentranharDespacharDicProccessoComplementacaoSUBCAP(resource, nomeArquivo, idProjeto.longValue());
+        integracaoEdocsService.reentranharDespacharDicProccessoComplementacaoSUBCAP(resource, nomeArquivo,
+                idProjeto.longValue());
     }
 
     @Async
     public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos) {
-        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem( idProjeto.longValue(), complementos );
+        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto.longValue(), complementos);
     }
 
     @Async
@@ -43,23 +44,23 @@ public class AsyncExecutorService {
     }
 
     @Async
-    public void assinarCapturaParecerDIC( Long idProjeto, Long idParecer ) {
-        integracaoEdocsService.assinarCapturaParecerDIC( idProjeto, idParecer );
+    public void assinarCapturaParecerDIC(Long idProjeto, Long idParecer) {
+        integracaoEdocsService.assinarCapturaParecerDIC(idProjeto, idParecer);
     }
 
     @Async
-    public void entranharPareceresDIC( Long idProjeto ) {
-        integracaoEdocsService.entranharPareceresDIC( idProjeto );
+    public void entranharPareceresDIC(Long idProjeto) {
+        integracaoEdocsService.entranharPareceresDIC(idProjeto);
     }
 
     @Async
-    public void criarArquivoFaseAssinaturaEdocsServidor( Long idPrograma, List<String> assinantes, String nomeArquivo ) {
-        integracaoEdocsService.enviarArquivoAssinaturasPendentes( idPrograma, assinantes, nomeArquivo );
+    public void criarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, List<String> assinantes, String nomeArquivo) {
+        integracaoEdocsService.enviarArquivoAssinaturasPendentes(idPrograma, assinantes, nomeArquivo);
     }
 
-    // @Async
-    // public void assinarArquivoFaseAssinaturaEdocsServidor( Long idPrograma, String idDocumentoCapturadoEdocs ) {
-    //     integracaoEdocsService.assinarArquivoFaseAssinaturaEdocsServidor( idPrograma, idDocumentoCapturadoEdocs );
-    // }
+    @Async
+    public void assinarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, String idDocumentoCapturadoEdocs) {
+        integracaoEdocsService.assinarArquivoFaseAssinaturaEdocsServidor( idPrograma, idDocumentoCapturadoEdocs );
+    }
 
 }
