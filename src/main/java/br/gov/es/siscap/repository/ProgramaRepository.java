@@ -19,4 +19,7 @@ public interface ProgramaRepository extends JpaRepository<Programa, Long> {
 
 	@Query("select count(p) from Programa p where year(p.criadoEm) = year(current_date)")
 	int contagemAnoAtual();
+
+	
+
 }

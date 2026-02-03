@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 import org.springframework.core.io.Resource;
 
@@ -70,7 +71,7 @@ public class ProgramaController {
 		return ResponseEntity.ok("Programa excluido com sucesso!");
 	}
 
-	@PutMapping("/programa/{idPrograma}/edocs/solicitarassinaturas")
+	@PostMapping("/programa/{idPrograma}/edocs/solicitarassinaturas")
 	public ResponseEntity<Resource> solicitarAssinaturasProgramaEdocs(@PathVariable Long idPrograma) {
 		service.criarArquivoProgramaEdocsAssinaturasPendentes(idPrograma);
 		return ResponseEntity.accepted().build();
@@ -85,6 +86,19 @@ public class ProgramaController {
 				.contentType(MediaType.parseMediaType(contentType))
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + ".pdf\"")
 				.body(resource);
+	}
+
+	@PostMapping("/programa/{idPrograma}/edocs/assinar")
+	public Mono<ResponseEntity<Void>> assinarProgramaEdocs(@PathVariable Long idPrograma,
+			@Valid @RequestBody String subAssinante) {
+		return service.assinarProgramaEdocs(idPrograma, subAssinante)
+				.thenReturn(ResponseEntity.accepted().build());
+	}
+
+	@PostMapping("/programa/{idPrograma}/edocs/autuar")
+	public Mono<ResponseEntity<Void>> autuarProgramaEdocs(@PathVariable Long idPrograma) {
+		return service.autuarProgramaEdocs(idPrograma)
+				.thenReturn(ResponseEntity.accepted().build());
 	}
 
 }

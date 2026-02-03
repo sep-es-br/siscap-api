@@ -6,15 +6,21 @@ import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.enums.TipoStatusAssinaturaEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
+import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
+import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +30,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,6 +52,8 @@ public class ProgramaService {
 	private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
 	private final EmailService emailService;
 	private final AcessoCidadaoService acessoCidadaoService;
+	private final IntegraccaoEdocsService integracaoEdocsService;
+	private final ProgramaAssinaturaEdocsRepository programaAssinaturaEdocsRepository;
 
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
@@ -177,7 +188,7 @@ public class ProgramaService {
 
 	@Transactional
 	public void excluir(Long id) {
-		
+
 		logger.info("Excluindo programa com id: {}", id);
 
 		Programa programa = this.buscar(id);
@@ -218,7 +229,7 @@ public class ProgramaService {
 				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
 		this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma);
 		asyncExecutorService.criarArquivoFaseAssinaturaEdocsServidor(idPrograma, assinantesEdocsPrograma, nomeArquivo);
-		this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma,assinantesEdocsPrograma);
+		this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, assinantesEdocsPrograma);
 	}
 
 	private void marcarComoAguardandoAssinaturas(Long idPrograma, List<String> assinantesEdocsPrograma) {
@@ -243,17 +254,17 @@ public class ProgramaService {
 		List<String> emailsInteressadosList = new ArrayList<String>();
 
 		// para cada sub vai buscar o email no acesso cidadao..
-		subAssinantes.forEach( sub -> {
+		subAssinantes.forEach(sub -> {
 
 			EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
 
 			if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
 				emailsInteressadosList.add(emailsSub.corporativo());
-			}else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+			} else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
 				emailsInteressadosList.add(emailsSub.email());
 			}
 
-			}
+		}
 
 		);
 
@@ -275,7 +286,8 @@ public class ProgramaService {
 
 			if (confirmacaoEnvioEmail) {
 				logger.info(
-						"Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id " + idPrograma);
+						"Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id "
+								+ idPrograma);
 			} else {
 				erros.add("Erro ao enviar aviso para solicitacao de assinaturas do programa id " + idPrograma);
 			}
@@ -292,6 +304,139 @@ public class ProgramaService {
 		}
 
 		return true;
+
+	}
+
+	// public Mono<Void> assinarProgramaEdocs(Long idPrograma, String subAssinante)
+	// {
+
+	// return Mono.fromCallable(() -> this.buscar(idPrograma))
+	// .flatMap(programa -> {
+	// validarAssinatura(programa, subAssinante);
+	// return integracaoEdocsService
+	// .assinarArquivoFaseAssinaturaEdocsServidor(
+	// idPrograma,
+	// programa.getIdDocumentoCapturadoEdocs())
+	// .flatMap(retorno -> marcarProgramaAssinado(idPrograma, subAssinante))
+	// .thenReturn(null);
+	// });
+
+	// }
+
+	public Mono<Void> assinarProgramaEdocs(Long idPrograma, String subAssinante) {
+
+		return Mono.fromCallable(() -> this.buscar(idPrograma))
+				.subscribeOn(Schedulers.boundedElastic()) // JPA aqui
+				.flatMap(programa -> {
+					validarAssinatura(programa, subAssinante);
+
+					return integracaoEdocsService
+							.assinarArquivoFaseAssinaturaEdocsServidor(
+									idPrograma,
+									programa.getIdDocumentoCapturadoEdocs())
+							.flatMap(
+									retorno -> Mono.fromRunnable(() -> marcarProgramaAssinado(idPrograma, subAssinante))
+											.subscribeOn(Schedulers.boundedElastic()));
+				})
+				.then();
+	}
+
+	private void validarAssinatura(Programa programa, String subAssinante) {
+
+		List<String> erros = new ArrayList<>();
+
+		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
+
+		if (!assinantesDevemAssinarPrograma.stream()
+				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante))) {
+			erros.add(
+					"Assinante informado, sub " + subAssinante + ", não faz parte da lista de assinantes do programa.");
+		}
+
+		if (assinantesDevemAssinarPrograma.stream()
+				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante)
+						&& assinante.getDataAssinatura() != null)) {
+			erros.add("Documento já foi assinado pelo sub " + subAssinante + ".");
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+	}
+
+	@Transactional
+	public void marcarProgramaAssinado(Long idPrograma, String subAssinante) {
+
+		Programa programa = repository.findById(idPrograma)
+				.orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));
+
+		ProgramaAssinaturaEdocs assinatura = programa.getProgramaAssinantesEdocsSet()
+				.stream()
+				.filter(a -> subAssinante.equals(a.getPessoa().getSub()))
+				.findFirst()
+				.orElseThrow(() -> new ValidacaoSiscapException(
+						List.of("Existe(m) documento(s) a serem assinados.")));
+
+		assinatura.setDataAssinatura(LocalDateTime.now());
+		assinatura.setStatusAssinatura(TipoStatusAssinaturaEnum.ASSINADO.getValue());
+
+		programaAssinaturaEdocsRepository.save(assinatura);
+
+	}
+
+	public Mono<Void> autuarProgramaEdocs(Long idPrograma) {
+
+		return Mono.fromCallable(() -> this.buscar(idPrograma))
+				.flatMap(programa -> {
+					validarSeTodasAssinaturasForamRealizadas(programa);
+					return integracaoEdocsService
+							.autuarProgramaProjetoReativo(
+									idPrograma,
+									programa.getIdDocumentoCapturadoEdocs())
+							.flatMap(retorno -> {
+								String idProcessoEdocs = "";
+								String protocoloEdocs = "";
+								atualizaDadosProgramaAutuado(idPrograma, idProcessoEdocs, protocoloEdocs);
+								return null;
+							})
+							.thenReturn(null);
+				});
+
+	}
+
+	@Transactional
+	public Mono<Void> atualizaDadosProgramaAutuado(Long idPrograma, String idProcessoEdocs, String protocoloEdocs) {
+
+		Programa programa = repository.findById(idPrograma)
+				.orElseThrow(() -> new ValidacaoSiscapException(Arrays.asList("Programa não encontrado.")));
+
+		programa.setIdProcessoEdocs(idProcessoEdocs);
+		programa.setProtocoloEdocs(protocoloEdocs);
+
+		repository.save(programa);
+
+		return Mono.empty();
+
+	}
+
+	private void validarSeTodasAssinaturasForamRealizadas(Programa programa) {
+
+		List<String> erros = new ArrayList<>();
+
+		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
+
+		if (!assinantesDevemAssinarPrograma.stream()
+				.anyMatch(assinante -> assinante.getDataAssinatura() == null)) {
+			erros.add(
+					"Programa com assinatura ainda pendente.");
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
 
 	}
 

@@ -100,4 +100,8 @@ public interface EdocsWebClient {
 	DadosDocumentoDto buscarDadosArquivo(@RequestHeader("Authorization") String bearerToken,
 			@PathVariable String idDocumento);
 
+	@PostMapping("/v2/documentos/fase-assinatura/assinar/{idDocumentoFaseAssinatura}")
+	String assinarDocumentoEDocsFaseAssinatura(@RequestHeader("Authorization") String bearerToken,
+			@PathVariable String idDocumentoFaseAssinatura);
+
 }
