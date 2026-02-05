@@ -91,15 +91,15 @@ public class ProgramaController {
 
 	@PostMapping("/programa/{idPrograma}/edocs/assinar")
 	public ResponseEntity<Resource> assinarProgramaEdocs(@PathVariable Long idPrograma,
-			@Valid @RequestBody AssinanteRequestDto request ) {
+			@Valid @RequestBody AssinanteRequestDto request) {
 		service.assinarProgramaEdocs( idPrograma, request.subAssinante() );
 		return ResponseEntity.accepted().build();
 	}
 
 	@PostMapping("/programa/{idPrograma}/edocs/autuar")
-	public Mono<ResponseEntity<Void>> autuarProgramaEdocs(@PathVariable Long idPrograma) {
-		return service.autuarProgramaEdocs(idPrograma)
-				.thenReturn(ResponseEntity.accepted().build());
+	public ResponseEntity<Void> autuarProgramaEdocs(@PathVariable Long idPrograma) {
+		 service.autuarProgramaEdocs(idPrograma);
+		 return ResponseEntity.accepted().build();
 	}
 
 }

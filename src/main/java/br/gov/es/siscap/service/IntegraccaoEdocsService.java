@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.client.EdocsWebClient;
+import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
@@ -28,7 +29,6 @@ import reactor.util.retry.Retry;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -1496,7 +1496,8 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	public void enviarArquivoAssinaturasPendentes(Long idPrograma, List<String> assinantes, String nomeArquivo) {
+	public Mono<String> enviarArquivoAssinaturasPendentes(Long idPrograma, List<String> assinantes,
+			String nomeArquivo) {
 
 		logger.info("Iniciando processo para criar arquivo no E-Docs com pendencia de suas assinaturas..");
 
@@ -1517,17 +1518,16 @@ public class IntegraccaoEdocsService {
 				.orElseGet(() -> listaPapeisUsuario.stream().findFirst().orElse(null))
 				.Guid();
 
-		this.capturarArquivoAssinaturaPendentesReativo(idPrograma, resourceArquivo, nomeArquivo, guidPapelUsuario,
-				assinantes)
-				.subscribe(
-						mensagem -> logger.info("SUCESSO: {}", mensagem),
-						erro -> logger.info("ERRO: {}", erro));
-
-		return;
+		return this
+				.capturarArquivoAssinaturaPendentesReativo(idPrograma, resourceArquivo, nomeArquivo, guidPapelUsuario,
+						assinantes)
+				.map(dto -> dto.getIdDocumentoAssinarFaseAssinatura())
+				.flatMap(idDocumento -> Mono.just(idDocumento));
 
 	}
 
-	private Mono<String> capturarArquivoAssinaturaPendentesReativo(Long idPrograma, Resource arquivo,
+	private Mono<FluxoContextoIntegracaoDto> capturarArquivoAssinaturaPendentesReativo(Long idPrograma,
+			Resource arquivo,
 			String nomeArquivo, String idPapelCapturador, List<String> assinantes) {
 
 		final long tamanho;
@@ -1552,13 +1552,12 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
 				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
 				.flatMap(ctx -> enviarArquivoFaseAssinatura(ctx, arquivo, nomeArquivo, idPapelCapturador, idPrograma))
-				.doOnSuccess(retorno -> finalizaTodasEtapas(idPrograma))
-				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idPrograma))
-				.doOnSuccess(sucesso -> {
-					logger.info("Parecer {} atualizado com sucesso", idPrograma);
+				.doOnSuccess(retorno -> {
+					finalizaTodasEtapas(idPrograma);
+					logger.info("Arquivo {} capturado em fase de assinatur com sucesso", nomeArquivo);
 				})
-				.doOnError(e -> logger.error("Erro ao atualizar parecer {}", idPrograma, e))
-				.thenReturn("Criação arquivo com assinaturas pendentes concluída com sucesso.");
+				.doOnError(e -> logger.error("Erro ao capturar arquivo {} em fase de assinatura no E-Docs. {}",
+						nomeArquivo, e));
 
 	}
 
@@ -1575,10 +1574,9 @@ public class IntegraccaoEdocsService {
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
 				.timeout(Duration.ofMinutes(1))
-				.switchIfEmpty(
-						Mono.error(new RuntimeException(
-								"Falha ao consultar situacao do evento de envio do arquivo fase de assinatura.")))
-				.doOnSuccess(retorno -> ctx.setIdEventoEntranhamento(retorno.replace("\"", "")))
+				.switchIfEmpty(Mono.error(new RuntimeException(
+						"Falha ao consultar situacao do evento de envio do arquivo fase de assinatura.")))
+				.doOnSuccess(retorno -> ctx.setIdDocumentoAssinarFaseAssinatura(retorno.replace("\"", "")))
 				.doOnError(e -> {
 					logger.error(
 							"Falha ao executar chamada ao endpoint para envio do arquivo fase de assinatura via E-Docs.",
@@ -1643,8 +1641,9 @@ public class IntegraccaoEdocsService {
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(token, idDocumentoAssinarFaseAssinatura))
 				.flatMap(ctx -> assinarArquivoFaseAssinatura(ctx, idPrograma))
-				.doOnSuccess( retorno -> finalizaTodasEtapas(idPrograma) )
-				//.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idPrograma))
+				.doOnSuccess(retorno -> finalizaTodasEtapas(idPrograma))
+				// .doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}",
+				// idPrograma))
 				.doOnError(e -> logger.error("Erro ao atualizar parecer {}", idPrograma, e))
 				.thenReturn("Assinaturas pendentes concluída com sucesso.");
 
@@ -1703,12 +1702,92 @@ public class IntegraccaoEdocsService {
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(token, idPrograma, documentoEntranhar))
-				.flatMap(ctx -> autuarProcessoMono(ctx))
+				.flatMap(ctx -> autuarProcessoMonoPrograma(ctx))
 				.flatMap(ctx -> consultarSituacaoEventoAtuacao(ctx))
 				.flatMap(ctx -> despacharProcessoDIC(ctx))
 				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
 				.doOnSuccess(retorno -> this.atualizarEtapa(idPrograma, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
 						true, true));
+
+	}
+
+	private String autuarProcessoPrograma(ProgramaDto programaDTO, String token, String idDocumentoCapturado ) {
+
+		logger.info("Iniciar autuacao do processo para o programa id {} - documento id {}.", programaDTO.id(),
+				idDocumentoCapturado);
+
+		String idClasse = classeDocumentoId;
+
+		// pegar o sub da pessoa responsavel da equipe do programa
+		// FAZER TEMPORARIO PEGAR A PRIMEIRA PESSOA DA EQUIPE mas mudar a gravação do programa
+		// para gravar a pessoa que criou o PROGRAMA
+		String subPessoaResponsavelPrograma = programaDTO.equipeCaptacao().stream().findFirst().map( equipe -> equipe.subPessoa() ).orElse("") ;
+
+		List<ACAgentePublicoPapelDto> papeisAgentePublico = AcessoCidadaoService
+				.listarPapeisAgentePublicoPorSub( subPessoaResponsavelPrograma );
+
+		String idPapelResponsavel = papeisAgentePublico.stream()
+				.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
+				.findFirst()
+				.map(ACAgentePublicoPapelDto::Guid)
+				.orElseGet(() -> papeisAgentePublico.stream()
+						.findFirst()
+						.map(ACAgentePublicoPapelDto::Guid)
+						.orElse(""));
+
+		String idLocal = papeisAgentePublico.stream()
+				.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
+				.findFirst()
+				.map(ACAgentePublicoPapelDto::LotacaoGuid)
+				.orElseGet(() -> papeisAgentePublico.stream()
+						.findFirst()
+						.map(ACAgentePublicoPapelDto::LotacaoGuid)
+						.orElse(""));
+
+		String resumo = String.format("AUTUAÇÃO PROGRAMA - %s", programaDTO.titulo() );
+
+		List<String> idsAgentesInteressados = programaDTO.equipeCaptacao()
+				.stream()
+				.map(membro -> membro.subPessoa())
+				.collect(Collectors.toList());
+
+		// Optional.ofNullable(projetoDTO.subResponsavelProponente())
+		// 		.filter(v -> !idsAgentesInteressados.contains(v))
+		// 		.ifPresent(idsAgentesInteressados::add);
+
+		// Optional.ofNullable(projetoDTO.subProponente())
+		// 		.filter(v -> !idsAgentesInteressados.contains(v))
+		// 		.ifPresent(idsAgentesInteressados::add);
+
+		List<String> idsDocumentosEntranhados = List.of(idDocumentoCapturado);
+
+		AutuarProjetoDto autuarProjetoDto = new AutuarProjetoDto(idClasse, idPapelResponsavel, idLocal, resumo,
+				idsAgentesInteressados, idsDocumentosEntranhados);
+
+		return EdocsWebClient.autuarProcesso(token, autuarProjetoDto);
+
+	}
+
+	private Mono<FluxoContextoIntegracaoDto> autuarProcessoMonoPrograma(FluxoContextoIntegracaoDto ctx) {
+
+		logger.info("Iniciando autuacao do processo referente ao DIC no E-Docs.");
+
+		return FeignReativo.fromFeign(() -> autuarProcessoPrograma(
+				ctx.getProgramaDto(),
+				ctx.getToken(),
+				ctx.getIdDocumentos()[0]))
+				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+				.switchIfEmpty(Mono.error(new RuntimeException(
+						"Falha ao executar chamada ao endpoint para autuar um processo via E-Docs.")))
+				.doOnSuccess(IdEventoComandoAutuacao -> {
+					logger.info("Autuacao foi comandada no E-Docs - ID {}", IdEventoComandoAutuacao);
+					ctx.setIdEventoAutuar(IdEventoComandoAutuacao.replace("\"", ""));
+				})
+				.doOnError(e -> {
+					logger.error("Falha ao executar chamada ao endpoint para autuar um processo via E-Docs. {}", e);
+					this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.AUTUAR);
+				})
+				.thenReturn(ctx);
 
 	}
 

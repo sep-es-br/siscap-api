@@ -2,12 +2,16 @@ package br.gov.es.siscap.service;
 
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.models.Programa;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -17,6 +21,8 @@ public class AsyncExecutorService {
     private final RelatoriosService relatoriosService;
     private final ProjetoService service;
     private final IntegraccaoEdocsService integracaoEdocsService;
+    private final ProgramaProcessamentoService programaProcessamentoService;
+    private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
     @Async
     public void executarAutuacaoEdocs(Long idProjeto) {
@@ -54,13 +60,54 @@ public class AsyncExecutorService {
     }
 
     @Async
-    public void criarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, List<String> assinantes, String nomeArquivo) {
-        integracaoEdocsService.enviarArquivoAssinaturasPendentes(idPrograma, assinantes, nomeArquivo);
+    public void criarArquivoProgramaFaseAssinaturaEdocsServidor(Long idPrograma, List<String> assinantes,
+            String nomeArquivo) {
+        integracaoEdocsService.enviarArquivoAssinaturasPendentes(idPrograma, assinantes, nomeArquivo)
+                .doOnSuccess(idDocumento -> {
+                    programaProcessamentoService
+                            .marcarCriacaoArquivoProgramaEdocs(
+                                    idPrograma,
+                                    assinantes,
+                                    idDocumento);
+                })
+                .doOnError(e -> {
+                    logger.error("Erro ao integrar com E-Docs para criar arquivo em fase assinatura. Programa {}",
+                            idPrograma, e);
+                })
+                .subscribe();
     }
 
     @Async
-    public void assinarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, String idDocumentoCapturadoEdocs) {
-        integracaoEdocsService.assinarArquivoFaseAssinaturaEdocsServidor( idPrograma, idDocumentoCapturadoEdocs );
+    public void assinarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, String idDocumentoCapturadoEdocs,
+            String subAssinante) {
+        integracaoEdocsService.assinarArquivoFaseAssinaturaEdocsServidor(idPrograma, idDocumentoCapturadoEdocs)
+                .doOnSuccess(idDocumento -> {
+                    programaProcessamentoService
+                            .marcarProgramaAssinado(
+                                    idPrograma,
+                                    subAssinante);
+                })
+                .doOnError(e -> {
+                    logger.error("Erro ao integrar com E-Docs para assinar arquivo em fase assinatura. Programa {}",
+                            idPrograma, e);
+                })
+                .subscribe();
+    }
+
+    @Async
+    public void autuarProgramaEdocs(ProgramaDto programaDto) {
+        integracaoEdocsService.autuarProgramaProjetoReativo(
+            programaDto.id(),
+			programaDto.idDocumentoCapturadoEdocs())
+            .doOnSuccess( ctx -> {
+                programaProcessamentoService
+                        .marcarProgramaAutuadoEdocsEAvisoAutuado(programaDto.id(), ctx.getAssinantes(), ctx.getProtocolo() , ctx.getIdProcesso() ) ;
+            })
+            .doOnError(e -> {
+                logger.error("Erro ao integrar com E-Docs para assinar arquivo em fase assinatura. Programa {}",
+                programaDto.id(), e);
+            })
+            .subscribe();
     }
 
 }

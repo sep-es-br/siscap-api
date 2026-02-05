@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record ProgramaDto(
-
 		Long id,
 		String sigla,
 		String titulo,
@@ -17,8 +16,9 @@ public record ProgramaDto(
 		ValorDto valor,
 		BigDecimal percentualCustoAdministrativo,
 		BigDecimal valorCalculadoTotal,
-		List<ProgramaAssinaturaEdocsDto> programaAssinantesEdocsDto
-
+		List<ProgramaAssinaturaEdocsDto> programaAssinantesEdocsDto,
+		String protocoloEdocs,
+		String idDocumentoCapturadoEdocs
 ) {
 
 	public ProgramaDto(Programa programa, List<EquipeDto> equipeCaptacao, List<Long> idProjetoPropostoList) {
@@ -42,6 +42,8 @@ public record ProgramaDto(
 										assinante.getStatusAssinatura(),
 										assinante.getDataAssinatura(),
 										assinante.getPessoa().getNome()))
-								.toList());
+								.toList(),
+				programa.getProtocoloEdocs(),
+				programa.getIdDocumentoCapturadoEdocs());
 	}
 }

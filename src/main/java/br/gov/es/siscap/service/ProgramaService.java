@@ -1,9 +1,7 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
 import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaDto;
-import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.enums.TipoStatusAssinaturaEnum;
@@ -16,7 +14,6 @@ import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
 import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 import org.apache.logging.log4j.LogManager;
@@ -26,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,9 +41,9 @@ public class ProgramaService {
 	private final PessoaService pessoaService;
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final AsyncExecutorService asyncExecutorService;
-	private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
-	private final EmailService emailService;
-	private final AcessoCidadaoService acessoCidadaoService;
+	//private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
+	//private final EmailService emailService;
+	//private final AcessoCidadaoService acessoCidadaoService;
 	private final IntegraccaoEdocsService integracaoEdocsService;
 	private final ProgramaAssinaturaEdocsRepository programaAssinaturaEdocsRepository;
 
@@ -218,126 +214,18 @@ public class ProgramaService {
 				programa.getCountAno();
 	}
 
-	@Transactional
 	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma) {
 		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
 		List<String> assinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
 				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
-		this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma);
-		asyncExecutorService.criarArquivoFaseAssinaturaEdocsServidor(idPrograma, assinantesEdocsPrograma, nomeArquivo);
-		this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, assinantesEdocsPrograma);
+		asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, assinantesEdocsPrograma, nomeArquivo);
 	}
 
-	@Transactional
 	public void assinarProgramaEdocs(Long idPrograma, String subAssinante) {
-
-		Programa programa = buscar(idPrograma);
-
-		validarAssinatura(programa, subAssinante);
-
+		Programa programa = this.buscar(idPrograma);
+		this.validarAssinatura(programa, subAssinante);
 		String idDocumentoCapturadoEdocs = programa.getIdDocumentoCapturadoEdocs();
-
-		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor(idPrograma, idDocumentoCapturadoEdocs);
-
-		marcarProgramaAssinado(idPrograma, subAssinante);
-
-		// return Mono.fromCallable(() -> this.buscarComAssinaturasEPessoas(idPrograma))
-		// .subscribeOn(Schedulers.boundedElastic()) // JPA aqui
-		// .flatMap(programa -> {
-		// validarAssinatura( programa, subAssinante );
-		// return integracaoEdocsService
-		// .assinarArquivoFaseAssinaturaEdocsServidor(
-		// idPrograma,
-		// programa.getIdDocumentoCapturadoEdocs())
-		// .flatMap(
-		// retorno -> Mono.fromRunnable(() -> marcarProgramaAssinado(idPrograma,
-		// subAssinante))
-		// .subscribeOn(Schedulers.boundedElastic()));
-		// })
-		// .doOnError(erro -> {
-		// String erroBuscarToken = "Erro ao executar processo de assinatura do
-		// programa.";
-		// logger.error(erroBuscarToken, erro.getMessage());
-		// })
-		// .then();
-
-	}
-
-	private void marcarComoAguardandoAssinaturas(Long idPrograma, List<String> assinantesEdocsPrograma) {
-		logger.info("Registra as pendencias de assinatura no programa;");
-		Programa programa = this.buscar(idPrograma);
-		if (programaAssinaturaEdocsService.buscarPorPrograma(programa).isEmpty()) {
-			programaAssinaturaEdocsService.cadastrar(programa, assinantesEdocsPrograma);
-		}
-	}
-
-	@Transactional
-	public boolean enviarAvisoSolicitarAssinaturaPrograma(Long idPrograma, List<String> subAssinantes) {
-
-		List<String> erros = new ArrayList<>();
-
-		if (subAssinantes.isEmpty()) {
-			erros.add("Erro ao enviar solicitação para assinatura do programa id " + idPrograma
-					+ " assinaturas não informadas.");
-			throw new ValidacaoSiscapException(erros);
-		}
-
-		List<String> emailsInteressadosList = new ArrayList<String>();
-
-		// para cada sub vai buscar o email no acesso cidadao..
-		subAssinantes.forEach(sub -> {
-
-			EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
-
-			if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
-				emailsInteressadosList.add(emailsSub.corporativo());
-			} else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
-				emailsInteressadosList.add(emailsSub.email());
-			}
-
-		}
-
-		);
-
-		Programa programa = this.buscar(idPrograma);
-
-		String tituloPrograma = programa.getTitulo();
-		String siglaPrograma = programa.getSigla();
-
-		boolean confirmacaoEnvioEmail;
-
-		try {
-
-			EnvioEmailDicDetalhesDto envioEmailDetalhesDto = new EnvioEmailDicDetalhesDto(idPrograma,
-					"",
-					"",
-					emailsInteressadosList,
-					tituloPrograma,
-					siglaPrograma);
-
-			confirmacaoEnvioEmail = emailService.enviarEmailSolicitandoAssinaturasPrograma(envioEmailDetalhesDto);
-
-			if (confirmacaoEnvioEmail) {
-				logger.info(
-						"Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id "
-								+ idPrograma);
-			} else {
-				erros.add("Erro ao enviar aviso para solicitacao de assinaturas do programa id " + idPrograma);
-			}
-
-		} catch (UnsupportedEncodingException e) {
-			logger.error(e.getMessage());
-		} catch (MessagingException e) {
-			logger.error(e.getMessage());
-		}
-
-		if (!erros.isEmpty()) {
-			erros.forEach(logger::error);
-			throw new ValidacaoSiscapException(erros);
-		}
-
-		return true;
-
+		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor(idPrograma, idDocumentoCapturadoEdocs, subAssinante);
 	}
 
 	private void validarAssinatura(Programa programa, String subAssinante) {
@@ -372,47 +260,11 @@ public class ProgramaService {
 
 	}
 
-	@Transactional
-	public void marcarProgramaAssinado(Long idPrograma, String subAssinante) {
-
-		Programa programa = repository.findById(idPrograma)
-				.orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));
-
-		ProgramaAssinaturaEdocs assinatura = programa.getProgramaAssinantesEdocsSet()
-				.stream()
-				.filter(a -> subAssinante.equals(a.getPessoa().getSub()))
-				.findFirst()
-				.orElseThrow(() -> new ValidacaoSiscapException(
-						List.of("Existe(m) documento(s) a serem assinados.")));
-
-		assinatura.setDataAssinatura(LocalDateTime.now());
-		assinatura.setStatusAssinatura(TipoStatusAssinaturaEnum.ASSINADO.getValue());
-
-		// logger.info("Transaction active? {}",
-		// 		TransactionSynchronizationManager.isActualTransactionActive());
-
-		programaAssinaturaEdocsRepository.saveAndFlush(assinatura);
-
-	}
-
-	public Mono<Void> autuarProgramaEdocs(Long idPrograma) {
-
-		return Mono.fromCallable(() -> this.buscar(idPrograma))
-				.flatMap(programa -> {
-					validarSeTodasAssinaturasForamRealizadas(programa);
-					return integracaoEdocsService
-							.autuarProgramaProjetoReativo(
-									idPrograma,
-									programa.getIdDocumentoCapturadoEdocs())
-							.flatMap(retorno -> {
-								String idProcessoEdocs = "";
-								String protocoloEdocs = "";
-								atualizaDadosProgramaAutuado(idPrograma, idProcessoEdocs, protocoloEdocs);
-								return null;
-							})
-							.thenReturn(null);
-				});
-
+	public void autuarProgramaEdocs(Long idPrograma) {
+		Programa programa = this.buscar(idPrograma);
+		this.validarSeTodasAssinaturasForamRealizadas(programa);
+		ProgramaDto programaDto = this.buscarPorId(idPrograma);
+		asyncExecutorService.autuarProgramaEdocs(programaDto);
 	}
 
 	@Transactional

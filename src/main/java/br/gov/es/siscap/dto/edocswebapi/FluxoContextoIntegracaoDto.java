@@ -2,6 +2,7 @@ package br.gov.es.siscap.dto.edocswebapi;
 
 import java.util.List;
 
+import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProjetoDto;
 import lombok.Data;
 
@@ -36,6 +37,7 @@ public class FluxoContextoIntegracaoDto {
     private List<String> assinantes;
     private String idDocumentoAssinarFaseAssinatura;
     private Long idPrograma;
+    private ProgramaDto programaDto;
 
     public FluxoContextoIntegracaoDto(ProjetoDto projeto, String token ) {
         this.projeto = projeto;
