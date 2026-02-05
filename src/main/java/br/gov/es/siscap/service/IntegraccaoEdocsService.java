@@ -1679,7 +1679,7 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	public Mono<FluxoContextoIntegracaoDto> autuarProgramaProjetoReativo(Long idPrograma, String idDocumentoEdocs) {
+	public Mono<FluxoContextoIntegracaoDto> autuarProgramaProjetoReativo(Long idPrograma, String idDocumentoEdocs, ProgramaDto programaDto) {
 
 		String[] documentoEntranhar = { idDocumentoEdocs };
 
@@ -1701,7 +1701,7 @@ public class IntegraccaoEdocsService {
 							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.map(token -> new FluxoContextoIntegracaoDto(token, idPrograma, documentoEntranhar))
+				.map(token -> new FluxoContextoIntegracaoDto(token, idPrograma, documentoEntranhar, programaDto))
 				.flatMap(ctx -> autuarProcessoMonoPrograma(ctx))
 				.flatMap(ctx -> consultarSituacaoEventoAtuacao(ctx))
 				.flatMap(ctx -> despacharProcessoDIC(ctx))
@@ -1770,7 +1770,7 @@ public class IntegraccaoEdocsService {
 
 	private Mono<FluxoContextoIntegracaoDto> autuarProcessoMonoPrograma(FluxoContextoIntegracaoDto ctx) {
 
-		logger.info("Iniciando autuacao do processo referente ao DIC no E-Docs.");
+		logger.info("Iniciando autuacao do processo referente ao Programa id {} no E-Docs.", ctx.getIdPrograma() );
 
 		return FeignReativo.fromFeign(() -> autuarProcessoPrograma(
 				ctx.getProgramaDto(),
@@ -1785,7 +1785,7 @@ public class IntegraccaoEdocsService {
 				})
 				.doOnError(e -> {
 					logger.error("Falha ao executar chamada ao endpoint para autuar um processo via E-Docs. {}", e);
-					this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.AUTUAR);
+					this.registrarFalhaEtapa(ctx.getIdPrograma(), EtapasIntegracaoEdocsEnum.AUTUAR);
 				})
 				.thenReturn(ctx);
 

@@ -41,9 +41,9 @@ public class ProgramaService {
 	private final PessoaService pessoaService;
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final AsyncExecutorService asyncExecutorService;
-	//private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
-	//private final EmailService emailService;
-	//private final AcessoCidadaoService acessoCidadaoService;
+	// private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
+	// private final EmailService emailService;
+	// private final AcessoCidadaoService acessoCidadaoService;
 	private final IntegraccaoEdocsService integracaoEdocsService;
 	private final ProgramaAssinaturaEdocsRepository programaAssinaturaEdocsRepository;
 
@@ -218,14 +218,16 @@ public class ProgramaService {
 		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
 		List<String> assinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
 				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
-		asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, assinantesEdocsPrograma, nomeArquivo);
+		asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, assinantesEdocsPrograma,
+				nomeArquivo);
 	}
 
 	public void assinarProgramaEdocs(Long idPrograma, String subAssinante) {
 		Programa programa = this.buscar(idPrograma);
 		this.validarAssinatura(programa, subAssinante);
 		String idDocumentoCapturadoEdocs = programa.getIdDocumentoCapturadoEdocs();
-		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor(idPrograma, idDocumentoCapturadoEdocs, subAssinante);
+		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor(idPrograma, idDocumentoCapturadoEdocs,
+				subAssinante);
 	}
 
 	private void validarAssinatura(Programa programa, String subAssinante) {
@@ -288,7 +290,7 @@ public class ProgramaService {
 
 		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
 
-		if (!assinantesDevemAssinarPrograma.stream()
+		if (assinantesDevemAssinarPrograma.stream()
 				.anyMatch(assinante -> assinante.getDataAssinatura() == null)) {
 			erros.add(
 					"Programa com assinatura ainda pendente.");

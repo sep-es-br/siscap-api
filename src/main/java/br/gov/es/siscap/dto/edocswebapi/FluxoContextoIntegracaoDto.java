@@ -60,10 +60,11 @@ public class FluxoContextoIntegracaoDto {
         this.idDocumentoAssinarFaseAssinatura = idDocumentoAssinarFaseAssinatura;
     }
 
-    public FluxoContextoIntegracaoDto( String token, Long idPrograma, String[] idDocumentos ) {
+    public FluxoContextoIntegracaoDto( String token, Long idPrograma, String[] idDocumentos, ProgramaDto programaDto ) {
         this.token = token;
         this.idPrograma = idPrograma;
         this.idDocumentos = idDocumentos;
+        this.programaDto = programaDto;
     }
 
 }

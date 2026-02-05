@@ -98,13 +98,13 @@ public class AsyncExecutorService {
     public void autuarProgramaEdocs(ProgramaDto programaDto) {
         integracaoEdocsService.autuarProgramaProjetoReativo(
             programaDto.id(),
-			programaDto.idDocumentoCapturadoEdocs())
+			programaDto.idDocumentoCapturadoEdocs(), programaDto)
             .doOnSuccess( ctx -> {
                 programaProcessamentoService
                         .marcarProgramaAutuadoEdocsEAvisoAutuado(programaDto.id(), ctx.getAssinantes(), ctx.getProtocolo() , ctx.getIdProcesso() ) ;
             })
             .doOnError(e -> {
-                logger.error("Erro ao integrar com E-Docs para assinar arquivo em fase assinatura. Programa {}",
+                logger.error("Erro ao autuar um novo processo no E-Docs. Programa {}",
                 programaDto.id(), e);
             })
             .subscribe();
