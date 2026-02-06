@@ -16,6 +16,7 @@ import br.gov.es.siscap.dto.edocswebapi.PapeisUsuarioEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.ProcessoDocumentosAtoProcessoDto;
 import br.gov.es.siscap.dto.edocswebapi.ProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.ProcessoVinculadoDocumentoDto;
+import br.gov.es.siscap.dto.edocswebapi.RetornoAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.SituacaoEventoDto;
 
 import java.util.List;
@@ -101,7 +102,7 @@ public interface EdocsWebClient {
 			@PathVariable String idDocumento);
 
 	@PostMapping("/v2/documentos/fase-assinatura/assinar/{idDocumentoFaseAssinatura}")
-	String assinarDocumentoEDocsFaseAssinatura(@RequestHeader("Authorization") String bearerToken,
+	RetornoAssinaturaEdocsDto assinarDocumentoEDocsFaseAssinatura(@RequestHeader("Authorization") String bearerToken,
 			@PathVariable String idDocumentoFaseAssinatura);
 
 }

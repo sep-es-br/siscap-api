@@ -13,7 +13,8 @@ public enum EtapasIntegracaoEdocsEnum {
     DESPACHARPROCESSO(4),
     AVOCAR(5),
     DESENTRANHAR(6),
-    CAPTURAASSINAPENDENTE(7);
+    CAPTURAASSINAPENDENTE(7),
+    ASSINADO(8);
     
     private final int value;
 

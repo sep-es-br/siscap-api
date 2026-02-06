@@ -219,4 +219,16 @@ public class ProgramaProcessamentoService {
 
     }
 
+    @Transactional
+    public void atualizarIdDocumentoEdocsNoPrograma (Long idPrograma, String idDocumentoAutuadoEdocs) {
+
+        Programa programa = repository.findById(idPrograma)
+                .orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));
+
+        programa.setIdDocumentoCapturadoEdocs(idDocumentoAutuadoEdocs);
+    
+        repository.saveAndFlush(programa);
+
+    }
+
 }

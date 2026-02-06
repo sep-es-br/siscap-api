@@ -62,6 +62,7 @@ public class AsyncExecutorService {
     @Async
     public void criarArquivoProgramaFaseAssinaturaEdocsServidor(Long idPrograma, List<String> assinantes,
             String nomeArquivo) {
+
         integracaoEdocsService.enviarArquivoAssinaturasPendentes(idPrograma, assinantes, nomeArquivo)
                 .doOnSuccess(idDocumento -> {
                     programaProcessamentoService
@@ -75,17 +76,29 @@ public class AsyncExecutorService {
                             idPrograma, e);
                 })
                 .subscribe();
+
     }
 
     @Async
     public void assinarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, String idDocumentoCapturadoEdocs,
             String subAssinante) {
-        integracaoEdocsService.assinarArquivoFaseAssinaturaEdocsServidor(idPrograma, idDocumentoCapturadoEdocs)
-                .doOnSuccess(idDocumento -> {
+
+        integracaoEdocsService.assinarArquivoPendenteReativo( idPrograma, idDocumentoCapturadoEdocs )
+                .doOnSuccess( idDocumentoAutuado -> {
+
+                    if (idDocumentoAutuado != null) {
+                        programaProcessamentoService
+                                .atualizarIdDocumentoEdocsNoPrograma(
+                                        idPrograma,
+                                        idDocumentoAutuado
+                                );
+                    }
+
                     programaProcessamentoService
                             .marcarProgramaAssinado(
                                     idPrograma,
                                     subAssinante);
+                                    
                 })
                 .doOnError(e -> {
                     logger.error("Erro ao integrar com E-Docs para assinar arquivo em fase assinatura. Programa {}",
@@ -97,17 +110,18 @@ public class AsyncExecutorService {
     @Async
     public void autuarProgramaEdocs(ProgramaDto programaDto) {
         integracaoEdocsService.autuarProgramaProjetoReativo(
-            programaDto.id(),
-			programaDto.idDocumentoCapturadoEdocs(), programaDto)
-            .doOnSuccess( ctx -> {
-                programaProcessamentoService
-                        .marcarProgramaAutuadoEdocsEAvisoAutuado(programaDto.id(), ctx.getAssinantes(), ctx.getProtocolo() , ctx.getIdProcesso() ) ;
-            })
-            .doOnError(e -> {
-                logger.error("Erro ao autuar um novo processo no E-Docs. Programa {}",
-                programaDto.id(), e);
-            })
-            .subscribe();
+                programaDto.id(),
+                programaDto.idDocumentoCapturadoEdocs(), programaDto)
+                .doOnSuccess(ctx -> {
+                    programaProcessamentoService
+                            .marcarProgramaAutuadoEdocsEAvisoAutuado(programaDto.id(), ctx.getAssinantes(),
+                                    ctx.getProtocolo(), ctx.getIdProcesso());
+                })
+                .doOnError(e -> {
+                    logger.error("Erro ao autuar um novo processo no E-Docs. Programa {}",
+                            programaDto.id(), e);
+                })
+                .subscribe();
     }
 
 }
