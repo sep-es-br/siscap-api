@@ -58,16 +58,17 @@ public class FluxoContextoIntegracaoDto {
         this.assinantes = assinantes;
     }
 
-    public FluxoContextoIntegracaoDto( String token, String idEventoAssinatura ) {
-        this.token = token;
-        this.idEventoAssinatura = idEventoAssinatura;
-    }
-
     public FluxoContextoIntegracaoDto( String token, Long idPrograma, String[] idDocumentos, ProgramaDto programaDto ) {
         this.token = token;
         this.idPrograma = idPrograma;
         this.idDocumentos = idDocumentos;
         this.programaDto = programaDto;
+    }
+
+    public FluxoContextoIntegracaoDto( String token, String idDocumentoFaseAssinatura, String idEventoAssinatura ) {
+        this.token = token;
+        this.idEventoAssinatura = idEventoAssinatura;
+        this.idDocumentoAssinarFaseAssinatura = idDocumentoFaseAssinatura;
     }
 
 }

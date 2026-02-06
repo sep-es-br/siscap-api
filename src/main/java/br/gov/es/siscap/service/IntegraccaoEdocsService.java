@@ -1645,9 +1645,10 @@ public class IntegraccaoEdocsService {
 							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.map(token -> new FluxoContextoIntegracaoDto(token, idDocumentoAssinarFaseAssinatura))
+				.map(token -> new FluxoContextoIntegracaoDto(token, idDocumentoAssinarFaseAssinatura, ""))
 				.flatMap(ctx -> assinarArquivoFaseAssinatura(ctx))
-				.flatMap(ctx -> consultarSituacaoEventoAssinatura(ctx))
+				.filter(ctx -> !ctx.getIdEventoAssinatura().isBlank() ) // o id do evento de captura só existe após todos assinarem;
+				.flatMap(ctx -> consultarSituacaoEventoAssinatura(ctx) )
 				.flatMap(ctx -> {
 					var situacao = ctx.getSituacaoEventoAto();
 					if (situacao == null || situacao.idDocumento() == null) {
@@ -1669,10 +1670,12 @@ public class IntegraccaoEdocsService {
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
 				.timeout(Duration.ofMinutes(1))
-				.doOnSuccess(retorno -> {
+				.doOnSuccess( retorno -> {
 					if (retorno.capturado()) {
 						ctx.setIdEventoAssinatura(retorno.idCapturaEvento());
 						finalizaTodasEtapas(ctx.getIdPrograma());
+					}else{
+						ctx.setIdEventoAssinatura("");
 					}
 				})
 				.doOnError(e -> {
@@ -1824,7 +1827,7 @@ public class IntegraccaoEdocsService {
 				.doOnSuccess(resultConsultaEvento -> ctx.setSituacaoEventoAto(resultConsultaEvento))
 				.doOnError(e -> {
 					logger.error("Falha ao consultar situacao evento de ASSINATURA de um documento via E-Docs.", e);
-					registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.ASSINADO);
+					registrarFalhaEtapa(ctx.getIdPrograma() , EtapasIntegracaoEdocsEnum.ASSINADO );
 				})
 				.thenReturn(ctx);
 	}
