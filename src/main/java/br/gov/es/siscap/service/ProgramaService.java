@@ -265,6 +265,7 @@ public class ProgramaService {
 
 	public void autuarProgramaEdocs(Long idPrograma) {
 		Programa programa = this.buscar(idPrograma);
+		this.validarSeProgramaJaFoiAutuado(programa);
 		this.validarSeTodasAssinaturasForamRealizadas(programa);
 		ProgramaDto programaDto = this.buscarPorId(idPrograma);
 		asyncExecutorService.autuarProgramaEdocs(programaDto);
@@ -304,8 +305,23 @@ public class ProgramaService {
 
 	}
 
-	private Programa buscarComAssinaturasEPessoas(Long id) {
-		return repository.buscarPorIdComAssinantesEPessoa(id);
+	private void validarSeProgramaJaFoiAutuado(Programa programa) {
+		List<String> erros = new ArrayList<>();
+		
+		if(!programa.getProtocoloEdocs().isBlank()){
+			erros.add(
+				"Programa já foi autuado sobre o protoclo " + programa.getProtocoloEdocs() + ".");
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
 	}
+
+	// private Programa buscarComAssinaturasEPessoas(Long id) {
+	// 	return repository.buscarPorIdComAssinantesEPessoa(id);
+	// }
 
 }
