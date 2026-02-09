@@ -13,6 +13,7 @@ import br.gov.es.siscap.utils.EnvioAvisoCapturaPareceresEmailBuilder;
 import br.gov.es.siscap.utils.EnvioAvisoParecerGeocSubcapRealizadoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioAvisoPedidoAssinaturaProgramaEmailBuilder;
 import br.gov.es.siscap.utils.EnvioAvisoPedidoParecerGerenciaSubcapEmailBuilder;
+import br.gov.es.siscap.utils.EnvioAvisoProgramaAutuadoEdocsEmailBuilder;
 import br.gov.es.siscap.utils.EnvioAvisoSubcapDicAutuadoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioComplementoDicEmailBuilder;
 import br.gov.es.siscap.utils.EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder;
@@ -69,7 +70,7 @@ public class EmailService {
 	private final EnvioAvisoPedidoParecerGerenciaSubcapEmailBuilder builderEnvioAvisoPedidoParecerGEOC;
 	private final EnvioAvisoParecerGeocSubcapRealizadoEmailBuilder builderEnvioEmailAvisoParecerGEOCRealizado;
 	private final EnvioAvisoPedidoAssinaturaProgramaEmailBuilder envioAvisoPedidoAssinaturaProgramaEmailBuilder;
-	private final EnvioAvisoPedidoAssinaturaProgramaEmailBuilder envioAvisoProgramaAutuadoEmailBuilder;
+	private final EnvioAvisoProgramaAutuadoEdocsEmailBuilder envioAvisoProgramaAutuadoEmailBuilder;
 
 	public boolean enviarEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto, List<String> emailsInteressadosList,
 			String nomeArquivo) throws MessagingException, UnsupportedEncodingException {

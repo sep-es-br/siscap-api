@@ -145,7 +145,7 @@ public class ProgramaProcessamentoService {
     public void marcarProgramaAutuadoEdocsEAvisoAutuado(ProgramaDto programaDto,
             String protocoloEdocs, String idProcessoEdocs) {
 
-        Objects.requireNonNull(programaDto, "programaDto não pode ser nulo");
+        Objects.requireNonNull( programaDto, "programaDto não pode ser nulo" );
 
         marcarProgramaAutuado( programaDto.id(), protocoloEdocs, idProcessoEdocs );
 
@@ -173,20 +173,12 @@ public class ProgramaProcessamentoService {
                 return;
             }
     
-            enviarAvisoProgramaAutuado(programaDto.id(), subsAssinatesList);
+            enviarAvisoProgramaAutuado( programaDto.id(), subsAssinatesList );
     
         } catch (Exception e) {
             logger.error("Erro ao enviar aviso de autuação do programa {}",
                     programaDto.id(), e );
         }
-
-        // List<Long> idsPessoas = programaDto
-        //         .programaAssinantesEdocsDto()
-        //         .stream()
-        //         .map(ProgramaAssinaturaEdocsDto::idPessoa)
-        //         .toList();
-        // List<String> subsAssinatesList = idsPessoas.stream().map( idpessoa -> pessoaService.buscarSubPorId(idpessoa) ).toList(); //
-        // enviarAvisoProgramaAutuado( programaDto.id(), subsAssinatesList );
 
     }
 
@@ -208,8 +200,8 @@ public class ProgramaProcessamentoService {
         List<String> erros = new ArrayList<>();
 
         if (subAssinantes.isEmpty()) {
-            erros.add("Erro ao enviar solicitação para assinatura do programa id " + idPrograma
-                    + " assinaturas não informadas.");
+            erros.add("Erro ao enviar email de aviso sobre autuação do programa id " + idPrograma
+                    + ", assinantes não informados.");
             throw new ValidacaoSiscapException(erros);
         }
 
@@ -242,14 +234,15 @@ public class ProgramaProcessamentoService {
                     siglaPrograma,
                     protocoloEdocsPrograma);
 
-            confirmacaoEnvioEmail = emailService.enviarEmailSolicitandoAssinaturasPrograma(envioEmailDetalhesDto);
+            confirmacaoEnvioEmail = emailService.enviarEmailAvisoProgramaAutuado(envioEmailDetalhesDto);
 
             if (confirmacaoEnvioEmail) {
                 logger.info(
-                        "Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id "
-                                + idPrograma);
+                    "E-mail de aviso de autuação enviado com sucesso. ProgramaId={}, ProtocoloEdocs={}",
+                    idPrograma, protocoloEdocsPrograma
+                );
             } else {
-                erros.add("Erro ao enviar aviso para solicitacao de assinaturas do programa id " + idPrograma);
+                erros.add("Falha ao enviar e-mail de aviso de autuação do programa no E-Docs. ProgramaId= " + idPrograma);
             }
 
         } catch (UnsupportedEncodingException e) {

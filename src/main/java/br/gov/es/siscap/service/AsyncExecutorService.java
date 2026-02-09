@@ -117,7 +117,6 @@ public class AsyncExecutorService {
                     programaProcessamentoService
                             .marcarProgramaAutuadoEdocsEAvisoAutuado( programaDto,
                                     ctx.getProtocolo(), ctx.getIdProcesso() );
-
                 })
                 .doOnError(e -> {
                     logger.error("Erro ao autuar um novo processo no E-Docs. Programa {}",

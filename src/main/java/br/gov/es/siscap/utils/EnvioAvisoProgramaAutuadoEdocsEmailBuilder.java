@@ -29,7 +29,7 @@ public class EnvioAvisoProgramaAutuadoEdocsEmailBuilder extends EmailBuilderBase
 
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) {
-		return ("A minuta do programa de captação de recursos %s - %s foi criada no Siscap - Sistema de Captação de Recursos do Estado do Espírito Santo - foi autuado no E-Docs.")
+		return ("Informamos que a minuta do programa de captação de recursos %s - %s criada no Siscap - Sistema de Captação de Recursos do Estado do Espírito Santo - foi autuado com sucesso no E-Docs.")
 				.formatted(Objects.toString(dto.siglaPrograma(), ""),
 						Objects.toString(dto.tituloPrograma(), ""));
 	}

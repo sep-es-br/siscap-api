@@ -1713,11 +1713,20 @@ public class IntegraccaoEdocsService {
 				.map(token -> new FluxoContextoIntegracaoDto(token, idPrograma, documentoEntranhar, programaDto))
 				.flatMap(ctx -> autuarProcessoMonoPrograma(ctx))
 				.flatMap(ctx -> consultarSituacaoEventoAtuacaoPrograma(ctx))
-				// .flatMap(ctx -> despacharProcessoPrograma(ctx))
-				// .flatMap(ctx -> consultarSituacaoDespacharPrograma(ctx))
-				.doOnSuccess(retorno -> this.atualizarEtapa(idPrograma, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
+				.flatMap(ctx -> consultarDadosAutuacaoEdocs(ctx))
+				.doOnSuccess( retorno -> this.atualizarEtapa(idPrograma, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
 						true, true));
 
+	}
+
+	private Mono<FluxoContextoIntegracaoDto> consultarDadosAutuacaoEdocs(FluxoContextoIntegracaoDto ctx) {
+		return FeignReativo.fromFeign( () -> consultarDadosProcessoEdocs(
+			ctx.getIdProcesso(),
+			ctx.getToken()))
+			.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+			.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para consultar dados do processo via E-Docs.")))
+			.doOnSuccess( retornoDadosProcesso -> ctx.setProtocolo( retornoDadosProcesso.protocolo() ) )
+			.thenReturn(ctx);
 	}
 
 	private String autuarProcessoPrograma(ProgramaDto programaDTO, String token, String idDocumentoCapturado) {
