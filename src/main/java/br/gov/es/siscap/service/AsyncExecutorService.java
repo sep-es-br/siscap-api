@@ -8,6 +8,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 import br.gov.es.siscap.dto.ProjetoDto;
@@ -114,8 +115,9 @@ public class AsyncExecutorService {
                 programaDto.idDocumentoCapturadoEdocs(), programaDto)
                 .doOnSuccess(ctx -> {
                     programaProcessamentoService
-                            .marcarProgramaAutuadoEdocsEAvisoAutuado(programaDto.id(), ctx.getAssinantes(),
-                                    ctx.getProtocolo(), ctx.getIdProcesso());
+                            .marcarProgramaAutuadoEdocsEAvisoAutuado( programaDto,
+                                    ctx.getProtocolo(), ctx.getIdProcesso() );
+
                 })
                 .doOnError(e -> {
                     logger.error("Erro ao autuar um novo processo no E-Docs. Programa {}",

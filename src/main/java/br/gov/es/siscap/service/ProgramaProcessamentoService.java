@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,9 +13,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
+import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
+import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.enums.TipoStatusAssinaturaEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
+import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
 import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
@@ -30,6 +35,7 @@ public class ProgramaProcessamentoService {
     private final EmailService emailService;
     private final ProgramaRepository repository;
     private final ProgramaAssinaturaEdocsRepository programaAssinaturaEdocsRepository;
+    private final PessoaService pessoaService;
 
     private final Logger logger = LogManager.getLogger(ProgramaProcessamentoService.class);
 
@@ -86,7 +92,7 @@ public class ProgramaProcessamentoService {
                     "",
                     emailsInteressadosList,
                     tituloPrograma,
-                    siglaPrograma,"");
+                    siglaPrograma, "");
 
             confirmacaoEnvioEmail = emailService.enviarEmailSolicitandoAssinaturasPrograma(envioEmailDetalhesDto);
 
@@ -136,10 +142,52 @@ public class ProgramaProcessamentoService {
 
     }
 
-    public void marcarProgramaAutuadoEdocsEAvisoAutuado(Long idPrograma, List<String> assinantesEdocsPrograma,
+    public void marcarProgramaAutuadoEdocsEAvisoAutuado(ProgramaDto programaDto,
             String protocoloEdocs, String idProcessoEdocs) {
-        marcarProgramaAutuado(idPrograma, protocoloEdocs, idProcessoEdocs);
-        enviarAvisoProgramaAutuado(idPrograma, assinantesEdocsPrograma);
+
+        Objects.requireNonNull(programaDto, "programaDto não pode ser nulo");
+
+        marcarProgramaAutuado( programaDto.id(), protocoloEdocs, idProcessoEdocs );
+
+        try {
+
+            List<Long> idsPessoas = Optional
+                    .ofNullable(programaDto.programaAssinantesEdocsDto())
+                    .orElse(List.of())
+                    .stream()
+                    .map(ProgramaAssinaturaEdocsDto::idPessoa)
+                    .toList();
+    
+            if (idsPessoas.isEmpty()) {
+                logger.warn("Programa {} autuado sem assinantes para notificação",
+                    programaDto.id());
+                return;
+            }
+    
+            List<String> subsAssinatesList =
+                    pessoaService.buscarSubsPorIds(idsPessoas);
+    
+            if (subsAssinatesList.isEmpty()) {
+                logger.warn("Nenhum sub encontrado para notificação do programa {}",
+                        programaDto.id());
+                return;
+            }
+    
+            enviarAvisoProgramaAutuado(programaDto.id(), subsAssinatesList);
+    
+        } catch (Exception e) {
+            logger.error("Erro ao enviar aviso de autuação do programa {}",
+                    programaDto.id(), e );
+        }
+
+        // List<Long> idsPessoas = programaDto
+        //         .programaAssinantesEdocsDto()
+        //         .stream()
+        //         .map(ProgramaAssinaturaEdocsDto::idPessoa)
+        //         .toList();
+        // List<String> subsAssinatesList = idsPessoas.stream().map( idpessoa -> pessoaService.buscarSubPorId(idpessoa) ).toList(); //
+        // enviarAvisoProgramaAutuado( programaDto.id(), subsAssinatesList );
+
     }
 
     @Transactional
@@ -220,13 +268,13 @@ public class ProgramaProcessamentoService {
     }
 
     @Transactional
-    public void atualizarIdDocumentoEdocsNoPrograma (Long idPrograma, String idDocumentoAutuadoEdocs) {
+    public void atualizarIdDocumentoEdocsNoPrograma(Long idPrograma, String idDocumentoAutuadoEdocs) {
 
         Programa programa = repository.findById(idPrograma)
                 .orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));
 
         programa.setIdDocumentoCapturadoEdocs(idDocumentoAutuadoEdocs);
-    
+
         repository.saveAndFlush(programa);
 
     }

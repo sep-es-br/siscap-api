@@ -216,8 +216,9 @@ public class ProgramaService {
 
 	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma) {
 		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
-		List<String> assinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
-				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
+		// List<String> assinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
+		// 		assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
+		List<String> assinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorGOVES); // TESTES 
 		asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, assinantesEdocsPrograma,
 				nomeArquivo);
 	}
