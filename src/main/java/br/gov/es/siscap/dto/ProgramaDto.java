@@ -41,9 +41,28 @@ public record ProgramaDto(
 										assinante.getPessoa().getId(),
 										assinante.getStatusAssinatura(),
 										assinante.getDataAssinatura(),
-										assinante.getPessoa().getNome()))
+										assinante.getPessoa().getNome(),
+										""))
 								.toList(),
 				programa.getProtocoloEdocs(),
 				programa.getIdDocumentoCapturadoEdocs());
 	}
+
+
+	public ProgramaDto(Programa programa, List<EquipeDto> equipeCaptacao, List<Long> idProjetoPropostoList, List<ProgramaAssinaturaEdocsDto> assinantesProgramaListDto) {
+		this(
+				programa.getId(),
+				programa.getSigla(),
+				programa.getTitulo(),
+				programa.getOrgaoExecutorSet().stream().map(Organizacao::getId).toList(),
+				equipeCaptacao,
+				idProjetoPropostoList,
+				new ValorDto(programa.getTetoQuantia(), programa.getTipoValor().getId(), programa.getMoeda()),
+				programa.getPercentualCustoAdministrativo(),
+				programa.getValorCalculadoTotal(),
+				assinantesProgramaListDto,
+				programa.getProtocoloEdocs(),
+				programa.getIdDocumentoCapturadoEdocs());
+	}
+
 }

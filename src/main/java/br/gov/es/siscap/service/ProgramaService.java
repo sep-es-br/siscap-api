@@ -1,10 +1,10 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.EquipeDto;
+import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
-import br.gov.es.siscap.enums.TipoStatusAssinaturaEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.Organizacao;
@@ -23,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -41,11 +40,7 @@ public class ProgramaService {
 	private final PessoaService pessoaService;
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final AsyncExecutorService asyncExecutorService;
-	// private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
-	// private final EmailService emailService;
-	// private final AcessoCidadaoService acessoCidadaoService;
-	private final IntegraccaoEdocsService integracaoEdocsService;
-	private final ProgramaAssinaturaEdocsRepository programaAssinaturaEdocsRepository;
+	private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
 
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
@@ -70,6 +65,7 @@ public class ProgramaService {
 	}
 
 	public ProgramaDto buscarPorId(Long id) {
+
 		logger.info("Buscando programa com id: {}", id);
 
 		Programa programa = this.buscar(id);
@@ -78,7 +74,10 @@ public class ProgramaService {
 
 		List<Long> idProjetoPropostoList = projetoService.buscarIdProjetoPropostoList(programa);
 
-		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList);
+		List<ProgramaAssinaturaEdocsDto> assinantesProgramaListDto = programaAssinaturaEdocsService.buscarPorPrograma(programa);
+
+		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList, assinantesProgramaListDto);
+
 	}
 
 	@Transactional
@@ -216,9 +215,8 @@ public class ProgramaService {
 
 	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma) {
 		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
-		// List<String> assinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
-		// 		assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
-		List<String> assinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorGOVES); // TESTES 
+		List<String> assinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
+			assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
 		asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, assinantesEdocsPrograma,
 				nomeArquivo);
 	}
