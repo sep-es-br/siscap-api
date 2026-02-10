@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record ProgramaDto(
-
 		Long id,
 		String sigla,
 		String titulo,
@@ -17,8 +16,9 @@ public record ProgramaDto(
 		ValorDto valor,
 		BigDecimal percentualCustoAdministrativo,
 		BigDecimal valorCalculadoTotal,
-		List<ProgramaAssinaturaEdocsDto> programaAssinantesEdocsDto
-
+		List<ProgramaAssinaturaEdocsDto> programaAssinantesEdocsDto,
+		String protocoloEdocs,
+		String idDocumentoCapturadoEdocs
 ) {
 
 	public ProgramaDto(Programa programa, List<EquipeDto> equipeCaptacao, List<Long> idProjetoPropostoList) {
@@ -41,7 +41,28 @@ public record ProgramaDto(
 										assinante.getPessoa().getId(),
 										assinante.getStatusAssinatura(),
 										assinante.getDataAssinatura(),
-										assinante.getPessoa().getNome()))
-								.toList());
+										assinante.getPessoa().getNome(),
+										""))
+								.toList(),
+				programa.getProtocoloEdocs(),
+				programa.getIdDocumentoCapturadoEdocs());
 	}
+
+
+	public ProgramaDto(Programa programa, List<EquipeDto> equipeCaptacao, List<Long> idProjetoPropostoList, List<ProgramaAssinaturaEdocsDto> assinantesProgramaListDto) {
+		this(
+				programa.getId(),
+				programa.getSigla(),
+				programa.getTitulo(),
+				programa.getOrgaoExecutorSet().stream().map(Organizacao::getId).toList(),
+				equipeCaptacao,
+				idProjetoPropostoList,
+				new ValorDto(programa.getTetoQuantia(), programa.getTipoValor().getId(), programa.getMoeda()),
+				programa.getPercentualCustoAdministrativo(),
+				programa.getValorCalculadoTotal(),
+				assinantesProgramaListDto,
+				programa.getProtocoloEdocs(),
+				programa.getIdDocumentoCapturadoEdocs());
+	}
+
 }

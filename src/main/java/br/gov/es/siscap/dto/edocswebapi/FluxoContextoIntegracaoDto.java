@@ -2,6 +2,7 @@ package br.gov.es.siscap.dto.edocswebapi;
 
 import java.util.List;
 
+import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProjetoDto;
 import lombok.Data;
 
@@ -36,6 +37,10 @@ public class FluxoContextoIntegracaoDto {
     private List<String> assinantes;
     private String idDocumentoAssinarFaseAssinatura;
     private Long idPrograma;
+    private ProgramaDto programaDto;
+    private String idEventoAssinatura;
+
+    private SituacaoEventoDto situacaoEventoAto;
 
     public FluxoContextoIntegracaoDto(ProjetoDto projeto, String token ) {
         this.projeto = projeto;
@@ -53,15 +58,17 @@ public class FluxoContextoIntegracaoDto {
         this.assinantes = assinantes;
     }
 
-    public FluxoContextoIntegracaoDto( String token, String idDocumentoAssinarFaseAssinatura ) {
-        this.token = token;
-        this.idDocumentoAssinarFaseAssinatura = idDocumentoAssinarFaseAssinatura;
-    }
-
-    public FluxoContextoIntegracaoDto( String token, Long idPrograma, String[] idDocumentos ) {
+    public FluxoContextoIntegracaoDto( String token, Long idPrograma, String[] idDocumentos, ProgramaDto programaDto ) {
         this.token = token;
         this.idPrograma = idPrograma;
         this.idDocumentos = idDocumentos;
+        this.programaDto = programaDto;
+    }
+
+    public FluxoContextoIntegracaoDto( String token, String idDocumentoFaseAssinatura, String idEventoAssinatura ) {
+        this.token = token;
+        this.idEventoAssinatura = idEventoAssinatura;
+        this.idDocumentoAssinarFaseAssinatura = idDocumentoFaseAssinatura;
     }
 
 }

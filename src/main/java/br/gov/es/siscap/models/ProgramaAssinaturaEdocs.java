@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 @Setter
 @SQLDelete(sql = "update programa_assinatura_documento_edocs set apagado = true where id = ?")
 @SQLRestriction("apagado = FALSE")
+@ToString
 public class ProgramaAssinaturaEdocs extends ControleHistorico {
 
 	@Id

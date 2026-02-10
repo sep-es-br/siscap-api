@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.client.EdocsWebClient;
+import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
@@ -28,7 +29,6 @@ import reactor.util.retry.Retry;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -453,6 +453,7 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> despacharProcessoDIC(ctx))
 				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
 				.flatMap(ctx -> atualizarProjeto(ctx))
+
 				.doOnSuccess(retorno -> this.finalizaTodasEtapas(projetoDto.id()))
 				.thenReturn("Reentranhamento de DIC complementado concluída com sucesso.");
 
@@ -545,7 +546,7 @@ public class IntegraccaoEdocsService {
 		String idProjetoEDocs = (ctx.getIdProcesso() != null && !ctx.getIdProcesso().isEmpty()) ? ctx.getIdProcesso()
 				: ctx.getProjeto().idProcessoEdocs();
 
-		return FeignReativo.fromFeign( () -> consultarDadosProcessoEdocs(
+		return FeignReativo.fromFeign(() -> consultarDadosProcessoEdocs(
 				idProjetoEDocs,
 				ctx.getToken()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
@@ -1016,7 +1017,9 @@ public class IntegraccaoEdocsService {
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.switchIfEmpty(Mono.error(
 						new RuntimeException("Falha ao executar UPLOAD do arquivo para o servidor S3 do E-Docs.")))
-				.doOnSuccess(retornoEnvio -> logger.info("Upload feito com sucesso: {}", retornoEnvio))
+				.doOnSuccess(retornoEnvio -> {
+					logger.info("Upload feito com sucesso: {}", retornoEnvio);
+				})
 				.doOnError(e -> {
 					logger.error("Falha ao executar UPLOAD do arquivo para o servidor S3 do E-Docs.", e);
 					this.registrarFalhaEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
@@ -1033,7 +1036,7 @@ public class IntegraccaoEdocsService {
 				.doOnRequest(n -> this.atualizarEtapa(ctx.getProjeto().id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
 						true, false))
 				.doOnSuccess(urlDto -> {
-					logger.info("URL gerada: {}", urlDto.url());
+					logger.info("URL gerada: {}", urlDto.toString());
 					ctx.setDtoUploadArquivoResponse(urlDto);
 				})
 				.doOnError(e -> {
@@ -1049,7 +1052,6 @@ public class IntegraccaoEdocsService {
 		String tokenArmazenado = AutorizacaoACService.getEdocsToken(subJwt);
 
 		return Mono.fromCallable(() -> {
-			// chamada síncrona ao E-Docs (não reativa)
 			return EdocsWebClient.buscarPapeisUsuarioEdocs(tokenArmazenado);
 		})
 				.flatMap(listaPapeis -> {
@@ -1063,6 +1065,28 @@ public class IntegraccaoEdocsService {
 				.onErrorResume(WebClientResponseException.Unauthorized.class,
 						ex -> Mono.error(new ValidacaoSiscapException(List.of(
 								"O token do E-Docs expirou. Realize um novo login no SISCAP."))));
+
+		// return autenticacaoService.getUsuarioSubReativo()
+		// .flatMap( subJwt -> {
+		// String tokenArmazenado = AutorizacaoACService.getEdocsToken(subJwt);
+		// return Mono.fromCallable(() ->
+		// EdocsWebClient.buscarPapeisUsuarioEdocs(tokenArmazenado)
+		// )
+		// .flatMap(listaPapeis -> {
+		// if (listaPapeis == null || listaPapeis.isEmpty()) {
+		// return Mono.error(new ValidacaoSiscapException(List.of(
+		// "O token do E-Docs é válido, mas o usuário não possui papéis ativos. " +
+		// "Realize um novo login no SISCAP para restaurar a sessão."
+		// )));
+		// }
+		// return Mono.just(tokenArmazenado);
+		// });
+		// })
+		// .onErrorResume(WebClientResponseException.Unauthorized.class,
+		// ex -> Mono.error(new ValidacaoSiscapException(List.of(
+		// "O token do E-Docs expirou. Realize um novo login no SISCAP."
+		// ))));
+
 	}
 
 	private Mono<String> buscarTokenReativo(String subJwt) {
@@ -1475,7 +1499,8 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	public void enviarArquivoAssinaturasPendentes(Long idPrograma, List<String> assinantes, String nomeArquivo) {
+	public Mono<String> enviarArquivoAssinaturasPendentes(Long idPrograma, List<String> assinantes,
+			String nomeArquivo) {
 
 		logger.info("Iniciando processo para criar arquivo no E-Docs com pendencia de suas assinaturas..");
 
@@ -1496,17 +1521,16 @@ public class IntegraccaoEdocsService {
 				.orElseGet(() -> listaPapeisUsuario.stream().findFirst().orElse(null))
 				.Guid();
 
-		this.capturarArquivoAssinaturaPendentesReativo(idPrograma, resourceArquivo, nomeArquivo, guidPapelUsuario,
-				assinantes)
-				.subscribe(
-						mensagem -> logger.info("SUCESSO: {}", mensagem),
-						erro -> logger.info("ERRO: {}", erro));
-
-		return;
+		return this
+				.capturarArquivoAssinaturaPendentesReativo(idPrograma, resourceArquivo, nomeArquivo, guidPapelUsuario,
+						assinantes)
+				.map(dto -> dto.getIdDocumentoAssinarFaseAssinatura())
+				.flatMap(idDocumento -> Mono.just(idDocumento));
 
 	}
 
-	private Mono<String> capturarArquivoAssinaturaPendentesReativo(Long idPrograma, Resource arquivo,
+	private Mono<FluxoContextoIntegracaoDto> capturarArquivoAssinaturaPendentesReativo(Long idPrograma,
+			Resource arquivo,
 			String nomeArquivo, String idPapelCapturador, List<String> assinantes) {
 
 		final long tamanho;
@@ -1531,13 +1555,12 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
 				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
 				.flatMap(ctx -> enviarArquivoFaseAssinatura(ctx, arquivo, nomeArquivo, idPapelCapturador, idPrograma))
-				.doOnSuccess(retorno -> finalizaTodasEtapas(idPrograma))
-				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idPrograma))
-				.doOnSuccess(sucesso -> {
-					logger.info("Parecer {} atualizado com sucesso", idPrograma);
+				.doOnSuccess(retorno -> {
+					finalizaTodasEtapas(idPrograma);
+					logger.info("Arquivo {} capturado em fase de assinatur com sucesso", nomeArquivo);
 				})
-				.doOnError(e -> logger.error("Erro ao atualizar parecer {}", idPrograma, e))
-				.thenReturn("Criação arquivo com assinaturas pendentes concluída com sucesso.");
+				.doOnError(e -> logger.error("Erro ao capturar arquivo {} em fase de assinatura no E-Docs. {}",
+						nomeArquivo, e));
 
 	}
 
@@ -1554,10 +1577,12 @@ public class IntegraccaoEdocsService {
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
 				.timeout(Duration.ofMinutes(1))
-				.switchIfEmpty(
-						Mono.error(new RuntimeException(
-								"Falha ao consultar situacao do evento de envio do arquivo fase de assinatura.")))
-				.doOnSuccess(retorno -> ctx.setIdEventoEntranhamento(retorno.replace("\"", "")))
+				.switchIfEmpty(Mono.error(new RuntimeException(
+						"Falha ao consultar situacao do evento de envio do arquivo fase de assinatura.")))
+				.doOnSuccess(retorno -> {
+					logger.info("Retorno envio documento fase assinatura : {}", retorno);
+					ctx.setIdDocumentoAssinarFaseAssinatura(retorno.replace("\"", ""));
+				})
 				.doOnError(e -> {
 					logger.error(
 							"Falha ao executar chamada ao endpoint para envio do arquivo fase de assinatura via E-Docs.",
@@ -1593,19 +1618,20 @@ public class IntegraccaoEdocsService {
 		return EdocsWebClient.buscarDadosArquivo(token, idDocumento);
 	}
 
-	public Mono<Void> assinarArquivoFaseAssinaturaEdocsServidor(
-			Long idPrograma,
+	// public Mono<Void> assinarArquivoFaseAssinaturaEdocsServidor(
+	// Long idPrograma,
+	// String idDocumentoAssinarFaseAssinatura) {
+	// logger.info("Iniciando processo para assinar arquivo no E-Docs com pendência
+	// de assinatura.");
+	// return assinarArquivoPendenteReativo(idPrograma,
+	// idDocumentoAssinarFaseAssinatura)
+	// .doOnSuccess(mensagem -> logger.info("SUCESSO: {}", mensagem))
+	// .doOnError(erro -> logger.error("ERRO:", erro))
+	// .then();
+	// }
+
+	public Mono<String> assinarArquivoPendenteReativo(Long idPrograma,
 			String idDocumentoAssinarFaseAssinatura) {
-
-		logger.info("Iniciando processo para assinar arquivo no E-Docs com pendência de assinatura.");
-
-		return assinarArquivoPendenteReativo(idPrograma, idDocumentoAssinarFaseAssinatura)
-				.doOnSuccess(mensagem -> logger.info("SUCESSO: {}", mensagem))
-				.doOnError(erro -> logger.error("ERRO:", erro))
-				.then();
-	}
-
-	private Mono<String> assinarArquivoPendenteReativo(Long idPrograma, String idDocumentoAssinarFaseAssinatura) {
 
 		this.adicionarEtapa(idPrograma,
 				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE, true, false,
@@ -1615,24 +1641,28 @@ public class IntegraccaoEdocsService {
 				.doOnError(erro -> {
 					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
 					logger.error("Erro ao buscar Token", erro.getMessage());
-					this.registrarFalhaEtapa(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+					this.registrarFalhaEtapa(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE,
 							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.map(token -> new FluxoContextoIntegracaoDto(token, idDocumentoAssinarFaseAssinatura))
-				.flatMap(ctx -> assinarArquivoFaseAssinatura(ctx, idPrograma))
-				.doOnSuccess(retorno -> finalizaTodasEtapas(idPrograma))
-				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idPrograma))
-				.doOnSuccess(sucesso -> {
-					logger.info("Parecer {} atualizado com sucesso", idPrograma);
+				.map(token -> new FluxoContextoIntegracaoDto(token, idDocumentoAssinarFaseAssinatura, ""))
+				.flatMap(ctx -> assinarArquivoFaseAssinatura(ctx))
+				.filter(ctx -> !ctx.getIdEventoAssinatura().isBlank()) // o id do evento de captura só existe após todos
+																		// assinarem;
+				.flatMap(ctx -> consultarSituacaoEventoAssinatura(ctx))
+				.flatMap(ctx -> {
+					var situacao = ctx.getSituacaoEventoAto();
+					if (situacao == null || situacao.idDocumento() == null) {
+						return Mono.empty(); // ausência válida
+					}
+					return Mono.just(situacao.idDocumento());
 				})
-				.doOnError(e -> logger.error("Erro ao atualizar parecer {}", idPrograma, e))
-				.thenReturn("Criação arquivo com assinaturas pendentes concluída com sucesso.");
+				.doOnSuccess(retorno -> finalizaTodasEtapas(idPrograma))
+				.doOnError(e -> logger.error("Erro ao assinar arquivo do programa id {}", idPrograma, e));
 
 	}
 
-	private Mono<FluxoContextoIntegracaoDto> assinarArquivoFaseAssinatura(FluxoContextoIntegracaoDto ctx,
-			Long idPrograma) {
+	private Mono<FluxoContextoIntegracaoDto> assinarArquivoFaseAssinatura(FluxoContextoIntegracaoDto ctx) {
 
 		logger.info("Iniciar processo para assinar arquivo com pendencia de assinatura para o E-Docs.");
 
@@ -1641,39 +1671,36 @@ public class IntegraccaoEdocsService {
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
 				.timeout(Duration.ofMinutes(1))
-				.switchIfEmpty(
-						Mono.error(new RuntimeException(
-								"Falha ao consultar situacao do evento de envio do arquivo fase de assinatura.")))
-				.doOnSuccess(retorno -> ctx.setIdEventoEntranhamento(retorno.replace("\"", "")))
+				.doOnSuccess(retorno -> {
+					if (retorno.capturado()) {
+						ctx.setIdEventoAssinatura(retorno.idCapturaEvento());
+						finalizaTodasEtapas(ctx.getIdPrograma());
+					} else {
+						ctx.setIdEventoAssinatura("");
+					}
+				})
 				.doOnError(e -> {
 					logger.error(
 							"Falha ao executar chamada ao endpoint para assinar arquivo fase de assinatura via E-Docs.",
 							e);
-					this.registrarFalhaEtapa(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE);
+					this.registrarFalhaEtapa(ctx.getIdPrograma(), EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE);
 				})
 				.thenReturn(ctx);
 
 	}
 
-	private String assinaArquivo(String token, String idDocumentoFaseAssinatura) {
-
+	private RetornoAssinaturaEdocsDto assinaArquivo(String token, String idDocumentoFaseAssinatura) {
+		logger.info("Assinando documento id {} no E-Docs.", idDocumentoFaseAssinatura);
 		return EdocsWebClient.assinarDocumentoEDocsFaseAssinatura(token, idDocumentoFaseAssinatura);
-
 	}
 
-	public Mono<FluxoContextoIntegracaoDto> autuarProgramaProjetoReativo( Long idPrograma, String idDocumentoEdocs ) {
+	public Mono<FluxoContextoIntegracaoDto> autuarProgramaProjetoReativo(Long idPrograma, String idDocumentoEdocs,
+			ProgramaDto programaDto) {
 
-		String[] documentoEntranhar  = { idDocumentoEdocs };
-
-		this.adicionarEtapa(idPrograma,
-				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
+		String[] documentoEntranhar = { idDocumentoEdocs };
 
 		this.adicionarEtapa(idPrograma,
 				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.AUTUAR, false, false, false));
-
-		this.adicionarEtapa(idPrograma,
-				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, false, false,
-						false));
 
 		return buscarTokenReativo()
 				.doOnError(erro -> {
@@ -1683,13 +1710,191 @@ public class IntegraccaoEdocsService {
 							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.map(token -> new FluxoContextoIntegracaoDto(token, idPrograma, documentoEntranhar ) )
-				.flatMap(ctx -> autuarProcessoMono(ctx))
-				.flatMap(ctx -> consultarSituacaoEventoAtuacao(ctx))
-				.flatMap(ctx -> despacharProcessoDIC(ctx))
-				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
-				.doOnSuccess( retorno -> this.atualizarEtapa(idPrograma, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true ) );
+				.map(token -> new FluxoContextoIntegracaoDto(token, idPrograma, documentoEntranhar, programaDto))
+				.flatMap(ctx -> autuarProcessoMonoPrograma(ctx))
+				.flatMap(ctx -> consultarSituacaoEventoAtuacaoPrograma(ctx))
+				.flatMap(ctx -> consultarDadosAutuacaoEdocs(ctx))
+				.doOnSuccess( retorno -> this.atualizarEtapa(idPrograma, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
+						true, true));
 
 	}
+
+	private Mono<FluxoContextoIntegracaoDto> consultarDadosAutuacaoEdocs(FluxoContextoIntegracaoDto ctx) {
+		return FeignReativo.fromFeign( () -> consultarDadosProcessoEdocs(
+			ctx.getIdProcesso(),
+			ctx.getToken()))
+			.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+			.switchIfEmpty(Mono.error(new RuntimeException("Falha ao executar chamada ao endpoint para consultar dados do processo via E-Docs.")))
+			.doOnSuccess( retornoDadosProcesso -> ctx.setProtocolo( retornoDadosProcesso.protocolo() ) )
+			.thenReturn(ctx);
+	}
+
+	private String autuarProcessoPrograma(ProgramaDto programaDTO, String token, String idDocumentoCapturado) {
+
+		logger.info("Iniciar autuacao do processo para o programa id {} - documento id {}.", programaDTO.id(),
+				idDocumentoCapturado);
+
+		String idClasse = classeDocumentoId;
+
+		String tokenLimpo = token.replace("Bearer ", "").trim();
+		ACUserInfoDto userInfo = AcessoCidadaoService.buscarInformacoesUsuario(tokenLimpo);
+
+		List<ACAgentePublicoPapelDto> papeisAgentePublico = AcessoCidadaoService
+				.listarPapeisAgentePublicoPorSub(userInfo.subNovo());
+
+		String idPapelResponsavel = papeisAgentePublico.stream()
+				.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
+				.findFirst()
+				.map(ACAgentePublicoPapelDto::Guid)
+				.orElseGet(() -> papeisAgentePublico.stream()
+						.findFirst()
+						.map(ACAgentePublicoPapelDto::Guid)
+						.orElse(""));
+
+		String idLocal = papeisAgentePublico.stream()
+				.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
+				.findFirst()
+				.map(ACAgentePublicoPapelDto::LotacaoGuid)
+				.orElseGet(() -> papeisAgentePublico.stream()
+						.findFirst()
+						.map(ACAgentePublicoPapelDto::LotacaoGuid)
+						.orElse(""));
+
+		String resumo = String.format("AUTUAÇÃO PROGRAMA - %s", programaDTO.titulo());
+
+		List<String> idsAgentesInteressados = programaDTO.equipeCaptacao()
+				.stream()
+				.map(membro -> membro.subPessoa())
+				.collect(Collectors.toList());
+
+		List<String> idsDocumentosEntranhados = List.of(idDocumentoCapturado);
+
+		AutuarProjetoDto autuarProjetoDto = new AutuarProjetoDto(idClasse, idPapelResponsavel, idLocal, resumo,
+				idsAgentesInteressados, idsDocumentosEntranhados);
+
+		return EdocsWebClient.autuarProcesso(token, autuarProjetoDto);
+
+	}
+
+	private Mono<FluxoContextoIntegracaoDto> autuarProcessoMonoPrograma(FluxoContextoIntegracaoDto ctx) {
+
+		logger.info("Iniciando autuacao do processo referente ao Programa id {} no E-Docs.", ctx.getIdPrograma());
+
+		return FeignReativo.fromFeign(() -> autuarProcessoPrograma(
+				ctx.getProgramaDto(),
+				ctx.getToken(),
+				ctx.getIdDocumentos()[0]))
+				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+				.switchIfEmpty(Mono.error(new RuntimeException(
+						"Falha ao executar chamada ao endpoint para autuar um processo via E-Docs.")))
+				.doOnSuccess(IdEventoComandoAutuacao -> {
+					logger.info("Autuacao foi comandada no E-Docs - ID {}", IdEventoComandoAutuacao);
+					ctx.setIdEventoAutuar(IdEventoComandoAutuacao.replace("\"", ""));
+				})
+				.doOnError(e -> {
+					logger.error("Falha ao executar chamada ao endpoint para autuar um processo via E-Docs. {}", e);
+					this.registrarFalhaEtapa(ctx.getIdPrograma(), EtapasIntegracaoEdocsEnum.AUTUAR);
+				})
+				.thenReturn(ctx);
+
+	}
+
+	private Mono<FluxoContextoIntegracaoDto> consultarSituacaoEventoAssinatura(FluxoContextoIntegracaoDto ctx) {
+		logger.info("Iniciar consulta situacao evento assinatura documento - id {}.", ctx.getIdEventoAssinatura());
+		return FeignReativo
+				.fromFeign(() -> EdocsWebClient.buscarSituacaoEvento(ctx.getToken(), ctx.getIdEventoAssinatura()))
+				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+				.filter(dto -> {
+					boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
+					if (!isConcluido) {
+						logger.warn("Status não concluído: {}", dto.situacao());
+					}
+					return isConcluido;
+				})
+				.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
+				.timeout(Duration.ofMinutes(1))
+				.switchIfEmpty(Mono
+						.error(new RuntimeException("Falha ao consultar situacao evento de ASSINATURA via E-Docs.")))
+				.doOnSuccess(resultConsultaEvento -> ctx.setSituacaoEventoAto(resultConsultaEvento))
+				.doOnError(e -> {
+					logger.error("Falha ao consultar situacao evento de ASSINATURA de um documento via E-Docs.", e);
+					registrarFalhaEtapa(ctx.getIdPrograma(), EtapasIntegracaoEdocsEnum.ASSINADO);
+				})
+				.thenReturn(ctx);
+	}
+
+	private Mono<FluxoContextoIntegracaoDto> consultarSituacaoEventoAtuacaoPrograma(FluxoContextoIntegracaoDto ctx) {
+
+		logger.info("Iniciar consulta situacao evento AUTUACAO id {}.", ctx.getIdEventoAutuar());
+
+		return FeignReativo.fromFeign(() -> consultarSituacaoEventoEdocs(ctx.getIdEventoAutuar(), ctx.getToken()))
+				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+				.filter(dto -> {
+					boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
+					if (!isConcluido) {
+						logger.warn("Status não concluído: {}", dto.situacao());
+					}
+					return isConcluido;
+				})
+				.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
+				.timeout(Duration.ofMinutes(1))
+				.switchIfEmpty(Mono
+						.error(new RuntimeException("Falha ao consultar situacao do evento de AUTUACAO DO PROCESSO ID "
+								+ ctx.getIdEventoAutuar() + ".")))
+				.doOnRequest(
+						n -> this.atualizarEtapa(ctx.getIdPrograma() , EtapasIntegracaoEdocsEnum.AUTUAR, true, true))
+				.doOnError(e -> {
+					logger.error("Falha ao verificar situacao do evento de autuacao do processo no E-Docs.", e);
+					this.registrarFalhaEtapa(ctx.getIdPrograma(), EtapasIntegracaoEdocsEnum.AUTUAR);
+				})
+				.doOnSuccess(resultConsultaEvento -> {
+					ctx.setIdProcesso(resultConsultaEvento.idProcesso());
+					this.atualizarEtapa(ctx.getIdPrograma(), EtapasIntegracaoEdocsEnum.AUTUAR, true, true);
+				})
+				.thenReturn(ctx);
+
+	}
+
+	// private Mono<FluxoContextoIntegracaoDto> despacharProcessoPrograma(FluxoContextoIntegracaoDto ctx) {
+	// 	logger.info("Iniciar processo de despachar processo E-Docs do Programa Id: {}.", ctx.getIdPrograma());
+	// 	return FeignReativo.fromFeign(() -> despacharProcessoSUBCAP(ctx))
+	// 			.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+	// 			.switchIfEmpty(
+	// 					Mono.error(new RuntimeException(
+	// 							"Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.")))
+	// 			.doOnSuccess(retorno -> ctx.setIdEventoDespachar(retorno.replace("\"", "")))
+	// 			.doOnError(e -> {
+	// 				logger.error(
+	// 						"Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.", e);
+	// 				this.registrarFalhaEtapa(ctx.getIdPrograma(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+	// 			})
+	// 			.thenReturn(ctx);
+	// }
+
+	// private Mono<FluxoContextoIntegracaoDto> consultarSituacaoDespacharPrograma(FluxoContextoIntegracaoDto ctx) {
+	// 	logger.info("Iniciar consulta situacao evento - DESPACHAR - id {}.", ctx.getIdEventoDespachar() );
+	// 	return FeignReativo.fromFeign(() -> consultarSituacaoEventoEdocs(ctx.getIdEventoDespachar(), ctx.getToken()))
+	// 			.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+	// 			.filter(dto -> {
+	// 				boolean isConcluido = SituacaoEventoEdocsEnum.CONCLUIDO.getValue().equals(dto.situacao());
+	// 				if (!isConcluido) {
+	// 					logger.warn("Status não concluído: {}", dto.situacao());
+	// 				}
+	// 				return isConcluido;
+	// 			})
+	// 			.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
+	// 			.timeout(Duration.ofMinutes(1))
+	// 			.switchIfEmpty(Mono
+	// 					.error(new RuntimeException("Falha ao consultar situacao do evento de DESPACHO ID "
+	// 							+ ctx.getIdEventoDespachar() + ".")))
+	// 			.doOnRequest(n -> this.atualizarEtapa(ctx.getIdPrograma(),
+	// 					EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, false))
+	// 			.doOnError(e -> {
+	// 				logger.error("Falha ao verificar situacao do evento de despacho do processo no E-Docs.", e);
+	// 				this.registrarFalhaEtapa(ctx.getIdPrograma(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+	// 			})
+	// 			.thenReturn(ctx);
+	// }
+
 
 }
