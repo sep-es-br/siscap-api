@@ -3,7 +3,9 @@ package br.gov.es.siscap.service;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -12,7 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
+import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
@@ -68,14 +70,19 @@ public class ProgramaProcessamentoService {
         }
 
         List<String> emailsInteressadosList = new ArrayList<String>();
+        Map<String, String> emailsSubAssinates = new HashMap<>();
 
         subAssinantes.forEach(sub -> {
             EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
+            String emailAssinanteAC = "";
+            
             if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
-                emailsInteressadosList.add(emailsSub.corporativo());
+                emailAssinanteAC = emailsSub.corporativo();
             } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
-                emailsInteressadosList.add(emailsSub.email());
+                emailAssinanteAC = emailsSub.email();
             }
+            emailsInteressadosList.add(emailAssinanteAC);
+            emailsSubAssinates.put(emailAssinanteAC,sub);
         });
 
         Programa programa = this.buscarPrograma(idPrograma);
@@ -87,12 +94,11 @@ public class ProgramaProcessamentoService {
 
         try {
 
-            EnvioEmailDicDetalhesDto envioEmailDetalhesDto = new EnvioEmailDicDetalhesDto(idPrograma,
-                    "",
-                    "",
+            EnvioEmailDetalhesDto envioEmailDetalhesDto = new EnvioEmailDetalhesDto( idPrograma,
                     emailsInteressadosList,
                     tituloPrograma,
-                    siglaPrograma, "");
+                    siglaPrograma, 
+                    emailsSubAssinates );
 
             confirmacaoEnvioEmail = emailService.enviarEmailSolicitandoAssinaturasPrograma(envioEmailDetalhesDto);
 
@@ -226,7 +232,7 @@ public class ProgramaProcessamentoService {
 
         try {
 
-            EnvioEmailDicDetalhesDto envioEmailDetalhesDto = new EnvioEmailDicDetalhesDto(idPrograma,
+            EnvioEmailDetalhesDto envioEmailDetalhesDto = new EnvioEmailDetalhesDto(idPrograma,
                     "",
                     "",
                     emailsInteressadosList,

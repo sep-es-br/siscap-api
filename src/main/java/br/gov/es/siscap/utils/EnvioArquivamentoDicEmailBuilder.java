@@ -2,7 +2,7 @@ package br.gov.es.siscap.utils;
 
 import org.springframework.stereotype.Component;
 
-import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
+import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import br.gov.es.siscap.utils.email.builder.EmailBuilderBase;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +19,7 @@ public class EnvioArquivamentoDicEmailBuilder extends EmailBuilderBase {
 	// }
 
 	@Override
-	protected String montarCampoTratamento(EnvioEmailDicDetalhesDto dto) {
+	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
 		return "Prezado(a) %s".formatted(dto.nomeResponsavelEnvioEmail());
 	}
 
@@ -29,7 +29,7 @@ public class EnvioArquivamentoDicEmailBuilder extends EmailBuilderBase {
 	}
 
 	@Override
-	protected String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) {
+	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
 
 		String corpoEmail = "Informamos que o DIC [<strong>%S</strong>] será arquivado conforme avaliação técnica e gerencial realizada pelo gestor [<strong>%S</strong>]."
 				.formatted(dto.tituloProjeto(), dto.nomeGestor());

@@ -281,7 +281,7 @@ public class IntegraccaoEdocsService {
 									msgAlerta);
 							throw new ValidacaoSiscapException(List.of(msgAlerta));
 						}
-						return new FluxoContextoIntegracaoDto(projetoDto, token);
+						return new FluxoContextoIntegracaoDto(projetoDto, token, chave);
 					} catch (Exception e) {
 						this.registrarFalhaEtapa(
 								chave,
@@ -314,7 +314,7 @@ public class IntegraccaoEdocsService {
 							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token))
+				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token, chave))
 				.flatMap(ctx -> encerrarProcessoEdocs(ctx))
 				.flatMap(ctx -> consultarSituacaoEncerramento(ctx))
 				.doOnError(e -> {
@@ -333,15 +333,15 @@ public class IntegraccaoEdocsService {
 			return Mono.error(new RuntimeException("Falha ao obter tamanho do arquivo", e));
 		}
 
-		var chave = new ChaveEtapasIntegracao(projetoDto.id(), ContextoIntegracaoEdocsEnum.DIC);
+		var chaveContexto = new ChaveEtapasIntegracao(projetoDto.id(), ContextoIntegracaoEdocsEnum.DIC);
 
-		this.adicionarEtapa(chave,
+		this.adicionarEtapa(chaveContexto,
 				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
 
-		this.adicionarEtapa(chave,
+		this.adicionarEtapa(chaveContexto,
 				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.AUTUAR, false, false, false));
 
-		this.adicionarEtapa(chave,
+		this.adicionarEtapa(chaveContexto,
 				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, false, false,
 						false));
 
@@ -349,11 +349,11 @@ public class IntegraccaoEdocsService {
 				.doOnError(erro -> {
 					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
 					logger.error("Erro ao buscar Token", erro.getMessage());
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+					this.registrarFalhaEtapa(chaveContexto, EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
 							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token))
+				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token, chaveContexto))
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
 				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
 				.flatMap(ctx -> capturarAssinar(ctx, nomeArquivo))
@@ -364,7 +364,7 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> consultarSituacaoDespachar(ctx))
 				.flatMap(ctx -> atualizarProjeto(ctx))
 				.doOnSuccess(retorno -> {
-					this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true);
+					this.atualizarEtapa(chaveContexto, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true);
 					projetoService.enviarEmailGerenciaSubcapDicAutuado(projetoDto.id());
 				})
 				.thenReturn("Atuação concluída com sucesso.");
@@ -394,7 +394,7 @@ public class IntegraccaoEdocsService {
 							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token))
+				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token, chave))
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
 				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
 				.flatMap(ctx -> capturarAssinar(ctx, nomeArquivo))
@@ -450,7 +450,7 @@ public class IntegraccaoEdocsService {
 									msgAlerta);
 							throw new ValidacaoSiscapException(List.of(msgAlerta));
 						}
-						return new FluxoContextoIntegracaoDto(projetoDto, token);
+						return new FluxoContextoIntegracaoDto(projetoDto, token, chave);
 					} catch (Exception e) {
 						this.registrarFalhaEtapa(
 								chave,
@@ -621,8 +621,6 @@ public class IntegraccaoEdocsService {
 
 		logger.info("Iniciar processo de despachar processo E-Docs DIC Id: {}.", ctx.getProjeto().id());
 
-		var chave = new ChaveEtapasIntegracao(ctx.getProjeto().id(), ContextoIntegracaoEdocsEnum.DIC);
-
 		return FeignReativo.fromFeign(() -> despacharProcessoSUBCAP(ctx))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.switchIfEmpty(
@@ -632,7 +630,7 @@ public class IntegraccaoEdocsService {
 				.doOnError(e -> {
 					logger.error(
 							"Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.", e);
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
 				})
 				.thenReturn(ctx);
 
@@ -814,8 +812,6 @@ public class IntegraccaoEdocsService {
 
 		logger.info("Iniciar consulta situacao evento AUTUACAO id {}.", ctx.getIdEventoAutuar());
 
-		var chave = new ChaveEtapasIntegracao(ctx.getProjeto().id(), ContextoIntegracaoEdocsEnum.DIC);
-
 		return FeignReativo.fromFeign(() -> consultarSituacaoEventoEdocs(ctx.getIdEventoAutuar(), ctx.getToken()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.filter(dto -> {
@@ -831,14 +827,14 @@ public class IntegraccaoEdocsService {
 						.error(new RuntimeException("Falha ao consultar situacao do evento de AUTUACAO DO PROCESSO ID "
 								+ ctx.getIdEventoAutuar() + ".")))
 				.doOnRequest(
-						n -> this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.AUTUAR, true, true))
+						n -> this.atualizarEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.AUTUAR, true, true))
 				.doOnError(e -> {
 					logger.error("Falha ao verificar situacao do evento de autuacao do processo no E-Docs.", e);
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.AUTUAR);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.AUTUAR);
 				})
 				.doOnSuccess(resultConsultaEvento -> {
 					ctx.setIdProcesso(resultConsultaEvento.idProcesso());
-					this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.AUTUAR, true, true);
+					this.atualizarEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.AUTUAR, true, true);
 				})
 				.thenReturn(ctx);
 
@@ -847,8 +843,6 @@ public class IntegraccaoEdocsService {
 	private Mono<FluxoContextoIntegracaoDto> consultarSituacaoCaptura(FluxoContextoIntegracaoDto ctx) {
 
 		logger.info("Iniciar consulta situacao evento - CAPTURA - id {}.", ctx.getIdEventoCaptura());
-
-		var chave = new ChaveEtapasIntegracao(ctx.getProjeto().id(), ContextoIntegracaoEdocsEnum.DIC);
 
 		return FeignReativo.fromFeign(() -> consultarSituacaoEventoEdocs(ctx.getIdEventoCaptura(), ctx.getToken()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
@@ -866,13 +860,14 @@ public class IntegraccaoEdocsService {
 								+ ctx.getIdEventoCaptura() + ".")))
 				.doOnError(e -> {
 					logger.error("Falha ao verificar situacao do evento de autuacao do processo no E-Docs.", e);
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
 				})
 				.doOnSuccess(resultConsultaEvento -> {
 					ctx.setIdDocumentos(new String[] { resultConsultaEvento.idDocumento() });
-					this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, true);
+					this.atualizarEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, true);
 				})
 				.thenReturn(ctx);
+
 	}
 
 	private Mono<FluxoContextoIntegracaoDto> consultarSituacaoEntranhamento(FluxoContextoIntegracaoDto ctx) {
@@ -946,8 +941,6 @@ public class IntegraccaoEdocsService {
 
 		logger.info("Iniciar consulta situacao evento - DESPACHAR - id {}.", ctx.getIdEventoDespachar());
 
-		var chave = new ChaveEtapasIntegracao(ctx.getProjeto().id(), ContextoIntegracaoEdocsEnum.DIC);
-
 		return FeignReativo.fromFeign(() -> consultarSituacaoEventoEdocs(ctx.getIdEventoDespachar(), ctx.getToken()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.filter(dto -> {
@@ -962,11 +955,11 @@ public class IntegraccaoEdocsService {
 				.switchIfEmpty(Mono
 						.error(new RuntimeException("Falha ao consultar situacao do evento de DESPACHO do processo ID "
 								+ ctx.getIdEventoDespachar() + ".")))
-				.doOnRequest(n -> this.atualizarEtapa(chave,
+				.doOnRequest(n -> this.atualizarEtapa(ctx.getChaveContextoIntegracao(),
 						EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, false))
 				.doOnError(e -> {
 					logger.error("Falha ao verificar situacao do evento de despacho do processo no E-Docs.", e);
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
 				})
 				.thenReturn(ctx);
 	}
@@ -997,8 +990,6 @@ public class IntegraccaoEdocsService {
 
 		logger.info("Iniciando autuacao do processo referente ao DIC no E-Docs.");
 
-		var chave = new ChaveEtapasIntegracao(ctx.getProjeto().id(), ContextoIntegracaoEdocsEnum.DIC);
-
 		return FeignReativo.fromFeign(() -> autuarProcesso(
 				ctx.getProjeto(),
 				ctx.getToken(),
@@ -1012,7 +1003,7 @@ public class IntegraccaoEdocsService {
 				})
 				.doOnError(e -> {
 					logger.error("Falha ao executar chamada ao endpoint para autuar um processo via E-Docs. {}", e);
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.AUTUAR);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.AUTUAR);
 				})
 				.thenReturn(ctx);
 
@@ -1021,8 +1012,6 @@ public class IntegraccaoEdocsService {
 	private Mono<FluxoContextoIntegracaoDto> capturarAssinar(FluxoContextoIntegracaoDto ctx, String nomeArquivo) {
 
 		logger.info("Iniciando o processo de capturar/assinar DIC - E-Docs.");
-
-		var chave = new ChaveEtapasIntegracao(ctx.getProjeto().id(), ContextoIntegracaoEdocsEnum.DIC);
 
 		return FeignReativo.fromFeign(() -> capturarAssinarDocumento(
 				ctx.getDtoUploadArquivoResponse().identificadorTemporarioArquivoNaNuvem(),
@@ -1036,7 +1025,7 @@ public class IntegraccaoEdocsService {
 				})
 				.doOnError(e -> {
 					logger.error("Falha ao enviar captura do arquivo para o servidor S3 do E-Docs.", e);
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
 				})
 				.thenReturn(ctx);
 	}
@@ -1045,8 +1034,6 @@ public class IntegraccaoEdocsService {
 			String nomeArquivo) {
 
 		logger.info("Iniciando o processo de upload arquivo para o S3 - E-Docs.");
-
-		var chave = new ChaveEtapasIntegracao(ctx.getProjeto().id(), ContextoIntegracaoEdocsEnum.DIC);
 
 		return FeignReativo.fromFeign(() -> UploadS3Service.enviarArquivoParaS3OkHttp(
 				ctx.getDtoUploadArquivoResponse().url(),
@@ -1062,22 +1049,21 @@ public class IntegraccaoEdocsService {
 				})
 				.doOnError(e -> {
 					logger.error("Falha ao executar UPLOAD do arquivo para o servidor S3 do E-Docs.", e);
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
 				})
 				.thenReturn(ctx);
+
 	}
 
 	private Mono<FluxoContextoIntegracaoDto> gerarUrlUpload(FluxoContextoIntegracaoDto ctx, long tamanho) {
 
 		logger.info("Iniciando o processo de upload arquivo para o E-Docs.");
 
-		var chave = new ChaveEtapasIntegracao(ctx.getProjeto().id(), ContextoIntegracaoEdocsEnum.DIC);
-
 		return FeignReativo.fromFeign(() -> EdocsWebClient.gerarUrlUploadArquivo(ctx.getToken(), tamanho))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.switchIfEmpty(
 						Mono.error(new RuntimeException("Falha na geração da URL temporária para Upload do Arquivo.")))
-				.doOnRequest(n -> this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+				.doOnRequest(n -> this.atualizarEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
 						true, false))
 				.doOnSuccess(urlDto -> {
 					logger.info("URL gerada: {}", urlDto.toString());
@@ -1085,7 +1071,7 @@ public class IntegraccaoEdocsService {
 				})
 				.doOnError(e -> {
 					logger.error("Falha ao gerar URL", e);
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
 				})
 				.thenReturn(ctx);
 	}
@@ -1583,7 +1569,7 @@ public class IntegraccaoEdocsService {
 							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.map(token -> new FluxoContextoIntegracaoDto(token, assinantes))
+				.map(token -> new FluxoContextoIntegracaoDto(token, assinantes, chave))
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
 				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
 				.flatMap(ctx -> enviarArquivoFaseAssinatura(ctx, arquivo, nomeArquivo, idPapelCapturador, idPrograma))
@@ -1591,7 +1577,7 @@ public class IntegraccaoEdocsService {
 					finalizaTodasEtapas(chave);
 					logger.info("Arquivo {} capturado em fase de assinatur com sucesso", nomeArquivo);
 				})
-				.doOnError(e -> logger.error("Erro ao capturar arquivo {} em fase de assinatura no E-Docs. {}",
+				.doOnError(e -> logger.error("Erro ao criar arquivo {} em fase de assinatura no E-Docs. {}",
 						nomeArquivo, e));
 
 	}
@@ -1600,8 +1586,6 @@ public class IntegraccaoEdocsService {
 			Resource arquivo, String nomeArquivo, String idPapelCapturador, Long idPrograma) {
 
 		logger.info("Iniciar processo de enviar arquivo para o E-Docs em fase de assinatura.");
-
-		var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
 
 		return FeignReativo
 				.fromFeign(() -> enviarDocumentoFaseAssinaturaEdocs(ctx.getToken(),
@@ -1621,7 +1605,7 @@ public class IntegraccaoEdocsService {
 					logger.error(
 							"Falha ao executar chamada ao endpoint para envio do arquivo fase de assinatura via E-Docs.",
 							e);
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE);
 				})
 				.thenReturn(ctx);
 

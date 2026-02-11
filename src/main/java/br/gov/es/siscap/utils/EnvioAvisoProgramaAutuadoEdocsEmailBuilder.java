@@ -4,14 +4,14 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Component;
 
-import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
+import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import br.gov.es.siscap.utils.email.builder.EmailBuilderBase;
 
 @Component
 public class EnvioAvisoProgramaAutuadoEdocsEmailBuilder extends EmailBuilderBase {
 
 	@Override
-	protected String montarCampoTratamento(EnvioEmailDicDetalhesDto dto) {
+	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
 		return "Senhor(a) Subsecretário(a)<br>\r\n" + //
 				"ANDRESSA RODRIGUES PAVÃO,<br>\r\n" + //
 				"<br>\r\n" + //
@@ -28,14 +28,14 @@ public class EnvioAvisoProgramaAutuadoEdocsEmailBuilder extends EmailBuilderBase
 	}
 
 	@Override
-	protected String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) {
+	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
 		return ("Informamos que a minuta do programa de captação de recursos %s - %s criada no Siscap - Sistema de Captação de Recursos do Estado do Espírito Santo - foi autuado com sucesso no E-Docs.")
 				.formatted(Objects.toString(dto.siglaPrograma(), ""),
 						Objects.toString(dto.tituloPrograma(), ""));
 	}
 
 	@Override
-	protected String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
+	protected String montarLinkAcesso(EnvioEmailDetalhesDto dto) {
 		// String frontEndHost = this.getEnv().getProperty("frontend.host");
 		// if (frontEndHost == null || frontEndHost.isBlank()) {
 		// 	return "";

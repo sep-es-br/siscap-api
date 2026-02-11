@@ -357,26 +357,6 @@ public class AutenticacaoService {
 
 		if (papeisLotacaoGuidSet != null) {
 
-			// for (Map<String, Object> papelMap : papeisLotacaoGuidSet) {
-			// 	String lotacaoGuid = papelMap.get("lotacaoGuid") != null
-			// 			? papelMap.get("lotacaoGuid").toString()
-			// 			: "";
-			// 	String prioritario = papelMap.get("prioritario") != null
-			// 			? papelMap.get("prioritario").toString()
-			// 			: "false";
-			// 	if(lotacaoGuid.isBlank())
-			// 		continue;
-			// 	String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid)
-			// 			.guidOrganizacao();
-			// 	String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
-			// 	Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
-			// 	if (organizacaoOptional.isPresent()) {
-			// 		organizacoesSet.add(Map.of("organizacao", organizacaoOptional.get(), "prioritario", prioritario));
-			// 	} else {
-			// 		logger.info("Organização não encontrada para o CNPJ fornecido: [{}].", cnpjOrganizacao);
-			// 	}
-			// }
-
 			papeisLotacaoGuidSet.forEach(papelMap -> {
 
 				String lotacaoGuid = Optional.ofNullable(papelMap.get("lotacaoGuid"))

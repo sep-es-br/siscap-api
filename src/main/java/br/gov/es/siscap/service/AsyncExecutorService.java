@@ -61,15 +61,15 @@ public class AsyncExecutorService {
     }
 
     @Async
-    public void criarArquivoProgramaFaseAssinaturaEdocsServidor(Long idPrograma, List<String> assinantes,
+    public void criarArquivoProgramaFaseAssinaturaEdocsServidor(Long idPrograma, List<String> subAssinantes,
             String nomeArquivo) {
 
-        integracaoEdocsService.enviarArquivoAssinaturasPendentes(idPrograma, assinantes, nomeArquivo)
+        integracaoEdocsService.enviarArquivoAssinaturasPendentes(idPrograma, subAssinantes, nomeArquivo)
                 .doOnSuccess(idDocumento -> {
                     programaProcessamentoService
                             .marcarCriacaoArquivoProgramaEdocs(
                                     idPrograma,
-                                    assinantes,
+                                    subAssinantes,
                                     idDocumento);
                 })
                 .doOnError(e -> {

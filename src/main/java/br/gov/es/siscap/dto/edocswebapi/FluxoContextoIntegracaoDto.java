@@ -4,6 +4,7 @@ import java.util.List;
 
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.service.ChaveEtapasIntegracao;
 import lombok.Data;
 
 @Data
@@ -42,9 +43,12 @@ public class FluxoContextoIntegracaoDto {
 
     private SituacaoEventoDto situacaoEventoAto;
 
-    public FluxoContextoIntegracaoDto(ProjetoDto projeto, String token ) {
+    private ChaveEtapasIntegracao chaveContextoIntegracao;
+
+    public FluxoContextoIntegracaoDto( ProjetoDto projeto, String token, ChaveEtapasIntegracao chaveContextoIntegracao ) {
         this.projeto = projeto;
         this.token = token;
+        this.chaveContextoIntegracao = chaveContextoIntegracao;
     }
 
     public FluxoContextoIntegracaoDto(ProjetoDto projeto, String token, String[] idDocumentos) {
@@ -53,9 +57,10 @@ public class FluxoContextoIntegracaoDto {
         this.idDocumentos = idDocumentos;
     }
 
-    public FluxoContextoIntegracaoDto( String token, List<String> assinantes ) {
+    public FluxoContextoIntegracaoDto( String token, List<String> assinantes, ChaveEtapasIntegracao chaveContextoIntegracao ) {
         this.token = token;
         this.assinantes = assinantes;
+        this.chaveContextoIntegracao = chaveContextoIntegracao;
     }
 
     public FluxoContextoIntegracaoDto( String token, Long idPrograma, String[] idDocumentos, ProgramaDto programaDto ) {
