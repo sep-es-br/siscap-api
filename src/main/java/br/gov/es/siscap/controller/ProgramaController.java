@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.edocswebapi.EtapasIntegracaoDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.enums.edocs.ContextoIntegracaoEdocsEnum;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.service.IntegraccaoEdocsService;
 import br.gov.es.siscap.service.ProgramaService;
@@ -106,7 +107,7 @@ public class ProgramaController {
 
 	@GetMapping("/programa/edocs/fases/{idPrograma}")
 	public ResponseEntity<List<EtapasIntegracaoDto>> integracaoEdocsFases(@PathVariable Long idPrograma) {
-		var fases = integracaoEdocsService.consultarFasesIntegracaoEdocsProjeto(idPrograma);
+		var fases = integracaoEdocsService.consultarFasesIntegracaoEdocsPrograma(idPrograma);
 		return ResponseEntity.ok(fases);
 	}
 
