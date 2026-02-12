@@ -70,10 +70,11 @@ public class FluxoContextoIntegracaoDto {
         this.programaDto = programaDto;
     }
 
-    public FluxoContextoIntegracaoDto( String token, String idDocumentoFaseAssinatura, String idEventoAssinatura ) {
+    public FluxoContextoIntegracaoDto( String token, String idDocumentoFaseAssinatura, String idEventoAssinatura, ChaveEtapasIntegracao chaveContextoIntegracao ) {
         this.token = token;
         this.idEventoAssinatura = idEventoAssinatura;
         this.idDocumentoAssinarFaseAssinatura = idDocumentoFaseAssinatura;
+        this.chaveContextoIntegracao = chaveContextoIntegracao;
     }
 
 }

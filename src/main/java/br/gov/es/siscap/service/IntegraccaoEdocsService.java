@@ -1656,21 +1656,20 @@ public class IntegraccaoEdocsService {
 		var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
 
 		this.adicionarEtapa(chave,
-				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE, true, false,
+				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.ASSINADO, true, false,
 						false));
 
 		return buscarTokenReativo()
 				.doOnError(erro -> {
 					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
 					logger.error("Erro ao buscar Token", erro.getMessage());
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE,
+					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.ASSINADO,
 							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.map(token -> new FluxoContextoIntegracaoDto(token, idDocumentoAssinarFaseAssinatura, ""))
+				.map(token -> new FluxoContextoIntegracaoDto(token, idDocumentoAssinarFaseAssinatura, "", chave))
 				.flatMap(ctx -> assinarArquivoFaseAssinatura(ctx))
-				.filter(ctx -> !ctx.getIdEventoAssinatura().isBlank()) // o id do evento de captura só existe após todos
-																		// assinarem;
+				.filter(ctx -> !ctx.getIdEventoAssinatura().isBlank()) // o id do evento de captura só existe após todos assinarem;
 				.flatMap(ctx -> consultarSituacaoEventoAssinatura(ctx))
 				.flatMap(ctx -> {
 					var situacao = ctx.getSituacaoEventoAto();
@@ -1688,8 +1687,6 @@ public class IntegraccaoEdocsService {
 
 		logger.info("Iniciar processo para assinar arquivo com pendencia de assinatura para o E-Docs.");
 
-		var chave = new ChaveEtapasIntegracao(ctx.getIdPrograma(), ContextoIntegracaoEdocsEnum.PROGRAMA);
-
 		return FeignReativo
 				.fromFeign(() -> assinaArquivo(ctx.getToken(), ctx.getIdDocumentoAssinarFaseAssinatura()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
@@ -1698,7 +1695,7 @@ public class IntegraccaoEdocsService {
 				.doOnSuccess(retorno -> {
 					if (retorno.capturado()) {
 						ctx.setIdEventoAssinatura(retorno.idCapturaEvento());
-						finalizaTodasEtapas(chave);
+						finalizaTodasEtapas(ctx.getChaveContextoIntegracao());
 					} else {
 						ctx.setIdEventoAssinatura("");
 					}
@@ -1707,7 +1704,7 @@ public class IntegraccaoEdocsService {
 					logger.error(
 							"Falha ao executar chamada ao endpoint para assinar arquivo fase de assinatura via E-Docs.",
 							e);
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.ASSINADO);
 				})
 				.thenReturn(ctx);
 
@@ -1725,6 +1722,8 @@ public class IntegraccaoEdocsService {
 
 		var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
 
+		this.limparEtapas(chave);
+
 		this.adicionarEtapa(chave,
 				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.AUTUAR, false, false, false));
 
@@ -1740,8 +1739,7 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> autuarProcessoMonoPrograma(ctx))
 				.flatMap(ctx -> consultarSituacaoEventoAtuacaoPrograma(ctx))
 				.flatMap(ctx -> consultarDadosAutuacaoEdocs(ctx))
-				.doOnSuccess(retorno -> this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
-						true, true));
+				.doOnSuccess( retorno -> this.finalizaTodasEtapas(chave));
 
 	}
 
@@ -1832,8 +1830,6 @@ public class IntegraccaoEdocsService {
 
 		logger.info("Iniciar consulta situacao evento assinatura documento - id {}.", ctx.getIdEventoAssinatura());
 
-		var chave = new ChaveEtapasIntegracao(ctx.getIdPrograma(), ContextoIntegracaoEdocsEnum.PROGRAMA);
-
 		return FeignReativo
 				.fromFeign(() -> EdocsWebClient.buscarSituacaoEvento(ctx.getToken(), ctx.getIdEventoAssinatura()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
@@ -1851,7 +1847,7 @@ public class IntegraccaoEdocsService {
 				.doOnSuccess(resultConsultaEvento -> ctx.setSituacaoEventoAto(resultConsultaEvento))
 				.doOnError(e -> {
 					logger.error("Falha ao consultar situacao evento de ASSINATURA de um documento via E-Docs.", e);
-					registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.ASSINADO);
+					registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.ASSINADO);
 				})
 				.thenReturn(ctx);
 	}
