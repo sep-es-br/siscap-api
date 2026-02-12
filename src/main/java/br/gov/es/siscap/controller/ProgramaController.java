@@ -5,7 +5,6 @@ import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.edocswebapi.EtapasIntegracaoDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
-import br.gov.es.siscap.enums.edocs.ContextoIntegracaoEdocsEnum;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.service.IntegraccaoEdocsService;
 import br.gov.es.siscap.service.ProgramaService;
@@ -14,8 +13,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
-
 import org.springframework.core.io.Resource;
 
 import org.springframework.data.domain.Page;

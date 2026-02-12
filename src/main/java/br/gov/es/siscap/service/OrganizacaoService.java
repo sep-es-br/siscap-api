@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -60,13 +61,42 @@ public class OrganizacaoService {
 
 	public List<OpcoesDto> listarOpcoesDropdown(Long filtroTipoOrganizacao) {
 
-		Sort organizacaoListSort = Sort.by(Sort.Direction.ASC, "nome");
+		// Sort organizacaoListSort = Sort.by(Sort.Direction.ASC, "nome");
+		// List<Organizacao> organizacaoList = filtroTipoOrganizacao != null
+		// ? repository.findAllByTipoOrganizacao(new
+		// TipoOrganizacao(filtroTipoOrganizacao), organizacaoListSort)
+		// : repository.findAll(organizacaoListSort);
+
+		// List<Organizacao> organizacaoOrganogramaAPIList =
+		// organogramaService.listarOrganizacoesFilhasGOVES()
+		// .stream()
+		// .map(Organizacao::new)
+		// .toList();
+
+		// List<Organizacao> organizacaoList = organizacaoOrganogramaAPIList.stream()
+		// .filter(org -> filtroTipoOrganizacao == null
+		// || org.getTipoOrganizacao().getId().equals(filtroTipoOrganizacao))
+		// .sorted(Comparator.comparing(Organizacao::getNome))
+		// .collect(Collectors.toList());
+
+		List<Organizacao> organizacaoOrganogramaAPIList = organogramaService
+				.listarOrganizacoesFilhasGOVES()
+				.stream()
+				.map(Organizacao::new)
+				.collect(Collectors.toList());
 
 		List<Organizacao> organizacaoList = filtroTipoOrganizacao != null
-				? repository.findAllByTipoOrganizacao(new TipoOrganizacao(filtroTipoOrganizacao), organizacaoListSort)
-				: repository.findAll(organizacaoListSort);
+				? organizacaoOrganogramaAPIList.stream()
+						.filter(org -> org.getTipoOrganizacao().getId().equals(filtroTipoOrganizacao))
+						.collect(Collectors.toList())
+				: new ArrayList<>(organizacaoOrganogramaAPIList);
+
+		organizacaoList.sort(
+				Comparator.comparing(Organizacao::getNome)
+						.reversed());
 
 		return organizacaoList.stream().map(OpcoesDto::new).toList();
+
 	}
 
 	public OrganizacaoDto buscarPorId(Long id) throws IOException {

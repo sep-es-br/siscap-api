@@ -75,7 +75,7 @@ public class ProgramaProcessamentoService {
         subAssinantes.forEach(sub -> {
             EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
             String emailAssinanteAC = "";
-            
+
             if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
                 emailAssinanteAC = emailsSub.corporativo();
             } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
@@ -212,15 +212,29 @@ public class ProgramaProcessamentoService {
         }
 
         List<String> emailsInteressadosList = new ArrayList<String>();
+        Map<String, String> emailsSubAssinates = new HashMap<>();
 
         subAssinantes.forEach(sub -> {
             EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
+            String emailAssinanteAC = "";
+            
             if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
-                emailsInteressadosList.add(emailsSub.corporativo());
+                emailAssinanteAC = emailsSub.corporativo();
             } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
-                emailsInteressadosList.add(emailsSub.email());
+                emailAssinanteAC = emailsSub.email();
             }
+            emailsInteressadosList.add(emailAssinanteAC);
+            emailsSubAssinates.put(emailAssinanteAC,sub);
         });
+
+        // subAssinantes.forEach(sub -> {
+        //     EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
+        //     if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
+        //         emailsInteressadosList.add(emailsSub.corporativo());
+        //     } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+        //         emailsInteressadosList.add(emailsSub.email());
+        //     }
+        // });
 
         Programa programa = this.buscarPrograma(idPrograma);
 
@@ -232,13 +246,20 @@ public class ProgramaProcessamentoService {
 
         try {
 
-            EnvioEmailDetalhesDto envioEmailDetalhesDto = new EnvioEmailDetalhesDto(idPrograma,
-                    "",
-                    "",
-                    emailsInteressadosList,
-                    tituloPrograma,
-                    siglaPrograma,
-                    protocoloEdocsPrograma);
+            EnvioEmailDetalhesDto envioEmailDetalhesDto = new EnvioEmailDetalhesDto( idPrograma,
+                emailsInteressadosList,
+                tituloPrograma,
+                siglaPrograma, 
+                emailsSubAssinates,
+                protocoloEdocsPrograma );
+
+            // EnvioEmailDetalhesDto envioEmailDetalhesDto = new EnvioEmailDetalhesDto(idPrograma,
+            //         "",
+            //         "",
+            //         emailsInteressadosList,
+            //         tituloPrograma,
+            //         siglaPrograma,
+            //         protocoloEdocsPrograma);
 
             confirmacaoEnvioEmail = emailService.enviarEmailAvisoProgramaAutuado(envioEmailDetalhesDto);
 

@@ -630,7 +630,8 @@ public class IntegraccaoEdocsService {
 				.doOnError(e -> {
 					logger.error(
 							"Falha ao executar chamada ao endpoint para despachar um processo via E-Docs.", e);
-					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(),
+							EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
 				})
 				.thenReturn(ctx);
 
@@ -827,7 +828,8 @@ public class IntegraccaoEdocsService {
 						.error(new RuntimeException("Falha ao consultar situacao do evento de AUTUACAO DO PROCESSO ID "
 								+ ctx.getIdEventoAutuar() + ".")))
 				.doOnRequest(
-						n -> this.atualizarEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.AUTUAR, true, true))
+						n -> this.atualizarEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.AUTUAR,
+								true, true))
 				.doOnError(e -> {
 					logger.error("Falha ao verificar situacao do evento de autuacao do processo no E-Docs.", e);
 					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.AUTUAR);
@@ -864,7 +866,8 @@ public class IntegraccaoEdocsService {
 				})
 				.doOnSuccess(resultConsultaEvento -> {
 					ctx.setIdDocumentos(new String[] { resultConsultaEvento.idDocumento() });
-					this.atualizarEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, true);
+					this.atualizarEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true,
+							true);
 				})
 				.thenReturn(ctx);
 
@@ -959,7 +962,8 @@ public class IntegraccaoEdocsService {
 						EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, false))
 				.doOnError(e -> {
 					logger.error("Falha ao verificar situacao do evento de despacho do processo no E-Docs.", e);
-					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(),
+							EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
 				})
 				.thenReturn(ctx);
 	}
@@ -1049,7 +1053,9 @@ public class IntegraccaoEdocsService {
 				})
 				.doOnError(e -> {
 					logger.error("Falha ao executar UPLOAD do arquivo para o servidor S3 do E-Docs.", e);
-					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+					throw new ValidacaoSiscapException(
+							List.of("Falha ao executar UPLOAD do arquivo para o servidor S3 do E-Docs."));
+					//this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
 				})
 				.thenReturn(ctx);
 
@@ -1063,7 +1069,8 @@ public class IntegraccaoEdocsService {
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.switchIfEmpty(
 						Mono.error(new RuntimeException("Falha na geração da URL temporária para Upload do Arquivo.")))
-				.doOnRequest(n -> this.atualizarEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+				.doOnRequest(n -> this.atualizarEtapa(ctx.getChaveContextoIntegracao(),
+						EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
 						true, false))
 				.doOnSuccess(urlDto -> {
 					logger.info("URL gerada: {}", urlDto.toString());
@@ -1071,7 +1078,10 @@ public class IntegraccaoEdocsService {
 				})
 				.doOnError(e -> {
 					logger.error("Falha ao gerar URL", e);
-					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+					throw new ValidacaoSiscapException(
+							List.of("Falha ao gerar URL."));
+					// this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(),
+					// EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
 				})
 				.thenReturn(ctx);
 	}
@@ -1558,14 +1568,17 @@ public class IntegraccaoEdocsService {
 
 		var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
 
+		this.limparEtapas(chave);
+
 		this.adicionarEtapa(chave,
-				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
+				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE, true, false,
+						false));
 
 		return buscarTokenReativo()
 				.doOnError(erro -> {
 					String erroBuscarToken = "Token inválido : Sua permissão de acesso ao E-Docs expirou, gentileza realizar um novo acesso ao SISCAP.";
 					logger.error("Erro ao buscar Token", erro.getMessage());
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE,
 							erroBuscarToken);
 				})
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
@@ -1605,7 +1618,8 @@ public class IntegraccaoEdocsService {
 					logger.error(
 							"Falha ao executar chamada ao endpoint para envio do arquivo fase de assinatura via E-Docs.",
 							e);
-					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(),
+							EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE);
 				})
 				.thenReturn(ctx);
 
