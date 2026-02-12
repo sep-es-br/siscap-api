@@ -83,7 +83,7 @@ public record EnvioEmailDetalhesDto(
             List<String> emailsInteressadosList,
             String tituloPrograma,
             String siglaPrograma,
-            Map<String, String> subAssinantesEmails ) {
+            Map<String, String> subAssinantesEmails) {
         this(
                 null,
                 "",
@@ -101,6 +101,32 @@ public record EnvioEmailDetalhesDto(
                 tituloPrograma,
                 siglaPrograma,
                 "", subAssinantesEmails);
+    }
+
+    public EnvioEmailDetalhesDto(
+            Long idPrograma,
+            List<String> emailsInteressadosList,
+            String tituloPrograma,
+            String siglaPrograma,
+            Map<String, String> subAssinantesEmails,
+            String protocoloEdocsPrograma) {
+        this(
+                null,
+                "",
+                "",
+                "",
+                "",
+                emailsInteressadosList,
+                "",
+                "",
+                "",
+                "",
+                "",
+                null,
+                idPrograma,
+                tituloPrograma,
+                siglaPrograma,
+                protocoloEdocsPrograma, subAssinantesEmails);
     }
 
 }

@@ -340,35 +340,50 @@ public class EmailService {
 	public boolean enviarEmailSolicitandoAssinaturasPrograma(EnvioEmailDetalhesDto envioEmailDetalhesProgramaDto)
 			throws MessagingException, UnsupportedEncodingException {
 
-				envioAvisoPedidoAssinaturaProgramaEmailBuilder.setSubEmailDestinatarios(envioEmailDetalhesProgramaDto.subAssinantesEmails());
-				envioAvisoPedidoAssinaturaProgramaEmailBuilder.setDtoMontagemEmailDic(envioEmailDetalhesProgramaDto);
+		envioAvisoPedidoAssinaturaProgramaEmailBuilder
+				.setSubEmailDestinatarios(envioEmailDetalhesProgramaDto.subAssinantesEmails());
+		envioAvisoPedidoAssinaturaProgramaEmailBuilder.setDtoMontagemEmailDic(envioEmailDetalhesProgramaDto);
 
-				boolean todosEnviados = true;
+		boolean todosEnviados = true;
 
-				for ( String email : envioEmailDetalhesProgramaDto.emailsInteressadosList()  ) {
+		for (String email : envioEmailDetalhesProgramaDto.emailsInteressadosList()) {
 
-					envioAvisoPedidoAssinaturaProgramaEmailBuilder.setEmailEmProcessamento(email);
-			
-					boolean enviado = emailSender.enviarEmail(
-							envioAvisoPedidoAssinaturaProgramaEmailBuilder,
-							List.of(email)
-					);
-	
-					if (!enviado) {
-						todosEnviados = false;
-					}
+			envioAvisoPedidoAssinaturaProgramaEmailBuilder.setEmailEmProcessamento(email);
 
-				}
-			
-				return todosEnviados;
+			boolean enviado = emailSender.enviarEmail(
+					envioAvisoPedidoAssinaturaProgramaEmailBuilder,
+					List.of(email));
+
+			if (!enviado) {
+				todosEnviados = false;
+			}
+
+		}
+
+		return todosEnviados;
 
 	}
 
 	public boolean enviarEmailAvisoProgramaAutuado(EnvioEmailDetalhesDto envioEmailDicDetalhesDto)
 			throws MessagingException, UnsupportedEncodingException {
+
+		envioAvisoProgramaAutuadoEmailBuilder.setSubEmailDestinatarios(envioEmailDicDetalhesDto.subAssinantesEmails());
 		envioAvisoProgramaAutuadoEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
-		return emailSender.enviarEmail(envioAvisoProgramaAutuadoEmailBuilder,
-				envioEmailDicDetalhesDto.emailsInteressadosList());
+
+		boolean todosEnviados = true;
+
+		for (String email : envioEmailDicDetalhesDto.emailsInteressadosList()) {
+			envioAvisoPedidoAssinaturaProgramaEmailBuilder.setEmailEmProcessamento(email);
+			boolean enviado = emailSender.enviarEmail(
+					envioAvisoProgramaAutuadoEmailBuilder,
+					List.of(email));
+			if (!enviado) {
+				todosEnviados = false;
+			}
+		}
+
+		return todosEnviados;
+
 	}
 
 }

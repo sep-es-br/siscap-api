@@ -33,14 +33,14 @@ public class EnvioAvisoPedidoAssinaturaProgramaEmailBuilder extends EmailBuilder
 
 		if( this.getSubEmailDestinatarios().get(emailEmProcessamento) == assinanteEdocsProgramaGestorSUBCAP )
 			return "Senhor(a) Subsecretário(a)<br>\r\n" + //
-				"ANDRESSA RODRIGUES PAVÃO,<br>\r\n";
+				"ANDRESSA RODRIGUES PAVÃ\r\n";
 		else if( this.getSubEmailDestinatarios().get(emailEmProcessamento) == assinanteEdocsProgramaGestorSEP )
 			return  "Excelentíssimo(a) Senhor(a) Secretário(a)<br>\r\n" + //
-					"ÁLVARO ROGÉRIO DUBOC FAJARDO,<br>";
+					"ÁLVARO ROGÉRIO DUBOC FAJARDO";
 		else if( this.getSubEmailDestinatarios().get(emailEmProcessamento) ==  assinanteEdocsProgramaGestorGOVES )
 			return "Excelentíssimo(a) Senhor(a) Governador(a)<br>\r\n" + //
-					"JOSÉ RENATO CASAGRANDE,<br>";
-		else return "";
+					"JOSÉ RENATO CASAGRANDE";
+		else return "Prezado(a)";
 				
 	}
 
