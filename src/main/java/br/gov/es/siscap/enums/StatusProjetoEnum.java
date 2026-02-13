@@ -32,10 +32,10 @@ public enum StatusProjetoEnum {
 		@Override
 		public void validar(Projeto projeto) {}
 	},
-	PARECER_ESTRATEGICO_ORCAMENTARIO("Aguardando Parecer") {
-		@Override
-		public void validar(Projeto projeto) {}
-	},
+	// PARECER_ESTRATEGICO_ORCAMENTARIO("Aguardando Parecer") {
+	// 	@Override
+	// 	public void validar(Projeto projeto) {}
+	// },
 	COMPLEMETACAO("Em Complementação") {
 		@Override
 		public void validar(Projeto projeto) {}
@@ -44,7 +44,7 @@ public enum StatusProjetoEnum {
 		@Override
 		public void validar(Projeto projeto) {}
 	},
-	ELEGIBILIDADE("Elegibilidade") {
+	ELEGIBILIDADE("Elegivel") {
 		@Override
 		public void validar(Projeto projeto) {}
 	};

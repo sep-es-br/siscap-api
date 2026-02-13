@@ -24,6 +24,7 @@ import java.util.Set;
 @Setter
 @SQLDelete(sql = "update organizacao set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
+@ToString
 public class Organizacao extends ControleHistorico {
 
 	@Id
