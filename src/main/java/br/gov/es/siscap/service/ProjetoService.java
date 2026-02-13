@@ -108,11 +108,6 @@ public class ProjetoService {
 		Specification<Projeto> especificacaoStatus = status.equals("Status") ? null
 				: ProjetoSpecification.filtroStatus(status);
 
-		// Specification<Projeto> filtroPesquisa = Specification
-		// .where(especificacaoSiglaTitulo)
-		// .and(especificacaoIdOrganizacao)
-		// .and(especificacaoStatus);
-
 		String subUsuario = autenticacaoService.getUsuarioLogado();
 
 		LotacaoUsuarioEnum lotacaoUsuario = LotacaoUsuarioEnum.fromGuid(
