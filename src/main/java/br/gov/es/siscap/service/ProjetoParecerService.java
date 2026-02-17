@@ -173,7 +173,7 @@ public class ProjetoParecerService {
 		return projetoParecerRepository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 	}
 
-	public Boolean verificarEnvioPareceresProjeto(Long idProjeto) {
+	public boolean verificarEnvioPareceresProjeto(Long idProjeto) {
 
 		var pareceres = projetoParecerRepository.findAllByProjetoId(idProjeto);
 
@@ -191,14 +191,14 @@ public class ProjetoParecerService {
 
 	}
 
-	public Boolean verificarCapturaParecer(Long idParecer) {
+	public boolean verificarCapturaParecer(long idParecer) {
 		Optional<ProjetoParecer> parecer = projetoParecerRepository.findById(idParecer);
 		return parecer
-				.map(p -> p.getGuidDocumentoEdocs() != null && p.getGuidDocumentoEdocs().length() > 0)
+				.map(p -> p.getGuidDocumentoEdocs() != null && p.getGuidDocumentoEdocs().isEmpty())
 				.orElse(false);
 	}
 
-	public Boolean verificarEntranhamentoParecer(Long idParecer) {
+	public boolean verificarEntranhamentoParecer(long idParecer) {
 		Optional<ProjetoParecer> parecer = projetoParecerRepository.findById(idParecer);
 		return parecer
 				.map(p -> p.getStatusParecer() == StatusParecerEnum.ENTRANHADO_EDOCS.getValue())

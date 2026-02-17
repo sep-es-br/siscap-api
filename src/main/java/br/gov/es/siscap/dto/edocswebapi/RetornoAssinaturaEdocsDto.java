@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record RetornoAssinaturaEdocsDto(
 
         @JsonProperty("capturado") 
-        Boolean capturado,
+        boolean capturado,
 
         @JsonProperty("idCapturaEvento") 
         String idCapturaEvento
