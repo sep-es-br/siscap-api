@@ -10,7 +10,8 @@ public record ProgramaListaDto(
 			String sigla,
 			String titulo,
 			String moeda,
-			BigDecimal tetoPrograma
+			BigDecimal tetoPrograma,
+			String protocoloEDocs
 ) {
 
 	public ProgramaListaDto(Programa programa) {
@@ -19,7 +20,8 @@ public record ProgramaListaDto(
 					programa.getSigla(),
 					programa.getTitulo(),
 					programa.getMoeda(),
-					programa.getTetoQuantia()
+					programa.getTetoQuantia(),
+                    programa.getProtocoloEdocs()
 		);
 	}
 }

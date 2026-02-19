@@ -24,29 +24,27 @@
 	<field name="guid_elaborou_parecer" class="java.lang.String"/>
 	<field name="registro_documento_edocs" class="java.lang.String"/>
 	<detail>
-		<band height="26" splitType="Stretch">
-			<element kind="textField" uuid="39fd44e3-a3e9-418a-be5f-004deb3b0463" x="10" y="3" width="60" height="20" forecolor="#0A588F">
-				<expression><![CDATA["- " + 
-br.gov.es.siscap.enums.LotacaoUsuarioEnum
+		<band height="18" splitType="Stretch">
+			<element kind="textField" uuid="39fd44e3-a3e9-418a-be5f-004deb3b0463" x="6" y="3" width="74" height="15" forecolor="#0A588F">
+				<expression><![CDATA[br.gov.es.siscap.enums.LotacaoUsuarioEnum
     .fromGuid(
        $F{guid_elaborou_parecer},
         $P{guidSUBEPP},
         $P{guidSUBEO},
         $P{guidSUBCAP}
     )
-    .name()]]></expression>
+    .name() + "-SEP"]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				<property name="com.jaspersoft.studio.unit.y" value="px"/>
 			</element>
-			<element kind="textField" uuid="47922ae6-742d-4698-9993-bd591c0eab82" x="80" y="3" width="140" height="20" forecolor="#0A588F" hTextAlign="Center">
+			<element kind="textField" uuid="47922ae6-742d-4698-9993-bd591c0eab82" x="84" y="3" width="140" height="15" forecolor="#0A588F" hTextAlign="Center">
 				<expression><![CDATA[$F{data_envio_parecer}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
-			<element kind="textField" uuid="78172a9d-e9b0-40d0-a9c4-a765f9f60998" x="246" y="3" width="248" height="20" forecolor="#0A588F" linkType="Reference" linkTarget="Self" bold="true" hTextAlign="Left">
+			<element kind="textField" uuid="78172a9d-e9b0-40d0-a9c4-a765f9f60998" x="246" y="3" width="248" height="15" forecolor="#0A588F" linkType="Reference" linkTarget="Self" bold="true" hTextAlign="Left">
 				<expression><![CDATA[$F{registro_documento_edocs}]]></expression>
 				<hyperlinkReferenceExpression><![CDATA[$P{edocsBaseUrl} + "/documento/registro/" + $F{registro_documento_edocs}]]></hyperlinkReferenceExpression>
-				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
