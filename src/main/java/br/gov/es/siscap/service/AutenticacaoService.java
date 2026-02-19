@@ -349,7 +349,7 @@ public class AutenticacaoService {
 					});
 
 			if (possuiLotacaoVazia) {
-				logger.info("Papeis do usuário não possuem GUID de Lotação.");
+				logger.info("Papel do usuário não possuem GUID de Lotação.");
 				return organizacoesSet;
 			}
 
@@ -357,29 +357,39 @@ public class AutenticacaoService {
 
 		if (papeisLotacaoGuidSet != null) {
 
-			for (Map<String, Object> papelMap : papeisLotacaoGuidSet) {
+			papeisLotacaoGuidSet.forEach(papelMap -> {
 
-				String lotacaoGuid = papelMap.get("lotacaoGuid") != null
-						? papelMap.get("lotacaoGuid").toString()
-						: "";
-
-				String prioritario = papelMap.get("prioritario") != null
-						? papelMap.get("prioritario").toString()
-						: "false";
-
-				String guidOrganizacao = organogramaService.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid)
-						.guidOrganizacao();
-				String cnpjOrganizacao = organogramaService.listarDadosOrganizacaoPorGuid(guidOrganizacao).cnpj();
-
-				Optional<Organizacao> organizacaoOptional = organizacaoService.buscarPorCnpj(cnpjOrganizacao);
-
-				if (organizacaoOptional.isPresent()) {
-					organizacoesSet.add(Map.of("organizacao", organizacaoOptional.get(), "prioritario", prioritario));
-				} else {
-					logger.info("Organização não encontrada para o CNPJ fornecido: [{}].", cnpjOrganizacao);
+				String lotacaoGuid = Optional.ofNullable(papelMap.get("lotacaoGuid"))
+						.map(Object::toString)
+						.orElse("");
+			
+				String prioritario = Optional.ofNullable(papelMap.get("prioritario"))
+						.map(Object::toString)
+						.orElse("false");
+			
+				if (lotacaoGuid.isBlank()) {
+					return; // continue
 				}
-
-			}
+			
+				String guidOrganizacao = organogramaService
+						.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid)
+						.guidOrganizacao();
+			
+				String cnpjOrganizacao = organogramaService
+						.listarDadosOrganizacaoPorGuid(guidOrganizacao)
+						.cnpj();
+			
+				organizacaoService.buscarPorCnpj(cnpjOrganizacao)
+						.ifPresentOrElse(
+								organizacao -> organizacoesSet.add(
+										Map.of("organizacao", organizacao, "prioritario", prioritario)
+								),
+								() -> logger.info(
+										"Organização não encontrada para o CNPJ fornecido: [{}].",
+										cnpjOrganizacao
+								)
+						);
+			});
 
 		}
 

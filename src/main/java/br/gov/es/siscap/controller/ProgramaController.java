@@ -2,17 +2,17 @@ package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.AssinanteRequestDto;
 import br.gov.es.siscap.dto.ProgramaDto;
+import br.gov.es.siscap.dto.edocswebapi.EtapasIntegracaoDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.form.ProgramaForm;
+import br.gov.es.siscap.service.IntegraccaoEdocsService;
 import br.gov.es.siscap.service.ProgramaService;
 import br.gov.es.siscap.service.RelatoriosService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
-
 import org.springframework.core.io.Resource;
 
 import org.springframework.data.domain.Page;
@@ -32,8 +32,8 @@ import java.util.List;
 public class ProgramaController {
 
 	private final ProgramaService service;
-
 	private final RelatoriosService relatoriosService;
+	private final IntegraccaoEdocsService integracaoEdocsService;
 
 	@GetMapping
 	public Page<ProgramaListaDto> listarTodos(
@@ -100,6 +100,12 @@ public class ProgramaController {
 	public ResponseEntity<Void> autuarProgramaEdocs(@PathVariable Long idPrograma) {
 		 service.autuarProgramaEdocs(idPrograma);
 		 return ResponseEntity.accepted().build();
+	}
+
+	@GetMapping("/programa/edocs/fases/{idPrograma}")
+	public ResponseEntity<List<EtapasIntegracaoDto>> integracaoEdocsFases(@PathVariable Long idPrograma) {
+		var fases = integracaoEdocsService.consultarFasesIntegracaoEdocsPrograma(idPrograma);
+		return ResponseEntity.ok(fases);
 	}
 
 }

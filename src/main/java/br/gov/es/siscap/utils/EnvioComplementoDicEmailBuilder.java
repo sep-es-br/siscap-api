@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
+import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 import br.gov.es.siscap.utils.email.builder.EmailBuilderBase;
 import lombok.Getter;
@@ -20,7 +20,7 @@ public class EnvioComplementoDicEmailBuilder extends EmailBuilderBase {
 	// List<ProjetoCamposComplementacaoDto> complementacaoDtos;
 
 	@Override
-	protected String montarCampoTratamento(EnvioEmailDicDetalhesDto dto) {
+	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
 		return "Prezado(a) %s".formatted(dto.nomeGestor());
 	}
 
@@ -30,7 +30,7 @@ public class EnvioComplementoDicEmailBuilder extends EmailBuilderBase {
 	}
 
 	@Override
-	protected String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) {
+	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
 
 		String corpoEmail = "Informamos que o DIC [<strong>%S</strong>] precisará ser complementado após avaliação realizada pela SUBCAP."
 				.formatted(dto.tituloProjeto())

@@ -1,7 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.CartaConsultaDetalhesDto;
-import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
+import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 import br.gov.es.siscap.dto.ProspeccaoDetalhesDto;
 import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
@@ -127,7 +127,7 @@ public class EmailService {
 		helper.addAttachment(nomeArquivo, relatorioDIC);
 	}
 
-	public boolean enviarEmailAnaliseDIC(EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto)
+	public boolean enviarEmailAnaliseDIC(EnvioEmailDetalhesDto envioEmailDicDetalhesDto)
 			throws MessagingException, UnsupportedEncodingException {
 
 		builderEnvioEmailAnaliseGestorDic.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
@@ -137,7 +137,7 @@ public class EmailService {
 
 	}
 
-	public boolean enviarEmailPareceresEstrategicoOrcamentario(EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto)
+	public boolean enviarEmailPareceresEstrategicoOrcamentario(EnvioEmailDetalhesDto envioEmailDicDetalhesDto)
 			throws MessagingException, UnsupportedEncodingException {
 
 		List<String> emailsDestinatarios = new ArrayList<>();
@@ -145,7 +145,7 @@ public class EmailService {
 		emailsDestinatarios.add(this.DESTINO_PARECER_ESTRATEGICO);
 		emailsDestinatarios.add(this.DESTINO_PARECER_ORCAMENTARIO);
 
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto2 = new EnvioEmailDicDetalhesDto(
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto2 = new EnvioEmailDetalhesDto(
 				envioEmailDicDetalhesDto.idProjeto(),
 				envioEmailDicDetalhesDto.nomeResponsavelEnvioEmail(),
 				null,
@@ -156,7 +156,7 @@ public class EmailService {
 				null,
 				null,
 				null,
-				null, null, null, "", "", "");
+				null, null, null, "", "", "", null);
 
 		builderEnvioEmailPedidoParecerSUBEPPSUBEO.setDtoMontagemEmailDic(envioEmailDicDetalhesDto2);
 		builderEnvioEmailPedidoParecerSUBEPPSUBEO.setSiglaProjeto(envioEmailDicDetalhesDto.tituloProjeto());
@@ -170,7 +170,7 @@ public class EmailService {
 			String nomeResponsavelEnvio, Projeto projeto, String responsavelProponenteProjeto)
 			throws MessagingException, UnsupportedEncodingException {
 
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(
 				projeto.getId(),
 				nomeResponsavelEnvio,
 				null,
@@ -181,7 +181,7 @@ public class EmailService {
 				null,
 				null,
 				null,
-				justificativa, null, null, "", "", "");
+				justificativa, null, null, "", "", "", null);
 
 		builderEnvioEmailRevisao.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioEmailRevisao.setSiglaProjeto(projeto.getSigla());
@@ -198,7 +198,7 @@ public class EmailService {
 			String responsavelProponenteProjeto,
 			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
 
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(
 				idProjeto,
 				nomeResponsavelEnvio,
 				null,
@@ -208,7 +208,7 @@ public class EmailService {
 				descricaoProjeto,
 				codigoMotivoArquivamento,
 				descricaoTipoMotivoArquivamento,
-				justificativa, null, null, null, "", "", "");
+				justificativa, null, null, null, "", "", "", null);
 
 		builderEnvioEmailArquivamentoDIC.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioEmailArquivamentoDIC.setSiglaProjeto(descricaoProjeto);
@@ -226,7 +226,7 @@ public class EmailService {
 			Long idProjeto)
 			throws MessagingException, UnsupportedEncodingException {
 
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(
 				idProjeto,
 				nomeResponsavelEnvio,
 				null,
@@ -236,7 +236,7 @@ public class EmailService {
 				descricaoProjeto,
 				null,
 				null,
-				null, null, camposComplementar, null, "", "", "");
+				null, null, camposComplementar, null, "", "", "", null);
 
 		builderEnvioEmailComplementoDIC.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioEmailComplementoDIC.setSiglaProjeto(descricaoProjeto);
@@ -246,10 +246,11 @@ public class EmailService {
 
 	}
 
-	public boolean enviarEmailPareceresCapturadosProjeto( List<String> emailsInteressadosList, Long idProjeto, String siglaProjeto )
+	public boolean enviarEmailPareceresCapturadosProjeto(List<String> emailsInteressadosList, Long idProjeto,
+			String siglaProjeto)
 			throws MessagingException, UnsupportedEncodingException {
 
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(
 				idProjeto,
 				null,
 				null,
@@ -260,11 +261,11 @@ public class EmailService {
 				null,
 				null,
 				null,
-				null, null, null, "", "", "");
+				null, null, null, "", "", "", null);
 
 		builderEnvioEmailAvisoCapturaParecer.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioEmailAvisoCapturaParecer.setSiglaProjeto(siglaProjeto);
-		
+
 		return emailSender.enviarEmail(builderEnvioEmailAvisoCapturaParecer,
 				envioEmailDicDetalhesDto.emailsInteressadosList());
 
@@ -273,7 +274,7 @@ public class EmailService {
 	public boolean enviarEmailAvisoSubcapDicAutuado(List<String> emailsInteressadosList, String descricaoDic,
 			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
 
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				null,
 				null,
 				null,
@@ -282,7 +283,7 @@ public class EmailService {
 				null,
 				null,
 				null,
-				null, null, null, null, "", "", "");
+				null, null, null, null, "", "", "", null);
 
 		builderEnvioEmailAvisoDicAutuado.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioEmailAvisoDicAutuado.setSiglaProjeto(descricaoDic);
@@ -295,7 +296,7 @@ public class EmailService {
 	public boolean enviarEmailAvisoParecerGerenciaSubcap(List<String> emailsInteressadosList, String descricaoDic,
 			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
 
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				null,
 				null,
 				null,
@@ -304,7 +305,7 @@ public class EmailService {
 				null,
 				null,
 				null,
-			null, null, null, null, "", "", "");
+				null, null, null, null, "", "", "", null);
 
 		builderEnvioAvisoPedidoParecerGEOC.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioAvisoPedidoParecerGEOC.setSiglaProjeto(descricaoDic);
@@ -317,7 +318,7 @@ public class EmailService {
 	public boolean enviarEmailAvisoParecerGeocSubcapRealizado(List<String> emailsInteressadosList, String descricaoDic,
 			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
 
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				null,
 				null,
 				null,
@@ -326,7 +327,7 @@ public class EmailService {
 				null,
 				null,
 				null,
-				null, null, null, null, "", "", "");
+				null, null, null, null, "", "", "", null);
 
 		builderEnvioEmailAvisoParecerGEOCRealizado.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		builderEnvioEmailAvisoParecerGEOCRealizado.setSiglaProjeto(descricaoDic);
@@ -336,18 +337,53 @@ public class EmailService {
 
 	}
 
-	public boolean enviarEmailSolicitandoAssinaturasPrograma(EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto)
+	public boolean enviarEmailSolicitandoAssinaturasPrograma(EnvioEmailDetalhesDto envioEmailDetalhesProgramaDto)
 			throws MessagingException, UnsupportedEncodingException {
-		envioAvisoPedidoAssinaturaProgramaEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
-		return emailSender.enviarEmail(envioAvisoPedidoAssinaturaProgramaEmailBuilder,
-			envioEmailDicDetalhesDto.emailsInteressadosList());
+
+		envioAvisoPedidoAssinaturaProgramaEmailBuilder
+				.setSubEmailDestinatarios(envioEmailDetalhesProgramaDto.subAssinantesEmails());
+		envioAvisoPedidoAssinaturaProgramaEmailBuilder.setDtoMontagemEmailDic(envioEmailDetalhesProgramaDto);
+
+		boolean todosEnviados = true;
+
+		for (String email : envioEmailDetalhesProgramaDto.emailsInteressadosList()) {
+
+			envioAvisoPedidoAssinaturaProgramaEmailBuilder.setEmailEmProcessamento(email);
+
+			boolean enviado = emailSender.enviarEmail(
+					envioAvisoPedidoAssinaturaProgramaEmailBuilder,
+					List.of(email));
+
+			if (!enviado) {
+				todosEnviados = false;
+			}
+
+		}
+
+		return todosEnviados;
+
 	}
 
-	public boolean enviarEmailAvisoProgramaAutuado(EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto)
+	public boolean enviarEmailAvisoProgramaAutuado(EnvioEmailDetalhesDto envioEmailDicDetalhesDto)
 			throws MessagingException, UnsupportedEncodingException {
-				envioAvisoProgramaAutuadoEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
-		return emailSender.enviarEmail(envioAvisoProgramaAutuadoEmailBuilder,
-			envioEmailDicDetalhesDto.emailsInteressadosList());
+
+		envioAvisoProgramaAutuadoEmailBuilder.setSubEmailDestinatarios(envioEmailDicDetalhesDto.subAssinantesEmails());
+		envioAvisoProgramaAutuadoEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+
+		boolean todosEnviados = true;
+
+		for (String email : envioEmailDicDetalhesDto.emailsInteressadosList()) {
+			envioAvisoPedidoAssinaturaProgramaEmailBuilder.setEmailEmProcessamento(email);
+			boolean enviado = emailSender.enviarEmail(
+					envioAvisoProgramaAutuadoEmailBuilder,
+					List.of(email));
+			if (!enviado) {
+				todosEnviados = false;
+			}
+		}
+
+		return todosEnviados;
+
 	}
 
 }

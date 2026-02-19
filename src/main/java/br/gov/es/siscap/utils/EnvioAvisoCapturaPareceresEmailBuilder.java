@@ -2,7 +2,7 @@ package br.gov.es.siscap.utils;
 
 import org.springframework.stereotype.Component;
 
-import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
+import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import br.gov.es.siscap.utils.email.builder.EmailBuilderBase;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +15,7 @@ public class EnvioAvisoCapturaPareceresEmailBuilder extends EmailBuilderBase {
 	String siglaProjeto;
 
 	@Override
-	protected String montarCampoTratamento(EnvioEmailDicDetalhesDto dto) {
+	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
 		return "Prezado(a)s";
 	}
 
@@ -25,7 +25,7 @@ public class EnvioAvisoCapturaPareceresEmailBuilder extends EmailBuilderBase {
 	}
 
 	@Override
-	protected String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) {
+	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
 		return "Os pareceres Orçamentário e Estratégico do DIC já foram capturados, e o processo pode seguir para a próxima fase de análise.";
 	}
 

@@ -1219,7 +1219,7 @@ public class ProjetoService {
 			throw new RuntimeException("Erro ao buscar dados organizacao projeto.");
 		}
 
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				nomeProponente,
 				null,
 				nomeOrganizacaoProjeto,
@@ -1274,7 +1274,7 @@ public class ProjetoService {
 			throw new RuntimeException("Erro ao buscar dados organizacao projeto.");
 		}
 
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				nomeProponente,
 				null,
 				nomeOrganizacaoProjeto,
