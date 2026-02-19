@@ -54,8 +54,6 @@ public class ProgramaService {
 	private String assinanteEdocsProgramaGestorGOVES;
 
 	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search) {
-		logger.info("Buscando todos os programas");
-
 		return repository.paginarProgramasPorFiltroPesquisaSimples(search, pageable)
 				.map(ProgramaListaDto::new);
 	}

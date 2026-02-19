@@ -24,7 +24,7 @@
 	<detail>
 		<band height="83" splitType="Stretch">
 			<element kind="textField" uuid="39fd44e3-a3e9-418a-be5f-004deb3b0463" x="10" y="2" width="90" height="20" forecolor="#0A588F">
-				<expression><![CDATA["3.1." + $V{REPORT_COUNT} + " " + $F{sigla_dic}]]></expression>
+				<expression><![CDATA[$F{sigla_dic}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				<property name="com.jaspersoft.studio.unit.y" value="px"/>
@@ -72,7 +72,7 @@
 			</element>
 			<element kind="line" uuid="6ba4a3f7-0258-4bba-a6a6-d161a5f4799f" x="10" y="21" width="490" height="1" forecolor="#B2B2B2"/>
 			<element kind="staticText" uuid="b0b74bfb-8a35-4e8b-8b19-7070b95cc103" x="15" y="24" width="110" height="16" forecolor="#030303" bold="true">
-				<text><![CDATA[Pareceres Propostos : ]]></text>
+				<text><![CDATA[Pareceres : ]]></text>
 			</element>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
