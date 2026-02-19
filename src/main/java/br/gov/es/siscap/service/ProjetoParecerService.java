@@ -194,7 +194,7 @@ public class ProjetoParecerService {
 	public boolean verificarCapturaParecer(long idParecer) {
 		Optional<ProjetoParecer> parecer = projetoParecerRepository.findById(idParecer);
 		return parecer
-				.map(p -> p.getGuidDocumentoEdocs() != null && p.getGuidDocumentoEdocs().isEmpty())
+				.map(p -> p.getGuidDocumentoEdocs() != null && !p.getGuidDocumentoEdocs().isEmpty())
 				.orElse(false);
 	}
 
