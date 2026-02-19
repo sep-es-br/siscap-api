@@ -19,17 +19,20 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class OrganizacaoService {
+
+	// @Value("${api.organograma.sync.organizacoes-cron}")
+	// private String cronJobSincronizacaoOrganizacoeString;
 
 	private final OrganizacaoRepository repository;
 	private final OrganogramaService organogramaService;
@@ -44,6 +47,24 @@ public class OrganizacaoService {
 	@PostConstruct
 	protected void init() {
 		this.sincronizarOrganizacoesBancoComOrganogramaAPI();
+	}
+
+	@Scheduled(cron = "${api.organograma.sync.organizacoes-cron}", zone = "America/Sao_Paulo")
+	public void jobSincronizarOrganizacoes() {
+
+		logger.info("Iniciando job de sincronização de organizações");
+
+		long inicio = System.currentTimeMillis();
+
+		try {
+			this.sincronizarOrganizacoesBancoComOrganogramaAPI();
+			long duracao = System.currentTimeMillis() - inicio;
+			logger.info("Job finalizado com sucesso em {} ms", duracao);
+		} catch (Exception e) {
+			logger.error("Erro ao executar job de sincronização", e);
+			throw e;
+		}
+
 	}
 
 	public Page<OrganizacaoListaDto> listarTodos(Pageable pageable, String search) {
@@ -61,39 +82,11 @@ public class OrganizacaoService {
 
 	public List<OpcoesDto> listarOpcoesDropdown(Long filtroTipoOrganizacao) {
 
-		// Sort organizacaoListSort = Sort.by(Sort.Direction.ASC, "nome");
-		// List<Organizacao> organizacaoList = filtroTipoOrganizacao != null
-		// ? repository.findAllByTipoOrganizacao(new
-		// TipoOrganizacao(filtroTipoOrganizacao), organizacaoListSort)
-		// : repository.findAll(organizacaoListSort);
-
-		// List<Organizacao> organizacaoOrganogramaAPIList =
-		// organogramaService.listarOrganizacoesFilhasGOVES()
-		// .stream()
-		// .map(Organizacao::new)
-		// .toList();
-
-		// List<Organizacao> organizacaoList = organizacaoOrganogramaAPIList.stream()
-		// .filter(org -> filtroTipoOrganizacao == null
-		// || org.getTipoOrganizacao().getId().equals(filtroTipoOrganizacao))
-		// .sorted(Comparator.comparing(Organizacao::getNome))
-		// .collect(Collectors.toList());
-
-		List<Organizacao> organizacaoOrganogramaAPIList = organogramaService
-				.listarOrganizacoesFilhasGOVES()
-				.stream()
-				.map(Organizacao::new)
-				.collect(Collectors.toList());
+		Sort organizacaoListSort = Sort.by(Sort.Direction.ASC, "nome");
 
 		List<Organizacao> organizacaoList = filtroTipoOrganizacao != null
-				? organizacaoOrganogramaAPIList.stream()
-						.filter(org -> org.getTipoOrganizacao().getId().equals(filtroTipoOrganizacao))
-						.collect(Collectors.toList())
-				: new ArrayList<>(organizacaoOrganogramaAPIList);
-
-		organizacaoList.sort(
-				Comparator.comparing(Organizacao::getNome)
-						.reversed());
+				? repository.findAllByTipoOrganizacao(new TipoOrganizacao(filtroTipoOrganizacao), organizacaoListSort)
+				: repository.findAll(organizacaoListSort);
 
 		return organizacaoList.stream().map(OpcoesDto::new).toList();
 

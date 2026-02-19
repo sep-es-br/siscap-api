@@ -1,11 +1,15 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.config.security.AuthorizationRequestResolver;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,6 +35,8 @@ public class UsuarioService implements UserDetailsService {
 
     private final UsuarioRepository repository;
     private final AcessoCidadaoService acessoCidadaoService;
+
+    private final Logger logger = LogManager.getLogger(AuthorizationRequestResolver.class);
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

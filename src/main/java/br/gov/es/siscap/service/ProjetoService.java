@@ -108,11 +108,6 @@ public class ProjetoService {
 		Specification<Projeto> especificacaoStatus = status.equals("Status") ? null
 				: ProjetoSpecification.filtroStatus(status);
 
-		// Specification<Projeto> filtroPesquisa = Specification
-		// .where(especificacaoSiglaTitulo)
-		// .and(especificacaoIdOrganizacao)
-		// .and(especificacaoStatus);
-
 		String subUsuario = autenticacaoService.getUsuarioLogado();
 
 		LotacaoUsuarioEnum lotacaoUsuario = LotacaoUsuarioEnum.fromGuid(
@@ -415,7 +410,7 @@ public class ProjetoService {
 		ProjetoParecer projetoParecer = null;
 
 		if (projeto.getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())
-				|| projeto.getStatus().equals(StatusProjetoEnum.ELEGIBILIDADE.getValue())) {
+				|| projeto.getStatus().equals(StatusProjetoEnum.ELEGIVEL.getValue())) {
 
 			projetoParecerDto = form.parecerProjetoUsuario();
 

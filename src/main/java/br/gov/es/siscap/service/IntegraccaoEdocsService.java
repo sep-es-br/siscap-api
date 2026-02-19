@@ -526,14 +526,15 @@ public class IntegraccaoEdocsService {
 								codigoRegistroEdocs);
 
 						if (projetoParecerService.verificarEnvioPareceresProjeto(ctx.getProjeto().id())) {
-							projetoService.alterarStatusProjeto(
-									ctx.getProjeto().id(),
-									StatusProjetoEnum.ELEGIBILIDADE.getValue());
-
 							projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(
 									ctx.getProjeto().id(),
 									ctx.getProjeto().sigla());
 						}
+
+						if(projetoParecerService.verificarEnvioParecereGEOCProjeto(ctx.getProjeto().id()))
+							projetoService.alterarStatusProjeto(
+									ctx.getProjeto().id(),
+									StatusProjetoEnum.ELEGIVEL.getValue());
 
 						return "Atualização do parecer concluída com sucesso.";
 
