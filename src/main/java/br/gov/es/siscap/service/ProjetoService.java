@@ -410,7 +410,7 @@ public class ProjetoService {
 		ProjetoParecer projetoParecer = null;
 
 		if (projeto.getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())
-				|| projeto.getStatus().equals(StatusProjetoEnum.ELEGIBILIDADE.getValue())) {
+				|| projeto.getStatus().equals(StatusProjetoEnum.ELEGIVEL.getValue())) {
 
 			projetoParecerDto = form.parecerProjetoUsuario();
 

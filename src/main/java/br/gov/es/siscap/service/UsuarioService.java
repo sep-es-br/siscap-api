@@ -64,8 +64,6 @@ public class UsuarioService implements UserDetailsService {
     
     public String lotacaoGuidUsuario(String subUsuario) {
 
-        logger.info(lotacaoSimulada);
-
         // ⚙️ Simulação de ambiente de teste
         if (lotacaoSimulada != null && !lotacaoSimulada.isEmpty()) {
             return switch (lotacaoSimulada.toUpperCase()) {

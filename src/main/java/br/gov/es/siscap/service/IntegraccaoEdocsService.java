@@ -534,7 +534,7 @@ public class IntegraccaoEdocsService {
 						if(projetoParecerService.verificarEnvioParecereGEOCProjeto(ctx.getProjeto().id()))
 							projetoService.alterarStatusProjeto(
 									ctx.getProjeto().id(),
-									StatusProjetoEnum.ELEGIBILIDADE.getValue());
+									StatusProjetoEnum.ELEGIVEL.getValue());
 
 						return "Atualização do parecer concluída com sucesso.";
 
