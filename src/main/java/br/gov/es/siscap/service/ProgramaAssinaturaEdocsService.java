@@ -38,17 +38,21 @@ public class ProgramaAssinaturaEdocsService {
 
 		programaAssinaturaEdocsList.stream()
 				.forEach(assinante -> {
+					
 					List<ACAgentePublicoPapelDto> papeisAgentePublico = acessoCidadaoService
 							.listarPapeisAgentePublicoPorSub(assinante.getPessoa().getSub());
+
 					String nomePapelAssinante = papeisAgentePublico.stream()
 							.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
 							.findFirst()
-							.map(ACAgentePublicoPapelDto::Guid)
+							.map(ACAgentePublicoPapelDto::Nome)
 							.orElseGet(() -> papeisAgentePublico.stream()
 									.findFirst()
 									.map(ACAgentePublicoPapelDto::Nome)
 									.orElse(""));
+
 					papelPorSub.put(assinante.getPessoa().getSub(), nomePapelAssinante);
+
 				});
 
 		return this.montarListaDto(programaAssinaturaEdocsList, papelPorSub);
@@ -86,6 +90,7 @@ public class ProgramaAssinaturaEdocsService {
 	private List<ProgramaAssinaturaEdocsDto> montarListaDto(
 			List<ProgramaAssinaturaEdocs> programaPessoaAssinanteEdocsList,
 			Map<String, String> papelPorSub) {
+
 		return programaPessoaAssinanteEdocsList.stream()
 				.map(assinante -> new ProgramaAssinaturaEdocsDto(
 						assinante.getId(),
@@ -96,6 +101,7 @@ public class ProgramaAssinaturaEdocsService {
 						assinante.getPessoa().getNome(),
 						papelPorSub.getOrDefault(assinante.getPessoa().getSub(), "")))
 				.toList();
+
 	}
 
 	private Set<ProgramaAssinaturaEdocs> buscarProgramaAssinaturasSetPorPrograma(Programa programa) {
