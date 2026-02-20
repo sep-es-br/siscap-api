@@ -273,7 +273,7 @@ public class ProgramaService {
 
 		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
 
-		if (assinantesDevemAssinarPrograma != null) {
+		if (!assinantesDevemAssinarPrograma.isEmpty()) {
 			erros.add(
 					"Assinaturas já solicitadas para o programa id " + programa.getId() + ".");
 			erros.forEach(logger::error);
