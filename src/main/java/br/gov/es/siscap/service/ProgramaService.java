@@ -72,7 +72,8 @@ public class ProgramaService {
 
 		List<Long> idProjetoPropostoList = projetoService.buscarIdProjetoPropostoList(programa);
 
-		List<ProgramaAssinaturaEdocsDto> assinantesProgramaListDto = programaAssinaturaEdocsService.buscarPorPrograma(programa);
+		List<ProgramaAssinaturaEdocsDto> assinantesProgramaListDto = programaAssinaturaEdocsService
+				.buscarPorPrograma(programa);
 
 		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList, assinantesProgramaListDto);
 
@@ -196,7 +197,10 @@ public class ProgramaService {
 	}
 
 	private Programa buscar(Long id) {
-		return repository.findById(id).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
+		return repository.findById(id).orElseThrow(() -> {
+			throw new ValidacaoSiscapException(List.of("Programa não encontrado"));
+		});
+		// new RuntimeException("Programa não encontrado")
 	}
 
 	private String buscarCountAnoFormatado() {
@@ -214,9 +218,9 @@ public class ProgramaService {
 	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma) {
 		this.validarAssinaturasSolicitadas(idPrograma);
 		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
-		List<String> subAssinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
-			assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
-		asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, subAssinantesEdocsPrograma,
+		List<String> assinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
+				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
+		asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, assinantesEdocsPrograma,
 				nomeArquivo);
 	}
 
@@ -328,10 +332,10 @@ public class ProgramaService {
 
 	private void validarSeProgramaJaFoiAutuado(Programa programa) {
 		List<String> erros = new ArrayList<>();
-		
-		if(!programa.getProtocoloEdocs().isBlank()){
+
+		if (!programa.getProtocoloEdocs().isBlank()) {
 			erros.add(
-				"Programa já foi autuado sobre o protoclo " + programa.getProtocoloEdocs() + ".");
+					"Programa já foi autuado sobre o protoclo " + programa.getProtocoloEdocs() + ".");
 		}
 
 		if (!erros.isEmpty()) {
@@ -342,7 +346,7 @@ public class ProgramaService {
 	}
 
 	// private Programa buscarComAssinaturasEPessoas(Long id) {
-	// 	return repository.buscarPorIdComAssinantesEPessoa(id);
+	// return repository.buscarPorIdComAssinantesEPessoa(id);
 	// }
 
 }
