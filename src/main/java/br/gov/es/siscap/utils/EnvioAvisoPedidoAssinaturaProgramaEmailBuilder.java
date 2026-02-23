@@ -65,7 +65,7 @@ public class EnvioAvisoPedidoAssinaturaProgramaEmailBuilder extends EmailBuilder
 			return "";
 		}
 
-		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/programas/" + dto.idPrograma() + "/assinaturas";
+		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/main/programas/" + dto.idPrograma() + "/assinaturas";
 
 		if (linkEdicao == null || linkEdicao.isBlank()) {
 			return "";

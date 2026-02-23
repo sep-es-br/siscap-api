@@ -33,7 +33,7 @@ public class EnvioAnaliseGestorDicEmailBuilder extends EmailBuilderBase {
 			return "";
 		}
 
-		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + dto.idProjeto();
+		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/main/projetos/editar/" + dto.idProjeto();
 
 		if (linkEdicao == null || linkEdicao.isBlank()) {
 			return "";
