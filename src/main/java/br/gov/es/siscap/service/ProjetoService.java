@@ -406,7 +406,7 @@ public class ProjetoService {
 
 		String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
 
-		ProjetoParecerDto projetoParecerDto = form.parecerProjetoUsuario();
+		ProjetoParecerDto projetoParecerDto;
 		ProjetoParecer projetoParecer = null;
 
 		if (projeto.getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())
