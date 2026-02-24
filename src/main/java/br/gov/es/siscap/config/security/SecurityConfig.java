@@ -30,7 +30,7 @@ public class SecurityConfig {
 	private final ClientRegistrationRepository clientRegistrationRepository;
 	private final SecurityFilter securityFilter;
 	private final CustomAccessDeniedHandler customAccessDeniedHandler;
-	
+
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http
@@ -53,6 +53,9 @@ public class SecurityConfig {
 							PESSOA_ATUALIZAR.name());
 					authConfig.requestMatchers(DELETE, PATH_PESSOAS).hasAnyAuthority(ADMIN_AUTH.name(),
 							PESSOA_APAGAR.name());
+
+					authConfig.requestMatchers(POST, "/main/programas/*/assinaturas")
+							.permitAll();
 
 					authConfig.requestMatchers(POST, PATH_PROGRAMAS).hasAnyAuthority(ADMIN_AUTH.name(),
 							PROGRAMA_CADASTRAR.name());
