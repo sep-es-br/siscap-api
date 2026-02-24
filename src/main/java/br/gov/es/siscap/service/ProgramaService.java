@@ -333,7 +333,8 @@ public class ProgramaService {
 	private void validarSeProgramaJaFoiAutuado(Programa programa) {
 		List<String> erros = new ArrayList<>();
 
-		if (!programa.getProtocoloEdocs().isBlank()) {
+		String protocoloEdocs = programa.getProtocoloEdocs();
+		if (protocoloEdocs != null && !protocoloEdocs.isBlank()) {
 			erros.add(
 					"Programa já foi autuado sobre o protoclo " + programa.getProtocoloEdocs() + ".");
 		}
@@ -344,9 +345,5 @@ public class ProgramaService {
 		}
 
 	}
-
-	// private Programa buscarComAssinaturasEPessoas(Long id) {
-	// return repository.buscarPorIdComAssinantesEPessoa(id);
-	// }
 
 }
