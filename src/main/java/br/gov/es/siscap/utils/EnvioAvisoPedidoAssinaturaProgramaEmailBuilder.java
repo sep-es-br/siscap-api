@@ -3,6 +3,7 @@ package br.gov.es.siscap.utils;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -27,20 +28,23 @@ public class EnvioAvisoPedidoAssinaturaProgramaEmailBuilder extends EmailBuilder
 
 	private Map<String, String> subEmailDestinatarios;
 	private String emailEmProcessamento;
+	private String nomeDestinatario;
 
 	@Override
 	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
 
-		if( this.getSubEmailDestinatarios().get(emailEmProcessamento) == assinanteEdocsProgramaGestorSUBCAP )
-			return "Senhor(a) Subsecretário(a)<br>\r\n" + //
-				"ANDRESSA RODRIGUES PAVÃO\r\n";
-		else if( this.getSubEmailDestinatarios().get(emailEmProcessamento) == assinanteEdocsProgramaGestorSEP )
-			return  "Excelentíssimo(a) Senhor(a) Secretário(a)<br>\r\n" + //
-					"ÁLVARO ROGÉRIO DUBOC FAJARDO";
-		else if( this.getSubEmailDestinatarios().get(emailEmProcessamento) ==  assinanteEdocsProgramaGestorGOVES )
-			return "Excelentíssimo(a) Senhor(a) Governador(a)<br>\r\n" + //
-					"JOSÉ RENATO CASAGRANDE";
-		else return "Prezado(a)";
+		// if( this.getSubEmailDestinatarios().get(emailEmProcessamento) == assinanteEdocsProgramaGestorSUBCAP )
+		// 	return "Senhor(a) Subsecretário(a),<br>\r\n" + //
+		// 		"ANDRESSA RODRIGUES PAVÃO\r\n";
+		// else if( this.getSubEmailDestinatarios().get(emailEmProcessamento) == assinanteEdocsProgramaGestorSEP )
+		// 	return  "Excelentíssimo(a) Senhor(a) Secretário(a),<br>\r\n" + //
+		// 			"ÁLVARO ROGÉRIO DUBOC FAJARDO";
+		// else if( this.getSubEmailDestinatarios().get(emailEmProcessamento) ==  assinanteEdocsProgramaGestorGOVES )
+		// 	return "Excelentíssimo(a) Senhor(a) Governador(a),<br>\r\n" + //
+		// 			"JOSÉ RENATO CASAGRANDE";
+		// else
+
+		return "Prezado(a) senhor(a),<br>" + this.getNomeDestinatario();
 				
 	}
 
@@ -51,7 +55,7 @@ public class EnvioAvisoPedidoAssinaturaProgramaEmailBuilder extends EmailBuilder
 
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
-		return ("A minuta do programa de captação de recursos %s - %s foi criada no Siscap - Sistema de Captação de Recursos do Estado do Espírito Santo - e aguarda a sua análise e autorização, se de acordo.")
+		return ("A minuta do programa de captação de recursos <b>%s</b> - <b>%s</b> foi criada no Siscap - Sistema de Captação de Recursos do Estado do Espírito Santo - e aguarda a sua análise e autorização, se de acordo.")
 				.formatted(Objects.toString(dto.siglaPrograma(), ""),
 						Objects.toString(dto.tituloPrograma(), ""));
 	}
@@ -67,12 +71,12 @@ public class EnvioAvisoPedidoAssinaturaProgramaEmailBuilder extends EmailBuilder
 
 		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/main/programas/" + dto.idPrograma() + "/assinaturas";
 
-		if (linkEdicao == null || linkEdicao.isBlank()) {
+		if (StringUtils.isBlank(linkEdicao)) {
 			return "";
 		}
 
 		return """
-				    <p style="font-size: 12px;" >Para acessar e autorizar, clique no link: <a style="font-size: 12px;" href="%s">%s</a> </p>
+				    <p style="font-size: 12px;" >Acesse e autorize em <a style="font-size: 12px;" href="%s">%s</a> </p>
 				"""
 				.formatted(linkEdicao, linkEdicao);
 
