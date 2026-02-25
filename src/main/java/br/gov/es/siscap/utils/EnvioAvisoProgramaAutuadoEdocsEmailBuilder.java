@@ -31,16 +31,17 @@ public class EnvioAvisoProgramaAutuadoEdocsEmailBuilder extends EmailBuilderBase
 	@Override
 	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
 		
-		if( this.getSubEmailDestinatarios().get(emailEmProcessamento) == assinanteEdocsProgramaGestorSUBCAP )
-			return "Senhor(a) Subsecretário(a)<br>\r\n" + //
-				"ANDRESSA RODRIGUES PAVÃO\r\n";
-		else if( this.getSubEmailDestinatarios().get(emailEmProcessamento) == assinanteEdocsProgramaGestorSEP )
-			return  "Excelentíssimo(a) Senhor(a) Secretário(a)<br>\r\n" + //
-					"ÁLVARO ROGÉRIO DUBOC FAJARDO";
-		else if( this.getSubEmailDestinatarios().get(emailEmProcessamento) ==  assinanteEdocsProgramaGestorGOVES )
-			return "Excelentíssimo(a) Senhor(a) Governador(a)<br>\r\n" + //
-					"JOSÉ RENATO CASAGRANDE";
-		else return "Prezado(a)";
+		// if( this.getSubEmailDestinatarios().get(emailEmProcessamento) == assinanteEdocsProgramaGestorSUBCAP )
+		// 	return "Senhor(a) Subsecretário(a)<br>\r\n" + //
+		// 		"ANDRESSA RODRIGUES PAVÃO\r\n";
+		// else if( this.getSubEmailDestinatarios().get(emailEmProcessamento) == assinanteEdocsProgramaGestorSEP )
+		// 	return  "Excelentíssimo(a) Senhor(a) Secretário(a)<br>\r\n" + //
+		// 			"ÁLVARO ROGÉRIO DUBOC FAJARDO";
+		// else if( this.getSubEmailDestinatarios().get(emailEmProcessamento) ==  assinanteEdocsProgramaGestorGOVES )
+		// 	return "Excelentíssimo(a) Senhor(a) Governador(a)<br>\r\n" + //
+		// 			"JOSÉ RENATO CASAGRANDE";
+		// else 
+			return "Prezado(a) senhor(a),";
 
 	}
 
@@ -51,25 +52,13 @@ public class EnvioAvisoProgramaAutuadoEdocsEmailBuilder extends EmailBuilderBase
 
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
-		return ("Informamos que a minuta do programa de captação de recursos %s - %s criada no Siscap - Sistema de Captação de Recursos do Estado do Espírito Santo - foi autuado com sucesso no E-Docs.")
+		return ("Informamos que a minuta do programa de captação de recursos <b>%s</b> - <b>%s</b> criada no Siscap - Sistema de Captação de Recursos do Estado do Espírito Santo - foi autuado com sucesso no E-Docs.")
 				.formatted(Objects.toString(dto.siglaPrograma(), ""),
 						Objects.toString(dto.tituloPrograma(), ""));
 	}
 
 	@Override
 	protected String montarLinkAcesso(EnvioEmailDetalhesDto dto) {
-		// String frontEndHost = this.getEnv().getProperty("frontend.host");
-		// if (frontEndHost == null || frontEndHost.isBlank()) {
-		// 	return "";
-		// }
-		// String linkEdicao = frontEndHost.replaceAll("/$", "") + "/programas/" + dto.idPrograma() + "/assinaturas";
-		// if (linkEdicao == null || linkEdicao.isBlank()) {
-		// 	return "";
-		// }
-		// return """
-		// 		    <p style="font-size: 12px;" >Para acessar e autorizar, clique no link: <a style="font-size: 12px;" href="%s">%s</a> </p>
-		// 		"""
-		// 		.formatted(linkEdicao, linkEdicao);
 		return "";
 	}
 

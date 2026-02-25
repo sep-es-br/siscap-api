@@ -20,7 +20,6 @@ import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.enums.TipoStatusAssinaturaEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
-import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
 import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
@@ -82,7 +81,7 @@ public class ProgramaProcessamentoService {
                 emailAssinanteAC = emailsSub.email();
             }
             emailsInteressadosList.add(emailAssinanteAC);
-            emailsSubAssinates.put(emailAssinanteAC,sub);
+            emailsSubAssinates.put(emailAssinanteAC, sub);
         });
 
         Programa programa = this.buscarPrograma(idPrograma);
@@ -94,27 +93,25 @@ public class ProgramaProcessamentoService {
 
         try {
 
-            EnvioEmailDetalhesDto envioEmailDetalhesDto = new EnvioEmailDetalhesDto( idPrograma,
+            EnvioEmailDetalhesDto envioEmailDetalhesDto = new EnvioEmailDetalhesDto(idPrograma,
                     emailsInteressadosList,
                     tituloPrograma,
-                    siglaPrograma, 
-                    emailsSubAssinates );
+                    siglaPrograma,
+                    emailsSubAssinates);
 
             confirmacaoEnvioEmail = emailService.enviarEmailSolicitandoAssinaturasPrograma(envioEmailDetalhesDto);
 
             if (confirmacaoEnvioEmail) {
                 logger.info(
-                        "Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id "
-                                + idPrograma);
+                        "Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id {}",
+                        idPrograma);
             } else {
                 erros.add("Erro ao enviar aviso para solicitacao de assinaturas do programa id " + idPrograma);
             }
 
-        } catch (UnsupportedEncodingException e) {
+        } catch ( UnsupportedEncodingException | MessagingException e ) {
             logger.error(e.getMessage());
-        } catch (MessagingException e) {
-            logger.error(e.getMessage());
-        }
+        } 
 
         if (!erros.isEmpty()) {
             erros.forEach(logger::error);
@@ -151,9 +148,9 @@ public class ProgramaProcessamentoService {
     public void marcarProgramaAutuadoEdocsEAvisoAutuado(ProgramaDto programaDto,
             String protocoloEdocs, String idProcessoEdocs) {
 
-        Objects.requireNonNull( programaDto, "programaDto não pode ser nulo" );
+        Objects.requireNonNull(programaDto, "programaDto não pode ser nulo");
 
-        marcarProgramaAutuado( programaDto.id(), protocoloEdocs, idProcessoEdocs );
+        marcarProgramaAutuado(programaDto.id(), protocoloEdocs, idProcessoEdocs);
 
         try {
 
@@ -163,27 +160,26 @@ public class ProgramaProcessamentoService {
                     .stream()
                     .map(ProgramaAssinaturaEdocsDto::idPessoa)
                     .toList();
-    
+
             if (idsPessoas.isEmpty()) {
                 logger.warn("Programa {} autuado sem assinantes para notificação",
-                    programaDto.id());
+                        programaDto.id());
                 return;
             }
-    
-            List<String> subsAssinatesList =
-                    pessoaService.buscarSubsPorIds(idsPessoas);
-    
+
+            List<String> subsAssinatesList = pessoaService.buscarSubsPorIds(idsPessoas);
+
             if (subsAssinatesList.isEmpty()) {
                 logger.warn("Nenhum sub encontrado para notificação do programa {}",
                         programaDto.id());
                 return;
             }
-    
-            enviarAvisoProgramaAutuado( programaDto.id(), subsAssinatesList );
-    
+
+            enviarAvisoProgramaAutuado(programaDto.id(), subsAssinatesList);
+
         } catch (Exception e) {
             logger.error("Erro ao enviar aviso de autuação do programa {}",
-                    programaDto.id(), e );
+                    programaDto.id(), e);
         }
 
     }
@@ -217,23 +213,23 @@ public class ProgramaProcessamentoService {
         subAssinantes.forEach(sub -> {
             EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
             String emailAssinanteAC = "";
-            
+
             if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
                 emailAssinanteAC = emailsSub.corporativo();
             } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
                 emailAssinanteAC = emailsSub.email();
             }
             emailsInteressadosList.add(emailAssinanteAC);
-            emailsSubAssinates.put(emailAssinanteAC,sub);
+            emailsSubAssinates.put(emailAssinanteAC, sub);
         });
 
         // subAssinantes.forEach(sub -> {
-        //     EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
-        //     if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
-        //         emailsInteressadosList.add(emailsSub.corporativo());
-        //     } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
-        //         emailsInteressadosList.add(emailsSub.email());
-        //     }
+        // EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
+        // if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
+        // emailsInteressadosList.add(emailsSub.corporativo());
+        // } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+        // emailsInteressadosList.add(emailsSub.email());
+        // }
         // });
 
         Programa programa = this.buscarPrograma(idPrograma);
@@ -246,30 +242,31 @@ public class ProgramaProcessamentoService {
 
         try {
 
-            EnvioEmailDetalhesDto envioEmailDetalhesDto = new EnvioEmailDetalhesDto( idPrograma,
-                emailsInteressadosList,
-                tituloPrograma,
-                siglaPrograma, 
-                emailsSubAssinates,
-                protocoloEdocsPrograma );
+            EnvioEmailDetalhesDto envioEmailDetalhesDto = new EnvioEmailDetalhesDto(idPrograma,
+                    emailsInteressadosList,
+                    tituloPrograma,
+                    siglaPrograma,
+                    emailsSubAssinates,
+                    protocoloEdocsPrograma);
 
-            // EnvioEmailDetalhesDto envioEmailDetalhesDto = new EnvioEmailDetalhesDto(idPrograma,
-            //         "",
-            //         "",
-            //         emailsInteressadosList,
-            //         tituloPrograma,
-            //         siglaPrograma,
-            //         protocoloEdocsPrograma);
+            // EnvioEmailDetalhesDto envioEmailDetalhesDto = new
+            // EnvioEmailDetalhesDto(idPrograma,
+            // "",
+            // "",
+            // emailsInteressadosList,
+            // tituloPrograma,
+            // siglaPrograma,
+            // protocoloEdocsPrograma);
 
             confirmacaoEnvioEmail = emailService.enviarEmailAvisoProgramaAutuado(envioEmailDetalhesDto);
 
             if (confirmacaoEnvioEmail) {
                 logger.info(
-                    "E-mail de aviso de autuação enviado com sucesso. ProgramaId={}, ProtocoloEdocs={}",
-                    idPrograma, protocoloEdocsPrograma
-                );
+                        "E-mail de aviso de autuação enviado com sucesso. ProgramaId={}, ProtocoloEdocs={}",
+                        idPrograma, protocoloEdocsPrograma);
             } else {
-                erros.add("Falha ao enviar e-mail de aviso de autuação do programa no E-Docs. ProgramaId= " + idPrograma);
+                erros.add(
+                        "Falha ao enviar e-mail de aviso de autuação do programa no E-Docs. ProgramaId= " + idPrograma);
             }
 
         } catch (UnsupportedEncodingException e) {

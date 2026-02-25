@@ -4,8 +4,10 @@ import br.gov.es.siscap.dto.CartaConsultaDetalhesDto;
 import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 import br.gov.es.siscap.dto.ProspeccaoDetalhesDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.utils.EnvioAnaliseGestorDicEmailBuilder;
 import br.gov.es.siscap.utils.EnvioArquivamentoDicEmailBuilder;
@@ -34,6 +36,7 @@ import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +62,10 @@ public class EmailService {
 	private final RelatoriosService relatoriosService;
 
 	private final EmailSenderBase emailSender;
+
+	private final PessoaService pessoaPessoaService;
+
+	private final AcessoCidadaoService acessoCidadaoService;
 
 	private final EnvioRevisaoDicEmailBuilder builderEnvioEmailRevisao;
 	private final EnvioAnaliseGestorDicEmailBuilder builderEnvioEmailAnaliseGestorDic;
@@ -348,7 +355,23 @@ public class EmailService {
 
 		for (String email : envioEmailDetalhesProgramaDto.emailsInteressadosList()) {
 
+			// String nomeDestinatario = pessoaPessoaService
+			// .buscarPorSub(envioEmailDetalhesProgramaDto.subAssinantesEmails().getOrDefault(email,
+			// ""))
+			// .getNome();
+			// AgentePublicoACDto dados = acessoCidadaoService.buscarPessoaPorSub(sub);
+
+			String nomeDestinatario = Optional
+					.ofNullable(envioEmailDetalhesProgramaDto.subAssinantesEmails().get(email))
+					.filter(sub -> !sub.isBlank())
+					.flatMap(sub -> Optional.ofNullable(pessoaPessoaService.buscarPorSub(sub))
+							.map(Pessoa::getNome)
+							.filter(nome -> !nome.isBlank())
+							.or(() -> buscarNomeNoAcessoCidadaoOptional(sub)))
+					.orElse("");
+
 			envioAvisoPedidoAssinaturaProgramaEmailBuilder.setEmailEmProcessamento(email);
+			envioAvisoPedidoAssinaturaProgramaEmailBuilder.setNomeDestinatario(nomeDestinatario);
 
 			boolean enviado = emailSender.enviarEmail(
 					envioAvisoPedidoAssinaturaProgramaEmailBuilder,
@@ -363,6 +386,12 @@ public class EmailService {
 		return todosEnviados;
 
 	}
+
+	private Optional<String> buscarNomeNoAcessoCidadaoOptional(String sub) {
+    return Optional.ofNullable(acessoCidadaoService.buscarPessoaPorSub(sub))
+            .map(AgentePublicoACDto::nome)
+            .filter(nome -> !nome.isBlank());
+}
 
 	public boolean enviarEmailAvisoProgramaAutuado(EnvioEmailDetalhesDto envioEmailDicDetalhesDto)
 			throws MessagingException, UnsupportedEncodingException {
