@@ -57,6 +57,9 @@ public class SecurityConfig {
 					authConfig.requestMatchers(POST, "/main/programas/*/assinaturas")
 							.permitAll();
 
+					authConfig.requestMatchers(POST, "/programas/programa/*/edocs/assinar")
+							.permitAll();
+
 					authConfig.requestMatchers(POST, PATH_PROGRAMAS).hasAnyAuthority(ADMIN_AUTH.name(),
 							PROGRAMA_CADASTRAR.name());
 					authConfig.requestMatchers(PUT, PATH_PROGRAMAS).hasAnyAuthority(ADMIN_AUTH.name(),
