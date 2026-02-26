@@ -33,18 +33,7 @@ public class EnvioAvisoPedidoAssinaturaProgramaEmailBuilder extends EmailBuilder
 	@Override
 	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
 
-		// if( this.getSubEmailDestinatarios().get(emailEmProcessamento) == assinanteEdocsProgramaGestorSUBCAP )
-		// 	return "Senhor(a) Subsecretário(a),<br>\r\n" + //
-		// 		"ANDRESSA RODRIGUES PAVÃO\r\n";
-		// else if( this.getSubEmailDestinatarios().get(emailEmProcessamento) == assinanteEdocsProgramaGestorSEP )
-		// 	return  "Excelentíssimo(a) Senhor(a) Secretário(a),<br>\r\n" + //
-		// 			"ÁLVARO ROGÉRIO DUBOC FAJARDO";
-		// else if( this.getSubEmailDestinatarios().get(emailEmProcessamento) ==  assinanteEdocsProgramaGestorGOVES )
-		// 	return "Excelentíssimo(a) Senhor(a) Governador(a),<br>\r\n" + //
-		// 			"JOSÉ RENATO CASAGRANDE";
-		// else
-
-		return "Prezado(a) senhor(a),<br>" + this.getNomeDestinatario();
+		return "Prezado(a) senhor(a)<br>" + this.getNomeDestinatario();
 				
 	}
 
