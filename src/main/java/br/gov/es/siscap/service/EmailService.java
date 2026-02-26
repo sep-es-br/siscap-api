@@ -355,12 +355,6 @@ public class EmailService {
 
 		for (String email : envioEmailDetalhesProgramaDto.emailsInteressadosList()) {
 
-			// String nomeDestinatario = pessoaPessoaService
-			// .buscarPorSub(envioEmailDetalhesProgramaDto.subAssinantesEmails().getOrDefault(email,
-			// ""))
-			// .getNome();
-			// AgentePublicoACDto dados = acessoCidadaoService.buscarPessoaPorSub(sub);
-
 			String nomeDestinatario = Optional
 					.ofNullable(envioEmailDetalhesProgramaDto.subAssinantesEmails().get(email))
 					.filter(sub -> !sub.isBlank())
@@ -388,21 +382,33 @@ public class EmailService {
 	}
 
 	private Optional<String> buscarNomeNoAcessoCidadaoOptional(String sub) {
-    return Optional.ofNullable(acessoCidadaoService.buscarPessoaPorSub(sub))
-            .map(AgentePublicoACDto::nome)
-            .filter(nome -> !nome.isBlank());
-}
+		return Optional.ofNullable(acessoCidadaoService.buscarPessoaPorSub(sub))
+				.map(AgentePublicoACDto::nome)
+				.filter(nome -> !nome.isBlank());
+	}
 
-	public boolean enviarEmailAvisoProgramaAutuado(EnvioEmailDetalhesDto envioEmailDicDetalhesDto)
+	public boolean enviarEmailAvisoProgramaAutuado(EnvioEmailDetalhesDto envioEmailProgramaAutuadoDetalhesDto)
 			throws MessagingException, UnsupportedEncodingException {
 
-		envioAvisoProgramaAutuadoEmailBuilder.setSubEmailDestinatarios(envioEmailDicDetalhesDto.subAssinantesEmails());
-		envioAvisoProgramaAutuadoEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		envioAvisoProgramaAutuadoEmailBuilder.setSubEmailDestinatarios(envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails());
+		envioAvisoProgramaAutuadoEmailBuilder.setDtoMontagemEmailDic(envioEmailProgramaAutuadoDetalhesDto);
 
 		boolean todosEnviados = true;
 
-		for (String email : envioEmailDicDetalhesDto.emailsInteressadosList()) {
-			envioAvisoPedidoAssinaturaProgramaEmailBuilder.setEmailEmProcessamento(email);
+		for (String email : envioEmailProgramaAutuadoDetalhesDto.emailsInteressadosList()) {
+
+			String nomeDestinatario = Optional
+					.ofNullable(envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails().get(email))
+					.filter(sub -> !sub.isBlank())
+					.flatMap(sub -> Optional.ofNullable(pessoaPessoaService.buscarPorSub(sub))
+							.map(Pessoa::getNome)
+							.filter(nome -> !nome.isBlank())
+							.or(() -> buscarNomeNoAcessoCidadaoOptional(sub)))
+					.orElse("");
+
+			envioAvisoProgramaAutuadoEmailBuilder.setEmailEmProcessamento(email);
+			envioAvisoProgramaAutuadoEmailBuilder.setNomeDestinatario(nomeDestinatario);
+
 			boolean enviado = emailSender.enviarEmail(
 					envioAvisoProgramaAutuadoEmailBuilder,
 					List.of(email));
