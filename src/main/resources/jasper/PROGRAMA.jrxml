@@ -1,7 +1,7 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap.jrdax"/>
 	<parameter name="idPrograma" class="java.lang.Integer">
 		<defaultValueExpression><![CDATA[3]]></defaultValueExpression>
 	</parameter>
@@ -85,11 +85,11 @@
 			<element kind="staticText" uuid="3a32ca85-421c-48f9-8fc2-b6ed11deb489" x="0" y="0" width="100" height="20" forecolor="#000000" fontName="SansSerif" removeLineWhenBlank="true" bold="true" hTextAlign="Left">
 				<text><![CDATA[Título:]]></text>
 			</element>
-			<element kind="staticText" uuid="e2e28298-9170-4f70-a7fb-87d8c81d4ffe" x="0" y="22" width="100" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
-				<text><![CDATA[Valor Estimado:]]></text>
+			<element kind="staticText" uuid="e2e28298-9170-4f70-a7fb-87d8c81d4ffe" x="0" y="22" width="130" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
+				<text><![CDATA[Valor Total Estimado:]]></text>
 			</element>
-			<element kind="textField" uuid="5bb00598-fe07-411e-9713-4f54cf97aa44" x="100" y="22" width="270" height="20" fontName="SansSerif" pattern="¤ #,##0.00;¤ -#,##0.00">
-				<expression><![CDATA[$F{valor_estimado_programa}]]></expression>
+			<element kind="textField" uuid="5bb00598-fe07-411e-9713-4f54cf97aa44" x="130" y="22" width="240" height="20" fontName="SansSerif" pattern="¤ #,##0.00;¤ -#,##0.00">
+				<expression><![CDATA[$F{valor_total_com_custo}]]></expression>
 			</element>
 			<element kind="staticText" uuid="eede5ff3-528e-4cd9-9689-e4e90b8a8f3d" x="400" y="0" width="45" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
 				<text><![CDATA[Data:]]></text>
@@ -97,7 +97,7 @@
 			<element kind="textField" uuid="52f27d78-17c9-4479-b08a-f8debc024c5f" x="446" y="0" width="90" height="20" fontName="SansSerif" pattern="dd/MM/yyyy">
 				<expression><![CDATA[DATE(YEAR($F{data_criacao_programa}),MONTH($F{data_criacao_programa}),DAY($F{data_criacao_programa}))]]></expression>
 			</element>
-			<element kind="textField" uuid="143f43f9-075d-4f3c-a92d-2aedefa14bf1" x="100" y="0" width="270" height="22" hTextAlign="Left">
+			<element kind="textField" uuid="143f43f9-075d-4f3c-a92d-2aedefa14bf1" x="130" y="0" width="240" height="22" hTextAlign="Left">
 				<expression><![CDATA[$F{titulo_programa}]]></expression>
 			</element>
 		</band>
