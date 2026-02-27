@@ -20,7 +20,7 @@ public record ProgramaListaDto(
 					programa.getSigla(),
 					programa.getTitulo(),
 					programa.getMoeda(),
-					programa.getTetoQuantia(),
+					programa.getValorCalculadoTotal(),
                     programa.getProtocoloEdocs()
 		);
 	}
