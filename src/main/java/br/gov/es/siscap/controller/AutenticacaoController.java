@@ -64,4 +64,5 @@ public class AutenticacaoController {
 		String authorization = request.getHeader("Authorization");
 		return service.autenticar(authorization.replace("Bearer ", ""));
 	}
+	
 }

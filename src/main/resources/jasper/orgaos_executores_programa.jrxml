@@ -1,0 +1,39 @@
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<jasperReport name="equipe_capacitacao_programa" language="java" pageWidth="595" pageHeight="842" columnWidth="575" leftMargin="20" rightMargin="0" topMargin="0" bottomMargin="20" uuid="88ff3a60-9e8a-449e-a525-ee0f352cf53c">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
+	<parameter name="idPrograma" class="java.lang.Integer"/>
+	<query language="sql"><![CDATA[select distinct
+	org.nome as nome_organizacao,
+	org.cnpj as cnpj
+from programa prog
+	right join programa_organizacao porg on porg.id_programa = prog.id
+	join organizacao org on org.id = porg.id_organizacao
+where 
+	( org.apagado = false ) and 
+	prog.apagado = false and
+	prog.id = $P{idPrograma}]]></query>
+	<field name="nome_organizacao" class="java.lang.String"/>
+	<field name="cnpj" class="java.lang.String"/>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<element kind="textField" uuid="7fa90604-e17f-45b4-ba29-196bfb748668" x="120" y="0" width="440" height="15" forecolor="#0A588F">
+				<expression><![CDATA[$F{nome_organizacao}]]></expression>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			</element>
+			<element kind="textField" uuid="b0588d9b-6c32-408e-871b-1ed261c5a505" x="0" y="0" width="120" height="15" forecolor="#0A588F">
+				<expression><![CDATA[ ($F{cnpj} != null && $F{cnpj}.length() >= 14 ? 
+ String.valueOf($F{cnpj}).substring(0,2) + "." +
+ String.valueOf($F{cnpj}).substring(2,5) + "." +
+ String.valueOf($F{cnpj}).substring(5,8) + "/" +
+ String.valueOf($F{cnpj}).substring(8,12) + "-" +
+ String.valueOf($F{cnpj}).substring(12) 
+ : "CNPJ INVÁLIDO" )]]></expression>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</detail>
+</jasperReport>

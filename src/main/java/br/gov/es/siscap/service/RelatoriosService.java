@@ -23,6 +23,18 @@ import java.util.Locale;
 @Service
 public class RelatoriosService {
 
+	@Value("${api.parecer.guidSUBEPP}")
+	private String guidSUBEPP;
+
+	@Value("${api.parecer.guidSUBEO}")
+	private String guidSUBEO;
+
+	@Value("${api.edocs.guiddestinoSUBCAP}")
+	private String guidSUBCAP;
+
+	@Value("${frontend.edocs.host}")
+	private String edocsBaseUrl;
+
 	private final String raizRelatorios;
 	private final DataSource dataSource;
 	private final Logger logger = LogManager.getLogger(RelatoriosService.class);
@@ -90,4 +102,27 @@ public class RelatoriosService {
 			throw new SiscapServiceException(List.of("Erro ao exportar o relatório. Contate o suporte."));
 		}
 	}
+
+	public Resource gerarArquivoPrograma(String nomeArquivo, Integer idPrograma) {
+		JasperPrint jasperPrint = preencherArquivoPrograma(recuperarArquivo(nomeArquivo), idPrograma);
+		return exportarRelatorio(jasperPrint);
+	}
+
+	private JasperPrint preencherArquivoPrograma(InputStream relatorio, Integer idPrograma) {
+		try {
+			HashMap<String, Object> map = new HashMap<>();
+			map.put("idPrograma", idPrograma);
+			map.put("pathRelatorios", raizRelatorios);
+			map.put("guidSUBEPP", guidSUBEPP);
+			map.put("guidSUBEO", guidSUBEO);                  
+			map.put("guidSUBCAP", guidSUBCAP);
+			map.put("edocsBaseUrl", edocsBaseUrl);
+			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
+			return JasperFillManager.fillReport(relatorio, map, dataSource.getConnection());
+		} catch (JRException | SQLException e) {
+			logger.info("Erro ao preencher o relatório.");
+			throw new SiscapServiceException(List.of("Erro ao preencher o relatório. Contate o suporte."));
+		}
+	}
+	
 }

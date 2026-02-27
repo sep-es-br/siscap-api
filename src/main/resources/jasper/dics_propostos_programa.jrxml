@@ -1,0 +1,80 @@
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<jasperReport name="equipe_capacitacao_programa" language="java" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="88ff3a60-9e8a-449e-a525-ee0f352cf53c">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
+	<parameter name="idPrograma" class="java.lang.Integer"/>
+	<parameter name="pathRelatorios" class="java.lang.String"/>
+	<parameter name="guidSUBEPP" class="java.lang.String"/>
+	<parameter name="guidSUBEO" class="java.lang.String"/>
+	<parameter name="guidSUBCAP" class="java.lang.String"/>
+	<parameter name="edocsBaseUrl" class="java.lang.String"/>
+	<query language="sql"><![CDATA[select proj.id as idDIC, 
+	proj.protocolo_edocs as protocolo_edocs_dic,
+	proj.id_documento_edocs as id_edcos_documento_dic,
+	proj.sigla as sigla_dic,
+	proj.titulo as titulo_dic
+	from programa prog
+	join projeto proj on
+	proj.id_programa = prog.id
+	where prog.id = $P{idPrograma} and proj.apagado = false ]]></query>
+	<field name="idDIC" class="java.lang.Integer"/>
+	<field name="protocolo_edocs_dic" class="java.lang.String"/>
+	<field name="id_edcos_documento_dic" class="java.lang.String"/>
+	<field name="sigla_dic" class="java.lang.String"/>
+	<field name="titulo_dic" class="java.lang.String"/>
+	<detail>
+		<band height="83" splitType="Stretch">
+			<element kind="textField" uuid="39fd44e3-a3e9-418a-be5f-004deb3b0463" x="10" y="2" width="90" height="20" forecolor="#0A588F">
+				<expression><![CDATA[$F{sigla_dic}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="47922ae6-742d-4698-9993-bd591c0eab82" x="100" y="2" width="300" height="20" forecolor="#0A588F" hTextAlign="Left">
+				<expression><![CDATA[$F{titulo_dic}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="78172a9d-e9b0-40d0-a9c4-a765f9f60998" x="400" y="2" width="100" height="20" forecolor="#0A588F" linkType="Reference" linkTarget="Self" bold="true" hTextAlign="Left">
+				<expression><![CDATA[$F{protocolo_edocs_dic}]]></expression>
+				<hyperlinkReferenceExpression><![CDATA[$P{edocsBaseUrl} + "/Processo/Protocolo/" + $F{protocolo_edocs_dic}]]></hyperlinkReferenceExpression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="subreport" uuid="1813bba0-ab7c-4ba0-9cac-a8edca5a2da0" stretchType="NoStretch" x="15" y="60" width="568" height="20">
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<expression><![CDATA[$P{pathRelatorios} + "/pareceres_propostos_dic.jasper"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<parameter name="idDic">
+					<expression><![CDATA[$F{idDIC}]]></expression>
+				</parameter>
+				<parameter name="pathRelatorios">
+					<expression><![CDATA[$P{pathRelatorios}]]></expression>
+				</parameter>
+				<parameter name="guidSUBEPP">
+					<expression><![CDATA[$P{guidSUBEPP}]]></expression>
+				</parameter>
+				<parameter name="guidSUBEO">
+					<expression><![CDATA[$P{guidSUBEO}]]></expression>
+				</parameter>
+				<parameter name="guidSUBCAP">
+					<expression><![CDATA[$P{guidSUBCAP}]]></expression>
+				</parameter>
+				<parameter name="edocsBaseUrl">
+					<expression><![CDATA[$P{edocsBaseUrl}]]></expression>
+				</parameter>
+			</element>
+			<element kind="staticText" uuid="a2da8b1f-9766-4a0a-b3d9-34e4e37224f4" x="15" y="42" width="110" height="16" forecolor="#030303">
+				<text><![CDATA[Elaborador]]></text>
+			</element>
+			<element kind="staticText" uuid="65e26be2-8ad7-477f-b4a2-d95292fd06a3" x="127" y="42" width="130" height="16" forecolor="#030303">
+				<text><![CDATA[Data de Envio para E-Docs]]></text>
+			</element>
+			<element kind="staticText" uuid="28520a16-68f5-4c7c-8d91-7762637c5bd8" x="260" y="42" width="130" height="16" forecolor="#030303">
+				<text><![CDATA[Link do Parecer E-Docs]]></text>
+			</element>
+			<element kind="line" uuid="6ba4a3f7-0258-4bba-a6a6-d161a5f4799f" x="10" y="21" width="490" height="1" forecolor="#B2B2B2"/>
+			<element kind="staticText" uuid="b0b74bfb-8a35-4e8b-8b19-7070b95cc103" x="15" y="24" width="110" height="16" forecolor="#030303" bold="true">
+				<text><![CDATA[Pareceres : ]]></text>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</detail>
+</jasperReport>

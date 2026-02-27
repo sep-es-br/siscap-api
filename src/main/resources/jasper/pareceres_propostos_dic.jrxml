@@ -1,0 +1,52 @@
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<jasperReport name="pareceres_propostos_dic" language="java" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="88ff3a60-9e8a-449e-a525-ee0f352cf53c">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<parameter name="idDic" class="java.lang.Integer"/>
+	<parameter name="pathRelatorios" class="java.lang.String"/>
+	<parameter name="guidSUBEPP" class="java.lang.String"/>
+	<parameter name="guidSUBEO" class="java.lang.String"/>
+	<parameter name="guidSUBCAP" class="java.lang.String"/>
+	<parameter name="edocsBaseUrl" class="java.lang.String"/>
+	<query language="sql"><![CDATA[select proj.id as idDIC, 
+	data_envio as data_envio_parecer,
+	guid_documento_edocs as guid_doc_edocs,
+	guid_unidade_organizacao as guid_elaborou_parecer,
+	registro_arquivo_edocs as registro_documento_edocs
+	from projeto proj
+	inner join projeto_parecer parecer on
+	proj.id = parecer.id_projeto
+	where proj.id = $P{idDic} 
+	and proj.apagado = false
+	and parecer.apagado = false ]]></query>
+	<field name="data_envio_parecer" class="java.sql.Timestamp"/>
+	<field name="guid_doc_edocs" class="java.lang.String"/>
+	<field name="guid_elaborou_parecer" class="java.lang.String"/>
+	<field name="registro_documento_edocs" class="java.lang.String"/>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<element kind="textField" uuid="39fd44e3-a3e9-418a-be5f-004deb3b0463" x="6" y="3" width="74" height="15" forecolor="#0A588F">
+				<expression><![CDATA[br.gov.es.siscap.enums.LotacaoUsuarioEnum
+    .fromGuid(
+       $F{guid_elaborou_parecer},
+        $P{guidSUBEPP},
+        $P{guidSUBEO},
+        $P{guidSUBCAP}
+    )
+    .name() + "-SEP"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="47922ae6-742d-4698-9993-bd591c0eab82" x="84" y="3" width="140" height="15" forecolor="#0A588F" hTextAlign="Center">
+				<expression><![CDATA[$F{data_envio_parecer}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="78172a9d-e9b0-40d0-a9c4-a765f9f60998" x="246" y="3" width="248" height="15" forecolor="#0A588F" linkType="Reference" linkTarget="Self" bold="true" hTextAlign="Left">
+				<expression><![CDATA[$F{registro_documento_edocs}]]></expression>
+				<hyperlinkReferenceExpression><![CDATA[$P{edocsBaseUrl} + "/documento/registro/" + $F{registro_documento_edocs}]]></hyperlinkReferenceExpression>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</detail>
+</jasperReport>

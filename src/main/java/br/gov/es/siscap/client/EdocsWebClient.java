@@ -4,16 +4,19 @@ import br.gov.es.siscap.dto.edocswebapi.AtosProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.AutuarProjetoDto;
 import br.gov.es.siscap.dto.edocswebapi.AvocarProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.CapturaAssinaturaBodyDto;
+import br.gov.es.siscap.dto.edocswebapi.DadosDocumentoDto;
 import br.gov.es.siscap.dto.edocswebapi.DesentranharArquivoProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.DespacharProjetoDto;
 import br.gov.es.siscap.dto.edocswebapi.EncerrarProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.EntranharDocumentosProcessoEdocsDto;
+import br.gov.es.siscap.dto.edocswebapi.EnviaArquivoFaseAssinaturaBodyDto;
 import br.gov.es.siscap.dto.edocswebapi.GerarUrlUploadResponseDto;
 import br.gov.es.siscap.dto.edocswebapi.LocalCustodiaProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.PapeisUsuarioEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.ProcessoDocumentosAtoProcessoDto;
 import br.gov.es.siscap.dto.edocswebapi.ProcessoEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.ProcessoVinculadoDocumentoDto;
+import br.gov.es.siscap.dto.edocswebapi.RetornoAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.edocswebapi.SituacaoEventoDto;
 
 import java.util.List;
@@ -89,5 +92,17 @@ public interface EdocsWebClient {
 
 	@GetMapping("/v2/usuario/papeis")
 	List<PapeisUsuarioEdocsDto> buscarPapeisUsuarioEdocs(@RequestHeader("Authorization") String bearerToken);
+
+	@PostMapping("/v2/documentos/fase-assinatura/enviar/servidor")
+	String enviarDocumentoFaseAssinatura(@RequestHeader("Authorization") String bearerToken,
+			@RequestBody EnviaArquivoFaseAssinaturaBodyDto request);
+
+	@GetMapping("/v2/documentos/{idDocumento}")
+	DadosDocumentoDto buscarDadosArquivo(@RequestHeader("Authorization") String bearerToken,
+			@PathVariable String idDocumento);
+
+	@PostMapping("/v2/documentos/fase-assinatura/assinar/{idDocumentoFaseAssinatura}")
+	RetornoAssinaturaEdocsDto assinarDocumentoEDocsFaseAssinatura(@RequestHeader("Authorization") String bearerToken,
+			@PathVariable String idDocumentoFaseAssinatura);
 
 }

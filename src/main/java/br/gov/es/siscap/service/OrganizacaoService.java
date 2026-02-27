@@ -19,6 +19,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,9 @@ import java.util.*;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class OrganizacaoService {
+
+	// @Value("${api.organograma.sync.organizacoes-cron}")
+	// private String cronJobSincronizacaoOrganizacoeString;
 
 	private final OrganizacaoRepository repository;
 	private final OrganogramaService organogramaService;
@@ -45,17 +49,35 @@ public class OrganizacaoService {
 		this.sincronizarOrganizacoesBancoComOrganogramaAPI();
 	}
 
+	@Scheduled(cron = "${api.organograma.sync.organizacoes-cron}", zone = "America/Sao_Paulo")
+	public void jobSincronizarOrganizacoes() {
+
+		logger.info("Iniciando job de sincronização de organizações");
+
+		long inicio = System.currentTimeMillis();
+
+		try {
+			this.sincronizarOrganizacoesBancoComOrganogramaAPI();
+			long duracao = System.currentTimeMillis() - inicio;
+			logger.info("Job finalizado com sucesso em {} ms", duracao);
+		} catch (Exception e) {
+			logger.error("Erro ao executar job de sincronização", e);
+			throw e;
+		}
+
+	}
+
 	public Page<OrganizacaoListaDto> listarTodos(Pageable pageable, String search) {
 		logger.info("Buscando todas as organizacoes");
 
 		return repository.paginarOrganizacoesPorFiltroPesquisaSimples(search, pageable)
-					.map(organizacao -> {
-						try {
-							return new OrganizacaoListaDto(organizacao, this.getImagemNotNull(organizacao.getNomeImagem()));
-						} catch (IOException e) {
-							throw new SiscapServiceException(Collections.singletonList(e.getMessage()));
-						}
-					});
+				.map(organizacao -> {
+					try {
+						return new OrganizacaoListaDto(organizacao, this.getImagemNotNull(organizacao.getNomeImagem()));
+					} catch (IOException e) {
+						throw new SiscapServiceException(Collections.singletonList(e.getMessage()));
+					}
+				});
 	}
 
 	public List<OpcoesDto> listarOpcoesDropdown(Long filtroTipoOrganizacao) {
@@ -63,10 +85,11 @@ public class OrganizacaoService {
 		Sort organizacaoListSort = Sort.by(Sort.Direction.ASC, "nome");
 
 		List<Organizacao> organizacaoList = filtroTipoOrganizacao != null
-					? repository.findAllByTipoOrganizacao(new TipoOrganizacao(filtroTipoOrganizacao), organizacaoListSort)
-					: repository.findAll(organizacaoListSort);
+				? repository.findAllByTipoOrganizacao(new TipoOrganizacao(filtroTipoOrganizacao), organizacaoListSort)
+				: repository.findAll(organizacaoListSort);
 
 		return organizacaoList.stream().map(OpcoesDto::new).toList();
+
 	}
 
 	public OrganizacaoDto buscarPorId(Long id) throws IOException {
@@ -75,9 +98,9 @@ public class OrganizacaoService {
 		Organizacao organizacao = this.buscar(id);
 
 		/*
-			12/09/2024
-			MEDIDA PROVISORIA ATE TODAS AS ORGANIZACOES POSSUIREM UM RESPONSAVEL
-		*/
+		 * 12/09/2024
+		 * MEDIDA PROVISORIA ATE TODAS AS ORGANIZACOES POSSUIREM UM RESPONSAVEL
+		 */
 		PessoaOrganizacao pessoaOrganizacao = pessoaOrganizacaoService.buscarPorOrganizacao(organizacao);
 		Long idPessoaResponsavel = pessoaOrganizacao != null ? pessoaOrganizacao.getPessoa().getId() : null;
 
@@ -94,7 +117,8 @@ public class OrganizacaoService {
 		String nomeImagem = imagemPerfilService.salvar(form.imagemPerfil());
 
 		Organizacao organizacao = repository.save(new Organizacao(form, nomeImagem));
-		Long idPessoaResponsavel = pessoaOrganizacaoService.cadastrarPorOrganizacao(organizacao, form.idPessoaResponsavel()).getPessoa().getId();
+		Long idPessoaResponsavel = pessoaOrganizacaoService
+				.cadastrarPorOrganizacao(organizacao, form.idPessoaResponsavel()).getPessoa().getId();
 
 		logger.info("Organizacao cadastrada com sucesso");
 		return new OrganizacaoDto(organizacao, this.getImagemNotNull(organizacao.getNomeImagem()), idPessoaResponsavel);
@@ -111,13 +135,16 @@ public class OrganizacaoService {
 		organizacao.atualizarOrganizacao(form);
 
 		if (form.imagemPerfil() != null)
-			organizacao.atualizarImagemPerfil(imagemPerfilService.atualizar(organizacao.getNomeImagem(), form.imagemPerfil()));
+			organizacao.atualizarImagemPerfil(
+					imagemPerfilService.atualizar(organizacao.getNomeImagem(), form.imagemPerfil()));
 
 		Organizacao organizacaoResultado = repository.save(organizacao);
-		Long idPessoaResponsavel = pessoaOrganizacaoService.atualizarPorOrganizacao(organizacaoResultado, form.idPessoaResponsavel()).getPessoa().getId();
+		Long idPessoaResponsavel = pessoaOrganizacaoService
+				.atualizarPorOrganizacao(organizacaoResultado, form.idPessoaResponsavel()).getPessoa().getId();
 
 		logger.info("Organizacao atualizada com sucesso");
-		return new OrganizacaoDto(organizacaoResultado, this.getImagemNotNull(organizacaoResultado.getNomeImagem()), idPessoaResponsavel);
+		return new OrganizacaoDto(organizacaoResultado, this.getImagemNotNull(organizacaoResultado.getNomeImagem()),
+				idPessoaResponsavel);
 	}
 
 	@Transactional
@@ -164,10 +191,13 @@ public class OrganizacaoService {
 	private void validarOrganizacao(OrganizacaoForm form, boolean isSalvar) {
 		List<String> erros = new ArrayList<>();
 
-		boolean checkFormIdCidadeNotNullExistePorId = form.idCidade() != null && !cidadeService.existePorId(form.idCidade());
-		boolean checkFormIdEstadoNotNullExistePorId = form.idEstado() != null && !estadoService.existePorId(form.idEstado());
+		boolean checkFormIdCidadeNotNullExistePorId = form.idCidade() != null
+				&& !cidadeService.existePorId(form.idCidade());
+		boolean checkFormIdEstadoNotNullExistePorId = form.idEstado() != null
+				&& !estadoService.existePorId(form.idEstado());
 		boolean checkFormIdPaisExistePorId = !paisService.existePorId(form.idPais());
-		boolean checkFormIdOrganizacaoPaiNotNullExistePorId = form.idOrganizacaoPai() != null && !repository.existsById(form.idOrganizacaoPai());
+		boolean checkFormIdOrganizacaoPaiNotNullExistePorId = form.idOrganizacaoPai() != null
+				&& !repository.existsById(form.idOrganizacaoPai());
 		boolean checkFormIdTipoOrganizacaoExistePorId = !tipoOrganizacaoService.existePorId(form.idTipoOrganizacao());
 		boolean checkFormCnpjNotNullSePaisBrasil = form.idPais().equals(1L) && form.cnpj() == null;
 		boolean checkFormCnpjNotNullExistePorCnpj = form.cnpj() != null && repository.existsByCnpj(form.cnpj());
@@ -193,7 +223,6 @@ public class OrganizacaoService {
 		if (checkFormCnpjNotNullExistePorCnpj && isSalvar)
 			erros.add("Já existe uma organização cadastrada com esse CNPJ.");
 
-
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::warn);
 			throw new ValidacaoSiscapException(erros);
@@ -202,39 +231,45 @@ public class OrganizacaoService {
 
 	@Transactional
 	protected void sincronizarOrganizacoesBancoComOrganogramaAPI() {
-		logger.info("Sincronizando dados de Organizacao do banco de dados da aplicacao com os dados da API Organograma");
+		logger.info(
+				"Sincronizando dados de Organizacao do banco de dados da aplicacao com os dados da API Organograma");
 
 		List<Organizacao> organizacaoOrganogramaAPIList = organogramaService.listarOrganizacoesFilhasGOVES()
-					.stream()
-					.map(Organizacao::new)
-					.toList();
+				.stream()
+				.map(Organizacao::new)
+				.toList();
 
 		List<Organizacao> organizacaoBancoList = new ArrayList<>();
 
 		organizacaoOrganogramaAPIList.forEach(
-					orgAPI -> {
-						Optional<Organizacao> orgBancoOpt = repository.findByCnpjOrNomeFantasia(orgAPI.getCnpj(), orgAPI.getNomeFantasia());
+				orgAPI -> {
 
-						if (orgBancoOpt.isPresent()) {
-							Organizacao orgBanco = this.atualizarDadosOrganizacaoBancoPorOrganogramaOrganizacaoDTO(orgBancoOpt.get(), orgAPI);
-							organizacaoBancoList.add(orgBanco);
-						} else {
+					Optional<Organizacao> orgBancoOpt = repository.findByCnpjOrNomeFantasia(orgAPI.getCnpj(),
+							orgAPI.getNomeFantasia());
+
+					if (orgBancoOpt.isPresent()) {
+						Organizacao orgBanco = this
+								.atualizarDadosOrganizacaoBancoPorOrganogramaOrganizacaoDTO(orgBancoOpt.get(), orgAPI);
+						organizacaoBancoList.add(orgBanco);
+					} else {
+						if (!organizacaoBancoList.stream()
+								.anyMatch(o -> orgAPI.getCnpj().equals(o.getCnpj())))
 							organizacaoBancoList.add(orgAPI);
-						}
 					}
-		);
+				});
 
 		repository.saveAllAndFlush(organizacaoBancoList);
 		logger.info("Dados de Organizacao sincronizados com sucesso");
 	}
 
-	private Organizacao atualizarDadosOrganizacaoBancoPorOrganogramaOrganizacaoDTO(Organizacao orgBanco, Organizacao orgAPI) {
+	private Organizacao atualizarDadosOrganizacaoBancoPorOrganogramaOrganizacaoDTO(Organizacao orgBanco,
+			Organizacao orgAPI) {
 
 		if (orgBanco.getGuid() == null) {
 			orgBanco.setGuid(orgAPI.getGuid());
 		}
 
-		if (!( orgBanco.getCnpj() != null && orgBanco.getCnpj().equals(orgAPI.getCnpj()))) {
+		if (!(orgBanco.getCnpj() != null && orgBanco.getCnpj().equals(orgAPI.getCnpj()))) {
 			orgBanco.setCnpj(orgAPI.getCnpj());
 		}
 

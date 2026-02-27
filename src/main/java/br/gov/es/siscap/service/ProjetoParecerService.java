@@ -173,7 +173,7 @@ public class ProjetoParecerService {
 		return projetoParecerRepository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 	}
 
-	public Boolean verificarEnvioPareceresProjeto(Long idProjeto) {
+	public boolean verificarEnvioPareceresProjeto(Long idProjeto) {
 
 		var pareceres = projetoParecerRepository.findAllByProjetoId(idProjeto);
 
@@ -191,14 +191,14 @@ public class ProjetoParecerService {
 
 	}
 
-	public Boolean verificarCapturaParecer(Long idParecer) {
+	public boolean verificarCapturaParecer(long idParecer) {
 		Optional<ProjetoParecer> parecer = projetoParecerRepository.findById(idParecer);
 		return parecer
-				.map(p -> p.getGuidDocumentoEdocs() != null && p.getGuidDocumentoEdocs().length() > 0)
+				.map(p -> p.getGuidDocumentoEdocs() != null && !p.getGuidDocumentoEdocs().isEmpty())
 				.orElse(false);
 	}
 
-	public Boolean verificarEntranhamentoParecer(Long idParecer) {
+	public boolean verificarEntranhamentoParecer(long idParecer) {
 		Optional<ProjetoParecer> parecer = projetoParecerRepository.findById(idParecer);
 		return parecer
 				.map(p -> p.getStatusParecer() == StatusParecerEnum.ENTRANHADO_EDOCS.getValue())
@@ -260,7 +260,7 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public void atualizarIdArquivoCapturado(String guidArquivoCapturado, Long idParecer, String subUsuarioLogado) {
+	public void atualizarIdArquivoCapturado(String guidArquivoCapturado, Long idParecer, String subUsuarioLogado, String codigoRegistroEdocs) {
 
 		ProjetoParecer projetoParecer = this.buscar(idParecer);
 
@@ -268,7 +268,8 @@ public class ProjetoParecerService {
 		projetoParecer.setStatusParecer(StatusParecerEnum.ENVIADO.getValue());
 		projetoParecer.setDataEnvio(LocalDateTime.now());
 		projetoParecer.setSubUsuarioEnviou(subUsuarioLogado);
-
+		projetoParecer.setRegistroArquivoEdocs(codigoRegistroEdocs);
+		
 		projetoParecerRepository.save(projetoParecer);
 
 	}

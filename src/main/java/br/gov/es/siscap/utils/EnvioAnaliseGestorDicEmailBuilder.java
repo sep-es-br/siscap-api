@@ -2,14 +2,14 @@ package br.gov.es.siscap.utils;
 
 import org.springframework.stereotype.Component;
 
-import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
+import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import br.gov.es.siscap.utils.email.builder.EmailBuilderBase;
 
 @Component
 public class EnvioAnaliseGestorDicEmailBuilder extends EmailBuilderBase {
 
 	@Override
-	protected String montarCampoTratamento(EnvioEmailDicDetalhesDto dto) {
+	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
 		return "Prezado(a) Gestor(a)";
 	}
 
@@ -19,13 +19,13 @@ public class EnvioAnaliseGestorDicEmailBuilder extends EmailBuilderBase {
 	}
 
 	@Override
-	protected String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) {
+	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
 		return ("O(A) servidor(a) %s elaborou um DIC (Documento Inicial para Captação) de Recursos, que está disponível para a sua análise e tramitação diretamente no SISCAP")
 				.formatted(dto.nomeResponsavelEnvioEmail());
 	}
 
 	@Override
-	protected String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
+	protected String montarLinkAcesso(EnvioEmailDetalhesDto dto) {
 
 		String frontEndHost = this.getEnv().getProperty("frontend.host");
 
@@ -33,7 +33,7 @@ public class EnvioAnaliseGestorDicEmailBuilder extends EmailBuilderBase {
 			return "";
 		}
 
-		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + dto.idProjeto();
+		String linkEdicao = frontEndHost.replaceAll("/$", "") + "/main/projetos/editar/" + dto.idProjeto();
 
 		if (linkEdicao == null || linkEdicao.isBlank()) {
 			return "";

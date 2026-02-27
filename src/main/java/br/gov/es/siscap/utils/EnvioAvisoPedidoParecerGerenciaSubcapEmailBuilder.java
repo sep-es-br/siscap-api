@@ -2,7 +2,7 @@ package br.gov.es.siscap.utils;
 
 import org.springframework.stereotype.Component;
 
-import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
+import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import br.gov.es.siscap.utils.email.builder.EmailBuilderBase;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +15,7 @@ public class EnvioAvisoPedidoParecerGerenciaSubcapEmailBuilder extends EmailBuil
 	String siglaProjeto;
 
 	@Override
-	protected String montarCampoTratamento(EnvioEmailDicDetalhesDto dto) {
+	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
 		return "Prezado(a) Gestor(a) da <strong>GEOC - Gerência de Operação de Crédito</strong>";
 	}
 
@@ -25,7 +25,7 @@ public class EnvioAvisoPedidoParecerGerenciaSubcapEmailBuilder extends EmailBuil
 	}
 
 	@Override
-	protected String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) {
+	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
 
 		return "Comunicamos que há um <strong>DIC (Documento Inicial para Captação)</strong> disponível para <strong>emissão de parecer</strong>.";
 

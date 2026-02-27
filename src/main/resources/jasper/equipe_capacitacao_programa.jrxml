@@ -1,0 +1,44 @@
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<jasperReport name="equipe_capacitacao_programa" language="java" columnCount="1" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="88ff3a60-9e8a-449e-a525-ee0f352cf53c">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
+	<parameter name="idPrograma" class="java.lang.Integer"/>
+	<query language="sql"><![CDATA[select distinct
+	pes.nome as nome,
+	pap.tipo as papel,
+	(select org.nome
+	from organizacao org
+		join pessoa_organizacao po on po.id_organizacao = org.id and po.id_pessoa = pes.id and po.apagado = false and data_fim is null
+		limit 1) as entidade
+from programa prog
+	right join programa_pessoa pp on pp.id_programa = prog.id
+	join pessoa pes on pes.id = pp.id_pessoa
+	join tipo_papel pap on pap.id = pp.id_tipo_papel and pp.id_tipo_papel <> 2
+where 
+	pp.apagado = false and 
+	prog.id = $P{idPrograma}]]></query>
+	<field name="nome" class="java.lang.String"/>
+	<field name="papel" class="java.lang.String"/>
+	<field name="entidade" class="java.lang.String"/>
+	<background splitType="Stretch"/>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<element kind="textField" uuid="c1271024-d9a7-40d6-b7ae-1041e1244728" x="428" y="1" width="142" height="15" forecolor="#0A588F">
+				<expression><![CDATA[$F{papel}]]></expression>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			</element>
+			<element kind="textField" uuid="b0588d9b-6c32-408e-871b-1ed261c5a505" x="214" y="1" width="214" height="15" forecolor="#0A588F">
+				<expression><![CDATA[$F{entidade}]]></expression>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			</element>
+			<element kind="textField" uuid="7fa90604-e17f-45b4-ba29-196bfb748668" x="10" y="1" width="204" height="15" forecolor="#0A588F">
+				<expression><![CDATA[ $F{nome}]]></expression>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</detail>
+</jasperReport>

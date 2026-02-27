@@ -3,7 +3,7 @@ package br.gov.es.siscap.utils.email.builder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import br.gov.es.siscap.dto.EnvioEmailDicDetalhesDto;
+import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,8 +11,8 @@ import lombok.Setter;
 @Getter
 public abstract class EmailBuilderBase implements EmailBuilder {
 
-    private EnvioEmailDicDetalhesDto dtoMontagemEmailDic = null;
-
+    private EnvioEmailDetalhesDto dtoMontagemEmailDic = null;
+    
     @Autowired
     private Environment env;
 
@@ -107,11 +107,11 @@ public abstract class EmailBuilderBase implements EmailBuilder {
 
     }
 
-    protected abstract String montarCampoTratamento(EnvioEmailDicDetalhesDto dto);
+    protected abstract String montarCampoTratamento(EnvioEmailDetalhesDto dto);
 
-    protected abstract String montarCorpoPrincipal(EnvioEmailDicDetalhesDto dto) ;
+    protected abstract String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) ;
 
-    protected String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
+    protected String montarLinkAcesso(EnvioEmailDetalhesDto dto) {
 
         String frontEndHost = env.getProperty("frontend.host");
 
@@ -119,7 +119,7 @@ public abstract class EmailBuilderBase implements EmailBuilder {
             return "";
 		}
 
-        String linkEdicao = frontEndHost.replaceAll("/$", "") + "/projetos/editar/" + dto.idProjeto();
+        String linkEdicao = frontEndHost.replaceAll("/$", "") + "/main/projetos/editar/" + dto.idProjeto();
 
 		if (linkEdicao == null || linkEdicao.isBlank()) {
 			return "";

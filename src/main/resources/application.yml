@@ -42,25 +42,25 @@ spring:
             authorization-grant-type: authorization_code
             redirect-uri: http://localhost:8080/siscap/acesso-cidadao-response.html
             scope:
-               - api-sigades
-               - api-sigades-processo
-               - api-sigades-documento
-               - api-sigades-consultar
-               - api-sigades-encaminhamento
                - openid
                - profile
-               - nome
                - agentepublico
-               - email
-               - roles
-               - permissoes
-               - emailCorporativo
-               - ApiAcessoCidadao
-               - ApiOrganograma
-               - api-acessocidadao-cpf
-               - api-acessocidadao-base
-               - api-organograma
-               - api-acessocidadao-servidores
+               - email				
+               - roles				
+               - permissoes	 		
+               - emailCorporativo	
+               - nome	 			
+               - ApiAcessoCidadao	 			
+               - ApiOrganograma	 				
+               - api-acessocidadao-cpf	 		
+               - api-acessocidadao-base	 		
+               - api-acessocidadao-servidores	
+               - api-organograma	 					 			
+               - api-sigades	 					
+               - api-sigades-documento	 		
+               - api-sigades-processo	 		
+               - api-sigades-consultar	 		
+               - api-sigades-encaminhamento
       resourceserver:
         jwt:
           issuer-uri: https://acessocidadao.es.gov.br/is
@@ -82,10 +82,22 @@ api:
     uri:
       webapi: https://api.treinamento.e-docs.es.gov.br
     classedocumento-id: 66c3fb09-bcdc-468e-a365-5cb5f8eef6b6
-    guiddestinoSUBCAP: 515685f7-2aeb-4cc4-a311-8b793297f8fb
+    guiddestinoSUBCAP: 515685f7-2aeb-4cc4-a311-8b793297f8fb # (SUBCAP) # d2ab305b-3f41-4802-b509-09f447ab3016 # (CGTI) 
+  parecer:
+    guidSUBEPP: 90948693-1692-49df-a5d1-7d1ce84f600b # SUBEPP
+    guidSUBEO: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO
+    lotacao:
+      simulada: 5821ad81-5f09-4122-a738-844929c7c620
+  programa:
+    assinantes:
+      gestorSUBCAP: 0e3852c0-9b57-416a-ac63-ac267cd65055 # gestor SUBCAP ( ANDRESSA PAVAO )
+      gestorSEP: c1ab19d7-bc5f-48f7-aa94-52e1f2b37831 # gestor SEP ( ALVARO DUBOC )
+      gestorGOVES: d2c2c928-ddcc-4f0a-b58d-0ffcab7f31e3 # 7a6cd93e-e134-4238-b39e-36acd3e199f8 # gestor GOVES ( JOSE RENATO CASAGRANDE )
 
 frontend:
   host: http://localhost:4200
+  edocs:
+    host: https://treinamento.e-docs.es.gov.br
 
 raiz:
   imagens: C:/siscap/api/arquivos/imagens
@@ -103,7 +115,12 @@ email:
     endereco: captacao@sep.es.gov.br
     apelido: Governo do Estado do Espirito Santo
     endereco-nao-responda: naoresponda@sep.es.gov.br
-    
+  destinatario-parecer:
+    orcamentario: gabsubeo@sep.es.gov.br # "Gabinete Subeo" <gabsubeo@sep.es.gov.br>
+    estrategico: gabinete.subepp@sep.es.gov.br # "gabinete.subepp" <gabinete.subepp@sep.es.gov.br>; 
+  destinatario-subcap: subcap@sep.es.gov.br
+  gerencia-subcap: gabinetesubcap@sep.es.gov.br
+
 guidGOVES: "fe88eb2a-a1f3-4cb1-a684-87317baf5a57"
 
 server:
@@ -116,12 +133,7 @@ server:
 logging:
   level:
     root: INFO
-    feign: DEBUG
-    feign.Logger: TRACE
-    org.springframework.web.client.RestTemplate: DEBUG
-    org.apache.http: DEBUG
-    org.apache.http.wire: DEBUG
-        
+            
   file:
     name: api-error.log 
 

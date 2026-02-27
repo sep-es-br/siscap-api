@@ -1,7 +1,6 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
-import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
@@ -108,11 +107,6 @@ public class ProjetoService {
 				: ProjetoSpecification.filtroIdOrganizacao(idOrganizacao);
 		Specification<Projeto> especificacaoStatus = status.equals("Status") ? null
 				: ProjetoSpecification.filtroStatus(status);
-
-		// Specification<Projeto> filtroPesquisa = Specification
-		// .where(especificacaoSiglaTitulo)
-		// .and(especificacaoIdOrganizacao)
-		// .and(especificacaoStatus);
 
 		String subUsuario = autenticacaoService.getUsuarioLogado();
 
@@ -412,11 +406,11 @@ public class ProjetoService {
 
 		String nomeProponente = this.buscarNomeProponente(projetoPessoaSet);
 
-		ProjetoParecerDto projetoParecerDto = form.parecerProjetoUsuario();
+		ProjetoParecerDto projetoParecerDto;
 		ProjetoParecer projetoParecer = null;
 
 		if (projeto.getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())
-				|| projeto.getStatus().equals(StatusProjetoEnum.ELEGIBILIDADE.getValue())) {
+				|| projeto.getStatus().equals(StatusProjetoEnum.ELEGIVEL.getValue())) {
 
 			projetoParecerDto = form.parecerProjetoUsuario();
 
@@ -1220,7 +1214,7 @@ public class ProjetoService {
 			throw new RuntimeException("Erro ao buscar dados organizacao projeto.");
 		}
 
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				nomeProponente,
 				null,
 				nomeOrganizacaoProjeto,
@@ -1275,7 +1269,7 @@ public class ProjetoService {
 			throw new RuntimeException("Erro ao buscar dados organizacao projeto.");
 		}
 
-		EnvioEmailDicDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDicDetalhesDto(idProjeto,
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				nomeProponente,
 				null,
 				nomeOrganizacaoProjeto,

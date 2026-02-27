@@ -500,4 +500,15 @@ public class PessoaService {
 				List.of("Pessoa não possui e-mail cadastrado."));
 	}
 
+	public List<String> buscarSubsPorIds(List<Long> idsPessoas) {
+			return idsPessoas
+				.stream()
+				.map( idpessoa -> 
+					repository.findById(idpessoa)
+							.map(p -> p.getSub())
+							.orElse("")
+				).
+			toList();
+    }
+
 }

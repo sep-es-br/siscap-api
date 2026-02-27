@@ -37,8 +37,10 @@ public class MailConfig {
 		JavaMailSenderImpl javaMailSenderImpl = new JavaMailSenderImpl();
 		javaMailSenderImpl.setHost(HOST);
 		javaMailSenderImpl.setPort(Integer.parseInt(PORT));
-		//javaMailSenderImpl.setUsername(USERNAME);
-		//javaMailSenderImpl.setPassword(PASSWORD);
+		/*
+		javaMailSenderImpl.setUsername(USERNAME);
+		javaMailSenderImpl.setPassword(PASSWORD);
+		*/
 		javaMailSenderImpl.setDefaultEncoding("UTF-8");
 
 		Properties props = javaMailSenderImpl.getJavaMailProperties();

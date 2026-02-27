@@ -1,0 +1,197 @@
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap.jrdax"/>
+	<parameter name="idPrograma" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[3]]></defaultValueExpression>
+	</parameter>
+	<parameter name="pathRelatorios" class="java.lang.String">
+		<defaultValueExpression><![CDATA["jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="guidSUBEPP" class="java.lang.String"/>
+	<parameter name="guidSUBEO" class="java.lang.String"/>
+	<parameter name="guidSUBCAP" class="java.lang.String"/>
+	<parameter name="edocsBaseUrl" class="java.lang.String"/>
+	<query language="sql"><![CDATA[select
+	prog.id as id_programa,
+	prog.criado_em as data_criacao_programa,
+	prog.count_ano as contagem_anual_programa,
+	prog.teto_quantia as valor_estimado_programa,
+	prog.sigla as sigla_programa,
+	prog.titulo as titulo_programa,
+	prog.percentual_custo_administrativo as percentual_custo_administrativo,
+	prog.valor_calculado_total as valor_total_com_custo
+	from programa prog
+	where
+		prog.apagado = false and
+		prog.id = $P{idPrograma}]]></query>
+	<field name="id_programa" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="id"/>
+		<property name="com.jaspersoft.studio.field.label" value="id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
+	</field>
+	<field name="data_criacao_programa" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="data_criacao"/>
+		<property name="com.jaspersoft.studio.field.label" value="data_criacao"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
+	</field>
+	<field name="contagem_anual_programa" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="count_ano"/>
+		<property name="com.jaspersoft.studio.field.name" value="count_ano"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
+	</field>
+	<field name="valor_estimado_programa" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="valor_estimado"/>
+		<property name="com.jaspersoft.studio.field.label" value="valor_estimado"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
+	</field>
+	<field name="sigla_programa" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="sigla"/>
+		<property name="com.jaspersoft.studio.field.label" value="sigla"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
+	</field>
+	<field name="titulo_programa" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="titulo"/>
+		<property name="com.jaspersoft.studio.field.label" value="titulo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
+	</field>
+	<field name="percentual_custo_administrativo" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="valor_estimado"/>
+		<property name="com.jaspersoft.studio.field.label" value="valor_estimado"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
+	</field>
+	<field name="valor_total_com_custo" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="valor_estimado"/>
+		<property name="com.jaspersoft.studio.field.label" value="valor_estimado"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
+	</field>
+	<background splitType="Stretch"/>
+	<pageHeader height="86" splitType="Stretch">
+		<element kind="textField" uuid="2d626a4e-c647-42a2-b888-682538d04d1f" x="0" y="40" width="310" height="20" forecolor="#0A588F" fontName="SansSerif" fontSize="10.0" bold="true">
+			<expression><![CDATA["PROGRAMA n. " + $F{contagem_anual_programa} ]]></expression>
+		</element>
+		<element kind="textField" uuid="3f9938f6-ce89-450b-81f5-42ecd3b4bdda" x="-10" y="0" width="50" height="30" forecolor="#838383" fontName="SansSerif" hTextAlign="Right">
+			<expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+		<element kind="textField" uuid="7c2e686d-f112-481d-a24e-69c4fe382655" x="40" y="0" width="60" height="30" forecolor="#838383" fontName="SansSerif" evaluationTime="Report" hTextAlign="Left">
+			<expression><![CDATA[" de " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+		<element kind="image" uuid="467e7e53-0b0d-43df-8226-026b62df8015" x="383" y="0" width="153" height="60">
+			<expression><![CDATA[$P{pathRelatorios} + "/brasao_sep.png"]]></expression>
+		</element>
+	</pageHeader>
+	<detail>
+		<band height="47">
+			<element kind="staticText" uuid="3a32ca85-421c-48f9-8fc2-b6ed11deb489" x="0" y="0" width="100" height="20" forecolor="#000000" fontName="SansSerif" removeLineWhenBlank="true" bold="true" hTextAlign="Left">
+				<text><![CDATA[Título:]]></text>
+			</element>
+			<element kind="staticText" uuid="e2e28298-9170-4f70-a7fb-87d8c81d4ffe" x="0" y="22" width="130" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
+				<text><![CDATA[Valor Total Estimado:]]></text>
+			</element>
+			<element kind="textField" uuid="5bb00598-fe07-411e-9713-4f54cf97aa44" x="130" y="22" width="240" height="20" fontName="SansSerif" pattern="¤ #,##0.00;¤ -#,##0.00">
+				<expression><![CDATA[$F{valor_total_com_custo}]]></expression>
+			</element>
+			<element kind="staticText" uuid="eede5ff3-528e-4cd9-9689-e4e90b8a8f3d" x="400" y="0" width="45" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
+				<text><![CDATA[Data:]]></text>
+			</element>
+			<element kind="textField" uuid="52f27d78-17c9-4479-b08a-f8debc024c5f" x="446" y="0" width="90" height="20" fontName="SansSerif" pattern="dd/MM/yyyy">
+				<expression><![CDATA[DATE(YEAR($F{data_criacao_programa}),MONTH($F{data_criacao_programa}),DAY($F{data_criacao_programa}))]]></expression>
+			</element>
+			<element kind="textField" uuid="143f43f9-075d-4f3c-a92d-2aedefa14bf1" x="130" y="0" width="240" height="22" hTextAlign="Left">
+				<expression><![CDATA[$F{titulo_programa}]]></expression>
+			</element>
+		</band>
+		<band height="65">
+			<element kind="staticText" uuid="69618320-44df-4041-a018-699f3cfa6811" x="0" y="0" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[1.0 Órgão Executor]]></text>
+			</element>
+			<element kind="line" uuid="773202b1-b73f-4396-8181-65719dd5d8f8" x="0" y="20" width="536" height="1" forecolor="#B2B2B2"/>
+			<element kind="subreport" uuid="2404867c-4e8e-4bb1-b04c-a02d660eed00" x="0" y="45" width="533" height="19">
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<expression><![CDATA[$P{pathRelatorios} + "/orgaos_executores_programa.jasper"]]></expression>
+				<parameter name="idPrograma">
+					<expression><![CDATA[$P{idPrograma}]]></expression>
+				</parameter>
+			</element>
+			<element kind="staticText" uuid="4111eec3-2015-4e3a-bebb-da0412b82bb5" x="0" y="22" width="214" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[1.1 CNPJ]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="staticText" uuid="9389bd4f-c003-4d65-b62d-be8dbc2cc3f6" x="214" y="22" width="320" height="20" fontName="SansSerif" bold="true" hTextAlign="Left" vTextAlign="Middle">
+				<text><![CDATA[Nome]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+		</band>
+		<band height="63">
+			<element kind="staticText" uuid="5235acd3-2191-4ed3-86db-270a5327b724" x="0" y="0" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[2.0 Equipe de Captação]]></text>
+			</element>
+			<element kind="line" uuid="4c0e296d-b0cc-413a-a090-02d72ead8b00" x="0" y="20" width="536" height="1" forecolor="#B2B2B2"/>
+			<element kind="subreport" uuid="5077890e-fbf6-4b33-aa22-58353804dca0" x="0" y="44" width="533" height="19">
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<expression><![CDATA[$P{pathRelatorios} + "/equipe_capacitacao_programa.jasper"]]></expression>
+				<parameter name="idPrograma">
+					<expression><![CDATA[$P{idPrograma}]]></expression>
+				</parameter>
+			</element>
+			<element kind="staticText" uuid="3c1b67d9-1af6-460d-ac4d-3983b71d8f79" x="0" y="22" width="214" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[2.1 Nome]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="staticText" uuid="9af712f4-4cab-455d-b87d-cb3797147cd4" x="214" y="22" width="214" height="20" fontName="SansSerif" bold="true" hTextAlign="Left" vTextAlign="Middle">
+				<text><![CDATA[Unidade]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="staticText" uuid="bdba9e82-5369-4c92-9b76-08564de101ab" x="428" y="22" width="107" height="20" fontName="SansSerif" bold="true" hTextAlign="Left" vTextAlign="Middle">
+				<text><![CDATA[Papel]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+		</band>
+		<band height="60">
+			<element kind="staticText" uuid="81f67c07-d229-4e46-ba15-194f5e8dc95c" x="0" y="0" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[3.0 DIC]]></text>
+			</element>
+			<element kind="line" uuid="2eba17e5-1662-477b-ad99-4912d582a036" x="0" y="20" width="536" height="1" forecolor="#B2B2B2"/>
+			<element kind="subreport" uuid="887bd182-bd1b-4697-ac85-836500faa43f" x="0" y="40" width="535" height="20">
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<expression><![CDATA[$P{pathRelatorios} + "/dics_propostos_programa.jasper"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<parameter name="idPrograma">
+					<expression><![CDATA[$P{idPrograma}]]></expression>
+				</parameter>
+				<parameter name="pathRelatorios">
+					<expression><![CDATA[$P{pathRelatorios}]]></expression>
+				</parameter>
+				<parameter name="guidSUBEPP">
+					<expression><![CDATA[$P{guidSUBEPP}]]></expression>
+				</parameter>
+				<parameter name="guidSUBEO">
+					<expression><![CDATA[$P{guidSUBEO}]]></expression>
+				</parameter>
+				<parameter name="guidSUBCAP">
+					<expression><![CDATA[$P{guidSUBCAP}]]></expression>
+				</parameter>
+				<parameter name="edocsBaseUrl">
+					<expression><![CDATA[$P{edocsBaseUrl}]]></expression>
+				</parameter>
+			</element>
+			<element kind="staticText" uuid="96fb503f-5d97-4bd3-bba9-8baeaae38ca7" x="0" y="21" width="100" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[3.1 Sigla]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="staticText" uuid="ff225a70-66b5-4e69-b0e0-21aff2ca4da7" x="100" y="21" width="283" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[Título]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="staticText" uuid="7b687f18-043d-4393-8d26-7a7f2f263840" x="383" y="21" width="97" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[Protocolo E-Docs]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+		</band>
+	</detail>
+	<pageFooter height="42" splitType="Stretch">
+		<element kind="staticText" uuid="bbd021c3-5e53-4eb9-a462-b0010db26fbe" x="0" y="20" width="535" height="22" forecolor="#838383" fontName="SansSerif" hTextAlign="Center" vTextAlign="Bottom">
+			<text><![CDATA[Programa criado através do Sistema de Captação de Recursos - SISCAP]]></text>
+		</element>
+	</pageFooter>
+</jasperReport>

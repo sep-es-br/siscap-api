@@ -1,24 +1,30 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.EquipeDto;
+import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
+import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
+import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,13 +39,23 @@ public class ProgramaService {
 	private final ProgramaPessoaService programaPessoaService;
 	private final PessoaService pessoaService;
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
+	private final AsyncExecutorService asyncExecutorService;
+	private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
+
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
-	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search) {
-		logger.info("Buscando todos os programas");
+	@Value("${api.programa.assinantes.gestorSUBCAP}")
+	private String assinanteEdocsProgramaGestorSUBCAP;
 
+	@Value("${api.programa.assinantes.gestorSEP}")
+	private String assinanteEdocsProgramaGestorSEP;
+
+	@Value("${api.programa.assinantes.gestorGOVES}")
+	private String assinanteEdocsProgramaGestorGOVES;
+
+	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search) {
 		return repository.paginarProgramasPorFiltroPesquisaSimples(search, pageable)
-					.map(ProgramaListaDto::new);
+				.map(ProgramaListaDto::new);
 	}
 
 	public List<OpcoesDto> listarOpcoesDropdown() {
@@ -47,6 +63,7 @@ public class ProgramaService {
 	}
 
 	public ProgramaDto buscarPorId(Long id) {
+
 		logger.info("Buscando programa com id: {}", id);
 
 		Programa programa = this.buscar(id);
@@ -55,7 +72,11 @@ public class ProgramaService {
 
 		List<Long> idProjetoPropostoList = projetoService.buscarIdProjetoPropostoList(programa);
 
-		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList);
+		List<ProgramaAssinaturaEdocsDto> assinantesProgramaListDto = programaAssinaturaEdocsService
+				.buscarPorPrograma(programa);
+
+		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList, assinantesProgramaListDto);
+
 	}
 
 	@Transactional
@@ -75,10 +96,11 @@ public class ProgramaService {
 		if (!new HashSet<>(form.equipeCaptacao()).equals(new HashSet<>(equipeCapacitacaoValidada))) {
 			equipeParaGravar = equipeCapacitacaoValidada;
 		}
-		
-		List<EquipeDto> equipeCaptacao = programaPessoaService.cadastrar(programa, equipeParaGravar );
 
-		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programa, form.idProjetoPropostoList());
+		List<EquipeDto> equipeCaptacao = programaPessoaService.cadastrar(programa, equipeParaGravar);
+
+		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programa,
+				form.idProjetoPropostoList());
 
 		logger.info("Programa cadastrado com sucesso");
 
@@ -89,7 +111,7 @@ public class ProgramaService {
 
 		List<EquipeDto> equipe = new ArrayList<>();
 
-		for ( EquipeDto membro : form.equipeCaptacao() ) {
+		for (EquipeDto membro : form.equipeCaptacao()) {
 
 			String sub = membro.subPessoa();
 
@@ -143,9 +165,10 @@ public class ProgramaService {
 			equipeParaGravar = equipeCapacitacaoValidada;
 		}
 
-		List<EquipeDto> equipeCaptacao = programaPessoaService.atualizar(programaResult, equipeParaGravar );
+		List<EquipeDto> equipeCaptacao = programaPessoaService.atualizar(programaResult, equipeParaGravar);
 
-		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programaResult, form.idProjetoPropostoList());
+		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programaResult,
+				form.idProjetoPropostoList());
 
 		logger.info("Programa atualizado com sucesso");
 
@@ -155,6 +178,7 @@ public class ProgramaService {
 
 	@Transactional
 	public void excluir(Long id) {
+
 		logger.info("Excluindo programa com id: {}", id);
 
 		Programa programa = this.buscar(id);
@@ -165,6 +189,7 @@ public class ProgramaService {
 		projetoService.desvincularProjetosDoPrograma(programa);
 
 		logger.info("Programa excluído com sucesso");
+
 	}
 
 	public Integer buscarQuantidadeProgramas() {
@@ -172,10 +197,153 @@ public class ProgramaService {
 	}
 
 	private Programa buscar(Long id) {
-		return repository.findById(id).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
+		return repository.findById(id).orElseThrow(() -> {
+			throw new ValidacaoSiscapException(List.of("Programa não encontrado"));
+		});
+		// new RuntimeException("Programa não encontrado")
 	}
 
 	private String buscarCountAnoFormatado() {
 		return FormatadorCountAno.formatar(repository.contagemAnoAtual());
 	}
+
+	public String gerarNomeArquivo(Long idPrograma) {
+
+		Programa programa = this.buscar(idPrograma.longValue());
+
+		return "PROGRAMA n. " +
+				programa.getCountAno();
+	}
+
+	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma) {
+		this.validarAssinaturasSolicitadas(idPrograma);
+		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
+		List<String> subAssinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
+			assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
+		asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, subAssinantesEdocsPrograma,
+				nomeArquivo);
+	}
+
+	public void assinarProgramaEdocs(Long idPrograma, String subAssinante) {
+		Programa programa = this.buscar(idPrograma);
+		this.validarAssinatura(programa, subAssinante);
+		String idDocumentoCapturadoEdocs = programa.getIdDocumentoCapturadoEdocs();
+		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor(idPrograma, idDocumentoCapturadoEdocs,
+				subAssinante);
+	}
+
+	private void validarAssinatura(Programa programa, String subAssinante) {
+
+		List<String> erros = new ArrayList<>();
+
+		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
+
+		if (assinantesDevemAssinarPrograma == null) {
+			erros.add(
+					"Nenhum ssinante encontrado para o programa id " + programa.getId() + ".");
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		if (!assinantesDevemAssinarPrograma.stream()
+				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante.trim().toLowerCase()))) {
+			erros.add(
+					"Assinante informado, sub " + subAssinante + ", não faz parte da lista de assinantes do programa.");
+		}
+
+		if (assinantesDevemAssinarPrograma.stream()
+				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante)
+						&& assinante.getDataAssinatura() != null)) {
+			erros.add("Documento já foi assinado pelo sub " + subAssinante + ".");
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+	}
+
+	
+	private void validarAssinaturasSolicitadas(long idPrograma) {
+
+		List<String> erros = new ArrayList<>();
+
+		Programa programa = this.buscar(idPrograma);
+
+		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
+
+		if (!assinantesDevemAssinarPrograma.isEmpty()) {
+			erros.add(
+					"Assinaturas já solicitadas para o programa id " + programa.getId() + ".");
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+	}
+
+
+	public void autuarProgramaEdocs(Long idPrograma) {
+		Programa programa = this.buscar(idPrograma);
+		this.validarSeProgramaJaFoiAutuado(programa);
+		this.validarSeTodasAssinaturasForamRealizadas(programa);
+		ProgramaDto programaDto = this.buscarPorId(idPrograma);
+		asyncExecutorService.autuarProgramaEdocs(programaDto);
+	}
+
+	@Transactional
+	public Mono<Void> atualizaDadosProgramaAutuado(Long idPrograma, String idProcessoEdocs, String protocoloEdocs) {
+
+		Programa programa = repository.findById(idPrograma)
+				.orElseThrow(() -> new ValidacaoSiscapException(Arrays.asList("Programa não encontrado.")));
+
+		programa.setIdProcessoEdocs(idProcessoEdocs);
+		programa.setProtocoloEdocs(protocoloEdocs);
+
+		repository.save(programa);
+
+		return Mono.empty();
+
+	}
+
+	private void validarSeTodasAssinaturasForamRealizadas(Programa programa) {
+
+		List<String> erros = new ArrayList<>();
+
+		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
+
+		if (assinantesDevemAssinarPrograma.stream()
+				.anyMatch(assinante -> assinante.getDataAssinatura() == null)) {
+			erros.add(
+					"Programa com assinatura ainda pendente.");
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+	}
+
+	private void validarSeProgramaJaFoiAutuado(Programa programa) {
+		List<String> erros = new ArrayList<>();
+
+		String protocoloEdocs = programa.getProtocoloEdocs();
+		if (protocoloEdocs != null && !protocoloEdocs.isBlank()) {
+			erros.add(
+					"Programa já foi autuado sobre o protoclo " + programa.getProtocoloEdocs() + ".");
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+	}
+
 }
