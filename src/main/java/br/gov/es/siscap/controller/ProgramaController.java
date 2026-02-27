@@ -17,6 +17,7 @@ import org.springframework.core.io.Resource;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -37,7 +38,7 @@ public class ProgramaController {
 
 	@GetMapping
 	public Page<ProgramaListaDto> listarTodos(
-			@PageableDefault(size = 15, sort = "sigla") Pageable pageable,
+			@PageableDefault(size = 15, sort = "dataInicio", direction = Direction.DESC) Pageable pageable,
 			@RequestParam(required = false, defaultValue = "") String search) {
 		return service.listarTodos(pageable, search);
 	}
