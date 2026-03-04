@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="equipe" language="java" pageWidth="535" pageHeight="842" columnWidth="535" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="2bfdc504-f570-4eac-a5fc-bf5f558882ae">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="pg_siscap_dev"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
@@ -24,8 +24,8 @@ where
 	<background splitType="Stretch"/>
 	<detail>
 		<band height="20" splitType="Stretch">
-			<element kind="textField" uuid="9a1e969f-8bf0-4f07-9eaa-321336b0caf9" x="0" y="0" width="214" height="20" forecolor="#0A588F">
-				<expression><![CDATA["12.1." + $V{REPORT_COUNT} + " " + $F{nome}]]></expression>
+			<element kind="textField" uuid="9a1e969f-8bf0-4f07-9eaa-321336b0caf9" x="0" y="0" width="214" height="20" forecolor="#0A588F" fontSize="9.0">
+				<expression><![CDATA[$F{nome}.toUpperCase()]]></expression>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>

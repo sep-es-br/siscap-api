@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.edocswebapi.EtapasIntegracaoDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.service.IntegraccaoEdocsService;
 import br.gov.es.siscap.service.ProgramaService;
@@ -81,7 +82,7 @@ public class ProgramaController {
 
 	@GetMapping("/programa/{idPrograma}/baixar-pdf")
 	public ResponseEntity<Resource> gerarPDFPrograma(@PathVariable Integer idPrograma) {
-		Resource resource = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma);
+		Resource resource = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma, ExibirMarcaDaguaProgramaEnum.EXIBIR);
 		String nomeArquivo = service.gerarNomeArquivo(idPrograma.longValue());
 		String contentType = "application/pdf";
 		return ResponseEntity.ok()

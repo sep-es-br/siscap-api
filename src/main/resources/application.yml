@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://10.243.135.48:5432/siscap
+    url: jdbc:postgresql://localhost:5432/siscap_2
     username: postgres
-    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
+    password: postgres
   jpa:
     properties:
       hibernate:
@@ -23,9 +23,9 @@ spring:
             enable: false
 
   flyway:
-    url: jdbc:postgresql://10.243.135.48:5432/siscap
+    url: jdbc:postgresql://localhost:5432/siscap
     user: postgres
-    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
+    password: postgres
     enabled: true
 
   security:
@@ -78,6 +78,8 @@ api:
   organograma:
     uri:
       webapi: https://api.organograma.es.gov.br
+    sync:
+      organizacoes-cron: "0 0 7 * * *" # "0 0 13 * * *" # todos os dias as 13 horas #"0 */10 * * * *" # a cada 10 minutos # "0 0 7 * * *" # todos os dias a 7 da manha
   edocs:
     uri:
       webapi: https://api.treinamento.e-docs.es.gov.br
@@ -87,12 +89,12 @@ api:
     guidSUBEPP: 90948693-1692-49df-a5d1-7d1ce84f600b # SUBEPP
     guidSUBEO: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO
     lotacao:
-      simulada: 5821ad81-5f09-4122-a738-844929c7c620
+      simulada: 515685f7-2aeb-4cc4-a311-8b793297f8fb # (SUBCAP)
   programa:
     assinantes:
-      gestorSUBCAP: 0e3852c0-9b57-416a-ac63-ac267cd65055 # gestor SUBCAP ( ANDRESSA PAVAO )
-      gestorSEP: c1ab19d7-bc5f-48f7-aa94-52e1f2b37831 # gestor SEP ( ALVARO DUBOC )
-      gestorGOVES: d2c2c928-ddcc-4f0a-b58d-0ffcab7f31e3 # 7a6cd93e-e134-4238-b39e-36acd3e199f8 # gestor GOVES ( JOSE RENATO CASAGRANDE )
+      gestorSUBCAP: 5fca5728-7e33-4969-82b0-18349faec213 # Renata # 0e3852c0-9b57-416a-ac63-ac267cd65055 # gestor SUBCAP ( ANDRESSA PAVAO )
+      gestorSEP: b2320148-bc66-4998-ae59-6e9c876808d4 # Ricardo # e7942272-bb41-4d32-9c51-de3145ebcf21 # Vagner # c1ab19d7-bc5f-48f7-aa94-52e1f2b37831 # gestor SEP ( ALVARO DUBOC )
+      gestorGOVES: d2c2c928-ddcc-4f0a-b58d-0ffcab7f31e3 # Eduardo # 4935701b-37cf-4638-ab23-b3f6b464547d # Thassia # 7a6cd93e-e134-4238-b39e-36acd3e199f8 # gestor GOVES ( JOSE RENATO CASAGRANDE )
 
 frontend:
   host: http://localhost:4200
@@ -133,7 +135,8 @@ server:
 logging:
   level:
     root: INFO
-            
+    org.springframework.security.oauth2: DEBUG
+
   file:
     name: api-error.log 
 

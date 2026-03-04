@@ -8,6 +8,7 @@ import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.edocswebapi.*;
+import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.enums.StatusParecerEnum;
 import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.edocs.ContextoIntegracaoEdocsEnum;
@@ -1494,7 +1495,7 @@ public class IntegraccaoEdocsService {
 
 		logger.info("Iniciando processo para criar arquivo no E-Docs com pendencia de suas assinaturas.. {}", idPrograma.intValue());
 
-		Resource resourceArquivo = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma.intValue());
+		Resource resourceArquivo = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma.intValue(), ExibirMarcaDaguaProgramaEnum.NAOEXIBIR );
 
 		String subJwt = autenticacaoService.getUsuarioSub();
 		String tokenArmazenado = autorizacaoACService.getEdocsToken(subJwt);

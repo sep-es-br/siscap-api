@@ -2,9 +2,7 @@
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap.jrdax"/>
-	<parameter name="idPrograma" class="java.lang.Integer">
-		<defaultValueExpression><![CDATA[3]]></defaultValueExpression>
-	</parameter>
+	<parameter name="idPrograma" class="java.lang.Integer"/>
 	<parameter name="pathRelatorios" class="java.lang.String">
 		<defaultValueExpression><![CDATA["jasper"]]></defaultValueExpression>
 	</parameter>
@@ -12,6 +10,7 @@
 	<parameter name="guidSUBEO" class="java.lang.String"/>
 	<parameter name="guidSUBCAP" class="java.lang.String"/>
 	<parameter name="edocsBaseUrl" class="java.lang.String"/>
+	<parameter name="exibirMarcaDagua" class="java.lang.String"/>
 	<query language="sql"><![CDATA[select
 	prog.id as id_programa,
 	prog.criado_em as data_criacao_programa,
@@ -65,7 +64,18 @@
 		<property name="com.jaspersoft.studio.field.label" value="valor_estimado"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
 	</field>
-	<background splitType="Stretch"/>
+	<background height="800" splitType="Stretch">
+		<element kind="image" uuid="17f842d4-a62f-4c2e-a432-b7cea4632309" positionType="Float" x="0" y="0" width="535" height="800" scaleImage="FillFrame" printInFirstWholeBand="true" printRepeatedValues="false">
+			<expression><![CDATA[( "S".equalsIgnoreCase($P{exibirMarcaDagua} != null ? $P{exibirMarcaDagua}.trim() : null)
+    ? $P{pathRelatorios} + "/minuta.png"
+    : null )]]></expression>
+			<property name="net.sf.jasperreports.style.scaleImage" value="FillFrame"/>
+			<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+		</element>
+		<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
+		<property name="com.jaspersoft.studio.unit.height" value="px"/>
+	</background>
 	<pageHeader height="86" splitType="Stretch">
 		<element kind="textField" uuid="2d626a4e-c647-42a2-b888-682538d04d1f" x="0" y="40" width="310" height="20" forecolor="#0A588F" fontName="SansSerif" fontSize="10.0" bold="true">
 			<expression><![CDATA["PROGRAMA n. " + $F{contagem_anual_programa} ]]></expression>
