@@ -1,6 +1,5 @@
 package br.gov.es.siscap.dto;
 
-import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.Programa;
 
 import java.math.BigDecimal;
@@ -10,7 +9,7 @@ public record ProgramaDto(
 		Long id,
 		String sigla,
 		String titulo,
-		List<Long> idOrgaoExecutorList,
+		List<ProgramaOrganizacaoDto> idOrgaoExecutorList,
 		List<EquipeDto> equipeCaptacao,
 		List<Long> idProjetoPropostoList,
 		ValorDto valor,
@@ -18,15 +17,19 @@ public record ProgramaDto(
 		BigDecimal valorCalculadoTotal,
 		List<ProgramaAssinaturaEdocsDto> programaAssinantesEdocsDto,
 		String protocoloEdocs,
-		String idDocumentoCapturadoEdocs
-) {
+		String idDocumentoCapturadoEdocs) {
 
 	public ProgramaDto(Programa programa, List<EquipeDto> equipeCaptacao, List<Long> idProjetoPropostoList) {
 		this(
 				programa.getId(),
 				programa.getSigla(),
 				programa.getTitulo(),
-				programa.getOrgaoExecutorSet().stream().map(Organizacao::getId).toList(),
+				programa.getOrgaoExecutorSet()
+				.stream()
+				.map(programaOrganizacao -> new
+				ProgramaOrganizacaoDto(programaOrganizacao.getId(),
+				programa.getId(), null, null))
+				.toList(),
 				equipeCaptacao,
 				idProjetoPropostoList,
 				new ValorDto(programa.getTetoQuantia(), programa.getTipoValor().getId(), programa.getMoeda()),
@@ -48,13 +51,13 @@ public record ProgramaDto(
 				programa.getIdDocumentoCapturadoEdocs());
 	}
 
-
-	public ProgramaDto(Programa programa, List<EquipeDto> equipeCaptacao, List<Long> idProjetoPropostoList, List<ProgramaAssinaturaEdocsDto> assinantesProgramaListDto) {
+	public ProgramaDto(Programa programa, List<EquipeDto> equipeCaptacao, List<Long> idProjetoPropostoList,
+			List<ProgramaAssinaturaEdocsDto> assinantesProgramaListDto, List<ProgramaOrganizacaoDto> organizacoesPrograma ) {
 		this(
 				programa.getId(),
 				programa.getSigla(),
 				programa.getTitulo(),
-				programa.getOrgaoExecutorSet().stream().map(Organizacao::getId).toList(),
+				organizacoesPrograma,
 				equipeCaptacao,
 				idProjetoPropostoList,
 				new ValorDto(programa.getTetoQuantia(), programa.getTipoValor().getId(), programa.getMoeda()),

@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
+import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
@@ -41,7 +42,7 @@ public class ProgramaService {
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final AsyncExecutorService asyncExecutorService;
 	private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
-
+	private final ProgramaOrganizacaoService programaOrganizacaoService;
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
 	@Value("${api.programa.assinantes.gestorSUBCAP}")
@@ -75,12 +76,15 @@ public class ProgramaService {
 		List<ProgramaAssinaturaEdocsDto> assinantesProgramaListDto = programaAssinaturaEdocsService
 				.buscarPorPrograma(programa);
 
-		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList, assinantesProgramaListDto);
+		List<ProgramaOrganizacaoDto> programaOrganizacaoDtos = programaOrganizacaoService.buscarPorPrograma(programa);
+
+		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList, assinantesProgramaListDto, programaOrganizacaoDtos);
 
 	}
 
 	@Transactional
 	public ProgramaDto cadastrar(ProgramaForm form) {
+
 		logger.info("Cadastrando novo programa");
 		logger.info("Dados: {}", form);
 
@@ -102,9 +106,14 @@ public class ProgramaService {
 		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programa,
 				form.idProjetoPropostoList());
 
+		List<ProgramaOrganizacaoDto> organizacoesProgramaGravar = form.programaOrganizacaoList();
+
+		List<ProgramaOrganizacaoDto> organizacoesPrograma = programaOrganizacaoService.cadastrar(programa, organizacoesProgramaGravar);
+
 		logger.info("Programa cadastrado com sucesso");
 
-		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList);
+		return new ProgramaDto( programa, equipeCaptacao, idProjetoPropostoList, null, organizacoesPrograma );
+
 	}
 
 	private List<EquipeDto> validarEquipeCapacitacao(ProgramaForm form) {

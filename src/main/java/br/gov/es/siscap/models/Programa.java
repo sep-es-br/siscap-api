@@ -14,6 +14,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,10 +48,8 @@ public class Programa extends ControleHistorico {
 	private TipoStatus tipoStatus;
 
 	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "programa_organizacao",
-				joinColumns = {@JoinColumn(name = "id_programa", nullable = false)},
-				inverseJoinColumns = @JoinColumn(name = "id_organizacao", nullable = false))
-	private Set<Organizacao> orgaoExecutorSet;
+	@JoinTable(name = "programa_organizacao")
+	private Set<ProgramaOrganizacao> orgaoExecutorSet = new HashSet<>();
 
 	@OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
 	private Set<ProgramaPessoa> programaPessoaSet;
@@ -119,12 +118,12 @@ public class Programa extends ControleHistorico {
 	private void setDadosPrograma(ProgramaForm form) {
 		this.setSigla(form.sigla());
 		this.setTitulo(form.titulo());
-		this.setOrgaoExecutorSet(
-					form.idOrgaoExecutorList()
-								.stream()
-								.map(Organizacao::new)
-								.collect(Collectors.toSet())
-		);
+		// this.setOrgaoExecutorSet(
+		// 			form.programaOrganizacaoList()
+		// 						.stream()
+		// 						.map(ProgramaOrganizacao::new)
+		// 						.collect(Collectors.toSet())
+		// );
 		this.setTetoQuantia(form.valor().quantia());
 		this.setTipoValor(new TipoValor(form.valor().tipo()));
 		this.setMoeda(form.valor().moeda());
