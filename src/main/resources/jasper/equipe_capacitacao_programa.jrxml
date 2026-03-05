@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="equipe_capacitacao_programa" language="java" columnCount="1" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="88ff3a60-9e8a-449e-a525-ee0f352cf53c">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
 	<parameter name="idPrograma" class="java.lang.Integer"/>
@@ -32,7 +32,7 @@ where
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="textField" uuid="7fa90604-e17f-45b4-ba29-196bfb748668" x="10" y="1" width="204" height="15" forecolor="#0A588F">
+			<element kind="textField" uuid="7fa90604-e17f-45b4-ba29-196bfb748668" x="17" y="1" width="196" height="15" forecolor="#0A588F">
 				<expression><![CDATA[ $F{nome}]]></expression>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>

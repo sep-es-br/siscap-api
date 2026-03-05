@@ -1,6 +1,6 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="equipe_capacitacao_programa" language="java" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="88ff3a60-9e8a-449e-a525-ee0f352cf53c">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap.jrdax"/>
 	<parameter name="idPrograma" class="java.lang.Integer"/>
 	<parameter name="pathRelatorios" class="java.lang.String"/>
 	<parameter name="guidSUBEPP" class="java.lang.String"/>
@@ -22,23 +22,23 @@
 	<field name="sigla_dic" class="java.lang.String"/>
 	<field name="titulo_dic" class="java.lang.String"/>
 	<detail>
-		<band height="83" splitType="Stretch">
-			<element kind="textField" uuid="39fd44e3-a3e9-418a-be5f-004deb3b0463" x="10" y="2" width="90" height="20" forecolor="#0A588F">
+		<band height="64" splitType="Stretch">
+			<element kind="textField" uuid="39fd44e3-a3e9-418a-be5f-004deb3b0463" x="17" y="4" width="75" height="15" forecolor="#0A588F">
 				<expression><![CDATA[$F{sigla_dic}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				<property name="com.jaspersoft.studio.unit.y" value="px"/>
 			</element>
-			<element kind="textField" uuid="47922ae6-742d-4698-9993-bd591c0eab82" x="100" y="2" width="300" height="20" forecolor="#0A588F" hTextAlign="Left">
+			<element kind="textField" uuid="47922ae6-742d-4698-9993-bd591c0eab82" x="100" y="4" width="300" height="15" forecolor="#0A588F" hTextAlign="Left">
 				<expression><![CDATA[$F{titulo_dic}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
-			<element kind="textField" uuid="78172a9d-e9b0-40d0-a9c4-a765f9f60998" x="400" y="2" width="100" height="20" forecolor="#0A588F" linkType="Reference" linkTarget="Self" bold="true" hTextAlign="Left">
+			<element kind="textField" uuid="78172a9d-e9b0-40d0-a9c4-a765f9f60998" x="400" y="4" width="100" height="15" forecolor="#0A588F" linkType="Reference" linkTarget="Self" bold="true" hTextAlign="Left">
 				<expression><![CDATA[$F{protocolo_edocs_dic}]]></expression>
 				<hyperlinkReferenceExpression><![CDATA[$P{edocsBaseUrl} + "/Processo/Protocolo/" + $F{protocolo_edocs_dic}]]></hyperlinkReferenceExpression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
-			<element kind="subreport" uuid="1813bba0-ab7c-4ba0-9cac-a8edca5a2da0" stretchType="NoStretch" x="15" y="60" width="568" height="20">
+			<element kind="subreport" uuid="1813bba0-ab7c-4ba0-9cac-a8edca5a2da0" stretchType="NoStretch" x="17" y="49" width="568" height="15">
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<expression><![CDATA[$P{pathRelatorios} + "/pareceres_propostos_dic.jasper"]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -61,18 +61,22 @@
 					<expression><![CDATA[$P{edocsBaseUrl}]]></expression>
 				</parameter>
 			</element>
-			<element kind="staticText" uuid="a2da8b1f-9766-4a0a-b3d9-34e4e37224f4" x="15" y="42" width="110" height="16" forecolor="#030303">
+			<element kind="staticText" uuid="a2da8b1f-9766-4a0a-b3d9-34e4e37224f4" x="17" y="36" width="110" height="14" forecolor="#030303">
 				<text><![CDATA[Elaborador]]></text>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
-			<element kind="staticText" uuid="65e26be2-8ad7-477f-b4a2-d95292fd06a3" x="127" y="42" width="130" height="16" forecolor="#030303">
+			<element kind="staticText" uuid="65e26be2-8ad7-477f-b4a2-d95292fd06a3" x="130" y="36" width="130" height="14" forecolor="#030303">
 				<text><![CDATA[Data de Envio para E-Docs]]></text>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
-			<element kind="staticText" uuid="28520a16-68f5-4c7c-8d91-7762637c5bd8" x="260" y="42" width="130" height="16" forecolor="#030303">
+			<element kind="staticText" uuid="28520a16-68f5-4c7c-8d91-7762637c5bd8" x="263" y="36" width="130" height="14" forecolor="#030303">
 				<text><![CDATA[Link do Parecer E-Docs]]></text>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
-			<element kind="line" uuid="6ba4a3f7-0258-4bba-a6a6-d161a5f4799f" x="10" y="21" width="490" height="1" forecolor="#B2B2B2"/>
-			<element kind="staticText" uuid="b0b74bfb-8a35-4e8b-8b19-7070b95cc103" x="15" y="24" width="110" height="16" forecolor="#030303" bold="true">
+			<element kind="line" uuid="6ba4a3f7-0258-4bba-a6a6-d161a5f4799f" x="15" y="19" width="485" height="1" forecolor="#B2B2B2"/>
+			<element kind="staticText" uuid="b0b74bfb-8a35-4e8b-8b19-7070b95cc103" x="17" y="21" width="110" height="14" forecolor="#030303" bold="true">
 				<text><![CDATA[Pareceres : ]]></text>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
