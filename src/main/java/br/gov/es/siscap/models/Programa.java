@@ -47,8 +47,7 @@ public class Programa extends ControleHistorico {
 	@JoinColumn(name = "id_tipo_status", nullable = false)
 	private TipoStatus tipoStatus;
 
-	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "programa_organizacao")
+	@OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
 	private Set<ProgramaOrganizacao> orgaoExecutorSet = new HashSet<>();
 
 	@OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)

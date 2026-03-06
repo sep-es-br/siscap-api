@@ -12,21 +12,22 @@ import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
 @Entity
 @Table(name = "programa_organizacao")
 @NoArgsConstructor
+@IdClass(ProgramaOrganizacaoId.class)
 @Getter
 @Setter
-@SQLDelete(sql = "UPDATE programa_organizacao SET apagado = true WHERE id=?")
-public class ProgramaOrganizacao extends ControleHistorico {
+@SQLDelete(sql = """
+UPDATE programa_organizacao 
+SET apagado = true 
+WHERE id_programa = ? AND id_organizacao = ?
+""")
+public class ProgramaOrganizacao  {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "programa_organizacao_id_gen")
-    @SequenceGenerator(name = "programa_organizacao_id_gen", sequenceName = "programa_organizacao_id_seq", allocationSize = 1)
-    @Column(name = "id", nullable = false)
-    private Long id;
-
     @ManyToOne
     @JoinColumn(name = "id_programa")
     private Programa programa;
 
+    @Id
     @ManyToOne
     @JoinColumn(name = "id_organizacao")
     private Organizacao organizacao;
@@ -37,7 +38,7 @@ public class ProgramaOrganizacao extends ControleHistorico {
     public ProgramaOrganizacao(Programa programa, Organizacao organizacao, ProgramaOrganizacaoDto dto) {
         this.programa = programa;
         this.organizacao = organizacao;
-        this.tipoOrganizacao = dto.tipoOrganizacao();
+        this.tipoOrganizacao = dto.papel();
     }
 
     public ProgramaOrganizacao(Programa programa, Organizacao organizacao, Integer tipoOrganizacao) {

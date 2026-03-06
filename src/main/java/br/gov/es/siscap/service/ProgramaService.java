@@ -209,7 +209,6 @@ public class ProgramaService {
 		return repository.findById(id).orElseThrow(() -> {
 			throw new ValidacaoSiscapException(List.of("Programa não encontrado"));
 		});
-		// new RuntimeException("Programa não encontrado")
 	}
 
 	private String buscarCountAnoFormatado() {

@@ -9,7 +9,7 @@ public record ProgramaDto(
 		Long id,
 		String sigla,
 		String titulo,
-		List<ProgramaOrganizacaoDto> idOrgaoExecutorList,
+		List<ProgramaOrganizacaoDto> orgaosEnvolvidosList, 
 		List<EquipeDto> equipeCaptacao,
 		List<Long> idProjetoPropostoList,
 		ValorDto valor,
@@ -27,8 +27,7 @@ public record ProgramaDto(
 				programa.getOrgaoExecutorSet()
 				.stream()
 				.map(programaOrganizacao -> new
-				ProgramaOrganizacaoDto(programaOrganizacao.getId(),
-				programa.getId(), null, null))
+				ProgramaOrganizacaoDto(programa.getId(), null, null))
 				.toList(),
 				equipeCaptacao,
 				idProjetoPropostoList,

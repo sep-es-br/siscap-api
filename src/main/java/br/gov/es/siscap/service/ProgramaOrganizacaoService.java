@@ -42,9 +42,9 @@ public class ProgramaOrganizacaoService {
 
 		Set<ProgramaOrganizacao> programaOrganizacaoSet = organizacoesPrograma.stream()
 				.map(organizacaoProgamaDto -> {
-					Organizacao organizacao = organizacaoService.buscar(organizacaoProgamaDto.idOrganizacao());
+					Organizacao organizacao = organizacaoService.buscar(organizacaoProgamaDto.id());
 					return new ProgramaOrganizacao(programa, organizacao,
-							organizacaoProgamaDto.tipoOrganizacao());
+							organizacaoProgamaDto.papel());
 				})
 				.collect(Collectors.toSet());
 
