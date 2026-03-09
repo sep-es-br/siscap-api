@@ -5,9 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.Objects;
+
 import org.hibernate.annotations.SQLDelete;
 
+import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
+import br.gov.es.siscap.enums.TipoStatusEnum;
 
 @Entity
 @Table(name = "programa_organizacao")
@@ -46,5 +51,13 @@ public class ProgramaOrganizacao  {
         this.organizacao = organizacao;
         this.tipoOrganizacao = tipoOrganizacao;
     }
+
+    public boolean compararIdOrgaoComOrgaoProgramaDto(ProgramaOrganizacaoDto programaOrganizacaoDto) {
+		return Objects.equals( this.getOrganizacao().getId(), programaOrganizacaoDto.id());
+	}
+
+    public void atualizarOrgaoPrograma(ProgramaOrganizacaoDto programaOrganizacaoDto) {
+        this.setTipoOrganizacao(programaOrganizacaoDto.papel());
+	}
 
 }

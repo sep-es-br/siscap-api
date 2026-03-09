@@ -17,6 +17,8 @@ import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -106,7 +108,7 @@ public class ProgramaService {
 		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programa,
 				form.idProjetoPropostoList());
 
-		List<ProgramaOrganizacaoDto> organizacoesProgramaGravar = form.programaOrganizacaoList();
+		List<ProgramaOrganizacaoDto> organizacoesProgramaGravar = form.orgaosEnvolvidosList();
 
 		List<ProgramaOrganizacaoDto> organizacoesPrograma = programaOrganizacaoService.cadastrar(programa, organizacoesProgramaGravar);
 
@@ -159,9 +161,13 @@ public class ProgramaService {
 	public ProgramaDto atualizar(Long id, ProgramaForm form) {
 
 		logger.info("Atualizando programa com id: {}", id);
-		logger.info("Dados: {}", form);
+		// logger.info("Dados: {}", form);
 
 		Programa programa = this.buscar(id);
+
+		if(!StringUtils.isBlank(programa.getProtocoloEdocs())){
+			throw new ValidacaoSiscapException(List.of("Programa não pode ser atualizado pois já possui um protocolo E-Docs associado."));
+		}
 
 		programa.atualizar(form);
 
@@ -179,9 +185,13 @@ public class ProgramaService {
 		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programaResult,
 				form.idProjetoPropostoList());
 
+		List<ProgramaOrganizacaoDto> organizacoesProgramaAtualizar = form.orgaosEnvolvidosList();
+
+		List<ProgramaOrganizacaoDto> organizacoesProgramaList = programaOrganizacaoService.atualizar(programa, organizacoesProgramaAtualizar);
+
 		logger.info("Programa atualizado com sucesso");
 
-		return new ProgramaDto(programaResult, equipeCaptacao, idProjetoPropostoList);
+		return new ProgramaDto( programaResult, equipeCaptacao, idProjetoPropostoList, null, organizacoesProgramaList);
 
 	}
 
@@ -191,6 +201,11 @@ public class ProgramaService {
 		logger.info("Excluindo programa com id: {}", id);
 
 		Programa programa = this.buscar(id);
+
+		if(!StringUtils.isBlank(programa.getProtocoloEdocs())){
+			throw new ValidacaoSiscapException(List.of("Programa não pode ser excluído pois já possui um protocolo E-Docs associado."));
+		}
+
 		programa.apagar();
 		repository.saveAndFlush(programa);
 

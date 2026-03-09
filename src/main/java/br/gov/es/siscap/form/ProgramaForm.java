@@ -21,7 +21,7 @@ public record ProgramaForm(
 
 			@NotEmpty
 			@Size(min = 1)
-			List<ProgramaOrganizacaoDto> programaOrganizacaoList,
+			List<ProgramaOrganizacaoDto> orgaosEnvolvidosList, 
 
 			@NotEmpty
 			@Size(min = 1)

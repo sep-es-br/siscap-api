@@ -1,5 +1,6 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Organizacao;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,7 +30,8 @@ public class ProgramaOrganizacaoService {
 	private final Logger logger = LogManager.getLogger(ProgramaOrganizacaoService.class);
 
 	public List<ProgramaOrganizacaoDto> buscarPorPrograma(Programa programa) {
-		List<ProgramaOrganizacao> programaOrganizacaoList = this.buscarProgramaOrganizacaoSetPorPrograma(programa).stream().toList();
+		List<ProgramaOrganizacao> programaOrganizacaoList = this.buscarProgramaOrganizacaoSetPorPrograma(programa)
+				.stream().toList();
 		return this.montarListOrganizacoesDto(programaOrganizacaoList);
 	}
 
@@ -61,46 +64,43 @@ public class ProgramaOrganizacaoService {
 
 	}
 
-	// @Transactional
-	// public List<EquipeDto> atualizar(Programa programa, List<EquipeDto>
-	// equipeCaptacao) {
+	@Transactional
+	public List<ProgramaOrganizacaoDto> atualizar(Programa programa,
+			List<ProgramaOrganizacaoDto> orgaosEnvolvidosList) {
 
-	// logger.info("Alterando dados da equipe do Programa com id: {}",
-	// programa.getId());
+		logger.info("Alterando dados dos orgãos envolvidos do Programa com id: {}",
+				programa.getId());
 
-	// Set<ProgramaPessoa> programaPessoaSet =
-	// this.buscarProgramaPessoaSetPorPrograma(programa);
+		Set<ProgramaOrganizacao> programaOrganizacaoSet = this.buscarProgramaOrganizacaoSetPorPrograma(programa);
 
-	// Set<ProgramaPessoa> membrosEquipeAlterarSet = new HashSet<>();
+		Set<ProgramaOrganizacao> organizacoesAlterarSet = new HashSet<>();
+		Set<ProgramaOrganizacao> organizacoesAdicionarSet = new HashSet<>();
 
-	// Set<ProgramaPessoa> membrosEquipeAdicionarSet = new HashSet<>();
+		orgaosEnvolvidosList.forEach( orgao -> 
+			programaOrganizacaoSet
+					.stream()
+					.filter( orgaoPrograma -> orgaoPrograma.compararIdOrgaoComOrgaoProgramaDto(orgao) )
+					.findFirst()
+					.ifPresentOrElse(
+							programaOrgao -> {
+								programaOrgao.atualizarOrgaoPrograma(orgao);
+								organizacoesAlterarSet.add(programaOrgao);
+							},
+							() -> { 
+								Organizacao orgaoPrograma = organizacaoService.buscar(orgao.id());
+								organizacoesAdicionarSet.add( new ProgramaOrganizacao( programa, orgaoPrograma, orgao.papel() ) );
+							 } )
+		);
 
-	// equipeCaptacao.forEach(equipeDto -> {
-	// programaPessoaSet
-	// .stream()
-	// .filter(programaPessoa ->
-	// programaPessoa.compararIdPessoaComEquipeDto(equipeDto))
-	// .findFirst()
-	// .ifPresentOrElse(
-	// (programaPessoa) -> {
-	// programaPessoa.atualizarMembroEquipe(equipeDto);
-	// membrosEquipeAlterarSet.add(programaPessoa);
-	// },
-	// () -> {
-	// membrosEquipeAdicionarSet.add(new ProgramaPessoa(programa, equipeDto));
-	// }
-	// );
-	// });
+		organizacoesAlterarSet.addAll(organizacoesAdicionarSet);
 
-	// membrosEquipeAlterarSet.addAll(membrosEquipeAdicionarSet);
+		repository.saveAllAndFlush(organizacoesAlterarSet);
 
-	// repository.saveAllAndFlush(membrosEquipeAlterarSet);
+		logger.info("Orgãos envolvidos do programa alterados com sucesso.");
 
-	// logger.info("Equipe do programa alterada com sucesso");
+		return this.buscarPorPrograma(programa);
 
-	// return this.buscarPorPrograma(programa);
-
-	// }
+	}
 
 	// @Transactional
 	// public void excluirPorPrograma(Programa programa) {
