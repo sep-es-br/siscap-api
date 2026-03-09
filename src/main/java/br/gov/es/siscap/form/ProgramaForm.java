@@ -1,6 +1,7 @@
 package br.gov.es.siscap.form;
 
 import br.gov.es.siscap.dto.EquipeDto;
+import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
 import br.gov.es.siscap.dto.ValorDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -20,7 +21,7 @@ public record ProgramaForm(
 
 			@NotEmpty
 			@Size(min = 1)
-			List<Long> idOrgaoExecutorList,
+			List<ProgramaOrganizacaoDto> orgaosEnvolvidosList, 
 
 			@NotEmpty
 			@Size(min = 1)
