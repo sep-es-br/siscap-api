@@ -1,8 +1,14 @@
 spring:
   datasource:
-    url: jdbc:postgresql://10.243.135.48:5432/siscap
+    url: jdbc:postgresql://localhost:5432/siscap_2
     username: postgres
-    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
+    password: postgres
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   jpa:
     properties:
       hibernate:
@@ -23,9 +29,9 @@ spring:
             enable: false
 
   flyway:
-    url: jdbc:postgresql://10.243.135.48:5432/siscap
+    url: jdbc:postgresql://localhost:5432/siscap
     user: postgres
-    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
+    password: postgres
     enabled: true
 
   security:
@@ -78,6 +84,9 @@ api:
   organograma:
     uri:
       webapi: https://api.organograma.es.gov.br
+    sync:
+      organizacoes-cron: "0 0 7 * * *" # todos os dias a 7 da manha
+      
   edocs:
     uri:
       webapi: https://api.treinamento.e-docs.es.gov.br
