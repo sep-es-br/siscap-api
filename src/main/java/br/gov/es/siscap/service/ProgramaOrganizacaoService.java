@@ -1,12 +1,10 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaOrganizacao;
-import br.gov.es.siscap.models.ProgramaPessoa;
 import br.gov.es.siscap.repository.ProgramaOrganizacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -75,22 +73,30 @@ public class ProgramaOrganizacaoService {
 
 		Set<ProgramaOrganizacao> organizacoesAlterarSet = new HashSet<>();
 		Set<ProgramaOrganizacao> organizacoesAdicionarSet = new HashSet<>();
+		Set<ProgramaOrganizacao> organizacoesExcluirSet = new HashSet<>();
 
-		orgaosEnvolvidosList.forEach( orgao -> 
-			programaOrganizacaoSet
-					.stream()
-					.filter( orgaoPrograma -> orgaoPrograma.compararIdOrgaoComOrgaoProgramaDto(orgao) )
-					.findFirst()
-					.ifPresentOrElse(
-							programaOrgao -> {
-								programaOrgao.atualizarOrgaoPrograma(orgao);
-								organizacoesAlterarSet.add(programaOrgao);
-							},
-							() -> { 
-								Organizacao orgaoPrograma = organizacaoService.buscar(orgao.id());
-								organizacoesAdicionarSet.add( new ProgramaOrganizacao( programa, orgaoPrograma, orgao.papel() ) );
-							 } )
-		);
+		orgaosEnvolvidosList.forEach(orgao -> programaOrganizacaoSet
+				.stream()
+				.filter(orgaoPrograma -> orgaoPrograma.compararIdOrgaoComOrgaoProgramaDto(orgao))
+				.findFirst()
+				.ifPresentOrElse(
+						programaOrgao -> {
+							programaOrgao.atualizarOrgaoPrograma(orgao);
+							organizacoesAlterarSet.add(programaOrgao);
+						},
+						() -> {
+							Organizacao orgaoPrograma = organizacaoService.buscar(orgao.id());
+							organizacoesAdicionarSet
+									.add(new ProgramaOrganizacao(programa, orgaoPrograma, orgao.papel()));
+						}));
+
+		organizacoesExcluirSet = programaOrganizacaoSet.stream()
+				.filter(po -> orgaosEnvolvidosList.stream()
+						.noneMatch(dto -> dto.id().equals(po.getOrganizacao().getId())))
+				.collect(Collectors.toSet());
+
+		if(!organizacoesExcluirSet.isEmpty())
+			repository.deleteAll(organizacoesExcluirSet);
 
 		organizacoesAlterarSet.addAll(organizacoesAdicionarSet);
 
@@ -102,50 +108,9 @@ public class ProgramaOrganizacaoService {
 
 	}
 
-	// @Transactional
-	// public void excluirPorPrograma(Programa programa) {
-	// logger.info("Excluindo equipe do Programa com id: {}", programa.getId());
-
-	// Set<ProgramaPessoa> programaPessoaSet =
-	// this.buscarProgramaPessoaSetPorPrograma(programa);
-
-	// programaPessoaSet.forEach(programaPessoa -> programaPessoa.apagar("Programa
-	// excluido"));
-
-	// List<ProgramaPessoa> programaPessoaList =
-	// repository.saveAllAndFlush(programaPessoaSet);
-
-	// repository.deleteAll(programaPessoaList);
-
-	// logger.info("Equipe do programa excluida com sucesso");
-	// }
-
-	// @Transactional
-	// public void excluirPorPessoa(Pessoa pessoa) {
-	// logger.info("Excluindo Pessoa com id: {} da(s) equipe(s) de programa",
-	// pessoa.getId());
-
-	// Set<ProgramaPessoa> programaPessoaSet =
-	// this.buscarProgramaPessoaSetPorPessoa(pessoa);
-
-	// programaPessoaSet.forEach(programaPessoa -> programaPessoa.apagar("Pessoa
-	// excluida"));
-
-	// List<ProgramaPessoa> programaPessoaList =
-	// repository.saveAllAndFlush(programaPessoaSet);
-
-	// repository.deleteAll(programaPessoaList);
-
-	// logger.info("Pessoa excluida da(s) equipe(s) de programa com sucesso");
-	// }
-
 	private Set<ProgramaOrganizacao> buscarProgramaOrganizacaoSetPorPrograma(Programa programa) {
 		return repository.findAllByPrograma(programa);
 	}
-
-	// private Set<ProgramaPessoa> buscarProgramaPessoaSetPorPessoa(Pessoa pessoa) {
-	// return repository.findAllByPessoa(pessoa);
-	// }
 
 	private List<ProgramaOrganizacaoDto> montarListOrganizacoesDto(List<ProgramaOrganizacao> programaOrganizacaoList) {
 		return programaOrganizacaoList.stream()

@@ -5,14 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
-import org.hibernate.annotations.SQLDelete;
-
-import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
-import br.gov.es.siscap.enums.TipoStatusEnum;
 
 @Entity
 @Table(name = "programa_organizacao")
@@ -20,11 +15,6 @@ import br.gov.es.siscap.enums.TipoStatusEnum;
 @IdClass(ProgramaOrganizacaoId.class)
 @Getter
 @Setter
-@SQLDelete(sql = """
-UPDATE programa_organizacao 
-SET apagado = true 
-WHERE id_programa = ? AND id_organizacao = ?
-""")
 public class ProgramaOrganizacao  {
 
     @Id
