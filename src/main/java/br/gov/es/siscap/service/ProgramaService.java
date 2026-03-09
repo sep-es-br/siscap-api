@@ -12,7 +12,6 @@ import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
-import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +25,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -80,7 +81,8 @@ public class ProgramaService {
 
 		List<ProgramaOrganizacaoDto> programaOrganizacaoDtos = programaOrganizacaoService.buscarPorPrograma(programa);
 
-		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList, assinantesProgramaListDto, programaOrganizacaoDtos);
+		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList, assinantesProgramaListDto,
+				programaOrganizacaoDtos);
 
 	}
 
@@ -91,6 +93,10 @@ public class ProgramaService {
 		logger.info("Dados: {}", form);
 
 		Programa tempPrograma = new Programa(form);
+
+		if (tempPrograma.getValorCalculadoTotal() == null || tempPrograma.getValorCalculadoTotal().compareTo(BigDecimal.ZERO) == 0) {
+			throw new ValidacaoSiscapException(List.of("Valor total estimado do programa não pode ser zerado."));
+		}
 
 		tempPrograma.setCountAno(buscarCountAnoFormatado());
 
@@ -161,12 +167,16 @@ public class ProgramaService {
 	public ProgramaDto atualizar(Long id, ProgramaForm form) {
 
 		logger.info("Atualizando programa com id: {}", id);
-		// logger.info("Dados: {}", form);
 
 		Programa programa = this.buscar(id);
 
-		if(!StringUtils.isBlank(programa.getProtocoloEdocs())){
-			throw new ValidacaoSiscapException(List.of("Programa não pode ser atualizado pois já possui um protocolo E-Docs associado."));
+		if (!StringUtils.isBlank(programa.getProtocoloEdocs())) {
+			throw new ValidacaoSiscapException(
+					List.of("Programa não pode ser atualizado pois já possui um protocolo E-Docs associado."));
+		}
+
+		if (programa.getValorCalculadoTotal() == null || programa.getValorCalculadoTotal().compareTo(BigDecimal.ZERO) == 0) {
+			throw new ValidacaoSiscapException(List.of("Valor total estimado do programa não pode ser zerado."));
 		}
 
 		programa.atualizar(form);
@@ -187,11 +197,12 @@ public class ProgramaService {
 
 		List<ProgramaOrganizacaoDto> organizacoesProgramaAtualizar = form.orgaosEnvolvidosList();
 
-		List<ProgramaOrganizacaoDto> organizacoesProgramaList = programaOrganizacaoService.atualizar(programa, organizacoesProgramaAtualizar);
+		List<ProgramaOrganizacaoDto> organizacoesProgramaList = programaOrganizacaoService.atualizar(programa,
+				organizacoesProgramaAtualizar);
 
 		logger.info("Programa atualizado com sucesso");
 
-		return new ProgramaDto( programaResult, equipeCaptacao, idProjetoPropostoList, null, organizacoesProgramaList);
+		return new ProgramaDto(programaResult, equipeCaptacao, idProjetoPropostoList, null, organizacoesProgramaList);
 
 	}
 
@@ -202,8 +213,9 @@ public class ProgramaService {
 
 		Programa programa = this.buscar(id);
 
-		if(!StringUtils.isBlank(programa.getProtocoloEdocs())){
-			throw new ValidacaoSiscapException(List.of("Programa não pode ser excluído pois já possui um protocolo E-Docs associado."));
+		if (!StringUtils.isBlank(programa.getProtocoloEdocs())) {
+			throw new ValidacaoSiscapException(
+					List.of("Programa não pode ser excluído pois já possui um protocolo E-Docs associado."));
 		}
 
 		programa.apagar();
@@ -220,7 +232,7 @@ public class ProgramaService {
 		return Integer.parseInt(String.valueOf((repository.count())));
 	}
 
-	private Programa buscar(Long id) {
+	private Programa buscar(long id) {
 		return repository.findById(id).orElseThrow(() -> {
 			throw new ValidacaoSiscapException(List.of("Programa não encontrado"));
 		});
@@ -242,7 +254,7 @@ public class ProgramaService {
 		this.validarAssinaturasSolicitadas(idPrograma);
 		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
 		List<String> subAssinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
-			assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
+				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
 		asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, subAssinantesEdocsPrograma,
 				nomeArquivo);
 	}
@@ -287,7 +299,6 @@ public class ProgramaService {
 
 	}
 
-	
 	private void validarAssinaturasSolicitadas(long idPrograma) {
 
 		List<String> erros = new ArrayList<>();
@@ -309,7 +320,6 @@ public class ProgramaService {
 		}
 
 	}
-
 
 	public void autuarProgramaEdocs(Long idPrograma) {
 		Programa programa = this.buscar(idPrograma);
