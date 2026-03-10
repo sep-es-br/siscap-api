@@ -18,6 +18,7 @@ import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
+import br.gov.es.siscap.enums.StatusProgramaEnum;
 import br.gov.es.siscap.enums.TipoStatusAssinaturaEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Programa;
@@ -109,9 +110,9 @@ public class ProgramaProcessamentoService {
                 erros.add("Erro ao enviar aviso para solicitacao de assinaturas do programa id " + idPrograma);
             }
 
-        } catch ( UnsupportedEncodingException | MessagingException e ) {
+        } catch (UnsupportedEncodingException | MessagingException e) {
             logger.error(e.getMessage());
-        } 
+        }
 
         if (!erros.isEmpty()) {
             erros.forEach(logger::error);
@@ -127,7 +128,7 @@ public class ProgramaProcessamentoService {
     }
 
     @Transactional
-    public void marcarProgramaAssinado(Long idPrograma, String subAssinante) {
+    public void marcarProgramaAssinado(long idPrograma, String subAssinante) {
 
         Programa programa = repository.findById(idPrograma)
                 .orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));
@@ -141,6 +142,17 @@ public class ProgramaProcessamentoService {
 
         assinatura.setDataAssinatura(LocalDateTime.now());
         assinatura.setStatusAssinatura(TipoStatusAssinaturaEnum.ASSINADO.getValue());
+
+        boolean todosJaAssinaram = programa.getProgramaAssinantesEdocsSet().stream().allMatch(
+                assinante -> assinante.getStatusAssinatura().equals(TipoStatusAssinaturaEnum.ASSINADO.getValue()));
+
+        if(todosJaAssinaram)
+            programa.setStatus(StatusProgramaEnum.ASSINADO.getValue());
+        else
+            programa.setStatus(StatusProgramaEnum.AGUARDANDOASSINATURAS.getValue());
+
+        repository.saveAndFlush(programa);
+
         programaAssinaturaEdocsRepository.saveAndFlush(assinatura);
 
     }
@@ -285,7 +297,7 @@ public class ProgramaProcessamentoService {
     }
 
     @Transactional
-    public void atualizarIdDocumentoEdocsNoPrograma(Long idPrograma, String idDocumentoAutuadoEdocs) {
+    public void atualizarIdDocumentoEdocsNoPrograma(long idPrograma, String idDocumentoAutuadoEdocs) {
 
         Programa programa = repository.findById(idPrograma)
                 .orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));

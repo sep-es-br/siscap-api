@@ -17,7 +17,8 @@ public record ProgramaDto(
 		BigDecimal valorCalculadoTotal,
 		List<ProgramaAssinaturaEdocsDto> programaAssinantesEdocsDto,
 		String protocoloEdocs,
-		String idDocumentoCapturadoEdocs) {
+		String idDocumentoCapturadoEdocs,
+		Integer statusPrograma) {
 
 	public ProgramaDto(Programa programa, List<EquipeDto> equipeCaptacao, List<Long> idProjetoPropostoList) {
 		this(
@@ -47,7 +48,8 @@ public record ProgramaDto(
 										""))
 								.toList(),
 				programa.getProtocoloEdocs(),
-				programa.getIdDocumentoCapturadoEdocs());
+				programa.getIdDocumentoCapturadoEdocs(),
+				programa.getStatus());
 	}
 
 	public ProgramaDto(Programa programa, List<EquipeDto> equipeCaptacao, List<Long> idProjetoPropostoList,
@@ -64,7 +66,8 @@ public record ProgramaDto(
 				programa.getValorCalculadoTotal(),
 				assinantesProgramaListDto,
 				programa.getProtocoloEdocs(),
-				programa.getIdDocumentoCapturadoEdocs());
+				programa.getIdDocumentoCapturadoEdocs(),
+				programa.getStatus());
 	}
 
 }

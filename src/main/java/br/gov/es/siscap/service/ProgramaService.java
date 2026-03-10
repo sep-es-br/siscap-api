@@ -6,6 +6,7 @@ import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.enums.StatusProgramaEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.LocalidadeQuantia;
@@ -97,6 +98,8 @@ public class ProgramaService {
 		this.validarProgramaForm(form);
 
 		Programa tempPrograma = new Programa(form);
+
+		tempPrograma.setStatus(StatusProgramaEnum.EDICAO.getValue());
 
 		tempPrograma.setCountAno(buscarCountAnoFormatado());
 
