@@ -8,10 +8,12 @@ import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
+import br.gov.es.siscap.models.LocalidadeQuantia;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
+import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
@@ -92,11 +94,9 @@ public class ProgramaService {
 		logger.info("Cadastrando novo programa");
 		logger.info("Dados: {}", form);
 
-		Programa tempPrograma = new Programa(form);
+		this.validarProgramaForm(form);
 
-		if (tempPrograma.getValorCalculadoTotal() == null || tempPrograma.getValorCalculadoTotal().compareTo(BigDecimal.ZERO) == 0) {
-			throw new ValidacaoSiscapException(List.of("Valor total estimado do programa não pode ser zerado."));
-		}
+		Programa tempPrograma = new Programa(form);
 
 		tempPrograma.setCountAno(buscarCountAnoFormatado());
 
@@ -116,11 +116,12 @@ public class ProgramaService {
 
 		List<ProgramaOrganizacaoDto> organizacoesProgramaGravar = form.orgaosEnvolvidosList();
 
-		List<ProgramaOrganizacaoDto> organizacoesPrograma = programaOrganizacaoService.cadastrar(programa, organizacoesProgramaGravar);
+		List<ProgramaOrganizacaoDto> organizacoesPrograma = programaOrganizacaoService.cadastrar(programa,
+				organizacoesProgramaGravar);
 
 		logger.info("Programa cadastrado com sucesso");
 
-		return new ProgramaDto( programa, equipeCaptacao, idProjetoPropostoList, null, organizacoesPrograma );
+		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList, null, organizacoesPrograma);
 
 	}
 
@@ -168,16 +169,9 @@ public class ProgramaService {
 
 		logger.info("Atualizando programa com id: {}", id);
 
+		this.validarProgramaForm(form);
+
 		Programa programa = this.buscar(id);
-
-		if (!StringUtils.isBlank(programa.getProtocoloEdocs())) {
-			throw new ValidacaoSiscapException(
-					List.of("Programa não pode ser atualizado pois já possui um protocolo E-Docs associado."));
-		}
-
-		if (programa.getValorCalculadoTotal() == null || programa.getValorCalculadoTotal().compareTo(BigDecimal.ZERO) == 0) {
-			throw new ValidacaoSiscapException(List.of("Valor total estimado do programa não pode ser zerado."));
-		}
 
 		programa.atualizar(form);
 
@@ -369,12 +363,41 @@ public class ProgramaService {
 		String protocoloEdocs = programa.getProtocoloEdocs();
 		if (protocoloEdocs != null && !protocoloEdocs.isBlank()) {
 			erros.add(
-					"Programa já foi autuado sobre o protoclo " + programa.getProtocoloEdocs() + ".");
+					"Programa já foi autuado sobre o protocolo " + programa.getProtocoloEdocs() + ".");
 		}
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
+		}
+
+	}
+
+	private void validarProgramaForm(ProgramaForm form) {
+
+		if (form.valorCalculadoTotal() == null || form.valorCalculadoTotal().compareTo(BigDecimal.ZERO) == 0) {
+			throw new ValidacaoSiscapException(List.of("Valor total estimado do programa não pode ser zerado."));
+		}
+
+		BigDecimal totalEstimadoDicsPrograma = form.idProjetoPropostoList()
+				.stream()
+				.map(dicId -> {
+					Projeto projeto = projetoService.buscar(dicId);
+					return projeto.getLocalidadeQuantiaSet().stream().map(LocalidadeQuantia::getQuantia)
+							.reduce(BigDecimal.ZERO, BigDecimal::add);
+				})
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		if (form.percentualCustoAdministrativo() != null
+				&& form.percentualCustoAdministrativo().compareTo(BigDecimal.ZERO) > 0) {
+			totalEstimadoDicsPrograma = totalEstimadoDicsPrograma
+					.multiply( form.percentualCustoAdministrativo()
+						.divide(BigDecimal.valueOf(100)).add(BigDecimal.valueOf(1)) );
+		}
+
+		if (totalEstimadoDicsPrograma == null || totalEstimadoDicsPrograma.compareTo(form.valorCalculadoTotal()) != 0 ) {
+			throw new ValidacaoSiscapException(List.of(
+					"Valor total estimado do programa está inválido, ele deve ser o resultado dos valores somados dos DIC´s mais o percentual de custo administrativo se houver."));
 		}
 
 	}
