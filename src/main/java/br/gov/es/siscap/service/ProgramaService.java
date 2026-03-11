@@ -326,21 +326,6 @@ public class ProgramaService {
 		asyncExecutorService.autuarProgramaEdocs(programaDto);
 	}
 
-	@Transactional
-	public Mono<Void> atualizaDadosProgramaAutuado(Long idPrograma, String idProcessoEdocs, String protocoloEdocs) {
-
-		Programa programa = repository.findById(idPrograma)
-				.orElseThrow(() -> new ValidacaoSiscapException(Arrays.asList("Programa não encontrado.")));
-
-		programa.setIdProcessoEdocs(idProcessoEdocs);
-		programa.setProtocoloEdocs(protocoloEdocs);
-
-		repository.save(programa);
-
-		return Mono.empty();
-
-	}
-
 	private void validarSeTodasAssinaturasForamRealizadas(Programa programa) {
 
 		List<String> erros = new ArrayList<>();

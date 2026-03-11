@@ -204,7 +204,8 @@ public class ProgramaProcessamentoService {
 
         programa.setIdProcessoEdocs(idProcessoEdocs);
         programa.setProtocoloEdocs(protocoloEdocs);
-
+        programa.setStatus(StatusProgramaEnum.AUTUADO.getValue());
+        
         repository.saveAndFlush(programa);
 
     }

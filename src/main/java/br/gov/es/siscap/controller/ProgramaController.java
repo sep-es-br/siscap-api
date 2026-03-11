@@ -110,4 +110,10 @@ public class ProgramaController {
 		return ResponseEntity.ok(fases);
 	}
 
+	@PostMapping("/programa/{idPrograma}/edocs/recusaassinar")
+	public ResponseEntity<Void> recusarAssinaturaProgramaEdocs(@PathVariable Long idPrograma) {
+		// service.recusarAssinaturaProgramaEdocs(idPrograma);
+		 return ResponseEntity.accepted().build();
+	}
+
 }
