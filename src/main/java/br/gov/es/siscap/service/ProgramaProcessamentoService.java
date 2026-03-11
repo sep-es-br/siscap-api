@@ -146,7 +146,7 @@ public class ProgramaProcessamentoService {
         boolean todosJaAssinaram = programa.getProgramaAssinantesEdocsSet().stream().allMatch(
                 assinante -> assinante.getStatusAssinatura().equals(TipoStatusAssinaturaEnum.ASSINADO.getValue()));
 
-        if(todosJaAssinaram)
+        if (todosJaAssinaram)
             programa.setStatus(StatusProgramaEnum.ASSINADO.getValue());
         else
             programa.setStatus(StatusProgramaEnum.AGUARDANDOASSINATURAS.getValue());
@@ -205,7 +205,7 @@ public class ProgramaProcessamentoService {
         programa.setIdProcessoEdocs(idProcessoEdocs);
         programa.setProtocoloEdocs(protocoloEdocs);
         programa.setStatus(StatusProgramaEnum.AUTUADO.getValue());
-        
+
         repository.saveAndFlush(programa);
 
     }
@@ -306,6 +306,32 @@ public class ProgramaProcessamentoService {
         programa.setIdDocumentoCapturadoEdocs(idDocumentoAutuadoEdocs);
 
         repository.saveAndFlush(programa);
+
+    }
+
+    @Transactional
+    public void assinanteRecusouAssinarPrograma(long idPrograma, String subAssinante) {
+
+        Programa programa = repository.findById(idPrograma)
+                .orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));
+
+        ProgramaAssinaturaEdocs assinatura = programa.getProgramaAssinantesEdocsSet()
+                .stream()
+                .filter(a -> subAssinante.equals(a.getPessoa().getSub()))
+                .findFirst()
+                .orElseThrow(() -> new ValidacaoSiscapException(
+                        List.of("Existe(m) documento(s) a serem assinados.")));
+
+        assinatura.setDataAssinatura(null);
+        assinatura.setDataRecusa(LocalDateTime.now());
+        assinatura.setStatusAssinatura(TipoStatusAssinaturaEnum.RECUSOUSEASSINAR.getValue());
+        assinatura.setJustificativaRecusa("RECUSA ACIONADA VIA SISCAP");
+
+        programa.setStatus(StatusProgramaEnum.RECUSADO.getValue());
+
+        repository.saveAndFlush(programa);
+
+        programaAssinaturaEdocsRepository.saveAndFlush(assinatura);
 
     }
 

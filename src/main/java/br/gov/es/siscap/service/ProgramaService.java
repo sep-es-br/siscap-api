@@ -379,15 +379,21 @@ public class ProgramaService {
 		if (form.percentualCustoAdministrativo() != null
 				&& form.percentualCustoAdministrativo().compareTo(BigDecimal.ZERO) > 0) {
 			totalEstimadoDicsPrograma = totalEstimadoDicsPrograma
-					.multiply( form.percentualCustoAdministrativo()
-						.divide(BigDecimal.valueOf(100)).add(BigDecimal.valueOf(1)) );
+					.multiply(form.percentualCustoAdministrativo()
+							.divide(BigDecimal.valueOf(100)).add(BigDecimal.valueOf(1)));
 		}
 
-		if (totalEstimadoDicsPrograma == null || totalEstimadoDicsPrograma.compareTo(form.valorCalculadoTotal()) != 0 ) {
+		if (totalEstimadoDicsPrograma == null || totalEstimadoDicsPrograma.compareTo(form.valorCalculadoTotal()) != 0) {
 			throw new ValidacaoSiscapException(List.of(
 					"Valor total estimado do programa está inválido, ele deve ser o resultado dos valores somados dos DIC´s mais o percentual de custo administrativo se houver."));
 		}
 
+	}
+
+	public void recusarAssinaturaProgramaEdocs(Long idPrograma, String subAssinante) {
+		Programa programa = this.buscar(idPrograma);
+		String idDocumentoCapturadoEdocs = programa.getIdDocumentoCapturadoEdocs();
+		asyncExecutorService.recusarAssinaturaProgramaEdocs(idPrograma, idDocumentoCapturadoEdocs, subAssinante);
 	}
 
 }

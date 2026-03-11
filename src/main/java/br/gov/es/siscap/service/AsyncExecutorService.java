@@ -84,22 +84,21 @@ public class AsyncExecutorService {
     public void assinarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, String idDocumentoCapturadoEdocs,
             String subAssinante) {
 
-        integracaoEdocsService.assinarArquivoPendenteReativo( idPrograma, idDocumentoCapturadoEdocs )
-                .doOnSuccess( idDocumentoAutuado -> {
+        integracaoEdocsService.assinarArquivoPendenteReativo(idPrograma, idDocumentoCapturadoEdocs)
+                .doOnSuccess(idDocumentoAutuado -> {
 
                     if (idDocumentoAutuado != null) {
                         programaProcessamentoService
                                 .atualizarIdDocumentoEdocsNoPrograma(
                                         idPrograma,
-                                        idDocumentoAutuado
-                                );
+                                        idDocumentoAutuado);
                     }
 
                     programaProcessamentoService
                             .marcarProgramaAssinado(
                                     idPrograma,
                                     subAssinante);
-                                    
+
                 })
                 .doOnError(e -> {
                     logger.error("Erro ao integrar com E-Docs para assinar arquivo em fase assinatura. Programa {}",
@@ -115,14 +114,23 @@ public class AsyncExecutorService {
                 programaDto.idDocumentoCapturadoEdocs(), programaDto)
                 .doOnSuccess(ctx -> {
                     programaProcessamentoService
-                            .marcarProgramaAutuadoEdocsEAvisoAutuado( programaDto,
-                                    ctx.getProtocolo(), ctx.getIdProcesso() );
+                            .marcarProgramaAutuadoEdocsEAvisoAutuado(programaDto,
+                                    ctx.getProtocolo(), ctx.getIdProcesso());
                 })
                 .doOnError(e -> {
                     logger.error("Erro ao autuar um novo processo no E-Docs. Programa {}",
                             programaDto.id(), e);
                 })
                 .subscribe();
+    }
+
+    @Async
+    public void recusarAssinaturaProgramaEdocs(Long idPrograma, String idDocumentoCapturadoEdocs,
+            String subAssinante) {
+        programaProcessamentoService
+                .assinanteRecusouAssinarPrograma(
+                        idPrograma,
+                        subAssinante);
     }
 
 }

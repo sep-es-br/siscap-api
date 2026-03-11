@@ -82,7 +82,8 @@ public class ProgramaController {
 
 	@GetMapping("/programa/{idPrograma}/baixar-pdf")
 	public ResponseEntity<Resource> gerarPDFPrograma(@PathVariable Integer idPrograma) {
-		Resource resource = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma, ExibirMarcaDaguaProgramaEnum.EXIBIR);
+		Resource resource = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma,
+				ExibirMarcaDaguaProgramaEnum.EXIBIR);
 		String nomeArquivo = service.gerarNomeArquivo(idPrograma.longValue());
 		String contentType = "application/pdf";
 		return ResponseEntity.ok()
@@ -94,14 +95,14 @@ public class ProgramaController {
 	@PostMapping("/programa/{idPrograma}/edocs/assinar")
 	public ResponseEntity<Resource> assinarProgramaEdocs(@PathVariable Long idPrograma,
 			@Valid @RequestBody AssinanteRequestDto request) {
-		service.assinarProgramaEdocs( idPrograma, request.subAssinante() );
+		service.assinarProgramaEdocs(idPrograma, request.subAssinante());
 		return ResponseEntity.accepted().build();
 	}
 
 	@PostMapping("/programa/{idPrograma}/edocs/autuar")
 	public ResponseEntity<Void> autuarProgramaEdocs(@PathVariable Long idPrograma) {
-		 service.autuarProgramaEdocs(idPrograma);
-		 return ResponseEntity.accepted().build();
+		service.autuarProgramaEdocs(idPrograma);
+		return ResponseEntity.accepted().build();
 	}
 
 	@GetMapping("/programa/edocs/fases/{idPrograma}")
@@ -111,9 +112,10 @@ public class ProgramaController {
 	}
 
 	@PostMapping("/programa/{idPrograma}/edocs/recusaassinar")
-	public ResponseEntity<Void> recusarAssinaturaProgramaEdocs(@PathVariable Long idPrograma) {
-		// service.recusarAssinaturaProgramaEdocs(idPrograma);
-		 return ResponseEntity.accepted().build();
+	public ResponseEntity<Void> recusarAssinaturaProgramaEdocs(@PathVariable Long idPrograma,
+			@Valid @RequestBody AssinanteRequestDto request) {
+		service.recusarAssinaturaProgramaEdocs(idPrograma, request.subAssinante());
+		return ResponseEntity.accepted().build();
 	}
 
 }
