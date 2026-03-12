@@ -65,7 +65,7 @@
 		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
 	</field>
 	<background height="800" splitType="Stretch">
-		<element kind="image" uuid="17f842d4-a62f-4c2e-a432-b7cea4632309" positionType="Float" x="0" y="0" width="535" height="800" scaleImage="FillFrame" printInFirstWholeBand="true" printRepeatedValues="false">
+		<element kind="image" uuid="17f842d4-a62f-4c2e-a432-b7cea4632309" positionType="Float" x="0" y="0" width="535" height="800" scaleImage="FillFrame" printRepeatedValues="false" printInFirstWholeBand="true">
 			<expression><![CDATA[( "S".equalsIgnoreCase($P{exibirMarcaDagua} != null ? $P{exibirMarcaDagua}.trim() : null)
     ? $P{pathRelatorios} + "/minuta.png"
     : null )]]></expression>
@@ -111,9 +111,9 @@
 				<expression><![CDATA[$F{titulo_programa}]]></expression>
 			</element>
 		</band>
-		<band height="61">
+		<band height="70">
 			<element kind="staticText" uuid="69618320-44df-4041-a018-699f3cfa6811" x="0" y="0" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[Órgão Executor]]></text>
+				<text><![CDATA[Órgãos Envolvidos]]></text>
 			</element>
 			<element kind="line" uuid="773202b1-b73f-4396-8181-65719dd5d8f8" x="0" y="20" width="536" height="1" forecolor="#B2B2B2"/>
 			<element kind="subreport" uuid="2404867c-4e8e-4bb1-b04c-a02d660eed00" x="0" y="42" width="533" height="19">
@@ -123,16 +123,21 @@
 					<expression><![CDATA[$P{idPrograma}]]></expression>
 				</parameter>
 			</element>
-			<element kind="staticText" uuid="4111eec3-2015-4e3a-bebb-da0412b82bb5" x="0" y="22" width="214" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+			<element kind="staticText" uuid="4111eec3-2015-4e3a-bebb-da0412b82bb5" x="0" y="22" width="90" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[CNPJ]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
-			<element kind="staticText" uuid="9389bd4f-c003-4d65-b62d-be8dbc2cc3f6" x="140" y="22" width="394" height="20" fontName="SansSerif" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<element kind="staticText" uuid="9389bd4f-c003-4d65-b62d-be8dbc2cc3f6" x="100" y="22" width="180" height="20" fontName="SansSerif" bold="true" hTextAlign="Left" vTextAlign="Middle">
 				<text><![CDATA[Nome]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 			</element>
+			<element kind="staticText" uuid="4f1ef173-d2da-4e64-a36d-de8ef09d26f1" x="413" y="22" width="110" height="20" fontName="SansSerif" bold="true" hTextAlign="Left" vTextAlign="Middle">
+				<text><![CDATA[Papel Órgão]]></text>
+				<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
-		<band height="61">
+		<band height="70">
 			<element kind="staticText" uuid="5235acd3-2191-4ed3-86db-270a5327b724" x="0" y="0" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Equipe de Captação]]></text>
 			</element>
@@ -144,18 +149,19 @@
 					<expression><![CDATA[$P{idPrograma}]]></expression>
 				</parameter>
 			</element>
-			<element kind="staticText" uuid="3c1b67d9-1af6-460d-ac4d-3983b71d8f79" x="0" y="22" width="214" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+			<element kind="staticText" uuid="3c1b67d9-1af6-460d-ac4d-3983b71d8f79" x="0" y="22" width="170" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Nome]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
-			<element kind="staticText" uuid="9af712f4-4cab-455d-b87d-cb3797147cd4" x="214" y="22" width="214" height="20" fontName="SansSerif" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<element kind="staticText" uuid="9af712f4-4cab-455d-b87d-cb3797147cd4" x="180" y="22" width="214" height="20" fontName="SansSerif" bold="true" hTextAlign="Left" vTextAlign="Middle">
 				<text><![CDATA[Unidade]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
-			<element kind="staticText" uuid="bdba9e82-5369-4c92-9b76-08564de101ab" x="428" y="22" width="107" height="20" fontName="SansSerif" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<element kind="staticText" uuid="bdba9e82-5369-4c92-9b76-08564de101ab" x="425" y="22" width="107" height="20" fontName="SansSerif" bold="true" hTextAlign="Left" vTextAlign="Middle">
 				<text><![CDATA[Papel]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
 		<band height="60">
 			<element kind="staticText" uuid="81f67c07-d229-4e46-ba15-194f5e8dc95c" x="0" y="0" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
