@@ -320,8 +320,7 @@ public class ProgramaService {
 
 	public void autuarProgramaEdocs(Long idPrograma) {
 		Programa programa = this.buscar(idPrograma);
-		this.validarSeProgramaJaFoiAutuado(programa);
-		this.validarSeTodasAssinaturasForamRealizadas(programa);
+		this.validarSeProgramaPodeSerAutuado(programa);
 		ProgramaDto programaDto = this.buscarPorId(idPrograma);
 		asyncExecutorService.autuarProgramaEdocs(programaDto);
 	}
@@ -345,8 +344,13 @@ public class ProgramaService {
 
 	}
 
-	private void validarSeProgramaJaFoiAutuado(Programa programa) {
+	private void validarSeProgramaPodeSerAutuado(Programa programa) {
+
 		List<String> erros = new ArrayList<>();
+
+		if(programa.getStatus().equals(StatusProgramaEnum.RECUSADO.getValue()))
+			erros.add(
+				"Programa não pode ser autuado pois está recusado.");
 
 		String protocoloEdocs = programa.getProtocoloEdocs();
 		if (protocoloEdocs != null && !protocoloEdocs.isBlank()) {
@@ -358,6 +362,8 @@ public class ProgramaService {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
 		}
+
+		this.validarSeTodasAssinaturasForamRealizadas(programa);
 
 	}
 
