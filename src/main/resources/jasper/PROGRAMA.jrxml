@@ -1,7 +1,7 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap.jrdax"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
 	<parameter name="idPrograma" class="java.lang.Integer"/>
 	<parameter name="pathRelatorios" class="java.lang.String">
 		<defaultValueExpression><![CDATA["jasper"]]></defaultValueExpression>
@@ -157,12 +157,12 @@
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
 		</band>
-		<band height="60">
-			<element kind="staticText" uuid="81f67c07-d229-4e46-ba15-194f5e8dc95c" x="0" y="0" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[DIC]]></text>
+		<band height="56">
+			<element kind="staticText" uuid="81f67c07-d229-4e46-ba15-194f5e8dc95c" x="0" y="1" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[DIC´s Associados]]></text>
 			</element>
-			<element kind="line" uuid="2eba17e5-1662-477b-ad99-4912d582a036" x="0" y="20" width="536" height="1" forecolor="#B2B2B2"/>
-			<element kind="subreport" uuid="887bd182-bd1b-4697-ac85-836500faa43f" x="0" y="40" width="535" height="20">
+			<element kind="line" uuid="2eba17e5-1662-477b-ad99-4912d582a036" x="0" y="21" width="536" height="1" forecolor="#B2B2B2"/>
+			<element kind="subreport" uuid="887bd182-bd1b-4697-ac85-836500faa43f" x="0" y="24" width="535" height="20">
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<expression><![CDATA[$P{pathRelatorios} + "/dics_propostos_programa.jasper"]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -185,18 +185,7 @@
 					<expression><![CDATA[$P{edocsBaseUrl}]]></expression>
 				</parameter>
 			</element>
-			<element kind="staticText" uuid="96fb503f-5d97-4bd3-bba9-8baeaae38ca7" x="0" y="21" width="100" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[Sigla]]></text>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-			</element>
-			<element kind="staticText" uuid="ff225a70-66b5-4e69-b0e0-21aff2ca4da7" x="100" y="21" width="283" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[Título]]></text>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-			</element>
-			<element kind="staticText" uuid="7b687f18-043d-4393-8d26-7a7f2f263840" x="383" y="21" width="97" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[Protocolo E-Docs]]></text>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
 	</detail>
 	<pageFooter height="42" splitType="Stretch">

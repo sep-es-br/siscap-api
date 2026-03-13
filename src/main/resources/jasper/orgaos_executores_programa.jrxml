@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
 <jasperReport name="equipe_capacitacao_programa" language="java" columnCount="1" pageWidth="595" pageHeight="842" orientation="Landscape" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="88ff3a60-9e8a-449e-a525-ee0f352cf53c">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
@@ -12,8 +12,27 @@
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
 	<parameter name="idPrograma" class="java.lang.Integer"/>
 	<query language="sql"><![CDATA[select distinct
+<<<<<<< Updated upstream
 	org.nome as nome_organizacao,
 	org.cnpj as cnpj
+=======
+	nome_fantasia || ' - ' || regexp_replace(
+         regexp_replace(
+           regexp_replace(
+             regexp_replace(
+               regexp_replace(
+                 initcap(org.nome),
+                 '\mDe\M', 'de', 'g'),
+               '\mDa\M', 'da', 'g'),
+             '\mDo\M', 'do', 'g'),
+           '\mDos\M', 'dos', 'g'),
+         '\mDas\M', 'das', 'g'
+       ) as nome_organizacao,
+	org.cnpj as cnpj,
+	case when porg.tipo_organizacao = 1 then 'Gestor' 
+	     when porg.tipo_organizacao = 2 then 'Executor' 
+	     else '' end as tipo_organizacao
+>>>>>>> Stashed changes
 from programa prog
 	right join programa_organizacao porg on porg.id_programa = prog.id
 	join organizacao org on org.id = porg.id_organizacao
@@ -23,9 +42,16 @@ where
 	prog.id = $P{idPrograma}]]></query>
 	<field name="nome_organizacao" class="java.lang.String"/>
 	<field name="cnpj" class="java.lang.String"/>
+<<<<<<< Updated upstream
 	<detail>
 		<band height="15" splitType="Stretch">
 			<element kind="textField" uuid="7fa90604-e17f-45b4-ba29-196bfb748668" x="140" y="0" width="440" height="15" forecolor="#0A588F">
+=======
+	<field name="tipo_organizacao" class="java.lang.String"/>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<element kind="textField" uuid="7fa90604-e17f-45b4-ba29-196bfb748668" x="100" y="0" width="300" height="15" forecolor="#0A588F" textAdjust="StretchHeight">
+>>>>>>> Stashed changes
 				<expression><![CDATA[$F{nome_organizacao}]]></expression>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
