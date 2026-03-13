@@ -12,10 +12,6 @@
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
 	<parameter name="idPrograma" class="java.lang.Integer"/>
 	<query language="sql"><![CDATA[select distinct
-<<<<<<< Updated upstream
-	org.nome as nome_organizacao,
-	org.cnpj as cnpj
-=======
 	nome_fantasia || ' - ' || regexp_replace(
          regexp_replace(
            regexp_replace(
@@ -32,7 +28,6 @@
 	case when porg.tipo_organizacao = 1 then 'Gestor' 
 	     when porg.tipo_organizacao = 2 then 'Executor' 
 	     else '' end as tipo_organizacao
->>>>>>> Stashed changes
 from programa prog
 	right join programa_organizacao porg on porg.id_programa = prog.id
 	join organizacao org on org.id = porg.id_organizacao
@@ -42,21 +37,15 @@ where
 	prog.id = $P{idPrograma}]]></query>
 	<field name="nome_organizacao" class="java.lang.String"/>
 	<field name="cnpj" class="java.lang.String"/>
-<<<<<<< Updated upstream
-	<detail>
-		<band height="15" splitType="Stretch">
-			<element kind="textField" uuid="7fa90604-e17f-45b4-ba29-196bfb748668" x="140" y="0" width="440" height="15" forecolor="#0A588F">
-=======
 	<field name="tipo_organizacao" class="java.lang.String"/>
 	<detail>
 		<band height="15" splitType="Stretch">
 			<element kind="textField" uuid="7fa90604-e17f-45b4-ba29-196bfb748668" x="100" y="0" width="300" height="15" forecolor="#0A588F" textAdjust="StretchHeight">
->>>>>>> Stashed changes
 				<expression><![CDATA[$F{nome_organizacao}]]></expression>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="textField" uuid="b0588d9b-6c32-408e-871b-1ed261c5a505" x="17" y="0" width="120" height="15" forecolor="#0A588F">
+			<element kind="textField" uuid="b0588d9b-6c32-408e-871b-1ed261c5a505" x="1" y="0" width="99" height="15" forecolor="#0A588F">
 				<expression><![CDATA[ ($F{cnpj} != null && $F{cnpj}.length() >= 14 ? 
  String.valueOf($F{cnpj}).substring(0,2) + "." +
  String.valueOf($F{cnpj}).substring(2,5) + "." +
@@ -67,6 +56,10 @@ where
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			</element>
+			<element kind="textField" uuid="89f2bb8a-dfa5-4571-b6a4-e738bbfd929a" x="413" y="0" width="100" height="15" forecolor="#0A588F">
+				<expression><![CDATA[$F{tipo_organizacao}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
