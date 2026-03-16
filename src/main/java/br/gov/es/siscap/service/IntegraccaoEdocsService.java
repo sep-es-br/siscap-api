@@ -1612,9 +1612,9 @@ public class IntegraccaoEdocsService {
 	}
 
 	public Mono<String> assinarArquivoPendenteReativo(Long idPrograma,
-			String idDocumentoAssinarFaseAssinatura) {
+			String idDocumentoAssinarFaseAssinatura, ChaveEtapasIntegracao chave) {
 
-		var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
+		// var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
 
 		this.adicionarEtapa(chave,
 				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.ASSINADO, true, false,
@@ -1634,8 +1634,11 @@ public class IntegraccaoEdocsService {
 					}
 					return Mono.just(situacao.idDocumento());
 				})
-				.doOnSuccess(retorno -> finalizaTodasEtapas(chave))
-				.doOnError(e -> logger.error("Erro ao assinar arquivo do programa id {}", idPrograma, e));
+				//.doOnSuccess( retorno -> finalizaTodasEtapas(chave) )
+				.doOnError( e -> {
+					logger.error("Erro ao assinar arquivo do programa id {}", idPrograma, e );
+					
+				} ) ;
 
 	}
 
@@ -1672,11 +1675,9 @@ public class IntegraccaoEdocsService {
 	}
 
 	public Mono<FluxoContextoIntegracaoDto> autuarProgramaProjetoReativo(Long idPrograma, String idDocumentoEdocs,
-			ProgramaDto programaDto) {
+			ProgramaDto programaDto, ChaveEtapasIntegracao chave) {
 
 		String[] documentoEntranhar = { idDocumentoEdocs };
-
-		var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
 
 		this.limparEtapas(chave);
 
@@ -1690,7 +1691,11 @@ public class IntegraccaoEdocsService {
 				.flatMap(this::autuarProcessoMonoPrograma)
 				.flatMap(this::consultarSituacaoEventoAtuacaoPrograma)
 				.flatMap(this::consultarDadosAutuacaoEdocs)
-				.doOnSuccess(retorno -> this.finalizaTodasEtapas(chave));
+				.doOnError(e -> {
+					logger.error("Falha ao executar chamada ao endpoint para autuar um programa via E-Docs. {}",
+							e.getMessage());
+					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.AUTUAR);
+				});
 
 	}
 

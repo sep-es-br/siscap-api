@@ -15,6 +15,7 @@ import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProgramaRepository;
+import br.gov.es.siscap.utils.EnvioAvisoPedidoAssinaturaProgramaEmailBuilder;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -40,7 +41,8 @@ import java.util.Set;
 @Transactional(readOnly = true)
 public class ProgramaService {
 
-	private final ProgramaRepository repository;
+	//private final EnvioAvisoPedidoAssinaturaProgramaEmailBuilder envioAvisoPedidoAssinaturaProgramaEmailBuilder;
+    private final ProgramaRepository repository;
 	private final ProjetoService projetoService;
 	private final ProgramaPessoaService programaPessoaService;
 	private final PessoaService pessoaService;
@@ -48,6 +50,8 @@ public class ProgramaService {
 	private final AsyncExecutorService asyncExecutorService;
 	private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
 	private final ProgramaOrganizacaoService programaOrganizacaoService;
+	private final ProgramaProcessamentoService programaProcessamentoService;
+
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
 	@Value("${api.programa.assinantes.gestorSUBCAP}")
@@ -58,6 +62,10 @@ public class ProgramaService {
 
 	@Value("${api.programa.assinantes.gestorGOVES}")
 	private String assinanteEdocsProgramaGestorGOVES;
+
+    // ProgramaService(EnvioAvisoPedidoAssinaturaProgramaEmailBuilder envioAvisoPedidoAssinaturaProgramaEmailBuilder) {
+    //     this.envioAvisoPedidoAssinaturaProgramaEmailBuilder = envioAvisoPedidoAssinaturaProgramaEmailBuilder;
+    // }
 
 	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search) {
 		return repository.paginarProgramasPorFiltroPesquisaSimples(search, pageable)
@@ -245,12 +253,22 @@ public class ProgramaService {
 	}
 
 	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma) {
-		this.validarAssinaturasSolicitadas(idPrograma);
+		
 		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
+		
 		List<String> subAssinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
 				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
-		asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, subAssinantesEdocsPrograma,
+
+		Programa programa = this.buscar(idPrograma);
+
+		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
+
+		if (assinantesDevemAssinarPrograma.isEmpty()) {
+			asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, subAssinantesEdocsPrograma,
 				nomeArquivo);
+		}
+
+		programaProcessamentoService.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, subAssinantesEdocsPrograma);
 	}
 
 	public void assinarProgramaEdocs(Long idPrograma, String subAssinante) {
@@ -324,7 +342,7 @@ public class ProgramaService {
 	}
 
 	@Transactional
-	public Mono<Void> atualizaDadosProgramaAutuado(Long idPrograma, String idProcessoEdocs, String protocoloEdocs) {
+	public Mono<Void> atualizaDadosProgramaAutuado(long idPrograma, String idProcessoEdocs, String protocoloEdocs) {
 
 		Programa programa = repository.findById(idPrograma)
 				.orElseThrow(() -> new ValidacaoSiscapException(Arrays.asList("Programa não encontrado.")));

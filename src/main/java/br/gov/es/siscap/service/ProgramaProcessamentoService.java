@@ -58,7 +58,7 @@ public class ProgramaProcessamentoService {
         repository.save(programa);
     }
 
-    private boolean enviarAvisoSolicitarAssinaturaPrograma(Long idPrograma, List<String> subAssinantes) {
+    public boolean enviarAvisoSolicitarAssinaturaPrograma(Long idPrograma, List<String> subAssinantes) {
 
         List<String> erros = new ArrayList<>();
 
@@ -68,7 +68,7 @@ public class ProgramaProcessamentoService {
             throw new ValidacaoSiscapException(erros);
         }
 
-        List<String> emailsInteressadosList = new ArrayList<String>();
+        List<String> emailsInteressadosList = new ArrayList<>();
         Map<String, String> emailsSubAssinates = new HashMap<>();
 
         subAssinantes.forEach(sub -> {
