@@ -309,7 +309,7 @@ public class ProgramaProcessamentoService {
 
     }
 
-    @Transactional
+    @Transactional(readOnly = false)
     public void assinanteRecusouAssinarPrograma(long idPrograma, String subAssinante) {
 
         Programa programa = repository.findById(idPrograma)

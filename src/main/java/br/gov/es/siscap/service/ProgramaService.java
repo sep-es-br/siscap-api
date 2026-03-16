@@ -18,8 +18,6 @@ import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -396,6 +393,7 @@ public class ProgramaService {
 
 	}
 
+	@Transactional
 	public void recusarAssinaturaProgramaEdocs(Long idPrograma, String subAssinante) {
 		Programa programa = this.buscar(idPrograma);
 		String idDocumentoCapturadoEdocs = programa.getIdDocumentoCapturadoEdocs();
