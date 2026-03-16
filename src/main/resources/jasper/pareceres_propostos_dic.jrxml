@@ -24,8 +24,8 @@
 	<field name="guid_elaborou_parecer" class="java.lang.String"/>
 	<field name="registro_documento_edocs" class="java.lang.String"/>
 	<detail>
-		<band height="18" splitType="Stretch">
-			<element kind="textField" uuid="39fd44e3-a3e9-418a-be5f-004deb3b0463" x="6" y="3" width="74" height="15" forecolor="#0A588F">
+		<band height="16" splitType="Stretch">
+			<element kind="textField" uuid="39fd44e3-a3e9-418a-be5f-004deb3b0463" x="0" y="1" width="74" height="15" forecolor="#0A588F">
 				<expression><![CDATA[br.gov.es.siscap.enums.LotacaoUsuarioEnum
     .fromGuid(
        $F{guid_elaborou_parecer},
@@ -38,11 +38,11 @@
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				<property name="com.jaspersoft.studio.unit.y" value="px"/>
 			</element>
-			<element kind="textField" uuid="47922ae6-742d-4698-9993-bd591c0eab82" x="84" y="3" width="140" height="15" forecolor="#0A588F" hTextAlign="Center">
+			<element kind="textField" uuid="47922ae6-742d-4698-9993-bd591c0eab82" x="78" y="1" width="140" height="15" forecolor="#0A588F" hTextAlign="Center">
 				<expression><![CDATA[$F{data_envio_parecer}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
-			<element kind="textField" uuid="78172a9d-e9b0-40d0-a9c4-a765f9f60998" x="246" y="3" width="248" height="15" forecolor="#0A588F" linkType="Reference" linkTarget="Self" bold="true" hTextAlign="Left">
+			<element kind="textField" uuid="78172a9d-e9b0-40d0-a9c4-a765f9f60998" x="244" y="1" width="248" height="15" forecolor="#0A588F" linkType="Reference" linkTarget="Self" bold="true" hTextAlign="Left">
 				<expression><![CDATA[$F{registro_documento_edocs}]]></expression>
 				<hyperlinkReferenceExpression><![CDATA[$P{edocsBaseUrl} + "/documento/registro/" + $F{registro_documento_edocs}]]></hyperlinkReferenceExpression>
 			</element>

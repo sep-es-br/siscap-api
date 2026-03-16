@@ -8,6 +8,7 @@ import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.dto.edocswebapi.*;
+import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.enums.StatusParecerEnum;
 import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.edocs.ContextoIntegracaoEdocsEnum;
@@ -1494,7 +1495,7 @@ public class IntegraccaoEdocsService {
 
 		logger.info("Iniciando processo para criar arquivo no E-Docs com pendencia de suas assinaturas.. {}", idPrograma.intValue());
 
-		Resource resourceArquivo = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma.intValue());
+		Resource resourceArquivo = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma.intValue(), ExibirMarcaDaguaProgramaEnum.NAOEXIBIR );
 
 		String subJwt = autenticacaoService.getUsuarioSub();
 		String tokenArmazenado = autorizacaoACService.getEdocsToken(subJwt);
@@ -1611,9 +1612,9 @@ public class IntegraccaoEdocsService {
 	}
 
 	public Mono<String> assinarArquivoPendenteReativo(Long idPrograma,
-			String idDocumentoAssinarFaseAssinatura) {
+			String idDocumentoAssinarFaseAssinatura, ChaveEtapasIntegracao chave) {
 
-		var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
+		// var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
 
 		this.adicionarEtapa(chave,
 				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.ASSINADO, true, false,
@@ -1633,8 +1634,11 @@ public class IntegraccaoEdocsService {
 					}
 					return Mono.just(situacao.idDocumento());
 				})
-				.doOnSuccess(retorno -> finalizaTodasEtapas(chave))
-				.doOnError(e -> logger.error("Erro ao assinar arquivo do programa id {}", idPrograma, e));
+				//.doOnSuccess( retorno -> finalizaTodasEtapas(chave) )
+				.doOnError( e -> {
+					logger.error("Erro ao assinar arquivo do programa id {}", idPrograma, e );
+					
+				} ) ;
 
 	}
 
@@ -1671,11 +1675,9 @@ public class IntegraccaoEdocsService {
 	}
 
 	public Mono<FluxoContextoIntegracaoDto> autuarProgramaProjetoReativo(Long idPrograma, String idDocumentoEdocs,
-			ProgramaDto programaDto) {
+			ProgramaDto programaDto, ChaveEtapasIntegracao chave) {
 
 		String[] documentoEntranhar = { idDocumentoEdocs };
-
-		var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
 
 		this.limparEtapas(chave);
 
@@ -1689,7 +1691,11 @@ public class IntegraccaoEdocsService {
 				.flatMap(this::autuarProcessoMonoPrograma)
 				.flatMap(this::consultarSituacaoEventoAtuacaoPrograma)
 				.flatMap(this::consultarDadosAutuacaoEdocs)
-				.doOnSuccess(retorno -> this.finalizaTodasEtapas(chave));
+				.doOnError(e -> {
+					logger.error("Falha ao executar chamada ao endpoint para autuar um programa via E-Docs. {}",
+							e.getMessage());
+					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.AUTUAR);
+				});
 
 	}
 

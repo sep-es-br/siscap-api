@@ -3,19 +3,24 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
+import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
+import br.gov.es.siscap.models.LocalidadeQuantia;
 import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
-import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
+import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProgramaRepository;
+import br.gov.es.siscap.utils.EnvioAvisoPedidoAssinaturaProgramaEmailBuilder;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +28,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -34,13 +41,16 @@ import java.util.Set;
 @Transactional(readOnly = true)
 public class ProgramaService {
 
-	private final ProgramaRepository repository;
+	//private final EnvioAvisoPedidoAssinaturaProgramaEmailBuilder envioAvisoPedidoAssinaturaProgramaEmailBuilder;
+    private final ProgramaRepository repository;
 	private final ProjetoService projetoService;
 	private final ProgramaPessoaService programaPessoaService;
 	private final PessoaService pessoaService;
 	private final PessoaOrganizacaoService pessoaOrganizacaoService;
 	private final AsyncExecutorService asyncExecutorService;
 	private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
+	private final ProgramaOrganizacaoService programaOrganizacaoService;
+	private final ProgramaProcessamentoService programaProcessamentoService;
 
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
@@ -52,6 +62,10 @@ public class ProgramaService {
 
 	@Value("${api.programa.assinantes.gestorGOVES}")
 	private String assinanteEdocsProgramaGestorGOVES;
+
+    // ProgramaService(EnvioAvisoPedidoAssinaturaProgramaEmailBuilder envioAvisoPedidoAssinaturaProgramaEmailBuilder) {
+    //     this.envioAvisoPedidoAssinaturaProgramaEmailBuilder = envioAvisoPedidoAssinaturaProgramaEmailBuilder;
+    // }
 
 	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search) {
 		return repository.paginarProgramasPorFiltroPesquisaSimples(search, pageable)
@@ -75,14 +89,20 @@ public class ProgramaService {
 		List<ProgramaAssinaturaEdocsDto> assinantesProgramaListDto = programaAssinaturaEdocsService
 				.buscarPorPrograma(programa);
 
-		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList, assinantesProgramaListDto);
+		List<ProgramaOrganizacaoDto> programaOrganizacaoDtos = programaOrganizacaoService.buscarPorPrograma(programa);
+
+		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList, assinantesProgramaListDto,
+				programaOrganizacaoDtos);
 
 	}
 
 	@Transactional
 	public ProgramaDto cadastrar(ProgramaForm form) {
+
 		logger.info("Cadastrando novo programa");
 		logger.info("Dados: {}", form);
+
+		this.validarProgramaForm(form);
 
 		Programa tempPrograma = new Programa(form);
 
@@ -102,9 +122,15 @@ public class ProgramaService {
 		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programa,
 				form.idProjetoPropostoList());
 
+		List<ProgramaOrganizacaoDto> organizacoesProgramaGravar = form.orgaosEnvolvidosList();
+
+		List<ProgramaOrganizacaoDto> organizacoesPrograma = programaOrganizacaoService.cadastrar(programa,
+				organizacoesProgramaGravar);
+
 		logger.info("Programa cadastrado com sucesso");
 
-		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList);
+		return new ProgramaDto(programa, equipeCaptacao, idProjetoPropostoList, null, organizacoesPrograma);
+
 	}
 
 	private List<EquipeDto> validarEquipeCapacitacao(ProgramaForm form) {
@@ -150,7 +176,8 @@ public class ProgramaService {
 	public ProgramaDto atualizar(Long id, ProgramaForm form) {
 
 		logger.info("Atualizando programa com id: {}", id);
-		logger.info("Dados: {}", form);
+
+		this.validarProgramaForm(form);
 
 		Programa programa = this.buscar(id);
 
@@ -170,9 +197,14 @@ public class ProgramaService {
 		List<Long> idProjetoPropostoList = projetoService.vincularProjetosAoPrograma(programaResult,
 				form.idProjetoPropostoList());
 
+		List<ProgramaOrganizacaoDto> organizacoesProgramaAtualizar = form.orgaosEnvolvidosList();
+
+		List<ProgramaOrganizacaoDto> organizacoesProgramaList = programaOrganizacaoService.atualizar(programa,
+				organizacoesProgramaAtualizar);
+
 		logger.info("Programa atualizado com sucesso");
 
-		return new ProgramaDto(programaResult, equipeCaptacao, idProjetoPropostoList);
+		return new ProgramaDto(programaResult, equipeCaptacao, idProjetoPropostoList, null, organizacoesProgramaList);
 
 	}
 
@@ -182,6 +214,12 @@ public class ProgramaService {
 		logger.info("Excluindo programa com id: {}", id);
 
 		Programa programa = this.buscar(id);
+
+		if (!StringUtils.isBlank(programa.getProtocoloEdocs())) {
+			throw new ValidacaoSiscapException(
+					List.of("Programa não pode ser excluído pois já possui um protocolo E-Docs associado."));
+		}
+
 		programa.apagar();
 		repository.saveAndFlush(programa);
 
@@ -196,11 +234,10 @@ public class ProgramaService {
 		return Integer.parseInt(String.valueOf((repository.count())));
 	}
 
-	private Programa buscar(Long id) {
+	private Programa buscar(long id) {
 		return repository.findById(id).orElseThrow(() -> {
 			throw new ValidacaoSiscapException(List.of("Programa não encontrado"));
 		});
-		// new RuntimeException("Programa não encontrado")
 	}
 
 	private String buscarCountAnoFormatado() {
@@ -216,12 +253,22 @@ public class ProgramaService {
 	}
 
 	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma) {
-		this.validarAssinaturasSolicitadas(idPrograma);
+		
 		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
+		
 		List<String> subAssinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
-			assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
-		asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, subAssinantesEdocsPrograma,
+				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
+
+		Programa programa = this.buscar(idPrograma);
+
+		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
+
+		if (assinantesDevemAssinarPrograma.isEmpty()) {
+			asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, subAssinantesEdocsPrograma,
 				nomeArquivo);
+		}
+
+		programaProcessamentoService.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, subAssinantesEdocsPrograma);
 	}
 
 	public void assinarProgramaEdocs(Long idPrograma, String subAssinante) {
@@ -264,7 +311,6 @@ public class ProgramaService {
 
 	}
 
-	
 	private void validarAssinaturasSolicitadas(long idPrograma) {
 
 		List<String> erros = new ArrayList<>();
@@ -287,7 +333,6 @@ public class ProgramaService {
 
 	}
 
-
 	public void autuarProgramaEdocs(Long idPrograma) {
 		Programa programa = this.buscar(idPrograma);
 		this.validarSeProgramaJaFoiAutuado(programa);
@@ -297,7 +342,7 @@ public class ProgramaService {
 	}
 
 	@Transactional
-	public Mono<Void> atualizaDadosProgramaAutuado(Long idPrograma, String idProcessoEdocs, String protocoloEdocs) {
+	public Mono<Void> atualizaDadosProgramaAutuado(long idPrograma, String idProcessoEdocs, String protocoloEdocs) {
 
 		Programa programa = repository.findById(idPrograma)
 				.orElseThrow(() -> new ValidacaoSiscapException(Arrays.asList("Programa não encontrado.")));
@@ -336,12 +381,41 @@ public class ProgramaService {
 		String protocoloEdocs = programa.getProtocoloEdocs();
 		if (protocoloEdocs != null && !protocoloEdocs.isBlank()) {
 			erros.add(
-					"Programa já foi autuado sobre o protoclo " + programa.getProtocoloEdocs() + ".");
+					"Programa já foi autuado sobre o protocolo " + programa.getProtocoloEdocs() + ".");
 		}
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
+		}
+
+	}
+
+	private void validarProgramaForm(ProgramaForm form) {
+
+		if (form.valorCalculadoTotal() == null || form.valorCalculadoTotal().compareTo(BigDecimal.ZERO) == 0) {
+			throw new ValidacaoSiscapException(List.of("Valor total estimado do programa não pode ser zerado."));
+		}
+
+		BigDecimal totalEstimadoDicsPrograma = form.idProjetoPropostoList()
+				.stream()
+				.map(dicId -> {
+					Projeto projeto = projetoService.buscar(dicId);
+					return projeto.getLocalidadeQuantiaSet().stream().map(LocalidadeQuantia::getQuantia)
+							.reduce(BigDecimal.ZERO, BigDecimal::add);
+				})
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		if (form.percentualCustoAdministrativo() != null
+				&& form.percentualCustoAdministrativo().compareTo(BigDecimal.ZERO) > 0) {
+			totalEstimadoDicsPrograma = totalEstimadoDicsPrograma
+					.multiply( form.percentualCustoAdministrativo()
+						.divide(BigDecimal.valueOf(100)).add(BigDecimal.valueOf(1)) );
+		}
+
+		if (totalEstimadoDicsPrograma == null || totalEstimadoDicsPrograma.compareTo(form.valorCalculadoTotal()) != 0 ) {
+			throw new ValidacaoSiscapException(List.of(
+					"Valor total estimado do programa está inválido, ele deve ser o resultado dos valores somados dos DIC´s mais o percentual de custo administrativo se houver."));
 		}
 
 	}

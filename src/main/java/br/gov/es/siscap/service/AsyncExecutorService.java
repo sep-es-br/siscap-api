@@ -8,11 +8,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 import br.gov.es.siscap.dto.ProjetoDto;
-import br.gov.es.siscap.models.Programa;
+import br.gov.es.siscap.enums.edocs.ContextoIntegracaoEdocsEnum;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -65,17 +64,17 @@ public class AsyncExecutorService {
             String nomeArquivo) {
 
         integracaoEdocsService.enviarArquivoAssinaturasPendentes(idPrograma, subAssinantes, nomeArquivo)
-                .doOnSuccess(idDocumento -> {
+                .doOnSuccess(idDocumento -> 
                     programaProcessamentoService
                             .marcarCriacaoArquivoProgramaEdocs(
                                     idPrograma,
                                     subAssinantes,
-                                    idDocumento);
-                })
-                .doOnError(e -> {
+                                    idDocumento)
+                )
+                .doOnError(e -> 
                     logger.error("Erro ao integrar com E-Docs para criar arquivo em fase assinatura. Programa {}",
-                            idPrograma, e);
-                })
+                            idPrograma, e)
+                )
                 .subscribe();
 
     }
@@ -84,7 +83,9 @@ public class AsyncExecutorService {
     public void assinarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, String idDocumentoCapturadoEdocs,
             String subAssinante) {
 
-        integracaoEdocsService.assinarArquivoPendenteReativo( idPrograma, idDocumentoCapturadoEdocs )
+        var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
+
+        integracaoEdocsService.assinarArquivoPendenteReativo( idPrograma, idDocumentoCapturadoEdocs, chave )
                 .doOnSuccess( idDocumentoAutuado -> {
 
                     if (idDocumentoAutuado != null) {
@@ -99,28 +100,27 @@ public class AsyncExecutorService {
                             .marcarProgramaAssinado(
                                     idPrograma,
                                     subAssinante);
+
+                    integracaoEdocsService.finalizaTodasEtapas(chave);
                                     
                 })
-                .doOnError(e -> {
+                .doOnError(e -> 
                     logger.error("Erro ao integrar com E-Docs para assinar arquivo em fase assinatura. Programa {}",
-                            idPrograma, e);
-                })
+                            idPrograma, e))
                 .subscribe();
     }
 
     @Async
     public void autuarProgramaEdocs(ProgramaDto programaDto) {
+        var chave = new ChaveEtapasIntegracao(programaDto.id(), ContextoIntegracaoEdocsEnum.PROGRAMA);
         integracaoEdocsService.autuarProgramaProjetoReativo(
                 programaDto.id(),
-                programaDto.idDocumentoCapturadoEdocs(), programaDto)
+                programaDto.idDocumentoCapturadoEdocs(), programaDto, chave)
                 .doOnSuccess(ctx -> {
                     programaProcessamentoService
                             .marcarProgramaAutuadoEdocsEAvisoAutuado( programaDto,
                                     ctx.getProtocolo(), ctx.getIdProcesso() );
-                })
-                .doOnError(e -> {
-                    logger.error("Erro ao autuar um novo processo no E-Docs. Programa {}",
-                            programaDto.id(), e);
+                    integracaoEdocsService.finalizaTodasEtapas(chave);
                 })
                 .subscribe();
     }

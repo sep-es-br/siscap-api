@@ -1,5 +1,6 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import net.sf.jasperreports.engine.*;
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +20,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Service
 public class RelatoriosService {
@@ -103,12 +105,18 @@ public class RelatoriosService {
 		}
 	}
 
-	public Resource gerarArquivoPrograma(String nomeArquivo, Integer idPrograma) {
-		JasperPrint jasperPrint = preencherArquivoPrograma(recuperarArquivo(nomeArquivo), idPrograma);
+	public Resource gerarArquivoPrograma(String nomeArquivo, Integer idPrograma, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) {
+		JasperPrint jasperPrint = preencherArquivoPrograma(recuperarArquivo(nomeArquivo), idPrograma, exibirMarcaDagua);
 		return exportarRelatorio(jasperPrint);
 	}
 
-	private JasperPrint preencherArquivoPrograma(InputStream relatorio, Integer idPrograma) {
+	private JasperPrint preencherArquivoPrograma(InputStream relatorio, Integer idPrograma, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) {
+
+		String marca = Optional.ofNullable(exibirMarcaDagua)
+        .map(e -> e.getValue())
+        .map(String::trim)
+        .orElse("N");
+
 		try {
 			HashMap<String, Object> map = new HashMap<>();
 			map.put("idPrograma", idPrograma);
@@ -117,12 +125,14 @@ public class RelatoriosService {
 			map.put("guidSUBEO", guidSUBEO);                  
 			map.put("guidSUBCAP", guidSUBCAP);
 			map.put("edocsBaseUrl", edocsBaseUrl);
+			map.put("exibirMarcaDagua", marca );
 			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
 			return JasperFillManager.fillReport(relatorio, map, dataSource.getConnection());
 		} catch (JRException | SQLException e) {
 			logger.info("Erro ao preencher o relatório.");
 			throw new SiscapServiceException(List.of("Erro ao preencher o relatório. Contate o suporte."));
 		}
+		
 	}
 	
 }
