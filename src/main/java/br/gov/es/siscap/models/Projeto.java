@@ -1,5 +1,6 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.form.ProjetoForm;
 import jakarta.persistence.*;
@@ -161,6 +162,25 @@ public class Projeto extends ControleHistorico {
 
 	public boolean isAtivo() {
 		return Objects.equals(this.getTipoStatus().getId(), TipoStatusEnum.ATIVO.getValue());
+	}
+
+	public boolean isStatusElegivel() {
+		return Objects.equals( this.getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
+	}
+
+	public boolean isElegivelParaVinculo() {
+
+		if (!this.isStatusElegivel()) {
+			return false;
+		}
+		
+		if (this.getPrograma() == null) {
+			return true;
+		}
+		
+		return this.getPrograma().isRecusado() 
+			|| this.getPrograma().isEmEdicao();
+		
 	}
 
 	private void setDadosProjeto(ProjetoForm form) {

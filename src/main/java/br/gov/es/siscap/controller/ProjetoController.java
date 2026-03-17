@@ -50,8 +50,13 @@ public class ProjetoController {
 	}
 
 	@GetMapping("/opcoes")
-	public List<ProjetoPropostoOpcoesDto> listarOpcoesDropdown() {
-		return service.listarOpcoesDropdown();
+	public List<ProjetoPropostoOpcoesDto> listarOpcoesDropdown(
+		@RequestParam(required = false) boolean elegiveis
+	) {
+		if ( elegiveis )
+			return service.listarDicsElegiveisParaPrograma();
+		else
+			return service.listarOpcoesDropdown();
 	}
 
 	@GetMapping("/{id}")

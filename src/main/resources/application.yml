@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/siscap_2
+    url: jdbc:postgresql://10.243.135.48:5432/siscap
     username: postgres
-    password: postgres
+    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -29,9 +29,9 @@ spring:
             enable: false
 
   flyway:
-    url: jdbc:postgresql://localhost:5432/siscap
+    url: jdbc:postgresql://10.243.135.48:5432/siscap
     user: postgres
-    password: postgres
+    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
     enabled: true
 
   security:
