@@ -11,7 +11,7 @@ public record ProgramaListaDto(
 		String titulo,
 		String moeda,
 		BigDecimal tetoPrograma,
-		String protocoloEDocs,
+		String protocoloEdocs,
 		Integer statusPrograma) {
 
 	public ProgramaListaDto(Programa programa) {
