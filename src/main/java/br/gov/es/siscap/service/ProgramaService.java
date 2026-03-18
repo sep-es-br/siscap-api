@@ -6,6 +6,7 @@ import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.enums.StatusProgramaEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.LocalidadeQuantia;
@@ -105,6 +106,8 @@ public class ProgramaService {
 		this.validarProgramaForm(form);
 
 		Programa tempPrograma = new Programa(form);
+
+		tempPrograma.setStatus(StatusProgramaEnum.EDICAO.getValue());
 
 		tempPrograma.setCountAno(buscarCountAnoFormatado());
 
@@ -335,8 +338,7 @@ public class ProgramaService {
 
 	public void autuarProgramaEdocs(Long idPrograma) {
 		Programa programa = this.buscar(idPrograma);
-		this.validarSeProgramaJaFoiAutuado(programa);
-		this.validarSeTodasAssinaturasForamRealizadas(programa);
+		this.validarSeProgramaPodeSerAutuado(programa);
 		ProgramaDto programaDto = this.buscarPorId(idPrograma);
 		asyncExecutorService.autuarProgramaEdocs(programaDto);
 	}
@@ -375,8 +377,13 @@ public class ProgramaService {
 
 	}
 
-	private void validarSeProgramaJaFoiAutuado(Programa programa) {
+	private void validarSeProgramaPodeSerAutuado(Programa programa) {
+
 		List<String> erros = new ArrayList<>();
+
+		if(programa.getStatus().equals(StatusProgramaEnum.RECUSADO.getValue()))
+			erros.add(
+				"Programa não pode ser autuado pois está recusado.");
 
 		String protocoloEdocs = programa.getProtocoloEdocs();
 		if (protocoloEdocs != null && !protocoloEdocs.isBlank()) {
@@ -388,6 +395,8 @@ public class ProgramaService {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
 		}
+
+		this.validarSeTodasAssinaturasForamRealizadas(programa);
 
 	}
 
@@ -409,15 +418,22 @@ public class ProgramaService {
 		if (form.percentualCustoAdministrativo() != null
 				&& form.percentualCustoAdministrativo().compareTo(BigDecimal.ZERO) > 0) {
 			totalEstimadoDicsPrograma = totalEstimadoDicsPrograma
-					.multiply( form.percentualCustoAdministrativo()
-						.divide(BigDecimal.valueOf(100)).add(BigDecimal.valueOf(1)) );
+					.multiply(form.percentualCustoAdministrativo()
+							.divide(BigDecimal.valueOf(100)).add(BigDecimal.valueOf(1)));
 		}
 
-		if (totalEstimadoDicsPrograma == null || totalEstimadoDicsPrograma.compareTo(form.valorCalculadoTotal()) != 0 ) {
+		if (totalEstimadoDicsPrograma == null || totalEstimadoDicsPrograma.compareTo(form.valorCalculadoTotal()) != 0) {
 			throw new ValidacaoSiscapException(List.of(
 					"Valor total estimado do programa está inválido, ele deve ser o resultado dos valores somados dos DIC´s mais o percentual de custo administrativo se houver."));
 		}
 
+	}
+
+	@Transactional
+	public void recusarAssinaturaProgramaEdocs(Long idPrograma, String subAssinante) {
+		Programa programa = this.buscar(idPrograma);
+		String idDocumentoCapturadoEdocs = programa.getIdDocumentoCapturadoEdocs();
+		asyncExecutorService.recusarAssinaturaProgramaEdocs(idPrograma, idDocumentoCapturadoEdocs, subAssinante);
 	}
 
 }

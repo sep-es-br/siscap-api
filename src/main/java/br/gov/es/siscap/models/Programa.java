@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "programa")
@@ -94,6 +93,9 @@ public class Programa extends ControleHistorico {
 	@OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
 	private Set<ProgramaAssinaturaEdocs> programaAssinantesEdocsSet;
 
+	@Column(name = "status", nullable = true)
+	private Integer status;
+
 	public Programa(Long id) {
 		this.setId(id);
 	}
@@ -117,12 +119,6 @@ public class Programa extends ControleHistorico {
 	private void setDadosPrograma(ProgramaForm form) {
 		this.setSigla(form.sigla());
 		this.setTitulo(form.titulo());
-		// this.setOrgaoExecutorSet(
-		// 			form.programaOrganizacaoList()
-		// 						.stream()
-		// 						.map(ProgramaOrganizacao::new)
-		// 						.collect(Collectors.toSet())
-		// );
 		this.setTetoQuantia(form.valor().quantia());
 		this.setTipoValor(new TipoValor(form.valor().tipo()));
 		this.setMoeda(form.valor().moeda());

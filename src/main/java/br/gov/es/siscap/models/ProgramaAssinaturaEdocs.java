@@ -58,6 +58,12 @@ public class ProgramaAssinaturaEdocs extends ControleHistorico {
 	@Column(name = "atualizado_em")
 	private LocalDateTime atualizadoEm;
 
+	@Column(name = "data_recusa")
+	private LocalDateTime dataRecusa; 
+
+	@Column(name = "justificativa_recusa")
+	private String justificativaRecusa;
+
 	public ProgramaAssinaturaEdocs(Programa programa, Pessoa pessoa) {
 		this.programa = programa;
 		this.pessoa = pessoa;

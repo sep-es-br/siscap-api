@@ -6,22 +6,22 @@ import java.math.BigDecimal;
 
 public record ProgramaListaDto(
 
-			Long id,
-			String sigla,
-			String titulo,
-			String moeda,
-			BigDecimal tetoPrograma,
-			String protocoloEdocs
-) {
+		Long id,
+		String sigla,
+		String titulo,
+		String moeda,
+		BigDecimal tetoPrograma,
+		String protocoloEdocs,
+		Integer statusPrograma) {
 
 	public ProgramaListaDto(Programa programa) {
 		this(
-					programa.getId(),
-					programa.getSigla(),
-					programa.getTitulo(),
-					programa.getMoeda(),
-					programa.getValorCalculadoTotal(),
-                    programa.getProtocoloEdocs()
-		);
+				programa.getId(),
+				programa.getSigla(),
+				programa.getTitulo(),
+				programa.getMoeda(),
+				programa.getValorCalculadoTotal(),
+				programa.getProtocoloEdocs(),
+				programa.getStatus());
 	}
 }

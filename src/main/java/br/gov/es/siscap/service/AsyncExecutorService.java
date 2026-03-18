@@ -92,8 +92,7 @@ public class AsyncExecutorService {
                         programaProcessamentoService
                                 .atualizarIdDocumentoEdocsNoPrograma(
                                         idPrograma,
-                                        idDocumentoAutuado
-                                );
+                                        idDocumentoAutuado);
                     }
 
                     programaProcessamentoService
@@ -102,7 +101,7 @@ public class AsyncExecutorService {
                                     subAssinante);
 
                     integracaoEdocsService.finalizaTodasEtapas(chave);
-                                    
+
                 })
                 .doOnError(e -> 
                     logger.error("Erro ao integrar com E-Docs para assinar arquivo em fase assinatura. Programa {}",
@@ -123,6 +122,15 @@ public class AsyncExecutorService {
                     integracaoEdocsService.finalizaTodasEtapas(chave);
                 })
                 .subscribe();
+    }
+
+    @Async
+    public void recusarAssinaturaProgramaEdocs(Long idPrograma, String idDocumentoCapturadoEdocs,
+            String subAssinante) {
+        programaProcessamentoService
+                .assinanteRecusouAssinarPrograma(
+                        idPrograma,
+                        subAssinante);
     }
 
 }
