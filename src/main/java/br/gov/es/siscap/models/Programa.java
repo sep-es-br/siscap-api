@@ -1,5 +1,6 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.enums.StatusProgramaEnum;
 import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.form.ProgramaForm;
 import jakarta.persistence.*;
@@ -125,4 +126,25 @@ public class Programa extends ControleHistorico {
 		this.setPercentualCustoAdministrativo(form.percentualCustoAdministrativo());
 		this.setValorCalculadoTotal(form.valorCalculadoTotal());
 	}
+
+    public boolean isRecusado() {
+
+		if (this.getStatus() == null) {
+			return false;
+		}
+
+        return this.getStatus().equals(StatusProgramaEnum.RECUSADO.getValue());
+
+    }
+
+    public boolean isEmEdicao() {
+
+		if (this.getStatus() == null) {
+			return false;
+		}
+
+        return this.getStatus().equals(StatusProgramaEnum.EDICAO.getValue());
+
+    }
+	
 }

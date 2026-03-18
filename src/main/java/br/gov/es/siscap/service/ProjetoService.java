@@ -157,7 +157,8 @@ public class ProjetoService {
 
 					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
-					boolean parecerGEOCEnviado = projetoParecerService.verificarEnvioParecereGEOCProjeto(projeto.getId());
+					boolean parecerGEOCEnviado = projetoParecerService
+							.verificarEnvioParecereGEOCProjeto(projeto.getId());
 
 					return new ProjetoPropostoOpcoesDto(projeto, valorDto, parecerGEOCEnviado);
 				})
@@ -1205,7 +1206,7 @@ public class ProjetoService {
 		Long idOrganizacaoProjeto = projeto.getOrganizacao().getId();
 
 		String nomeOrganizacaoProjeto = "";
-		
+
 		try {
 			OrganizacaoDto organizacaoDto = organizacaoService.buscarPorId(idOrganizacaoProjeto);
 			nomeOrganizacaoProjeto = String.format("%s - %s", organizacaoDto.abreviatura(), organizacaoDto.nome());
@@ -1322,6 +1323,20 @@ public class ProjetoService {
 				.map(pessoa -> pessoa.getSub().equalsIgnoreCase(subUsuario))
 				.orElse(false);
 
+	}
+
+	public List<ProjetoPropostoOpcoesDto> listarDicsElegiveisParaPrograma() {
+		return repository.findAll(Sort.by(Sort.Direction.ASC, "titulo"))
+				.stream()
+				.filter(Projeto::isElegivelParaVinculo)
+				.map(projeto -> {
+					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
+					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+					boolean parecerGEOCEnviado = projetoParecerService
+							.verificarEnvioParecereGEOCProjeto(projeto.getId());
+					return new ProjetoPropostoOpcoesDto(projeto, valorDto, parecerGEOCEnviado);
+				})
+				.toList();
 	}
 
 }
