@@ -1,14 +1,15 @@
 CREATE TABLE status_projeto (
     id BIGSERIAL PRIMARY KEY,
     id_projeto BIGINT NOT NULL,
-    inicioEm TIMESTAMP NOT NULL,
-    fimEm TIMESTAMP NULL,
+    inicio_em TIMESTAMP NOT NULL,
+    fim_em TIMESTAMP NULL,
     id_pessoa BIGINT NULL,
     status VARCHAR(50) NOT NULL,
 
     CONSTRAINT fk_status_projeto_projeto
         FOREIGN KEY (id_projeto)
-        REFERENCES projeto (id),
+        REFERENCES projeto (id)
+        ON DELETE CASCADE,
 
     CONSTRAINT fk_status_projeto_pessoa
         FOREIGN KEY (id_pessoa)
@@ -17,4 +18,4 @@ CREATE TABLE status_projeto (
 
 CREATE UNIQUE INDEX uq_status_projeto_ativo
 ON status_projeto (id_projeto)
-WHERE fimEm IS NULL;
+WHERE fim_em IS NULL;

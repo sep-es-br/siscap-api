@@ -133,10 +133,6 @@ public class Projeto extends ControleHistorico {
         @Setter(AccessLevel.NONE)
         private Set<StatusProjeto> historicoStatus;
         
-        @OneToOne(mappedBy = "projeto")
-        @SQLRestriction("fimEm IS NULL")
-        private StatusProjeto statusAtual;
-
 	public Projeto(Long id) {
 		this.setId(id);
 	}
@@ -171,7 +167,7 @@ public class Projeto extends ControleHistorico {
 	}
 
 	public boolean isStatusElegivel() {
-		return Objects.equals( this.getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
+		return Objects.equals( this.getStatusAtual().getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
 	}
 
 	public boolean isElegivelParaVinculo() {
@@ -228,8 +224,14 @@ public class Projeto extends ControleHistorico {
 
             this.getHistoricoStatus().add(novoStatusProjeto);
 
-            // Atualiza statusAtual (apenas no objeto, não no banco)
-            this.setStatusAtual(novoStatusProjeto);
+        }
+        
+        @Transient
+        public StatusProjeto getStatusAtual() {
+            return historicoStatus.stream()
+                .filter(s -> s.getFimEm() == null)
+                .findFirst()
+                .orElse(null);
         }
 
 }
