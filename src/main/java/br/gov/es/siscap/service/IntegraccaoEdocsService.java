@@ -15,20 +15,9 @@ import br.gov.es.siscap.enums.edocs.ContextoIntegracaoEdocsEnum;
 import br.gov.es.siscap.enums.edocs.EtapasIntegracaoEdocsEnum;
 import br.gov.es.siscap.enums.edocs.SituacaoEventoEdocsEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
+import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoParecer;
-import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-import reactor.util.retry.Retry;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -40,6 +29,16 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +58,7 @@ public class IntegraccaoEdocsService {
 	private final AutenticacaoService autenticacaoService;
 	private final RelatoriosService relatoriosService;
 	private final ProjetoParecerService projetoParecerService;
+        private final PessoaService pessoaSrv;
 
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
@@ -132,7 +132,7 @@ public class IntegraccaoEdocsService {
 				.add(etapa);
 	}
 
-	public void assinarAutuarDespacharDicProccessoSUBCAP(Resource arquivoDic, String nomeArquivo, Long idProjeto) {
+	public void assinarAutuarDespacharDicProccessoSUBCAP(Resource arquivoDic, String nomeArquivo, Long idProjeto, Pessoa pessoa) {
 
 		logger.info("Iniciando processo para Autuacao/Despacho do projeto {} para SUBCAP..", idProjeto);
 
@@ -142,7 +142,7 @@ public class IntegraccaoEdocsService {
 
 		ProjetoDto projetoDtoIntegrando = projetoService.buscarPorId(idProjeto);
 
-		autuarDicProjetoReativo(projetoDtoIntegrando, arquivoDic, nomeArquivo)
+		autuarDicProjetoReativo(projetoDtoIntegrando, arquivoDic, nomeArquivo, pessoa)
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
 						erro -> logger.info("ERRO: {}", erro));
@@ -188,7 +188,7 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	public void despacharProccessoEdocsOrgaoOrigem(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos) {
+	public void despacharProccessoEdocsOrgaoOrigem(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos, Pessoa pessoa) {
 
 		logger.info("Iniciando processo para despachar processo E-Docs DIC do projeto {} para Orgao de Origem..",
 				idProjeto);
@@ -201,7 +201,7 @@ public class IntegraccaoEdocsService {
 
 		this.despacharProcessoEdcosDicComplementarReativo(projetoDto)
 				.doOnSuccess(
-						retorno -> projetoService.enviarAvisoSolicitarComplementacaoProjeto(idProjeto, complementos))
+						retorno -> projetoService.enviarAvisoSolicitarComplementacaoProjeto(idProjeto, complementos, pessoa))
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
 						erro -> logger.info("ERRO: {}", erro));
@@ -217,7 +217,7 @@ public class IntegraccaoEdocsService {
 	}
 
 	public void reentranharDespacharDicProccessoComplementacaoSUBCAP(Resource arquivoDic, String nomeArquivo,
-			Long idProjeto) {
+			Long idProjeto, Pessoa pessoa) {
 
 		logger.info("Iniciando processo para reentranhamento DIC complementado do projeto {} para SUBCAP..", idProjeto);
 
@@ -227,7 +227,7 @@ public class IntegraccaoEdocsService {
 
 		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 
-		reentranharDicProjetoReativo(projetoDto, arquivoDic, nomeArquivo)
+		reentranharDicProjetoReativo(projetoDto, arquivoDic, nomeArquivo, pessoa)
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
 						erro -> logger.info("ERRO: {}", erro));
@@ -309,7 +309,7 @@ public class IntegraccaoEdocsService {
 				.thenReturn("Encerramento do processo no Edocs realizado com sucesso.");
 	}
 
-	public Mono<String> autuarDicProjetoReativo(ProjetoDto projetoDto, Resource arquivo, String nomeArquivo) {
+	public Mono<String> autuarDicProjetoReativo(ProjetoDto projetoDto, Resource arquivo, String nomeArquivo, Pessoa pessoa) {
 
 		final long tamanho;
 		try {
@@ -342,7 +342,7 @@ public class IntegraccaoEdocsService {
 				.flatMap(this::consultarSituacaoEventoAtuacao)
 				.flatMap(this::despacharProcessoDIC)
 				.flatMap(this::consultarSituacaoDespachar)
-				.flatMap(this::atualizarProjeto)
+				.flatMap(ctx -> this.atualizarProjeto(ctx, pessoa))
 				.doOnSuccess(retorno -> {
 					this.atualizarEtapa(chaveContexto, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true);
 					projetoService.enviarEmailGerenciaSubcapDicAutuado(projetoDto.id());
@@ -384,7 +384,7 @@ public class IntegraccaoEdocsService {
 	}
 
 	public Mono<String> reentranharDicProjetoReativo(ProjetoDto projetoDto, Resource arquivoCorrigido,
-			String nomeArquivo) {
+			String nomeArquivo, Pessoa pessoa) {
 
 		final long tamanho;
 		try {
@@ -444,7 +444,7 @@ public class IntegraccaoEdocsService {
 
 				.flatMap(this::despacharProcessoDIC)
 				.flatMap(this::consultarSituacaoDespachar)
-				.flatMap(this::atualizarProjeto)
+				.flatMap(ctx -> this.atualizarProjeto(ctx, pessoa))
 
 				.doOnSuccess(retorno -> this.finalizaTodasEtapas(chave))
 				.thenReturn("Reentranhamento de DIC complementado concluída com sucesso.");
@@ -504,7 +504,8 @@ public class IntegraccaoEdocsService {
 						if (projetoParecerService.verificarEnvioParecereGEOCProjeto(ctx.getProjeto().id()))
 							projetoService.alterarStatusProjeto(
 									ctx.getProjeto().id(),
-									StatusProjetoEnum.ELEGIVEL.getValue());
+									StatusProjetoEnum.ELEGIVEL.getValue(),
+                                                                        this.pessoaSrv.buscarPorSub(subUsuarioLogado));
 
 						return "Atualização do parecer concluída com sucesso.";
 
@@ -514,7 +515,7 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	private Mono<String> atualizarProjeto(FluxoContextoIntegracaoDto ctx) {
+	private Mono<String> atualizarProjeto(FluxoContextoIntegracaoDto ctx, Pessoa pessoa) {
 
 		String idProjetoEDocs = (ctx.getIdProcesso() != null && !ctx.getIdProcesso().isEmpty()) ? ctx.getIdProcesso()
 				: ctx.getProjeto().idProcessoEdocs();
@@ -532,7 +533,8 @@ public class IntegraccaoEdocsService {
 
 					if (retornoDadosProcesso.protocolo() != null && !retornoDadosProcesso.protocolo().isEmpty())
 						projetoService.atualizarProtocoloProcessoEdocsProjeto(ctx.getProjeto().id(),
-								retornoDadosProcesso.protocolo());
+								retornoDadosProcesso.protocolo(),
+                                                                pessoa);
 
 					if (ctx.getIdDocumentos() != null && !ctx.getIdDocumentos()[0].isEmpty())
 						projetoService.atualizarIdArquivoCapturadoProcessoEdocsProjeto(ctx.getProjeto().id(),

@@ -1,7 +1,6 @@
 package br.gov.es.siscap.dto;
 
 import br.gov.es.siscap.models.*;
-
 import java.util.List;
 
 public record ProjetoDto(
@@ -53,7 +52,7 @@ public record ProjetoDto(
 		this(projeto.getId(),
 				projeto.getSigla(),
 				projeto.getTitulo(),
-				projeto.getStatus(),
+				projeto.getStatusAtual().getStatus(),
 				valor,
 				projeto.getObjetivo(),
 				projeto.getObjetivoEspecifico(),
@@ -89,7 +88,7 @@ public record ProjetoDto(
 		this(projeto.getId(),
 				projeto.getSigla(),
 				projeto.getTitulo(),
-				projeto.getStatus(),
+				projeto.getStatusAtual().getStatus(),
 				null,
 				projeto.getObjetivo(),
 				projeto.getObjetivoEspecifico(),

@@ -1,7 +1,6 @@
 package br.gov.es.siscap.dto.listagem;
 
 import br.gov.es.siscap.models.Projeto;
-
 import java.math.BigDecimal;
 
 public record ProjetoListaDto(
@@ -20,7 +19,7 @@ public record ProjetoListaDto(
 			projeto.getId(),
 			projeto.getSigla(),
 			projeto.getTitulo(),
-			projeto.getStatus(),
+			projeto.getStatusAtual().getStatus(),
 			valorEstimado,
 			projeto.isRascunho(),
 			projeto.getProtocoloEdocs(),

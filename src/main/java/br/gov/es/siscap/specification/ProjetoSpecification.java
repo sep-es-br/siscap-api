@@ -3,10 +3,9 @@ package br.gov.es.siscap.specification;
 import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.utils.FormatadorData;
+import java.time.LocalDateTime;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
-
-import java.time.LocalDateTime;
 
 @NoArgsConstructor
 public class ProjetoSpecification {
@@ -24,7 +23,7 @@ public class ProjetoSpecification {
 	}
 
 	public static Specification<Projeto> filtroStatus(String status) {
-		return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("status"), status);
+		return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("statusAtual").get("status"), status);
 	}
 
 	public static Specification<Projeto> filtroData(String dataPeriodoInicio, String dataPeriodoFim) {
@@ -37,7 +36,7 @@ public class ProjetoSpecification {
 	}
 
 	public static Specification<Projeto> filtroStatusParecerSEP() {
-		return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("status"), StatusProjetoEnum.PARECER_SEP.getValue());
+		return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("statusAtual").get("status"), StatusProjetoEnum.PARECER_SEP.getValue());
 	}
 
 }

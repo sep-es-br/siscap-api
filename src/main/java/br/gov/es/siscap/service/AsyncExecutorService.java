@@ -1,18 +1,17 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.ProgramaDto;
+import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
+import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.enums.edocs.ContextoIntegracaoEdocsEnum;
+import br.gov.es.siscap.models.Pessoa;
 import java.util.List;
-
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import br.gov.es.siscap.dto.ProgramaDto;
-import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
-import br.gov.es.siscap.dto.ProjetoDto;
-import br.gov.es.siscap.enums.edocs.ContextoIntegracaoEdocsEnum;
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -25,23 +24,23 @@ public class AsyncExecutorService {
     private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
     @Async
-    public void executarAutuacaoEdocs(Long idProjeto) {
+    public void executarAutuacaoEdocs(Long idProjeto, Pessoa pessoa) {
         Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue());
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
-        integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP(resource, nomeArquivo, idProjeto.longValue());
+        integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP(resource, nomeArquivo, idProjeto.longValue(), pessoa);
     }
 
     @Async
-    public void executarReentranhamentoDicEdocs(Long idProjeto) {
+    public void executarReentranhamentoDicEdocs(Long idProjeto, Pessoa pessoa) {
         Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue());
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
         integracaoEdocsService.reentranharDespacharDicProccessoComplementacaoSUBCAP(resource, nomeArquivo,
-                idProjeto.longValue());
+                idProjeto.longValue(), pessoa);
     }
 
     @Async
-    public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos) {
-        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto.longValue(), complementos);
+    public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos, Pessoa pessoa) {
+        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto.longValue(), complementos, pessoa);
     }
 
     @Async

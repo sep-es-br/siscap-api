@@ -1,9 +1,9 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
+import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
-import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.enums.LotacaoUsuarioEnum;
 import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.TipoPapelEnum;
@@ -17,6 +17,10 @@ import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
+import br.gov.es.siscap.models.ProjetoAcao;
+import br.gov.es.siscap.models.ProjetoCamposComplementacao;
+import br.gov.es.siscap.models.ProjetoIndicador;
+import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.models.TipoMotivoArquivamento;
 import br.gov.es.siscap.repository.ProjetoRepository;
@@ -25,6 +29,15 @@ import br.gov.es.siscap.utils.FormatadorCountAno;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,20 +48,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import br.gov.es.siscap.models.ProjetoAcao;
-import br.gov.es.siscap.models.ProjetoCamposComplementacao;
-import br.gov.es.siscap.models.ProjetoIndicador;
-import br.gov.es.siscap.models.ProjetoParecer;
 
 @Service
 @RequiredArgsConstructor
@@ -269,7 +268,7 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public ProjetoDto cadastrar(ProjetoForm form, boolean rascunho) {
+	public ProjetoDto cadastrar(ProjetoForm form, boolean rascunho, Pessoa pessoa) {
 
 		logger.info("Cadastrando novo projeto");
 
@@ -279,7 +278,7 @@ public class ProjetoService {
 
 		tempProjeto.setCountAno(this.buscarCountAnoFormatado());
 		tempProjeto.setRascunho(true);
-		tempProjeto.setStatus(StatusProjetoEnum.EM_ELABORACAO.getValue());
+		tempProjeto.alterarStatus(StatusProjetoEnum.EM_ELABORACAO.getValue(), pessoa);
 
 		Projeto projeto = repository.save(tempProjeto);
 
@@ -354,7 +353,7 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho) {
+	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho, Pessoa pessoa) {
 
 		logger.info("Atualizando projeto com id: {}", id);
 
@@ -410,8 +409,8 @@ public class ProjetoService {
 		ProjetoParecerDto projetoParecerDto;
 		ProjetoParecer projetoParecer = null;
 
-		if (projeto.getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())
-				|| projeto.getStatus().equals(StatusProjetoEnum.ELEGIVEL.getValue())) {
+		if (projeto.getStatusAtual().getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())
+				|| projeto.getStatusAtual().getStatus().equals(StatusProjetoEnum.ELEGIVEL.getValue())) {
 
 			projetoParecerDto = form.parecerProjetoUsuario();
 
@@ -432,7 +431,7 @@ public class ProjetoService {
 			if (form.enviarProjetoPedirParecer()) {
 				logger.info("Envio email para solicitar pareceres Estrategico e Orçamentario");
 				if (this.enviarEmailPareceresEstrategicoOrcamentario(id, subResponsavelProponente, nomeProponente)) {
-					this.alterarStatusProjeto(id, StatusProjetoEnum.PARECER_SEP.getValue());
+					this.alterarStatusProjeto(id, StatusProjetoEnum.PARECER_SEP.getValue(), pessoa);
 					entityManager.flush();
 				}
 			}
@@ -469,7 +468,7 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public boolean excluir(Long id, String justificativa) {
+	public boolean excluir(Long id, String justificativa, Pessoa pessoa) {
 
 		logger.info("Excluindo projeto com id: {}", id);
 
@@ -480,18 +479,18 @@ public class ProjetoService {
 		// registrando uma justificativa obrigatoria..
 		if (List.of(StatusProjetoEnum.EM_ANALISE.getValue(), StatusProjetoEnum.COMPLEMETACAO.getValue(),
 				StatusProjetoEnum.PARECER_SEP.getValue())
-				.contains(projeto.getStatus())) {
+				.contains(projeto.getStatusAtual().getStatus())) {
 
 			if (justificativa == null || justificativa.isEmpty())
 				throw new ValidacaoSiscapException(List.of("Justificativa para exclusão do DIC não informada."));
 
 			projeto.setJustificativaExclusaoLogica(justificativa);
 
-			this.alterarStatusProjeto(id, StatusProjetoEnum.ENCERRADO.getValue());
+			this.alterarStatusProjeto(id, StatusProjetoEnum.ENCERRADO.getValue(), pessoa);
 
 			this.exclusaoLogica(projeto);
 
-		} else if (projeto.getStatus().equals(StatusProjetoEnum.EM_ELABORACAO.getValue())) {
+		} else if (projeto.getStatusAtual().getStatus().equals(StatusProjetoEnum.EM_ELABORACAO.getValue())) {
 
 			// faz exclusao fisica do projeto e seus dependentes..
 			this.exclusaoFisica(projeto);
@@ -571,7 +570,7 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public void alterarStatusProjeto(Long id, String novoStatus) {
+	public void alterarStatusProjeto(Long id, String novoStatus, Pessoa pessoa) {
 
 		logger.info("Alterando status do projeto {} para {}.", id, novoStatus);
 
@@ -579,7 +578,7 @@ public class ProjetoService {
 
 		Projeto projeto = this.buscar(id);
 
-		projeto.setStatus(novoStatus);
+		projeto.alterarStatus(novoStatus, pessoa);
 
 		novoStatusEnum.validar(projeto);
 
@@ -605,18 +604,18 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public void atualizarProtocoloProcessoEdocsProjeto(Long id, String protocoloEdcos) {
+	public void atualizarProtocoloProcessoEdocsProjeto(Long id, String protocoloEdcos, Pessoa pessoa) {
 		Projeto projeto = this.buscar(id);
 
 		projeto.setProtocoloEdocs(protocoloEdcos);
 		projeto.setRascunho(false);
-		projeto.setStatus(StatusProjetoEnum.EM_ANALISE.getValue());
+		projeto.alterarStatus(StatusProjetoEnum.EM_ANALISE.getValue(), pessoa);
 
 		repository.save(projeto);
 	}
 
 	@Transactional
-	public void enviarSolicitacaoRevisaoProjeto(Long id, String justificativa) {
+	public void enviarSolicitacaoRevisaoProjeto(Long id, String justificativa, Pessoa pessoa) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -630,13 +629,13 @@ public class ProjetoService {
 
 		Optional<Pessoa> proponenteProjeto = projeto.getProjetoPessoaSet()
 				.stream()
-				.filter(pessoa -> pessoa.isProponente())
+				.filter(_pessoa -> _pessoa.isProponente())
 				.findFirst()
 				.map(proponente -> proponente.getPessoa());
 
 		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
 				.stream()
-				.filter(pessoa -> pessoa.isResponsavelProponente())
+				.filter(_pessoa -> _pessoa.isResponsavelProponente())
 				.findFirst()
 				.map(proponente -> proponente.getPessoa());
 
@@ -658,7 +657,7 @@ public class ProjetoService {
 
 					logger.info("Email enviado com sucesso");
 
-					this.alterarStatusProjeto(id, StatusProjetoEnum.EM_ELABORACAO.getValue());
+					this.alterarStatusProjeto(id, StatusProjetoEnum.EM_ELABORACAO.getValue(), pessoa);
 
 				} else {
 					erros.add("Erro ao enviar solicitação de revisão do projeto id " + id);
@@ -685,7 +684,7 @@ public class ProjetoService {
 
 	@Transactional
 	public boolean enviarAvisoSolicitarComplementacaoProjeto(Long id,
-			List<ProjetoCamposComplementacaoDto> complementos) {
+			List<ProjetoCamposComplementacaoDto> complementos, Pessoa pessoa) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -699,13 +698,13 @@ public class ProjetoService {
 
 		Optional<Pessoa> proponenteProjeto = projeto.getProjetoPessoaSet()
 				.stream()
-				.filter(pessoa -> pessoa.isProponente())
+				.filter(_pessoa -> _pessoa.isProponente())
 				.findFirst()
 				.map(proponente -> proponente.getPessoa());
 
 		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
 				.stream()
-				.filter(pessoa -> pessoa.isResponsavelProponente())
+				.filter(_pessoa -> _pessoa.isResponsavelProponente())
 				.findFirst()
 				.map(proponente -> proponente.getPessoa());
 
@@ -727,7 +726,7 @@ public class ProjetoService {
 					logger.info(
 							"Email aviso solicitação de complementação do projeto enviado com sucesso para o projeto id "
 									+ id);
-					this.alterarStatusProjeto(id, StatusProjetoEnum.COMPLEMETACAO.getValue());
+					this.alterarStatusProjeto(id, StatusProjetoEnum.COMPLEMETACAO.getValue(), pessoa);
 					this.inserirComplementacoesSeremRealizadasDIC(projeto, complementos);
 				} else {
 					erros.add("Erro ao enviar aviso para complementação do projeto id " + id);
@@ -867,7 +866,7 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public void enviarAvisoArquivamentoProjeto(Long id, String justificativa, String codigoMotivoArquivamento) {
+	public void enviarAvisoArquivamentoProjeto(Long id, String justificativa, String codigoMotivoArquivamento, Pessoa pessoa) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -891,13 +890,13 @@ public class ProjetoService {
 
 		Optional<Pessoa> proponenteProjeto = projeto.getProjetoPessoaSet()
 				.stream()
-				.filter(pessoa -> pessoa.isProponente())
+				.filter(_pessoa -> _pessoa.isProponente())
 				.findFirst()
 				.map(proponente -> proponente.getPessoa());
 
 		Optional<Pessoa> responsavelProponenteProjeto = projeto.getProjetoPessoaSet()
 				.stream()
-				.filter(pessoa -> pessoa.isResponsavelProponente())
+				.filter(_pessoa -> _pessoa.isResponsavelProponente())
 				.findFirst()
 				.map(proponente -> proponente.getPessoa());
 
@@ -924,7 +923,7 @@ public class ProjetoService {
 
 				if (confirmacaoEnvioEmail) {
 					logger.info("Email aviso arquivamento projeto enviado com sucesso do projeto id " + id);
-					this.alterarStatusProjeto(id, StatusProjetoEnum.ARQUIVADO.getValue());
+					this.alterarStatusProjeto(id, StatusProjetoEnum.ARQUIVADO.getValue(), pessoa);
 					this.registrarMotivoArquivamentoProjeto(id, codigoMotivoArquivamento, justificativa);
 				} else {
 					erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id);

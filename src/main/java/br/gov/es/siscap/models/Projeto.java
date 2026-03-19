@@ -4,6 +4,11 @@ import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.form.ProjetoForm;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,10 +16,6 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.Set;
 
 @Entity
 @Table(name = "projeto")
@@ -46,9 +47,6 @@ public class Projeto extends ControleHistorico {
 	@SQLJoinTableRestriction("apagado = FALSE")
 	@JoinColumn(name = "id_tipo_status", nullable = false)
 	private TipoStatus tipoStatus;
-
-	@Column(name = "status", nullable = false)
-	private String status;
 
 	@Column(name = "fase", nullable = false)
 	private String fase;
@@ -130,6 +128,14 @@ public class Projeto extends ControleHistorico {
 
 	@OneToMany(mappedBy = "projeto")
 	private Set<ProjetoParecer> projetoParecerSet;
+        
+        @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+        @Setter(AccessLevel.NONE)
+        private Set<StatusProjeto> historicoStatus;
+        
+        @OneToOne(mappedBy = "projeto")
+        @SQLRestriction("fimEm IS NULL")
+        private StatusProjeto statusAtual;
 
 	public Projeto(Long id) {
 		this.setId(id);
@@ -198,5 +204,32 @@ public class Projeto extends ControleHistorico {
 		this.setPecasPlanejamento(form.pecasPlanejamento());
 		this.setProtocoloEdocs(form.protocoloEdocs());
 	}
+        
+        public void alterarStatus(String novoStatus, Pessoa pessoa) {
+            LocalDateTime agora = LocalDateTime.now();
+
+            // Finaliza o status atual, se existir
+            StatusProjeto atual = this.getStatusAtual();
+            if (atual != null) {
+                atual.setFimEm(agora);
+            }
+
+            // Cria novo status
+            StatusProjeto novoStatusProjeto = new StatusProjeto();
+            novoStatusProjeto.setProjeto(this);
+            novoStatusProjeto.setInicioEm(agora);
+            novoStatusProjeto.setStatus(novoStatus);
+            novoStatusProjeto.setPessoa(pessoa);
+
+            // Inicializa coleção se estiver nula
+            if (this.getHistoricoStatus() == null) {
+                this.historicoStatus = new HashSet<>();
+            }
+
+            this.getHistoricoStatus().add(novoStatusProjeto);
+
+            // Atualiza statusAtual (apenas no objeto, não no banco)
+            this.setStatusAtual(novoStatusProjeto);
+        }
 
 }
