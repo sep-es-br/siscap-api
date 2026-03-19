@@ -80,28 +80,23 @@ public class AsyncExecutorService {
     }
 
     @Async
-    public void assinarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, String idDocumentoCapturadoEdocs,
-            String subAssinante) {
+    public void assinarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, String idDocumentoCapturadoEdocs, String subAssinante ) {
 
-        var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
+        var chave = new ChaveEtapasIntegracao( idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA );
 
         integracaoEdocsService.assinarArquivoPendenteReativo( idPrograma, idDocumentoCapturadoEdocs, chave )
                 .doOnSuccess( idDocumentoAutuado -> {
-
                     if (idDocumentoAutuado != null) {
                         programaProcessamentoService
                                 .atualizarIdDocumentoEdocsNoPrograma(
                                         idPrograma,
                                         idDocumentoAutuado);
                     }
-
                     programaProcessamentoService
                             .marcarProgramaAssinado(
                                     idPrograma,
                                     subAssinante);
-
                     integracaoEdocsService.finalizaTodasEtapas(chave);
-
                 })
                 .doOnError(e -> 
                     logger.error("Erro ao integrar com E-Docs para assinar arquivo em fase assinatura. Programa {}",
