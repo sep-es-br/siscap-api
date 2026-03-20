@@ -5,9 +5,11 @@
 package br.gov.es.siscap.dto;
 
 
+import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.StatusProjeto;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  *
@@ -28,7 +30,7 @@ public record StatusProjetoDto(
             model.getStatus(), 
             model.getInicioEm(),
             model.getFimEm(),
-            model.getPessoa().getNome()
+            Optional.ofNullable(model.getPessoa()).map(Pessoa::getNome).orElse(null)
         );
     }
     
