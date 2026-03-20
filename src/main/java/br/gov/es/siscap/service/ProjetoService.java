@@ -758,7 +758,7 @@ public class ProjetoService {
 
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
-		List<String> emailsInteressadosList = new ArrayList<String>();
+		List<String> emailsInteressadosList = new ArrayList<>();
 		emailsInteressadosList.add(DESTINO_GERENCIA_SUBCAP);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
@@ -775,20 +775,15 @@ public class ProjetoService {
 				erros.add("Erro ao enviar aviso de parecer gerencia SUBCAP ");
 			}
 
-		} catch (UnsupportedEncodingException e) {
+		} catch (UnsupportedEncodingException | MessagingException e) {
 			logger.error(e.getMessage());
 			erros.add(e.getMessage());
-		} catch (MessagingException e) {
-			logger.error(e.getMessage());
-			erros.add(e.getMessage());
-		}
+		} 
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
 		}
-
-		return;
 
 	}
 
@@ -813,20 +808,15 @@ public class ProjetoService {
 				erros.add("Erro ao enviar aviso DIC autuado para SUBCAP ");
 			}
 
-		} catch (UnsupportedEncodingException e) {
+		} catch (UnsupportedEncodingException | MessagingException e) {
 			logger.error(e.getMessage());
 			erros.add(e.getMessage());
-		} catch (MessagingException e) {
-			logger.error(e.getMessage());
-			erros.add(e.getMessage());
-		}
+		} 
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
 		}
-
-		return;
 
 	}
 
@@ -851,20 +841,15 @@ public class ProjetoService {
 				erros.add("Erro ao enviar aviso de parecer gerencia SUBCAP ");
 			}
 
-		} catch (UnsupportedEncodingException e) {
+		} catch (UnsupportedEncodingException | MessagingException e) {
 			logger.error(e.getMessage());
 			erros.add(e.getMessage());
-		} catch (MessagingException e) {
-			logger.error(e.getMessage());
-			erros.add(e.getMessage());
-		}
+		} 
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
 		}
-
-		return;
 
 	}
 
@@ -932,11 +917,9 @@ public class ProjetoService {
 					erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id);
 				}
 
-			} catch (UnsupportedEncodingException e) {
+			} catch (UnsupportedEncodingException | MessagingException e) {
 				logger.error(e.getMessage());
-			} catch (MessagingException e) {
-				logger.error(e.getMessage());
-			}
+			} 
 
 		} else {
 			erros.add("Não foi possível fazer o envio pois o proponente não foi encontrado - projeto id " + id);
@@ -946,8 +929,6 @@ public class ProjetoService {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
 		}
-
-		return;
 
 	}
 
