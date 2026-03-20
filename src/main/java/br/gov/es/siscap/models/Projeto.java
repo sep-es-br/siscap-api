@@ -228,6 +228,7 @@ public class Projeto extends ControleHistorico {
         
         @Transient
         public StatusProjeto getStatusAtual() {
+            if(historicoStatus == null) return null;
             return historicoStatus.stream()
                 .filter(s -> s.getFimEm() == null)
                 .findFirst()
