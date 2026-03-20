@@ -30,11 +30,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -52,6 +57,7 @@ public class ProgramaService {
 	private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
 	private final ProgramaOrganizacaoService programaOrganizacaoService;
 	private final ProgramaProcessamentoService programaProcessamentoService;
+	private final AutenticacaoService autenticacaoService;
 
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
@@ -274,15 +280,14 @@ public class ProgramaService {
 		programaProcessamentoService.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, subAssinantesEdocsPrograma);
 	}
 
-	public void assinarProgramaEdocs(Long idPrograma, String subAssinante) {
+	public void assinarProgramaEdocs(Long idPrograma) {
 		Programa programa = this.buscar(idPrograma);
-		this.validarAssinatura(programa, subAssinante);
+		String subAssinante = this.validarAssinatura( programa );
 		String idDocumentoCapturadoEdocs = programa.getIdDocumentoCapturadoEdocs();
-		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor(idPrograma, idDocumentoCapturadoEdocs,
-				subAssinante);
+		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor( idPrograma, idDocumentoCapturadoEdocs , subAssinante );
 	}
 
-	private void validarAssinatura(Programa programa, String subAssinante) {
+	private String validarAssinatura(Programa programa) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -295,22 +300,26 @@ public class ProgramaService {
 			throw new ValidacaoSiscapException(erros);
 		}
 
+		String subJwt = autenticacaoService.getUsuarioSub();
+
 		if (!assinantesDevemAssinarPrograma.stream()
-				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante.trim().toLowerCase()))) {
+				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subJwt.trim().toLowerCase()))) {
 			erros.add(
-					"Assinante informado, sub " + subAssinante + ", não faz parte da lista de assinantes do programa.");
+					"Assinante informado, sub " + subJwt + ", não faz parte da lista de assinantes do programa.");
 		}
 
 		if (assinantesDevemAssinarPrograma.stream()
-				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subAssinante)
+				.anyMatch(assinante -> assinante.getPessoa().getSub().equals(subJwt)
 						&& assinante.getDataAssinatura() != null)) {
-			erros.add("Documento já foi assinado pelo sub " + subAssinante + ".");
+			erros.add("Documento já foi assinado pelo sub " + subJwt + ".");
 		}
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
 			throw new ValidacaoSiscapException(erros);
 		}
+
+		return subJwt;
 
 	}
 

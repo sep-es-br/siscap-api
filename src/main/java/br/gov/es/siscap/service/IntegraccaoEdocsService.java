@@ -18,6 +18,18 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoParecer;
+import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
+
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -29,16 +41,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-import reactor.util.retry.Retry;
 
 @Service
 @RequiredArgsConstructor
@@ -1306,14 +1308,14 @@ public class IntegraccaoEdocsService {
 
 	public List<EtapasIntegracaoDto> consultarFasesIntegracaoEdocsProjeto(Long idProjeto) {
 		logger.info("Consultando fases integracao projeto id {}.", idProjeto);
-		
+
 		var chave = new ChaveEtapasIntegracao(idProjeto, ContextoIntegracaoEdocsEnum.DIC);
 
 		var etapas = etapasPorChave.getOrDefault(chave, Collections.emptyList());
 
 		if (!etapas.isEmpty()) {
 			boolean finalizado = etapas.stream()
-					.allMatch( etapa -> etapa.isFinalizada() );
+					.allMatch(etapa -> etapa.isFinalizada());
 			if (finalizado) {
 				etapasPorChave.remove(chave); // limpa cache
 			}
@@ -1495,9 +1497,11 @@ public class IntegraccaoEdocsService {
 	public Mono<String> enviarArquivoAssinaturasPendentes(Long idPrograma, List<String> assinantes,
 			String nomeArquivo) {
 
-		logger.info("Iniciando processo para criar arquivo no E-Docs com pendencia de suas assinaturas.. {}", idPrograma.intValue());
+		logger.info("Iniciando processo para criar arquivo no E-Docs com pendencia de suas assinaturas.. {}",
+				idPrograma.intValue());
 
-		Resource resourceArquivo = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma.intValue(), ExibirMarcaDaguaProgramaEnum.NAOEXIBIR );
+		Resource resourceArquivo = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma.intValue(),
+				ExibirMarcaDaguaProgramaEnum.NAOEXIBIR);
 
 		String subJwt = autenticacaoService.getUsuarioSub();
 		String tokenArmazenado = autorizacaoACService.getEdocsToken(subJwt);
@@ -1565,7 +1569,7 @@ public class IntegraccaoEdocsService {
 		return FeignReativo
 				.fromFeign(() -> enviarDocumentoFaseAssinaturaEdocs(ctx.getToken(),
 						idPapelCapturador,
-						ctx.getAssinantes(), 
+						ctx.getAssinantes(),
 						nomeArquivo,
 						ctx.getDtoUploadArquivoResponse().identificadorTemporarioArquivoNaNuvem()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
@@ -1616,8 +1620,6 @@ public class IntegraccaoEdocsService {
 	public Mono<String> assinarArquivoPendenteReativo(Long idPrograma,
 			String idDocumentoAssinarFaseAssinatura, ChaveEtapasIntegracao chave) {
 
-		// var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
-
 		this.adicionarEtapa(chave,
 				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.ASSINADO, true, false,
 						false));
@@ -1632,15 +1634,14 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> {
 					var situacao = ctx.getSituacaoEventoAto();
 					if (situacao == null || situacao.idDocumento() == null) {
-						return Mono.empty(); // ausência válida
+						return Mono.empty();
 					}
 					return Mono.just(situacao.idDocumento());
 				})
-				//.doOnSuccess( retorno -> finalizaTodasEtapas(chave) )
-				.doOnError( e -> {
-					logger.error("Erro ao assinar arquivo do programa id {}", idPrograma, e );
-					
-				} ) ;
+				.doOnError(e -> {
+					logger.error("Erro ao assinar arquivo do programa id {}", idPrograma, e);
+
+				});
 
 	}
 
@@ -1855,7 +1856,7 @@ public class IntegraccaoEdocsService {
 
 		if (!etapas.isEmpty()) {
 			boolean finalizado = etapas.stream()
-					.allMatch( etapa -> etapa.isFinalizada() );
+					.allMatch(etapa -> etapa.isFinalizada());
 			if (finalizado) {
 				etapasPorChave.remove(chave); // limpa cache
 			}

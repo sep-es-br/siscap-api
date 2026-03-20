@@ -93,9 +93,8 @@ public class ProgramaController {
 	}
 
 	@PostMapping("/programa/{idPrograma}/edocs/assinar")
-	public ResponseEntity<Resource> assinarProgramaEdocs(@PathVariable Long idPrograma,
-			@Valid @RequestBody AssinanteRequestDto request) {
-		service.assinarProgramaEdocs(idPrograma, request.subAssinante());
+	public ResponseEntity<Resource> assinarProgramaEdocs( @PathVariable Long idPrograma ) {
+		service.assinarProgramaEdocs( idPrograma );
 		return ResponseEntity.accepted().build();
 	}
 
