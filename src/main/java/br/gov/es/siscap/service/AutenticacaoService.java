@@ -207,23 +207,9 @@ public class AutenticacaoService {
 
 	private Set<String> validarPapeisUsuario(ACUserInfoDto userInfo) {
 		Set<String> usuarioPapeis = userInfo.role();
-
-		if (usuarioPapeis != null && !usuarioPapeis.isEmpty()) return usuarioPapeis;
-
-		Set<String> usuarioPapeisNovo = new HashSet<>();
-
-		// usuarioPapeisNovo.add("PROPONENTE");
-		usuarioPapeisNovo.add("SUBCAP");
-
-		Set<String> papeisLotacaoGuidSet = listarPapeisLotacaoGuid(userInfo.subNovo()).stream().map(m ->(String) m.get("lotacaoGuid")).collect(Collectors.toSet());
-//
-		// if (papeisLotacaoGuidSet.contains(LOTACAOGUID_SUBCAP)) {
-		// 	usuarioPapeisNovo.add("SUBCAP");
-		// } else {
-		// 	usuarioPapeisNovo.add("PROPONENTE");
-		// }
-
-		return usuarioPapeisNovo;
+		if (usuarioPapeis != null && !usuarioPapeis.isEmpty())
+			return usuarioPapeis;
+		return new HashSet<>();
 	}
 
 	private byte[] construirImagemPerfilUsuario(String nomeImagem) {
