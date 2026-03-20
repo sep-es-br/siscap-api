@@ -44,7 +44,7 @@ public enum StatusProjetoEnum {
 		@Override
 		public void validar(Projeto projeto) {}
 	},
-	ELEGIVEL("Elegivel") {
+	ELEGIVEL("Elegível") {
 		@Override
 		public void validar(Projeto projeto) {}
 	};
