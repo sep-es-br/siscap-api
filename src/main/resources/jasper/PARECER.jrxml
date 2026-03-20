@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
@@ -143,7 +143,7 @@ group by proj.id,
 			</element>
 		</band>
 		<band height="60">
-			<element kind="textField" uuid="ec1ecf2c-d378-4cfc-b248-f30609e588ec" x="0" y="23" width="535" height="30">
+			<element kind="textField" uuid="ec1ecf2c-d378-4cfc-b248-f30609e588ec" x="0" y="23" width="535" height="30" markup="html">
 				<expression><![CDATA[$F{parecer}]]></expression>
 			</element>
 			<element kind="textField" uuid="f5505670-450d-4e27-b6f6-c7ba33e9fd82" x="1" y="0" width="380" height="20" forecolor="#000000" fontName="SansSerif" fontSize="10.0" bold="true">
