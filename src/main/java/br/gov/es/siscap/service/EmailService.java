@@ -7,6 +7,7 @@ import br.gov.es.siscap.dto.ProspeccaoDetalhesDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.utils.EnvioAnaliseGestorDicEmailBuilder;
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -90,20 +92,23 @@ public class EmailService {
 		String assuntoEmail = ProspeccaoEmailBuilder.montarAssuntoEmail(prospeccaoDetalhesDto);
 		String corpoEmail = ProspeccaoEmailBuilder.montarCorpoEmail(prospeccaoDetalhesDto);
 
-		helper.setFrom(REMETENTE_ENDERECO, REMETENTE_APELIDO);
-		helper.setSubject(assuntoEmail);
-		helper.setText(corpoEmail, true);
+		String remetente = Objects.requireNonNull(REMETENTE_ENDERECO, "Remetente não pode ser null");
+		String apelido = Objects.requireNonNull(REMETENTE_APELIDO, "Remetente apelido não pode ser null");
+
+		helper.setFrom(remetente, apelido);
+		helper.setSubject(assuntoEmail != null ? assuntoEmail : "Assunto nao definido");
+		helper.setText( corpoEmail != null ? corpoEmail : "Corpo do email nao definido" , true);
 
 		this.anexarRelatorios(helper, prospeccaoDetalhesDto.cartaConsultaDetalhes(), nomeArquivo);
 
 		for (String emailInteressado : emailsInteressadosList) {
-			helper.setTo(emailInteressado);
+			helper.setTo( emailInteressado != null ? emailInteressado : "" );
 			try {
 				this.sender.send(helper.getMimeMessage());
 				confirmacaoEnvioEmailList.add(true);
 			} catch (MailException e) {
 				confirmacaoEnvioEmailList.add(false);
-				throw new RuntimeException(e);
+				throw new ValidacaoSiscapException(List.of(e.getMessage()));
 			}
 		}
 

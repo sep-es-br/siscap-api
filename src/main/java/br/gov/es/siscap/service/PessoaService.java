@@ -478,10 +478,6 @@ public class PessoaService {
 
 	public String obterEmailValido(Pessoa pessoa) {
 
-		if (pessoa.getEmail() != null && !pessoa.getEmail().isBlank()) {
-			return pessoa.getEmail();
-		}
-
 		logger.warn("Pessoa sub [{}] sem e-mail no SISCAP. Buscando no Acesso Cidadão.", pessoa.getSub());
 
 		EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(pessoa.getSub());
