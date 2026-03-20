@@ -1,7 +1,10 @@
 package br.gov.es.siscap.dto;
 
-import br.gov.es.siscap.models.*;
+import br.gov.es.siscap.models.Projeto;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 public record ProjetoDto(
 		Long id,
@@ -38,7 +41,9 @@ public record ProjetoDto(
 		ProjetoParecerDto parecerProjetoUsuario,
 		Long lotacaoUsuario,
 		List<ProjetoParecerDto> pareceresProjeto,
-		String nomeProponente ) {
+		String nomeProponente,
+                List<StatusProjetoDto> historico
+        ) {
 
 	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente,
 			List<EquipeDto> equipeElaboracao,
@@ -48,7 +53,7 @@ public record ProjetoDto(
 			Boolean podeSolicitarComplementacao,
 			Boolean podeResponderComplementacao, String idProcessoEdocs, String idDocumentoDicEdocs,
 			List<ProjetoCamposComplementacaoDto> camposComplementar,
-			ProjetoParecerDto parecerProjeto, Long lotacaoUsuario, List<ProjetoParecerDto> pareceresProjeto, String nomeProponente) {
+			ProjetoParecerDto parecerProjeto, Long lotacaoUsuario, List<ProjetoParecerDto> pareceresProjeto, String nomeProponente, List<StatusProjetoDto> historico) {
 		this(projeto.getId(),
 				projeto.getSigla(),
 				projeto.getTitulo(),
@@ -80,7 +85,8 @@ public record ProjetoDto(
 				idProcessoEdocs,
 				idDocumentoDicEdocs,
 				camposComplementar,
-				parecerProjeto, lotacaoUsuario, pareceresProjeto, nomeProponente);
+				parecerProjeto, lotacaoUsuario, pareceresProjeto, nomeProponente,
+                                historico);
 
 	}
 
@@ -117,7 +123,8 @@ public record ProjetoDto(
 				null,
 				null,
 				null, null, 
-				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(), "" );
+				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(), "" ,
+                                Optional.ofNullable(projeto.getHistoricoStatus()).map(hl -> hl.stream().map(StatusProjetoDto::new).toList()).orElse(new ArrayList<>()));
 
 	}
 

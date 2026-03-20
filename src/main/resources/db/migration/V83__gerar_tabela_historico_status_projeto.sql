@@ -15,7 +15,3 @@ CREATE TABLE status_projeto (
         FOREIGN KEY (id_pessoa)
         REFERENCES pessoa (id)
 );
-
-CREATE UNIQUE INDEX uq_status_projeto_ativo
-ON status_projeto (id_projeto)
-WHERE fim_em IS NULL;

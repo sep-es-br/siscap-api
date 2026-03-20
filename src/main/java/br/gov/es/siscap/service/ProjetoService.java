@@ -224,7 +224,8 @@ public class ProjetoService {
 				this.buscarParecer(parecerProjeto),
 				lotacaoUsuario.getValue(),
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
-				this.buscarNomeProponente(projetoPessoaSet));
+				this.buscarNomeProponente(projetoPessoaSet),
+                                projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
 
 		return projetoDtoRetorno;
 
@@ -348,7 +349,8 @@ public class ProjetoService {
 				false,
 				false, null, null, null, null, null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
-				this.buscarNomeProponente(projetoPessoaSet));
+				this.buscarNomeProponente(projetoPessoaSet),
+                                projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
 
 	}
 
@@ -463,7 +465,8 @@ public class ProjetoService {
 				null,
 				this.buscarParecer(projetoParecer), null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
-				this.buscarNomeProponente(projetoPessoaSet));
+				this.buscarNomeProponente(projetoPessoaSet),
+                                projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
 
 	}
 
