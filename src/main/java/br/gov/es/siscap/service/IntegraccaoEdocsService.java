@@ -1045,7 +1045,7 @@ public class IntegraccaoEdocsService {
 						EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
 						true, false))
 				.doOnSuccess(urlDto -> {
-					logger.info("URL gerada: {}", urlDto);
+					//logger.info("URL gerada: {}", urlDto);
 					ctx.setDtoUploadArquivoResponse(urlDto);
 				})
 				.doOnError(e -> {
