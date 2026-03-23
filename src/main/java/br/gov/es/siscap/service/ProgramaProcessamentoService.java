@@ -48,7 +48,7 @@ public class ProgramaProcessamentoService {
     }
 
     @Transactional
-    private void marcarComoAguardandoAssinaturas(Long idPrograma, List<String> assinantesEdocsPrograma,
+    public void marcarComoAguardandoAssinaturas(Long idPrograma, List<String> assinantesEdocsPrograma,
             String idDocumentoEdocs) {
         logger.info("Registra as pendencias de assinatura no programa;");
         Programa programa = this.buscarPrograma(idPrograma);
@@ -56,6 +56,7 @@ public class ProgramaProcessamentoService {
             programaAssinaturaEdocsService.cadastrar(programa, assinantesEdocsPrograma);
         }
         programa.setIdDocumentoCapturadoEdocs(idDocumentoEdocs);
+        programa.setStatus(StatusProgramaEnum.AGUARDANDOASSINATURAS.getValue());
         repository.save(programa);
     }
 
@@ -148,8 +149,6 @@ public class ProgramaProcessamentoService {
 
         if (todosJaAssinaram)
             programa.setStatus(StatusProgramaEnum.ASSINADO.getValue());
-        else
-            programa.setStatus(StatusProgramaEnum.AGUARDANDOASSINATURAS.getValue());
 
         repository.saveAndFlush(programa);
 

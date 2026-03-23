@@ -16,7 +16,6 @@ import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProgramaRepository;
-import br.gov.es.siscap.utils.EnvioAvisoPedidoAssinaturaProgramaEmailBuilder;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -30,16 +29,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.Claim;
-import com.auth0.jwt.interfaces.DecodedJWT;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -47,8 +41,7 @@ import java.util.Set;
 @Transactional(readOnly = true)
 public class ProgramaService {
 
-	//private final EnvioAvisoPedidoAssinaturaProgramaEmailBuilder envioAvisoPedidoAssinaturaProgramaEmailBuilder;
-    private final ProgramaRepository repository;
+	private final ProgramaRepository repository;
 	private final ProjetoService projetoService;
 	private final ProgramaPessoaService programaPessoaService;
 	private final PessoaService pessoaService;
@@ -69,10 +62,6 @@ public class ProgramaService {
 
 	@Value("${api.programa.assinantes.gestorGOVES}")
 	private String assinanteEdocsProgramaGestorGOVES;
-
-    // ProgramaService(EnvioAvisoPedidoAssinaturaProgramaEmailBuilder envioAvisoPedidoAssinaturaProgramaEmailBuilder) {
-    //     this.envioAvisoPedidoAssinaturaProgramaEmailBuilder = envioAvisoPedidoAssinaturaProgramaEmailBuilder;
-    // }
 
 	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search) {
 		return repository.paginarProgramasPorFiltroPesquisaSimples(search, pageable)
@@ -282,6 +271,8 @@ public class ProgramaService {
 
 	public void assinarProgramaEdocs(Long idPrograma) {
 		Programa programa = this.buscar(idPrograma);
+		if(!programa.getStatus().equals(StatusProgramaEnum.AGUARDANDOASSINATURAS.getValue()))
+			throw new ValidacaoSiscapException(List.of("Progama não pode ser assinado pois está recusado."));
 		String subAssinante = this.validarAssinatura( programa );
 		String idDocumentoCapturadoEdocs = programa.getIdDocumentoCapturadoEdocs();
 		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor( idPrograma, idDocumentoCapturadoEdocs , subAssinante );
@@ -323,27 +314,21 @@ public class ProgramaService {
 
 	}
 
-	private void validarAssinaturasSolicitadas(long idPrograma) {
-
-		List<String> erros = new ArrayList<>();
-
-		Programa programa = this.buscar(idPrograma);
-
-		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
-
-		if (!assinantesDevemAssinarPrograma.isEmpty()) {
-			erros.add(
-					"Assinaturas já solicitadas para o programa id " + programa.getId() + ".");
-			erros.forEach(logger::error);
-			throw new ValidacaoSiscapException(erros);
-		}
-
-		if (!erros.isEmpty()) {
-			erros.forEach(logger::error);
-			throw new ValidacaoSiscapException(erros);
-		}
-
-	}
+	// private void validarAssinaturasSolicitadas(long idPrograma) {
+	// 	List<String> erros = new ArrayList<>();
+	// 	Programa programa = this.buscar(idPrograma);
+	// 	Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
+	// 	if (!assinantesDevemAssinarPrograma.isEmpty()) {
+	// 		erros.add(
+	// 				"Assinaturas já solicitadas para o programa id " + programa.getId() + ".");
+	// 		erros.forEach(logger::error);
+	// 		throw new ValidacaoSiscapException(erros);
+	// 	}
+	// 	if (!erros.isEmpty()) {
+	// 		erros.forEach(logger::error);
+	// 		throw new ValidacaoSiscapException(erros);
+	// 	}
+	// }
 
 	public void autuarProgramaEdocs(Long idPrograma) {
 		Programa programa = this.buscar(idPrograma);
