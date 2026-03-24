@@ -6,6 +6,7 @@ import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.enums.PapelOrgaoProgramaEnum;
 import br.gov.es.siscap.enums.StatusProgramaEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
@@ -251,9 +252,9 @@ public class ProgramaService {
 	}
 
 	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma) {
-		
+
 		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
-		
+
 		List<String> subAssinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
 				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
 
@@ -263,7 +264,7 @@ public class ProgramaService {
 
 		if (assinantesDevemAssinarPrograma.isEmpty()) {
 			asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, subAssinantesEdocsPrograma,
-				nomeArquivo);
+					nomeArquivo);
 		}
 
 		programaProcessamentoService.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, subAssinantesEdocsPrograma);
@@ -271,11 +272,12 @@ public class ProgramaService {
 
 	public void assinarProgramaEdocs(Long idPrograma) {
 		Programa programa = this.buscar(idPrograma);
-		if(!programa.getStatus().equals(StatusProgramaEnum.AGUARDANDOASSINATURAS.getValue()))
+		if (!programa.getStatus().equals(StatusProgramaEnum.AGUARDANDOASSINATURAS.getValue()))
 			throw new ValidacaoSiscapException(List.of("Progama não pode ser assinado pois está recusado."));
-		String subAssinante = this.validarAssinatura( programa );
+		String subAssinante = this.validarAssinatura(programa);
 		String idDocumentoCapturadoEdocs = programa.getIdDocumentoCapturadoEdocs();
-		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor( idPrograma, idDocumentoCapturadoEdocs , subAssinante );
+		asyncExecutorService.assinarArquivoFaseAssinaturaEdocsServidor(idPrograma, idDocumentoCapturadoEdocs,
+				subAssinante);
 	}
 
 	private String validarAssinatura(Programa programa) {
@@ -315,19 +317,20 @@ public class ProgramaService {
 	}
 
 	// private void validarAssinaturasSolicitadas(long idPrograma) {
-	// 	List<String> erros = new ArrayList<>();
-	// 	Programa programa = this.buscar(idPrograma);
-	// 	Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
-	// 	if (!assinantesDevemAssinarPrograma.isEmpty()) {
-	// 		erros.add(
-	// 				"Assinaturas já solicitadas para o programa id " + programa.getId() + ".");
-	// 		erros.forEach(logger::error);
-	// 		throw new ValidacaoSiscapException(erros);
-	// 	}
-	// 	if (!erros.isEmpty()) {
-	// 		erros.forEach(logger::error);
-	// 		throw new ValidacaoSiscapException(erros);
-	// 	}
+	// List<String> erros = new ArrayList<>();
+	// Programa programa = this.buscar(idPrograma);
+	// Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma =
+	// programa.getProgramaAssinantesEdocsSet();
+	// if (!assinantesDevemAssinarPrograma.isEmpty()) {
+	// erros.add(
+	// "Assinaturas já solicitadas para o programa id " + programa.getId() + ".");
+	// erros.forEach(logger::error);
+	// throw new ValidacaoSiscapException(erros);
+	// }
+	// if (!erros.isEmpty()) {
+	// erros.forEach(logger::error);
+	// throw new ValidacaoSiscapException(erros);
+	// }
 	// }
 
 	public void autuarProgramaEdocs(Long idPrograma) {
@@ -375,9 +378,9 @@ public class ProgramaService {
 
 		List<String> erros = new ArrayList<>();
 
-		if(programa.getStatus().equals(StatusProgramaEnum.RECUSADO.getValue()))
+		if (programa.getStatus().equals(StatusProgramaEnum.RECUSADO.getValue()))
 			erros.add(
-				"Programa não pode ser autuado pois está recusado.");
+					"Programa não pode ser autuado pois está recusado.");
 
 		String protocoloEdocs = programa.getProtocoloEdocs();
 		if (protocoloEdocs != null && !protocoloEdocs.isBlank()) {
@@ -419,6 +422,12 @@ public class ProgramaService {
 		if (totalEstimadoDicsPrograma == null || totalEstimadoDicsPrograma.compareTo(form.valorCalculadoTotal()) != 0) {
 			throw new ValidacaoSiscapException(List.of(
 					"Valor total estimado do programa está inválido, ele deve ser o resultado dos valores somados dos DIC´s mais o percentual de custo administrativo se houver."));
+		}
+
+		if (form.orgaosEnvolvidosList().stream()
+				.noneMatch(orgao -> orgao.papel().equals(PapelOrgaoProgramaEnum.GESTOR.getValue()))) {
+			throw new ValidacaoSiscapException(List.of(
+					"Um programa deve conter exatamente um órgão com o papel de Gestor; nenhum ou mais de um não são permitidos."));
 		}
 
 	}
