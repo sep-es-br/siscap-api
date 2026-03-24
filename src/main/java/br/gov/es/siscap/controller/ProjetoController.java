@@ -55,10 +55,11 @@ public class ProjetoController {
 
 	@GetMapping("/opcoes")
 	public List<ProjetoPropostoOpcoesDto> listarOpcoesDropdown(
-		@RequestParam(required = false) boolean elegiveis
+		@RequestParam(required = false) boolean elegiveis,
+                @RequestParam(required = false) String incluir
 	) {
 		if ( elegiveis )
-			return service.listarDicsElegiveisParaPrograma();
+			return service.listarDicsElegiveisParaPrograma(incluir);
 		else
 			return service.listarOpcoesDropdown();
 	}

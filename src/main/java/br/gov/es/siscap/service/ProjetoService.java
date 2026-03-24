@@ -1308,10 +1308,10 @@ public class ProjetoService {
 
 	}
 
-	public List<ProjetoPropostoOpcoesDto> listarDicsElegiveisParaPrograma() {
+	public List<ProjetoPropostoOpcoesDto> listarDicsElegiveisParaPrograma(String incluir) {
 		return repository.findAll(Sort.by(Sort.Direction.ASC, "titulo"))
 				.stream()
-				.filter(Projeto::isElegivelParaVinculo)
+				.filter((projeto) -> (incluir != null && incluir.contains(String.valueOf(projeto.getId()))) || projeto.isElegivelParaVinculo())
 				.map(projeto -> {
 					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
