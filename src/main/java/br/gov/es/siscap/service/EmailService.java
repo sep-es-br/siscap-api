@@ -430,9 +430,8 @@ public class EmailService {
 	}
 
 	public boolean enviarEmailAvisoDicElegivel(List<String> emailsInteressadosList, String descricaoDic,
-			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
-
-		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
+			Long idProjeto) {
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto( idProjeto,
 				null,
 				null,
 				null,
@@ -443,8 +442,8 @@ public class EmailService {
 				null,
 				null, null, null, null, "", "", "", null);
 
-		builderEnvioEmailAvisoParecerGEOCRealizado.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
-		builderEnvioEmailAvisoParecerGEOCRealizado.setSiglaProjeto(descricaoDic);
+		envioDicElegivelEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		envioDicElegivelEmailBuilder.setSiglaProjeto(descricaoDic);
 
 		return emailSender.enviarEmail(builderEnvioEmailAvisoParecerGEOCRealizado,
 				envioEmailDicDetalhesDto.emailsInteressadosList());

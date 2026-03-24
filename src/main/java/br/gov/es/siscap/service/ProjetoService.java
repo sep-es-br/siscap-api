@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
+import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
@@ -34,8 +35,10 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -438,11 +441,9 @@ public class ProjetoService {
 				}
 			}
 
-		} catch (UnsupportedEncodingException e) {
+		} catch (UnsupportedEncodingException | MessagingException e) {
 			logger.error(e.getMessage());
-		} catch (MessagingException e) {
-			logger.error(e.getMessage());
-		}
+		} 
 
 		// atualiza com o que ficou no gravado no banco apos commit
 		entityManager.refresh(projeto);
@@ -791,7 +792,7 @@ public class ProjetoService {
 
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
-		List<String> emailsInteressadosList = new ArrayList<String>();
+		List<String> emailsInteressadosList = new ArrayList<>();
 		emailsInteressadosList.add(DESTINO_SUBCAP);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
@@ -824,7 +825,7 @@ public class ProjetoService {
 
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
-		List<String> emailsInteressadosList = new ArrayList<String>();
+		List<String> emailsInteressadosList = new ArrayList<>();
 		emailsInteressadosList.add(DESTINO_GERENCIA_SUBCAP);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
@@ -1321,5 +1322,45 @@ public class ProjetoService {
 				})
 				.toList();
 	}
+
+	public boolean enviarAvisoEquipeElaboracaoDicElegivel( Long idDic ) {
+
+        List<String> erros = new ArrayList<>();
+
+		Projeto projeto = this.buscar(idDic);
+
+        List<String> emailsInteressadosList = new ArrayList<>();
+
+        projeto.getProjetoPessoaSet().forEach( membroEquipe -> {
+
+            EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(membroEquipe.getPessoa().getSub());
+            String emailMembroEquipe = "";
+
+            if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
+                emailMembroEquipe = emailsSub.corporativo();
+            } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+                emailMembroEquipe = emailsSub.email();
+            }
+
+            emailsInteressadosList.add(emailMembroEquipe);
+
+        });
+
+        String siglaPrograma = projeto.getSigla();
+
+		if (emailService.enviarEmailAvisoDicElegivel(emailsInteressadosList, siglaPrograma, idDic)) {
+		    logger.info("Email aviso DIC Elegível id {}", idDic );
+		} else {
+		    erros.add("Erro ao enviar aviso DIC Elegível id " + idDic);
+		}
+
+        if (!erros.isEmpty()) {
+            erros.forEach(logger::error);
+            throw new ValidacaoSiscapException(erros);
+        }
+
+        return true;
+
+    }
 
 }

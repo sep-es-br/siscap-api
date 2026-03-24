@@ -27,10 +27,8 @@ public class EnvioDicElegivelEmailBuilder extends EmailBuilderBase {
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
 
-		String corpoEmail = "Informamos que o DIC [<strong>%S</strong>] está elegível para vinculação a um programa de captação."
+		return "Informamos que o DIC [<strong>%s</strong>] está elegível para ser vinculado a um programa de captação."
 				.formatted(dto.tituloProjeto());
-
-		return corpoEmail;
 
 	}
 
