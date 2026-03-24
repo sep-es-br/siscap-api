@@ -409,7 +409,7 @@ public class ProgramaService {
 
 		if(form.orgaosEnvolvidosList().stream().noneMatch( orgao -> orgao.papel().equals( PapelOrgaoProgramaEnum.GESTOR.getValue() ) )){
 			throw new ValidacaoSiscapException(List.of(
-				"Um programa deve ter sempre um orgão, e somente um, classificado com o papel Gestor."));
+				"Um programa deve conter exatamente um órgão com o papel de Gestor; nenhum ou mais de um não são permitidos."));
 		}
 
 	}
