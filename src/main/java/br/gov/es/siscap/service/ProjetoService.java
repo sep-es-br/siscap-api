@@ -951,6 +951,7 @@ public class ProjetoService {
 
 	@Transactional
 	public List<Long> vincularProjetosAoPrograma(Programa programa, List<Long> idProjetoPropostoList) {
+		
 		logger.info("Vinculando projetos ao programa com id: {}", programa.getId());
 		logger.info("Ids dos projetos: {}", idProjetoPropostoList);
 
@@ -971,9 +972,13 @@ public class ProjetoService {
 			Projeto projeto = this.buscar(idProjetoProposto);
 			projeto.setPrograma(programa);
 			repository.saveAndFlush(projeto);
+			if( projetoPropostoSet.stream().noneMatch( projetoSet -> projetoSet.getId().equals(projeto.getId()) )){
+				this.enviarAvisoEquipeElaboracaoDicVinculadoPrograma( projeto.getId() );
+			}
 		});
-
+		
 		logger.info("Projetos vinculados ao programa com sucesso");
+
 		return this.buscarIdProjetoPropostoList(programa);
 	}
 
@@ -1352,6 +1357,47 @@ public class ProjetoService {
 		    logger.info("Email aviso DIC Elegível id {}", idDic );
 		} else {
 		    erros.add("Erro ao enviar aviso DIC Elegível id " + idDic);
+		}
+
+        if (!erros.isEmpty()) {
+            erros.forEach(logger::error);
+            throw new ValidacaoSiscapException(erros);
+        }
+
+        return true;
+
+    }
+
+	public boolean enviarAvisoEquipeElaboracaoDicVinculadoPrograma( Long idDic ) {
+
+        List<String> erros = new ArrayList<>();
+
+		Projeto projeto = this.buscar(idDic);
+
+        List<String> emailsInteressadosList = new ArrayList<>();
+
+        projeto.getProjetoPessoaSet().forEach( membroEquipe -> {
+
+            EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(membroEquipe.getPessoa().getSub());
+            String emailMembroEquipe = "";
+
+            if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
+                emailMembroEquipe = emailsSub.corporativo();
+            } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+                emailMembroEquipe = emailsSub.email();
+            }
+
+            emailsInteressadosList.add(emailMembroEquipe);
+
+        });
+
+        String siglaDic = projeto.getSigla();
+		String siglaPrograma = projeto.getPrograma().getSigla();
+
+		if (emailService.enviarEmailAvisoDicVinculadoPrograma( emailsInteressadosList, siglaDic, idDic, siglaPrograma ) ) {
+		    logger.info("Email aviso DIC id {} vinculado a um programa.", idDic );
+		} else {
+		    erros.add("Erro ao enviar aviso DIC id " + idDic + " de vinculado a um programa.");
 		}
 
         if (!erros.isEmpty()) {

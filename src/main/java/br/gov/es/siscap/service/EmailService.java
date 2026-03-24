@@ -20,6 +20,7 @@ import br.gov.es.siscap.utils.EnvioAvisoProgramaAutuadoEdocsEmailBuilder;
 import br.gov.es.siscap.utils.EnvioAvisoSubcapDicAutuadoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioComplementoDicEmailBuilder;
 import br.gov.es.siscap.utils.EnvioDicElegivelEmailBuilder;
+import br.gov.es.siscap.utils.EnvioDicVinculadoProgramaEmailBuilder;
 import br.gov.es.siscap.utils.EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioRevisaoDicEmailBuilder;
 import br.gov.es.siscap.utils.ProspeccaoEmailBuilder;
@@ -82,6 +83,7 @@ public class EmailService {
 	private final EnvioAvisoPedidoAssinaturaProgramaEmailBuilder envioAvisoPedidoAssinaturaProgramaEmailBuilder;
 	private final EnvioAvisoProgramaAutuadoEdocsEmailBuilder envioAvisoProgramaAutuadoEmailBuilder;
 	private final EnvioDicElegivelEmailBuilder envioDicElegivelEmailBuilder;
+	private final EnvioDicVinculadoProgramaEmailBuilder envioDicVinculadoProgramaEmailBuilder;
 
 	public boolean enviarEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto, List<String> emailsInteressadosList,
 			String nomeArquivo) throws MessagingException, UnsupportedEncodingException {
@@ -431,7 +433,7 @@ public class EmailService {
 
 	public boolean enviarEmailAvisoDicElegivel(List<String> emailsInteressadosList, String descricaoDic,
 			Long idProjeto) {
-		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto( idProjeto,
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				null,
 				null,
 				null,
@@ -446,6 +448,28 @@ public class EmailService {
 		envioDicElegivelEmailBuilder.setSiglaProjeto(descricaoDic);
 
 		return emailSender.enviarEmail(builderEnvioEmailAvisoParecerGEOCRealizado,
+				envioEmailDicDetalhesDto.emailsInteressadosList());
+
+	}
+
+	public boolean enviarEmailAvisoDicVinculadoPrograma( List<String> emailsInteressadosList, String descricaoDic,
+			Long idProjeto, String descricaoPrograma) {
+
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
+				null,
+				null,
+				null,
+				null,
+				emailsInteressadosList,
+				null,
+				null,
+				null,
+				null, null, null, null, "", descricaoPrograma, "", null);
+
+		envioDicVinculadoProgramaEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		envioDicVinculadoProgramaEmailBuilder.setSiglaProjeto(descricaoDic);
+
+		return emailSender.enviarEmail(envioDicVinculadoProgramaEmailBuilder,
 				envioEmailDicDetalhesDto.emailsInteressadosList());
 
 	}

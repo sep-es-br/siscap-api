@@ -1,11 +1,13 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.EquipeDto;
+import br.gov.es.siscap.dto.OrganizacaoDto;
 import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.enums.PapelOrgaoProgramaEnum;
 import br.gov.es.siscap.enums.StatusProgramaEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
@@ -403,6 +405,11 @@ public class ProgramaService {
 		if (totalEstimadoDicsPrograma == null || totalEstimadoDicsPrograma.compareTo(form.valorCalculadoTotal()) != 0) {
 			throw new ValidacaoSiscapException(List.of(
 					"Valor total estimado do programa está inválido, ele deve ser o resultado dos valores somados dos DIC´s mais o percentual de custo administrativo se houver."));
+		}
+
+		if(form.orgaosEnvolvidosList().stream().noneMatch( orgao -> orgao.papel().equals( PapelOrgaoProgramaEnum.GESTOR.getValue() ) )){
+			throw new ValidacaoSiscapException(List.of(
+				"Um programa deve ter sempre um orgão, e somente um, classificado com o papel Gestor."));
 		}
 
 	}
