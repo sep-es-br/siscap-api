@@ -1088,7 +1088,7 @@ public class ProjetoService {
 				.toList();
 	}
 
-	private Set<Projeto> buscarProjetosPorPrograma(Programa programa) {
+	public Set<Projeto> buscarProjetosPorPrograma(Programa programa) {
 		return repository.findAllByPrograma(programa);
 	}
 
