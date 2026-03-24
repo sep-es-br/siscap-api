@@ -1311,7 +1311,7 @@ public class ProjetoService {
 	public List<ProjetoPropostoOpcoesDto> listarDicsElegiveisParaPrograma(String incluir) {
 		return repository.findAll(Sort.by(Sort.Direction.ASC, "titulo"))
 				.stream()
-				.filter((projeto) -> (incluir != null && incluir.contains(String.valueOf(projeto.getId()))) || projeto.isElegivelParaVinculo())
+				.filter((projeto) -> (incluir != null && Arrays.stream(incluir.split(";")).anyMatch(String.valueOf(projeto.getId())::equals)) || projeto.isElegivelParaVinculo())
 				.map(projeto -> {
 					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
