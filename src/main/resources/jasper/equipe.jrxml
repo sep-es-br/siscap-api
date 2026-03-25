@@ -1,12 +1,12 @@
 <!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="equipe" language="java" pageWidth="535" pageHeight="842" columnWidth="535" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="2bfdc504-f570-4eac-a5fc-bf5f558882ae">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="pg_siscap_dev"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Siscap Hml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<parameter name="idProjeto" class="java.lang.Integer"/>
 	<query language="sql"><![CDATA[select distinct
 	pes.nome as nome,
 	pap.tipo as papel,
-	(select org.nome
+	(select org.nome_fantasia || ' - ' || org.nome
 	from organizacao org
 		join pessoa_organizacao po on po.id_organizacao = org.id and po.id_pessoa = pes.id and po.apagado = false and data_fim is null
 		limit 1) as entidade
@@ -30,7 +30,7 @@ where
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="textField" uuid="17ea13b5-8cf9-4680-8d13-96ef690911aa" x="214" y="0" width="214" height="20" forecolor="#0A588F">
+			<element kind="textField" uuid="17ea13b5-8cf9-4680-8d13-96ef690911aa" x="214" y="0" width="214" height="20" forecolor="#0A588F" textAdjust="StretchHeight">
 				<expression><![CDATA[$F{entidade}]]></expression>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
