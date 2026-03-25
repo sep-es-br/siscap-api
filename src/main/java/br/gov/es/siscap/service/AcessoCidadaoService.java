@@ -143,7 +143,7 @@ public class AcessoCidadaoService {
                 emailAssinanteAC = emailsSub.email();
             }
 
-            emailsSubAssinates.put(emailAssinanteAC, sub);
+            emailsSubAssinates.put(sub, emailAssinanteAC);
 
         });
 

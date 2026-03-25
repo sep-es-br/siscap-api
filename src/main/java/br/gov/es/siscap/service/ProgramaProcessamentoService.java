@@ -25,6 +25,7 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
+import br.gov.es.siscap.models.ProgramaPessoa;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
@@ -232,16 +233,14 @@ public class ProgramaProcessamentoService {
         String siglaPrograma = programa.getSigla();
         String protocoloEdocsPrograma = programa.getProtocoloEdocs();
 
-        List<String> subsResponsaveisDicsVinculados = projetoService.buscarProjetosPorPrograma(programa)
+        List<String> subsEquipeCapacitacaoPrograma = programa.getProgramaPessoaSet()
                 .stream()
-                .flatMap(projeto -> projeto.getProjetoPessoaSet().stream())
-                .filter(ProjetoPessoa::isResponsavelProponente)
-                .map(ProjetoPessoa::getPessoa)
+                .map(ProgramaPessoa::getPessoa)
                 .map(Pessoa::getSub)
                 .toList();
 
-        if (!subsResponsaveisDicsVinculados.isEmpty()) {
-            emailsSubAssinates.putAll(acessoCidadaoService.buscarEmailsPorListaSub(subsResponsaveisDicsVinculados));
+        if (!subsEquipeCapacitacaoPrograma.isEmpty()) {
+            emailsSubAssinates.putAll(acessoCidadaoService.buscarEmailsPorListaSub(subsEquipeCapacitacaoPrograma));
         }
 
         List<String> emailsInteressadosList = emailsSubAssinates.values()

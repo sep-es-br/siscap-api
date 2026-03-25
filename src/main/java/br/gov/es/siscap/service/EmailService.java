@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -97,12 +98,12 @@ public class EmailService {
 
 		helper.setFrom(remetente, apelido);
 		helper.setSubject(assuntoEmail != null ? assuntoEmail : "Assunto nao definido");
-		helper.setText( corpoEmail != null ? corpoEmail : "Corpo do email nao definido" , true);
+		helper.setText(corpoEmail != null ? corpoEmail : "Corpo do email nao definido", true);
 
 		this.anexarRelatorios(helper, prospeccaoDetalhesDto.cartaConsultaDetalhes(), nomeArquivo);
 
 		for (String emailInteressado : emailsInteressadosList) {
-			helper.setTo( emailInteressado != null ? emailInteressado : "" );
+			helper.setTo(emailInteressado != null ? emailInteressado : "");
 			try {
 				this.sender.send(helper.getMimeMessage());
 				confirmacaoEnvioEmailList.add(true);
@@ -395,20 +396,25 @@ public class EmailService {
 	public boolean enviarEmailAvisoProgramaAutuado(EnvioEmailDetalhesDto envioEmailProgramaAutuadoDetalhesDto)
 			throws MessagingException, UnsupportedEncodingException {
 
-		envioAvisoProgramaAutuadoEmailBuilder.setSubEmailDestinatarios(envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails());
+		envioAvisoProgramaAutuadoEmailBuilder
+				.setSubEmailDestinatarios(envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails());
 		envioAvisoProgramaAutuadoEmailBuilder.setDtoMontagemEmailDic(envioEmailProgramaAutuadoDetalhesDto);
 
 		boolean todosEnviados = true;
 
 		for (String email : envioEmailProgramaAutuadoDetalhesDto.emailsInteressadosList()) {
 
-			String nomeDestinatario = Optional
-					.ofNullable(envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails().get(email))
-					.filter(sub -> !sub.isBlank())
-					.flatMap(sub -> Optional.ofNullable(pessoaPessoaService.buscarPorSub(sub))
-							.map(Pessoa::getNome)
-							.filter(nome -> !nome.isBlank())
-							.or(() -> buscarNomeNoAcessoCidadaoOptional(sub)))
+			Optional<String> sub = envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails().entrySet()
+					.stream()
+					.filter(entry -> entry.getValue().equals(email))
+					.map(Map.Entry::getKey)
+					.findFirst();
+
+			String nomeDestinatario = sub
+					.flatMap(s -> Optional.ofNullable(pessoaPessoaService.buscarPorSub(s)))
+					.map(Pessoa::getNome)
+					.filter(nome -> !nome.isBlank())
+					.or(() -> sub.flatMap(this::buscarNomeNoAcessoCidadaoOptional))
 					.orElse("");
 
 			envioAvisoProgramaAutuadoEmailBuilder.setEmailEmProcessamento(email);
