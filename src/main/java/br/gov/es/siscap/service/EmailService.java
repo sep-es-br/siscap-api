@@ -332,7 +332,7 @@ public class EmailService {
 	}
 
 	public boolean enviarEmailAvisoParecerGeocSubcapRealizado(List<String> emailsInteressadosList, String descricaoDic,
-			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
+			Long idProjeto) {
 
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				null,
@@ -353,8 +353,7 @@ public class EmailService {
 
 	}
 
-	public boolean enviarEmailSolicitandoAssinaturasPrograma(EnvioEmailDetalhesDto envioEmailDetalhesProgramaDto)
-			throws MessagingException, UnsupportedEncodingException {
+	public boolean enviarEmailSolicitandoAssinaturasPrograma(EnvioEmailDetalhesDto envioEmailDetalhesProgramaDto) {
 
 		envioAvisoPedidoAssinaturaProgramaEmailBuilder
 				.setSubEmailDestinatarios(envioEmailDetalhesProgramaDto.subAssinantesEmails());
