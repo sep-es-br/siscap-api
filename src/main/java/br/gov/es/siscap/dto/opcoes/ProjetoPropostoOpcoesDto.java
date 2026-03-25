@@ -2,7 +2,6 @@ package br.gov.es.siscap.dto.opcoes;
 
 import br.gov.es.siscap.dto.ValorDto;
 import br.gov.es.siscap.models.Projeto;
-
 import java.math.BigDecimal;
 
 public record ProjetoPropostoOpcoesDto(
@@ -11,7 +10,8 @@ public record ProjetoPropostoOpcoesDto(
 			String nome,
 			BigDecimal valorEstimado,
 			Long idPrograma,
-			boolean parecerGEOCEnviado
+			boolean parecerGEOCEnviado,
+                        Long idOrganizacao
 ) {
 
 	public ProjetoPropostoOpcoesDto(Projeto projeto, ValorDto valorDto, boolean parecerGEOCEnviado) {
@@ -20,7 +20,8 @@ public record ProjetoPropostoOpcoesDto(
 					(projeto.getSigla() + " - " + projeto.getTitulo()),
 					valorDto.quantia(),
 					projeto.getPrograma() != null ? projeto.getPrograma().getId() : null,
-					parecerGEOCEnviado
+					parecerGEOCEnviado,
+                                        projeto.getOrganizacao().getId()
 		);
 	}
 }
