@@ -21,7 +21,7 @@ public class EnvioDicElegivelEmailBuilder extends EmailBuilderBase {
 
 	@Override
 	public String montarAssuntoEmail() {
-		return "DIC %s elegível".formatted(this.getSiglaProjeto());
+		return "DIC %s - ELEGÍVEL".formatted(this.getSiglaProjeto());
 	}
 
 	@Override

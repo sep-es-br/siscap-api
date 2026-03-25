@@ -432,14 +432,15 @@ public class EmailService {
 	}
 
 	public boolean enviarEmailAvisoDicElegivel(List<String> emailsInteressadosList, String descricaoDic,
-			Long idProjeto) {
+			Long idProjeto, String tituloDIC ) {
+
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				null,
 				null,
 				null,
 				null,
 				emailsInteressadosList,
-				null,
+				tituloDIC,
 				null,
 				null,
 				null, null, null, null, "", "", "", null);
@@ -447,7 +448,7 @@ public class EmailService {
 		envioDicElegivelEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		envioDicElegivelEmailBuilder.setSiglaProjeto(descricaoDic);
 
-		return emailSender.enviarEmail(builderEnvioEmailAvisoParecerGEOCRealizado,
+		return emailSender.enviarEmail(envioDicElegivelEmailBuilder,
 				envioEmailDicDetalhesDto.emailsInteressadosList());
 
 	}

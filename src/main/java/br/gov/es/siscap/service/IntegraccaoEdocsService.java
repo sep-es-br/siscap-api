@@ -1445,7 +1445,7 @@ public class IntegraccaoEdocsService {
 		this.entranharDocumentosProcesso(projetoDto, pareceresProjeto)
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
-						erro -> logger.info("ERRO: {}", erro));
+						erro -> logger.info("ERRO: {}", erro.getMessage()));
 
 	}
 

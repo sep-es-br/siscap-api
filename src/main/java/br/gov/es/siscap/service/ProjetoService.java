@@ -1351,9 +1351,10 @@ public class ProjetoService {
 
         });
 
-        String siglaPrograma = projeto.getSigla();
+        String siglaDic = projeto.getSigla();
+		String tituloDic = projeto.getTitulo();
 
-		if (emailService.enviarEmailAvisoDicElegivel(emailsInteressadosList, siglaPrograma, idDic)) {
+		if (emailService.enviarEmailAvisoDicElegivel(emailsInteressadosList, siglaDic, idDic, tituloDic)) {
 		    logger.info("Email aviso DIC Elegível id {}", idDic );
 		} else {
 		    erros.add("Erro ao enviar aviso DIC Elegível id " + idDic);
