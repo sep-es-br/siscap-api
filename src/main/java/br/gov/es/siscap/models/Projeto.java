@@ -208,6 +208,7 @@ public class Projeto extends ControleHistorico {
             StatusProjeto atual = this.getStatusAtual();
             if (atual != null) {
                 atual.setFimEm(agora);
+                atual.setPessoa(pessoa);
             }
 
             // Cria novo status
@@ -215,7 +216,6 @@ public class Projeto extends ControleHistorico {
             novoStatusProjeto.setProjeto(this);
             novoStatusProjeto.setInicioEm(agora);
             novoStatusProjeto.setStatus(novoStatus);
-            novoStatusProjeto.setPessoa(pessoa);
 
             // Inicializa coleção se estiver nula
             if (this.getHistoricoStatus() == null) {

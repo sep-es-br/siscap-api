@@ -1,5 +1,18 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
+import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
+import br.gov.es.siscap.dto.ProgramaDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
+import br.gov.es.siscap.enums.StatusProgramaEnum;
+import br.gov.es.siscap.enums.TipoStatusAssinaturaEnum;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
+import br.gov.es.siscap.models.Pessoa;
+import br.gov.es.siscap.models.Programa;
+import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
+import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
+import br.gov.es.siscap.repository.ProgramaRepository;
+import jakarta.mail.MessagingException;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -8,25 +21,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
-import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
-import br.gov.es.siscap.dto.ProgramaDto;
-import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
-import br.gov.es.siscap.enums.StatusProgramaEnum;
-import br.gov.es.siscap.enums.TipoStatusAssinaturaEnum;
-import br.gov.es.siscap.exception.ValidacaoSiscapException;
-import br.gov.es.siscap.models.Programa;
-import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
-import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
-import br.gov.es.siscap.repository.ProgramaRepository;
-import jakarta.mail.MessagingException;
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -42,21 +41,21 @@ public class ProgramaProcessamentoService {
     private final Logger logger = LogManager.getLogger(ProgramaProcessamentoService.class);
 
     public void marcarCriacaoArquivoProgramaEdocs(Long idPrograma, List<String> assinantesEdocsPrograma,
-            String idDocumentoEdocs) {
-        this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma, idDocumentoEdocs);
+            String idDocumentoEdocs, Pessoa pessoa) {
+        this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma, idDocumentoEdocs, pessoa);
         this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, assinantesEdocsPrograma);
     }
 
     @Transactional
     public void marcarComoAguardandoAssinaturas(Long idPrograma, List<String> assinantesEdocsPrograma,
-            String idDocumentoEdocs) {
+            String idDocumentoEdocs, Pessoa pessoa) {
         logger.info("Registra as pendencias de assinatura no programa;");
         Programa programa = this.buscarPrograma(idPrograma);
         if (programaAssinaturaEdocsService.buscarPorPrograma(programa).isEmpty()) {
             programaAssinaturaEdocsService.cadastrar(programa, assinantesEdocsPrograma);
         }
         programa.setIdDocumentoCapturadoEdocs(idDocumentoEdocs);
-        programa.setStatus(StatusProgramaEnum.AGUARDANDOASSINATURAS.getValue());
+        programa.alterarStatus(StatusProgramaEnum.AGUARDANDOASSINATURAS, pessoa);
         repository.save(programa);
     }
 
@@ -148,7 +147,7 @@ public class ProgramaProcessamentoService {
                 assinante -> assinante.getStatusAssinatura().equals(TipoStatusAssinaturaEnum.ASSINADO.getValue()));
 
         if (todosJaAssinaram)
-            programa.setStatus(StatusProgramaEnum.ASSINADO.getValue());
+            programa.alterarStatus(StatusProgramaEnum.ASSINADO, assinatura.getPessoa());
 
         repository.saveAndFlush(programa);
 
@@ -157,11 +156,11 @@ public class ProgramaProcessamentoService {
     }
 
     public void marcarProgramaAutuadoEdocsEAvisoAutuado(ProgramaDto programaDto,
-            String protocoloEdocs, String idProcessoEdocs) {
+            String protocoloEdocs, String idProcessoEdocs, Pessoa pessoa) {
 
         Objects.requireNonNull(programaDto, "programaDto não pode ser nulo");
 
-        marcarProgramaAutuado(programaDto.id(), protocoloEdocs, idProcessoEdocs);
+        marcarProgramaAutuado(programaDto.id(), protocoloEdocs, idProcessoEdocs, pessoa);
 
         try {
 
@@ -196,14 +195,14 @@ public class ProgramaProcessamentoService {
     }
 
     @Transactional
-    public void marcarProgramaAutuado(Long idPrograma, String protocoloEdocs, String idProcessoEdocs) {
+    public void marcarProgramaAutuado(Long idPrograma, String protocoloEdocs, String idProcessoEdocs, Pessoa pessoa) {
 
         Programa programa = repository.findById(idPrograma)
                 .orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));
 
         programa.setIdProcessoEdocs(idProcessoEdocs);
         programa.setProtocoloEdocs(protocoloEdocs);
-        programa.setStatus(StatusProgramaEnum.AUTUADO.getValue());
+        programa.alterarStatus(StatusProgramaEnum.AUTUADO, pessoa);
 
         repository.saveAndFlush(programa);
 
@@ -326,7 +325,7 @@ public class ProgramaProcessamentoService {
         assinatura.setStatusAssinatura(TipoStatusAssinaturaEnum.RECUSOUSEASSINAR.getValue());
         assinatura.setJustificativaRecusa("RECUSA ACIONADA VIA SISCAP");
 
-        programa.setStatus(StatusProgramaEnum.RECUSADO.getValue());
+        programa.alterarStatus(StatusProgramaEnum.RECUSADO, assinatura.getPessoa());
 
         repository.saveAndFlush(programa);
 

@@ -7,15 +7,18 @@ import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.form.ProgramaForm;
+import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.service.IntegraccaoEdocsService;
+import br.gov.es.siscap.service.PessoaService;
 import br.gov.es.siscap.service.ProgramaService;
 import br.gov.es.siscap.service.RelatoriosService;
+import br.gov.es.siscap.service.TokenService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -26,8 +29,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/programas")
 @RequiredArgsConstructor
@@ -36,6 +37,9 @@ public class ProgramaController {
 	private final ProgramaService service;
 	private final RelatoriosService relatoriosService;
 	private final IntegraccaoEdocsService integracaoEdocsService;
+        
+        private final TokenService tokenService;
+        private final PessoaService pessoaSrv;
 
 	@GetMapping
 	public Page<ProgramaListaDto> listarTodos(
@@ -56,8 +60,17 @@ public class ProgramaController {
 
 	@PostMapping
 	public ResponseEntity<ProgramaDto> cadastrar(
-			@Valid @RequestBody ProgramaForm form) {
-		return new ResponseEntity<>(service.cadastrar(form), HttpStatus.CREATED);
+			@Valid @RequestBody ProgramaForm form,
+                        @RequestHeader("Authorization") String auth) {
+            
+		String token = auth.replace("Bearer ", "");
+                
+                
+                String subNovo = this.tokenService.validarToken(token);
+                
+                Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
+                
+		return new ResponseEntity<>(service.cadastrar(form, pessoa), HttpStatus.CREATED);
 	}
 
 	@PutMapping("/{id}")
@@ -75,8 +88,17 @@ public class ProgramaController {
 	}
 
 	@PostMapping("/programa/{idPrograma}/edocs/solicitarassinaturas")
-	public ResponseEntity<Resource> solicitarAssinaturasProgramaEdocs(@PathVariable Long idPrograma) {
-		service.criarArquivoProgramaEdocsAssinaturasPendentes(idPrograma);
+	public ResponseEntity<Resource> solicitarAssinaturasProgramaEdocs(@PathVariable Long idPrograma,
+                        @RequestHeader("Authorization") String auth) {
+            
+		String token = auth.replace("Bearer ", "");
+                
+                
+                String subNovo = this.tokenService.validarToken(token);
+                
+                Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
+                
+		service.criarArquivoProgramaEdocsAssinaturasPendentes(idPrograma, pessoa);
 		return ResponseEntity.accepted().build();
 	}
 
@@ -99,8 +121,17 @@ public class ProgramaController {
 	}
 
 	@PostMapping("/programa/{idPrograma}/edocs/autuar")
-	public ResponseEntity<Void> autuarProgramaEdocs(@PathVariable Long idPrograma) {
-		service.autuarProgramaEdocs(idPrograma);
+	public ResponseEntity<Void> autuarProgramaEdocs(@PathVariable Long idPrograma,
+                        @RequestHeader("Authorization") String auth) {
+            
+		String token = auth.replace("Bearer ", "");
+                
+                
+                String subNovo = this.tokenService.validarToken(token);
+                
+                Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
+                
+		service.autuarProgramaEdocs(idPrograma, pessoa);
 		return ResponseEntity.accepted().build();
 	}
 

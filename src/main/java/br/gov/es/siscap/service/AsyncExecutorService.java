@@ -60,7 +60,7 @@ public class AsyncExecutorService {
 
     @Async
     public void criarArquivoProgramaFaseAssinaturaEdocsServidor(Long idPrograma, List<String> subAssinantes,
-            String nomeArquivo) {
+            String nomeArquivo, Pessoa pessoa) {
 
         integracaoEdocsService.enviarArquivoAssinaturasPendentes(idPrograma, subAssinantes, nomeArquivo)
                 .doOnSuccess(idDocumento -> 
@@ -68,7 +68,8 @@ public class AsyncExecutorService {
                             .marcarCriacaoArquivoProgramaEdocs(
                                     idPrograma,
                                     subAssinantes,
-                                    idDocumento)
+                                    idDocumento,
+                                    pessoa)
                 )
                 .doOnError(e -> 
                     logger.error("Erro ao integrar com E-Docs para criar arquivo em fase assinatura. Programa {}",
@@ -104,7 +105,7 @@ public class AsyncExecutorService {
     }
 
     @Async
-    public void autuarProgramaEdocs(ProgramaDto programaDto) {
+    public void autuarProgramaEdocs(ProgramaDto programaDto, Pessoa pessoa) {
         var chave = new ChaveEtapasIntegracao(programaDto.id(), ContextoIntegracaoEdocsEnum.PROGRAMA);
         integracaoEdocsService.autuarProgramaProjetoReativo(
                 programaDto.id(),
@@ -112,7 +113,7 @@ public class AsyncExecutorService {
                 .doOnSuccess(ctx -> {
                     programaProcessamentoService
                             .marcarProgramaAutuadoEdocsEAvisoAutuado( programaDto,
-                                    ctx.getProtocolo(), ctx.getIdProcesso() );
+                                    ctx.getProtocolo(), ctx.getIdProcesso() , pessoa);
                     integracaoEdocsService.finalizaTodasEtapas(chave);
                 })
                 .subscribe();

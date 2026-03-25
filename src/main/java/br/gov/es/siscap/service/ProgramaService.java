@@ -12,15 +12,22 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.LocalidadeQuantia;
 import br.gov.es.siscap.models.Organizacao;
+import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
+import br.gov.es.siscap.models.ProgramaStatus;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,13 +36,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -94,7 +95,7 @@ public class ProgramaService {
 	}
 
 	@Transactional
-	public ProgramaDto cadastrar(ProgramaForm form) {
+	public ProgramaDto cadastrar(ProgramaForm form, Pessoa pessoa) {
 
 		logger.info("Cadastrando novo programa");
 		logger.info("Dados: {}", form);
@@ -103,7 +104,7 @@ public class ProgramaService {
 
 		Programa tempPrograma = new Programa(form);
 
-		tempPrograma.setStatus(StatusProgramaEnum.EDICAO.getValue());
+		this.alterarStatus(tempPrograma, StatusProgramaEnum.EDICAO, pessoa);
 
 		tempPrograma.setCountAno(buscarCountAnoFormatado());
 
@@ -251,7 +252,7 @@ public class ProgramaService {
 				programa.getCountAno();
 	}
 
-	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma) {
+	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma, Pessoa pessoa) {
 
 		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
 
@@ -264,7 +265,7 @@ public class ProgramaService {
 
 		if (assinantesDevemAssinarPrograma.isEmpty()) {
 			asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, subAssinantesEdocsPrograma,
-					nomeArquivo);
+					nomeArquivo, pessoa);
 		}
 
 		programaProcessamentoService.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, subAssinantesEdocsPrograma);
@@ -272,7 +273,7 @@ public class ProgramaService {
 
 	public void assinarProgramaEdocs(Long idPrograma) {
 		Programa programa = this.buscar(idPrograma);
-		if (!programa.getStatus().equals(StatusProgramaEnum.AGUARDANDOASSINATURAS.getValue()))
+		if (!programa.getStatusAtual().getStatus().equals(StatusProgramaEnum.AGUARDANDOASSINATURAS))
 			throw new ValidacaoSiscapException(List.of("Progama não pode ser assinado pois está recusado."));
 		String subAssinante = this.validarAssinatura(programa);
 		String idDocumentoCapturadoEdocs = programa.getIdDocumentoCapturadoEdocs();
@@ -333,11 +334,11 @@ public class ProgramaService {
 	// }
 	// }
 
-	public void autuarProgramaEdocs(Long idPrograma) {
+	public void autuarProgramaEdocs(Long idPrograma, Pessoa pessoa) {
 		Programa programa = this.buscar(idPrograma);
 		this.validarSeProgramaPodeSerAutuado(programa);
 		ProgramaDto programaDto = this.buscarPorId(idPrograma);
-		asyncExecutorService.autuarProgramaEdocs(programaDto);
+		asyncExecutorService.autuarProgramaEdocs(programaDto, pessoa);
 	}
 
 	@Transactional
@@ -354,6 +355,54 @@ public class ProgramaService {
 		return Mono.empty();
 
 	}
+        
+        
+    @Transactional
+    public void alterarStatus(Programa programa, StatusProgramaEnum novoStatus, Pessoa pessoa) {
+                
+        if(programa.getStatusAtual() != null)
+            this.efetivarStatusAtual(programa, pessoa);
+
+        ProgramaStatus novo = new ProgramaStatus();
+        novo.setPrograma(programa);
+        novo.setStatus(novoStatus);
+        novo.setInicioEm(LocalDateTime.now());
+
+        programa.getHistoricoStatus().add(novo);
+    }
+        
+    @Transactional
+    public void alterarStatus(Long programaId, StatusProgramaEnum novoStatus, Pessoa pessoa) {
+        Programa programa = repository.findByIdWithHistorico(programaId)
+                                .orElseThrow();
+        
+        alterarStatus(programa, novoStatus, pessoa);
+    }
+    
+    
+    @Transactional
+    public void efetivarStatusAtual(Programa programa, Pessoa pessoa) {
+        
+        ProgramaStatus atual = programa.getStatusAtual();
+
+        if (atual == null) {
+            throw new IllegalStateException("Nenhum status atual");
+        }
+
+        if (atual.getPessoa() != null) {
+            throw new IllegalStateException("Status já efetivado");
+        }
+
+        atual.setPessoa(pessoa);
+    }
+    
+    @Transactional
+    public void efetivarStatusAtual(Long programaId, Pessoa pessoa) {
+        Programa programa = repository.findByIdWithHistorico(programaId)
+                                .orElseThrow();
+        
+        this.efetivarStatusAtual(programa, pessoa);
+    }
 
 	private void validarSeTodasAssinaturasForamRealizadas(Programa programa) {
 
@@ -378,7 +427,7 @@ public class ProgramaService {
 
 		List<String> erros = new ArrayList<>();
 
-		if (programa.getStatus().equals(StatusProgramaEnum.RECUSADO.getValue()))
+		if (programa.getStatusAtual().getStatus().equals(StatusProgramaEnum.RECUSADO))
 			erros.add(
 					"Programa não pode ser autuado pois está recusado.");
 

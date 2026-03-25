@@ -6,17 +6,18 @@ import br.gov.es.siscap.form.ProgramaForm;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "programa")
@@ -27,124 +28,138 @@ import java.util.Set;
 @SQLRestriction("apagado = FALSE")
 public class Programa extends ControleHistorico {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "programa_id_gen")
-	@SequenceGenerator(name = "programa_id_gen", sequenceName = "programa_id_seq", allocationSize = 1)
-	@Column(name = "id", nullable = false)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "programa_id_gen")
+    @SequenceGenerator(name = "programa_id_gen", sequenceName = "programa_id_seq", allocationSize = 1)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
-	@Size(max = 12)
-	@Column(name = "sigla", length = 12)
-	private String sigla;
+    @Size(max = 12)
+    @Column(name = "sigla", length = 12)
+    private String sigla;
 
-	@Size(max = 150)
-	@NotNull
-	@Column(name = "titulo", nullable = false, length = 150)
-	private String titulo;
+    @Size(max = 150)
+    @NotNull
+    @Column(name = "titulo", nullable = false, length = 150)
+    private String titulo;
 
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_tipo_status", nullable = false)
-	private TipoStatus tipoStatus;
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_tipo_status", nullable = false)
+    private TipoStatus tipoStatus;
 
-	@OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
-	private Set<ProgramaOrganizacao> orgaoExecutorSet = new HashSet<>();
+    @OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
+    private Set<ProgramaOrganizacao> orgaoExecutorSet = new HashSet<>();
 
-	@OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
-	private Set<ProgramaPessoa> programaPessoaSet;
+    @OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
+    private Set<ProgramaPessoa> programaPessoaSet;
 
-	@NotNull
-	@DateTimeFormat
-	@Column(name = "data_inicio", nullable = false)
-	private LocalDateTime dataInicio = LocalDateTime.now();
+    @NotNull
+    @DateTimeFormat
+    @Column(name = "data_inicio", nullable = false)
+    private LocalDateTime dataInicio = LocalDateTime.now();
 
-	@DateTimeFormat
-	@Column(name = "data_fim")
-	private LocalDateTime dataFim;
+    @DateTimeFormat
+    @Column(name = "data_fim")
+    private LocalDateTime dataFim;
 
-	@Column(name = "teto_quantia", scale = 25, precision = 2)
-	private BigDecimal tetoQuantia;
+    @Column(name = "teto_quantia", scale = 25, precision = 2)
+    private BigDecimal tetoQuantia;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "id_tipo_valor")
-	private TipoValor tipoValor;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_tipo_valor")
+    private TipoValor tipoValor;
 
-	@Size(max = 3)
-	@Column(name = "moeda")
-	private String moeda;
+    @Size(max = 3)
+    @Column(name = "moeda")
+    private String moeda;
 
-	@Column(name = "count_ano", nullable = false)
-	private String countAno;
+    @Column(name = "count_ano", nullable = false)
+    private String countAno;
 
-	@Column(name = "percentual_custo_administrativo", nullable = true)
-	private BigDecimal percentualCustoAdministrativo;
-	
-	@Column(name = "valor_calculado_total", nullable = true)
-	private BigDecimal valorCalculadoTotal;
-	
-	@Column(name = "protocolo_edocs", nullable = false, length = 15)
-	private String protocoloEdocs;
+    @Column(name = "percentual_custo_administrativo", nullable = true)
+    private BigDecimal percentualCustoAdministrativo;
 
-	@Column(name = "id_documento_edocs", nullable = false, length = 50)
-	private String idDocumentoCapturadoEdocs;
-	
-	@Column(name = "id_processo_edocs", nullable = false, length = 50)
-	private String idProcessoEdocs;
+    @Column(name = "valor_calculado_total", nullable = true)
+    private BigDecimal valorCalculadoTotal;
 
-	@OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
-	private Set<ProgramaAssinaturaEdocs> programaAssinantesEdocsSet;
+    @Column(name = "protocolo_edocs", nullable = false, length = 15)
+    private String protocoloEdocs;
 
-	@Column(name = "status", nullable = true)
-	private Integer status;
+    @Column(name = "id_documento_edocs", nullable = false, length = 50)
+    private String idDocumentoCapturadoEdocs;
 
-	public Programa(Long id) {
-		this.setId(id);
-	}
+    @Column(name = "id_processo_edocs", nullable = false, length = 50)
+    private String idProcessoEdocs;
 
-	public Programa(ProgramaForm form) {
-		this.setDadosPrograma(form);
-		this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
-	}
+    @OneToMany(mappedBy = "programa", fetch = FetchType.LAZY)
+    private Set<ProgramaAssinaturaEdocs> programaAssinantesEdocsSet;
 
-	public void atualizar(ProgramaForm form) {
-		this.setDadosPrograma(form);
-		super.atualizarHistorico();
-	}
+    @OneToMany(mappedBy = "programa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Setter(AccessLevel.NONE)
+    private final Set<ProgramaStatus> historicoStatus = new HashSet<>();
 
-	public void apagar() {
-		this.setSigla(null);
-		this.setDataFim(LocalDateTime.now());
-		super.apagarHistorico();
-	}
+    public Programa(Long id) {
+            this.setId(id);
+    }
 
-	private void setDadosPrograma(ProgramaForm form) {
-		this.setSigla(form.sigla());
-		this.setTitulo(form.titulo());
-		this.setTetoQuantia(form.valor().quantia());
-		this.setTipoValor(new TipoValor(form.valor().tipo()));
-		this.setMoeda(form.valor().moeda());
-		this.setPercentualCustoAdministrativo(form.percentualCustoAdministrativo());
-		this.setValorCalculadoTotal(form.valorCalculadoTotal());
-	}
+    public Programa(ProgramaForm form) {
+            this.setDadosPrograma(form);
+            this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
+    }
+
+    public void atualizar(ProgramaForm form) {
+            this.setDadosPrograma(form);
+            super.atualizarHistorico();
+    }
+
+    public void apagar() {
+            this.setSigla(null);
+            this.setDataFim(LocalDateTime.now());
+            super.apagarHistorico();
+    }
+
+    private void setDadosPrograma(ProgramaForm form) {
+            this.setSigla(form.sigla());
+            this.setTitulo(form.titulo());
+            this.setTetoQuantia(form.valor().quantia());
+            this.setTipoValor(new TipoValor(form.valor().tipo()));
+            this.setMoeda(form.valor().moeda());
+            this.setPercentualCustoAdministrativo(form.percentualCustoAdministrativo());
+            this.setValorCalculadoTotal(form.valorCalculadoTotal());
+    }
+
+    @Transient
+    public ProgramaStatus getStatusAtual(){
+        return this.historicoStatus.stream()
+                .sorted(Comparator.comparing(ProgramaStatus::getInicioEm).reversed())
+                .findFirst().orElse(null);
+
+    }
 
     public boolean isRecusado() {
+        
+        ProgramaStatus progStatus = this.getStatusAtual();
+        
+        if (progStatus == null) {
+            return false;
+        }
 
-		if (this.getStatus() == null) {
-			return false;
-		}
-
-        return this.getStatus().equals(StatusProgramaEnum.RECUSADO.getValue());
+        return progStatus.getStatus().equals(StatusProgramaEnum.RECUSADO);
 
     }
 
     public boolean isEmEdicao() {
+        
+        ProgramaStatus progStatus = this.getStatusAtual();
 
-		if (this.getStatus() == null) {
-			return false;
-		}
+        if (progStatus == null) {
+            return false;
+        }
 
-        return this.getStatus().equals(StatusProgramaEnum.EDICAO.getValue());
+        return progStatus.getStatus().equals(StatusProgramaEnum.EDICAO);
 
     }
+    
 	
 }
