@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,9 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ProgramaProcessamentoService {
+
+    @Value("${email.destinatario-subcap}")
+	private String emailSubcap;
 
     private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
     private final AcessoCidadaoService acessoCidadaoService;
@@ -147,8 +151,10 @@ public class ProgramaProcessamentoService {
         boolean todosJaAssinaram = programa.getProgramaAssinantesEdocsSet().stream().allMatch(
                 assinante -> assinante.getStatusAssinatura().equals(TipoStatusAssinaturaEnum.ASSINADO.getValue()));
 
-        if (todosJaAssinaram)
+        if (todosJaAssinaram){
             programa.setStatus(StatusProgramaEnum.ASSINADO.getValue());
+            emailService.enviarEmailAvisoProgramaAssinadoSubcap( List.of(emailSubcap), programa.getTitulo(), programa.getId());
+        }
 
         repository.saveAndFlush(programa);
 

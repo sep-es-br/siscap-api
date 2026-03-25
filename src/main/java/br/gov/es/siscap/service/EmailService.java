@@ -18,6 +18,7 @@ import br.gov.es.siscap.utils.EnvioAvisoPedidoAssinaturaProgramaEmailBuilder;
 import br.gov.es.siscap.utils.EnvioAvisoPedidoParecerGerenciaSubcapEmailBuilder;
 import br.gov.es.siscap.utils.EnvioAvisoProgramaAutuadoEdocsEmailBuilder;
 import br.gov.es.siscap.utils.EnvioAvisoSubcapDicAutuadoEmailBuilder;
+import br.gov.es.siscap.utils.EnvioAvisoSubcapProgramaAssinadoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioComplementoDicEmailBuilder;
 import br.gov.es.siscap.utils.EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioRevisaoDicEmailBuilder;
@@ -80,6 +81,7 @@ public class EmailService {
 	private final EnvioAvisoParecerGeocSubcapRealizadoEmailBuilder builderEnvioEmailAvisoParecerGEOCRealizado;
 	private final EnvioAvisoPedidoAssinaturaProgramaEmailBuilder envioAvisoPedidoAssinaturaProgramaEmailBuilder;
 	private final EnvioAvisoProgramaAutuadoEdocsEmailBuilder envioAvisoProgramaAutuadoEmailBuilder;
+	private final EnvioAvisoSubcapProgramaAssinadoEmailBuilder envioAvisoSubcapProgramaAssinadoEmailBuilder;
 
 	public boolean enviarEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto, List<String> emailsInteressadosList,
 			String nomeArquivo) throws MessagingException, UnsupportedEncodingException {
@@ -97,12 +99,12 @@ public class EmailService {
 
 		helper.setFrom(remetente, apelido);
 		helper.setSubject(assuntoEmail != null ? assuntoEmail : "Assunto nao definido");
-		helper.setText( corpoEmail != null ? corpoEmail : "Corpo do email nao definido" , true);
+		helper.setText(corpoEmail != null ? corpoEmail : "Corpo do email nao definido", true);
 
 		this.anexarRelatorios(helper, prospeccaoDetalhesDto.cartaConsultaDetalhes(), nomeArquivo);
 
 		for (String emailInteressado : emailsInteressadosList) {
-			helper.setTo( emailInteressado != null ? emailInteressado : "" );
+			helper.setTo(emailInteressado != null ? emailInteressado : "");
 			try {
 				this.sender.send(helper.getMimeMessage());
 				confirmacaoEnvioEmailList.add(true);
@@ -395,7 +397,8 @@ public class EmailService {
 	public boolean enviarEmailAvisoProgramaAutuado(EnvioEmailDetalhesDto envioEmailProgramaAutuadoDetalhesDto)
 			throws MessagingException, UnsupportedEncodingException {
 
-		envioAvisoProgramaAutuadoEmailBuilder.setSubEmailDestinatarios(envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails());
+		envioAvisoProgramaAutuadoEmailBuilder
+				.setSubEmailDestinatarios(envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails());
 		envioAvisoProgramaAutuadoEmailBuilder.setDtoMontagemEmailDic(envioEmailProgramaAutuadoDetalhesDto);
 
 		boolean todosEnviados = true;
@@ -423,6 +426,33 @@ public class EmailService {
 		}
 
 		return todosEnviados;
+
+	}
+
+	public boolean enviarEmailAvisoProgramaAssinadoSubcap(List<String> emailsInteressadosList, String descricaoPrograma,
+			Long idPrograma) {
+
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto( null,
+				null,
+				null,
+				null,
+				null,
+				emailsInteressadosList,
+				null,
+				null,
+				null,
+				null, 
+				null, 
+				null, 
+				idPrograma, 
+				"", 
+				"", "", null);
+
+		envioAvisoSubcapProgramaAssinadoEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		envioAvisoSubcapProgramaAssinadoEmailBuilder.setSiglaPrograma(descricaoPrograma);
+
+		return emailSender.enviarEmail(envioAvisoSubcapProgramaAssinadoEmailBuilder,
+				envioEmailDicDetalhesDto.emailsInteressadosList());
 
 	}
 
