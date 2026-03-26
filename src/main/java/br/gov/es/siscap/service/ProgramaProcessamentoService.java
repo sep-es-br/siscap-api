@@ -149,8 +149,9 @@ public class ProgramaProcessamentoService {
         boolean todosJaAssinaram = programa.getProgramaAssinantesEdocsSet().stream().allMatch(
                 assinante -> assinante.getStatusAssinatura().equals(TipoStatusAssinaturaEnum.ASSINADO.getValue()));
 
-        if (todosJaAssinaram)
+        if (todosJaAssinaram){
             programa.alterarStatus(StatusProgramaEnum.ASSINADO, assinatura.getPessoa());
+        }
 
         repository.saveAndFlush(programa);
 

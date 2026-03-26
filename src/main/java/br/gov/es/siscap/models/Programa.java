@@ -18,7 +18,6 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.transaction.annotation.Transactional;
 
 @Entity
 @Table(name = "programa")
@@ -163,32 +162,14 @@ public class Programa extends ControleHistorico {
     }
     
     public void alterarStatus(StatusProgramaEnum novoStatus, Pessoa pessoa) {
-                
-        if(this.getStatusAtual() != null)
-            this.efetivarStatusAtual(pessoa);
-
+     
         ProgramaStatus novo = new ProgramaStatus();
         novo.setPrograma(this);
         novo.setStatus(novoStatus);
         novo.setInicioEm(LocalDateTime.now());
+        novo.setPessoa(pessoa);
 
         this.getHistoricoStatus().add(novo);
-    }
-        
-    
-    public void efetivarStatusAtual(Pessoa pessoa) {
-        
-        ProgramaStatus atual = this.getStatusAtual();
-
-        if (atual == null) {
-            throw new IllegalStateException("Nenhum status atual");
-        }
-
-        if (atual.getPessoa() != null) {
-            throw new IllegalStateException("Status já efetivado");
-        }
-
-        atual.setPessoa(pessoa);
     }
     
     
