@@ -5,6 +5,7 @@ import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.form.ProjetoForm;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -202,20 +203,10 @@ public class Projeto extends ControleHistorico {
 	}
         
         public void alterarStatus(String novoStatus, Pessoa pessoa) {
-            LocalDateTime agora = LocalDateTime.now();
-
-            // Finaliza o status atual, se existir
-            StatusProjeto atual = this.getStatusAtual();
-            if (atual != null) {
-                atual.setFimEm(agora);
-            }
+            this.finalizarStatusAtual(pessoa);
 
             // Cria novo status
-            StatusProjeto novoStatusProjeto = new StatusProjeto();
-            novoStatusProjeto.setProjeto(this);
-            novoStatusProjeto.setInicioEm(agora);
-            novoStatusProjeto.setStatus(novoStatus);
-            novoStatusProjeto.setPessoa(pessoa);
+            StatusProjeto novoStatusProjeto = StatusProjeto.init(this, novoStatus);
 
             // Inicializa coleção se estiver nula
             if (this.getHistoricoStatus() == null) {
@@ -226,13 +217,18 @@ public class Projeto extends ControleHistorico {
 
         }
         
+        public StatusProjeto finalizarStatusAtual(Pessoa pessoa) {
+            if(this.getStatusAtual() == null) return null;
+            
+            return this.getStatusAtual().finalizar(pessoa);
+        }
+        
         @Transient
         public StatusProjeto getStatusAtual() {
             if(historicoStatus == null) return null;
             return historicoStatus.stream()
-                .filter(s -> s.getFimEm() == null)
-                .findFirst()
-                .orElse(null);
+                    .sorted(Comparator.comparing(StatusProjeto::getInicioEm).reversed())
+                    .findFirst().orElse(null);
         }
 
 }
