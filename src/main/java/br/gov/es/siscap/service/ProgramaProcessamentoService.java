@@ -143,7 +143,7 @@ public class ProgramaProcessamentoService {
                 .filter(a -> subAssinante.equals(a.getPessoa().getSub()))
                 .findFirst()
                 .orElseThrow(() -> new ValidacaoSiscapException(
-                        List.of("Existe(m) documento(s) a serem assinados.")));
+                        List.of("Não existe(m) documento(s) a serem assinados.")));
 
         assinatura.setDataAssinatura(LocalDateTime.now());
         assinatura.setStatusAssinatura(TipoStatusAssinaturaEnum.ASSINADO.getValue());

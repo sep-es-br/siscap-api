@@ -26,7 +26,12 @@ public class EnvioAvisoSubcapProgramaAssinadoEmailBuilder extends EmailBuilderBa
 
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
-		return "Comunicamos que o programa <strong>%s</strong> foi assinado conforme solicitado.".formatted(dto.tituloPrograma());
+		return "Informamos que o programa <strong>%s</strong> teve seu fluxo de assinaturas concluído, estando devidamente firmado por todas as partes competentes.".formatted(dto.tituloPrograma());
+	}
+
+	@Override
+	protected String montarLinkAcesso(EnvioEmailDetalhesDto dto) {
+		return "";
 	}
 
 }
