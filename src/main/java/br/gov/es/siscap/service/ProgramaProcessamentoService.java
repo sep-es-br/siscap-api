@@ -324,7 +324,7 @@ public class ProgramaProcessamentoService {
         assinatura.setDataAssinatura(null);
         assinatura.setDataRecusa(LocalDateTime.now());
         assinatura.setStatusAssinatura(TipoStatusAssinaturaEnum.RECUSOUSEASSINAR.getValue());
-        assinatura.setJustificativaRecusa("RECUSA ACIONADA VIA SISCAP");
+        assinatura.setJustificativaRecusa(this.programaAssinaturaEdocsService.resolverMensagemRecusaAssinanteGestor(subAssinante));
 
         programa.setStatus(StatusProgramaEnum.RECUSADO.getValue());
 

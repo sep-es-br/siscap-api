@@ -6,9 +6,11 @@ import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
 import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,15 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class ProgramaAssinaturaEdocsService {
 
+	@Value("${api.programa.assinantes.gestorSUBCAP}")
+	private String assinanteEdocsProgramaGestorSUBCAP;
+
+	@Value("${api.programa.assinantes.gestorSEP}")
+	private String assinanteEdocsProgramaGestorSEP;
+
+	@Value("${api.programa.assinantes.gestorGOVES}")
+	private String assinanteEdocsProgramaGestorGOVES;
+
 	private final ProgramaAssinaturaEdocsRepository repository;
 	private final PessoaService pessoaService;
 	private final AcessoCidadaoService acessoCidadaoService;
@@ -35,10 +46,11 @@ public class ProgramaAssinaturaEdocsService {
 				.buscarProgramaAssinaturasSetPorPrograma(programa).stream().toList();
 
 		Map<String, String> papelPorSub = new HashMap<>();
+		Map<String, String> mensagemRecusaAssinaturaPorSub = new HashMap<>();
 
 		programaAssinaturaEdocsList.stream()
 				.forEach(assinante -> {
-					
+
 					List<ACAgentePublicoPapelDto> papeisAgentePublico = acessoCidadaoService
 							.listarPapeisAgentePublicoPorSub(assinante.getPessoa().getSub());
 
@@ -53,9 +65,28 @@ public class ProgramaAssinaturaEdocsService {
 
 					papelPorSub.put(assinante.getPessoa().getSub(), nomePapelAssinante);
 
+					String mensagemRecusaAssinaturaAssinante = resolverMensagemRecusaAssinanteGestor(
+							assinante.getPessoa().getSub());
+
+					mensagemRecusaAssinaturaPorSub.put(assinante.getPessoa().getSub(),
+							mensagemRecusaAssinaturaAssinante);
+
 				});
 
-		return this.montarListaDto(programaAssinaturaEdocsList, papelPorSub);
+		return this.montarListaDto(programaAssinaturaEdocsList, papelPorSub, mensagemRecusaAssinaturaPorSub);
+
+	}
+
+	public String resolverMensagemRecusaAssinanteGestor(String subAssinante) {
+
+		if (subAssinante.equals(assinanteEdocsProgramaGestorGOVES))
+			return "Após análise da proposta apresentada, não foi autorizada, nesta etapa, a continuidade dos procedimentos para prospecção de financiamento do programa, por decisão da autoridade competente.";
+		else if (subAssinante.equals(assinanteEdocsProgramaGestorSEP))
+			return "Após análise da proposta apresentada, não foi autorizada, nesta etapa, a continuidade dos procedimentos para prospecção de financiamento do programa, por decisão da Secretaria de Economia e Planejamento.";
+		else if (subAssinante.equals(assinanteEdocsProgramaGestorSUBCAP))
+			return "Após análise da proposta apresentada, não foi autorizada, nesta etapa, a continuidade dos procedimentos para prospecção de financiamento do programa, no âmbito da Subsecretaria de Captação de Recursos.";
+		else
+			return "Após análise da proposta apresentada, não foi autorizada, nesta etapa, a continuidade dos procedimentos para prospecção de financiamento do programa.";
 
 	}
 
@@ -89,7 +120,7 @@ public class ProgramaAssinaturaEdocsService {
 
 	private List<ProgramaAssinaturaEdocsDto> montarListaDto(
 			List<ProgramaAssinaturaEdocs> programaPessoaAssinanteEdocsList,
-			Map<String, String> papelPorSub) {
+			Map<String, String> papelPorSub, Map<String, String> textoRecusaPorSub) {
 
 		return programaPessoaAssinanteEdocsList.stream()
 				.map(assinante -> new ProgramaAssinaturaEdocsDto(
@@ -99,7 +130,8 @@ public class ProgramaAssinaturaEdocsService {
 						assinante.getStatusAssinatura(),
 						assinante.getDataAssinatura(),
 						assinante.getPessoa().getNome(),
-						papelPorSub.getOrDefault(assinante.getPessoa().getSub(), "")))
+						papelPorSub.getOrDefault(assinante.getPessoa().getSub(), ""),
+						textoRecusaPorSub.getOrDefault(assinante.getPessoa().getSub(), "")))
 				.toList();
 
 	}
