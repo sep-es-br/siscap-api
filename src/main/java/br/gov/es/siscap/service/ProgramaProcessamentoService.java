@@ -10,6 +10,7 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
+import br.gov.es.siscap.repository.PessoaRepository;
 import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import jakarta.mail.MessagingException;
@@ -37,23 +38,29 @@ public class ProgramaProcessamentoService {
     private final ProgramaRepository repository;
     private final ProgramaAssinaturaEdocsRepository programaAssinaturaEdocsRepository;
     private final PessoaService pessoaService;
+    private final PessoaRepository pessoaRepository;
 
     private final Logger logger = LogManager.getLogger(ProgramaProcessamentoService.class);
 
+    @Transactional
     public void marcarCriacaoArquivoProgramaEdocs(Long idPrograma, List<String> assinantesEdocsPrograma,
-            String idDocumentoEdocs, Pessoa pessoa) {
-        this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma, idDocumentoEdocs, pessoa);
+            String idDocumentoEdocs, Long idPessoa) {
+        this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma, idDocumentoEdocs, idPessoa);
         this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, assinantesEdocsPrograma);
     }
 
     @Transactional
     public void marcarComoAguardandoAssinaturas(Long idPrograma, List<String> assinantesEdocsPrograma,
-            String idDocumentoEdocs, Pessoa pessoa) {
+            String idDocumentoEdocs, Long idPessoa) {
         logger.info("Registra as pendencias de assinatura no programa;");
-        Programa programa = this.buscarPrograma(idPrograma);
+        Pessoa pessoa = pessoaRepository.findById(idPessoa).orElseThrow();
+        
+        Programa programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
         if (programaAssinaturaEdocsService.buscarPorPrograma(programa).isEmpty()) {
             programaAssinaturaEdocsService.cadastrar(programa, assinantesEdocsPrograma);
         }
+        programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
+        
         programa.setIdDocumentoCapturadoEdocs(idDocumentoEdocs);
         programa.alterarStatus(StatusProgramaEnum.AGUARDANDOASSINATURAS, pessoa);
         repository.save(programa);
@@ -85,7 +92,7 @@ public class ProgramaProcessamentoService {
             emailsSubAssinates.put(emailAssinanteAC, sub);
         });
 
-        Programa programa = this.buscarPrograma(idPrograma);
+        Programa programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
 
         String tituloPrograma = programa.getTitulo();
         String siglaPrograma = programa.getSigla();
@@ -123,10 +130,6 @@ public class ProgramaProcessamentoService {
 
     }
 
-    private Programa buscarPrograma(Long id) {
-        return repository.findById(id).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
-    }
-
     @Transactional
     public void marcarProgramaAssinado(long idPrograma, String subAssinante) {
 
@@ -156,11 +159,11 @@ public class ProgramaProcessamentoService {
     }
 
     public void marcarProgramaAutuadoEdocsEAvisoAutuado(ProgramaDto programaDto,
-            String protocoloEdocs, String idProcessoEdocs, Pessoa pessoa) {
+            String protocoloEdocs, String idProcessoEdocs, Long idPessoa) {
 
         Objects.requireNonNull(programaDto, "programaDto não pode ser nulo");
 
-        marcarProgramaAutuado(programaDto.id(), protocoloEdocs, idProcessoEdocs, pessoa);
+        marcarProgramaAutuado(programaDto.id(), protocoloEdocs, idProcessoEdocs, idPessoa);
 
         try {
 
@@ -195,8 +198,10 @@ public class ProgramaProcessamentoService {
     }
 
     @Transactional
-    public void marcarProgramaAutuado(Long idPrograma, String protocoloEdocs, String idProcessoEdocs, Pessoa pessoa) {
+    public void marcarProgramaAutuado(Long idPrograma, String protocoloEdocs, String idProcessoEdocs, Long idPessoa) {
 
+        Pessoa pessoa = pessoaRepository.findById(idPessoa).orElseThrow();
+        
         Programa programa = repository.findById(idPrograma)
                 .orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));
 
@@ -243,7 +248,7 @@ public class ProgramaProcessamentoService {
         // }
         // });
 
-        Programa programa = this.buscarPrograma(idPrograma);
+        Programa programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
 
         String tituloPrograma = programa.getTitulo();
         String siglaPrograma = programa.getSigla();

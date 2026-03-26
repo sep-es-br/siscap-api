@@ -68,9 +68,8 @@ public class ProgramaController {
                 
                 String subNovo = this.tokenService.validarToken(token);
                 
-                Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
                 
-		return new ResponseEntity<>(service.cadastrar(form, pessoa), HttpStatus.CREATED);
+		return new ResponseEntity<>(service.cadastrar(form, subNovo), HttpStatus.CREATED);
 	}
 
 	@PutMapping("/{id}")
@@ -98,7 +97,7 @@ public class ProgramaController {
                 
                 Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
                 
-		service.criarArquivoProgramaEdocsAssinaturasPendentes(idPrograma, pessoa);
+		service.criarArquivoProgramaEdocsAssinaturasPendentes(idPrograma, pessoa.getId());
 		return ResponseEntity.accepted().build();
 	}
 
@@ -131,7 +130,7 @@ public class ProgramaController {
                 
                 Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
                 
-		service.autuarProgramaEdocs(idPrograma, pessoa);
+		service.autuarProgramaEdocs(idPrograma, pessoa.getId());
 		return ResponseEntity.accepted().build();
 	}
 

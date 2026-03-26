@@ -18,6 +18,7 @@ import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
 import br.gov.es.siscap.models.ProgramaStatus;
 import br.gov.es.siscap.models.Projeto;
+import br.gov.es.siscap.repository.PessoaRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import java.math.BigDecimal;
@@ -44,6 +45,10 @@ import reactor.core.publisher.Mono;
 public class ProgramaService {
 
 	private final ProgramaRepository repository;
+        private final PessoaRepository pessoaRepository;
+        
+        
+        
 	private final ProjetoService projetoService;
 	private final ProgramaPessoaService programaPessoaService;
 	private final PessoaService pessoaService;
@@ -95,16 +100,18 @@ public class ProgramaService {
 	}
 
 	@Transactional
-	public ProgramaDto cadastrar(ProgramaForm form, Pessoa pessoa) {
-
+	public ProgramaDto cadastrar(ProgramaForm form, String subPessoa) {
+            
 		logger.info("Cadastrando novo programa");
 		logger.info("Dados: {}", form);
+                
+                Pessoa pessoa = this.pessoaRepository.findBySub(subPessoa).orElseThrow();
 
 		this.validarProgramaForm(form);
 
 		Programa tempPrograma = new Programa(form);
 
-		this.alterarStatus(tempPrograma, StatusProgramaEnum.EDICAO, pessoa);
+		tempPrograma.alterarStatus(StatusProgramaEnum.EDICAO, pessoa);
 
 		tempPrograma.setCountAno(buscarCountAnoFormatado());
 
@@ -252,7 +259,7 @@ public class ProgramaService {
 				programa.getCountAno();
 	}
 
-	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma, Pessoa pessoa) {
+	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma, Long idPessoa) {
 
 		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
 
@@ -265,7 +272,7 @@ public class ProgramaService {
 
 		if (assinantesDevemAssinarPrograma.isEmpty()) {
 			asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, subAssinantesEdocsPrograma,
-					nomeArquivo, pessoa);
+					nomeArquivo, idPessoa);
 		}
 
 		programaProcessamentoService.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, subAssinantesEdocsPrograma);
@@ -334,11 +341,11 @@ public class ProgramaService {
 	// }
 	// }
 
-	public void autuarProgramaEdocs(Long idPrograma, Pessoa pessoa) {
+	public void autuarProgramaEdocs(Long idPrograma, Long idPessoa) {
 		Programa programa = this.buscar(idPrograma);
 		this.validarSeProgramaPodeSerAutuado(programa);
 		ProgramaDto programaDto = this.buscarPorId(idPrograma);
-		asyncExecutorService.autuarProgramaEdocs(programaDto, pessoa);
+		asyncExecutorService.autuarProgramaEdocs(programaDto, idPessoa);
 	}
 
 	@Transactional
@@ -357,53 +364,6 @@ public class ProgramaService {
 	}
         
         
-    @Transactional
-    public void alterarStatus(Programa programa, StatusProgramaEnum novoStatus, Pessoa pessoa) {
-                
-        if(programa.getStatusAtual() != null)
-            this.efetivarStatusAtual(programa, pessoa);
-
-        ProgramaStatus novo = new ProgramaStatus();
-        novo.setPrograma(programa);
-        novo.setStatus(novoStatus);
-        novo.setInicioEm(LocalDateTime.now());
-
-        programa.getHistoricoStatus().add(novo);
-    }
-        
-    @Transactional
-    public void alterarStatus(Long programaId, StatusProgramaEnum novoStatus, Pessoa pessoa) {
-        Programa programa = repository.findByIdWithHistorico(programaId)
-                                .orElseThrow();
-        
-        alterarStatus(programa, novoStatus, pessoa);
-    }
-    
-    
-    @Transactional
-    public void efetivarStatusAtual(Programa programa, Pessoa pessoa) {
-        
-        ProgramaStatus atual = programa.getStatusAtual();
-
-        if (atual == null) {
-            throw new IllegalStateException("Nenhum status atual");
-        }
-
-        if (atual.getPessoa() != null) {
-            throw new IllegalStateException("Status já efetivado");
-        }
-
-        atual.setPessoa(pessoa);
-    }
-    
-    @Transactional
-    public void efetivarStatusAtual(Long programaId, Pessoa pessoa) {
-        Programa programa = repository.findByIdWithHistorico(programaId)
-                                .orElseThrow();
-        
-        this.efetivarStatusAtual(programa, pessoa);
-    }
-
 	private void validarSeTodasAssinaturasForamRealizadas(Programa programa) {
 
 		List<String> erros = new ArrayList<>();
