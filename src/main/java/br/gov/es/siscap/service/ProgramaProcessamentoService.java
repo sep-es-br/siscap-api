@@ -93,26 +93,20 @@ public class ProgramaProcessamentoService {
 
         boolean confirmacaoEnvioEmail;
 
-        try {
+        EnvioEmailDetalhesDto envioEmailDetalhesDto = new EnvioEmailDetalhesDto(idPrograma,
+                emailsInteressadosList,
+                tituloPrograma,
+                siglaPrograma,
+                emailsSubAssinates);
 
-            EnvioEmailDetalhesDto envioEmailDetalhesDto = new EnvioEmailDetalhesDto(idPrograma,
-                    emailsInteressadosList,
-                    tituloPrograma,
-                    siglaPrograma,
-                    emailsSubAssinates);
+        confirmacaoEnvioEmail = emailService.enviarEmailSolicitandoAssinaturasPrograma(envioEmailDetalhesDto);
 
-            confirmacaoEnvioEmail = emailService.enviarEmailSolicitandoAssinaturasPrograma(envioEmailDetalhesDto);
-
-            if (confirmacaoEnvioEmail) {
-                logger.info(
-                        "Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id {}",
-                        idPrograma);
-            } else {
-                erros.add("Erro ao enviar aviso para solicitacao de assinaturas do programa id " + idPrograma);
-            }
-
-        } catch (UnsupportedEncodingException | MessagingException e) {
-            logger.error(e.getMessage());
+        if (confirmacaoEnvioEmail) {
+            logger.info(
+                    "Email aviso para solicitacao de assinaturas enviado com sucesso para o programa id {}",
+                    idPrograma);
+        } else {
+            erros.add("Erro ao enviar aviso para solicitacao de assinaturas do programa id " + idPrograma);
         }
 
         if (!erros.isEmpty()) {

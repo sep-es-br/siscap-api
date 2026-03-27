@@ -38,9 +38,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -146,10 +148,12 @@ public class EmailService {
 	public boolean enviarEmailAnaliseDIC(EnvioEmailDetalhesDto envioEmailDicDetalhesDto)
 			throws MessagingException, UnsupportedEncodingException {
 
+		Set<String> emailsUnicos = new LinkedHashSet<>(envioEmailDicDetalhesDto.emailsInteressadosList());
+
 		builderEnvioEmailAnaliseGestorDic.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 
 		return emailSender.enviarEmail(builderEnvioEmailAnaliseGestorDic,
-				envioEmailDicDetalhesDto.emailsInteressadosList());
+				emailsUnicos.stream().toList());
 
 	}
 
@@ -186,13 +190,15 @@ public class EmailService {
 			String nomeResponsavelEnvio, Projeto projeto, String responsavelProponenteProjeto)
 			throws MessagingException, UnsupportedEncodingException {
 
+		Set<String> emailsUnicos = new LinkedHashSet<>(emailsInteressadosList);
+
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(
 				projeto.getId(),
 				nomeResponsavelEnvio,
 				null,
 				null,
 				responsavelProponenteProjeto,
-				emailsInteressadosList,
+				emailsUnicos.stream().toList(),
 				projeto.getSigla(),
 				null,
 				null,
@@ -214,13 +220,15 @@ public class EmailService {
 			String responsavelProponenteProjeto,
 			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
 
+		Set<String> emailsUnicos = new LinkedHashSet<>(emailsInteressadosList);
+
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(
 				idProjeto,
 				nomeResponsavelEnvio,
 				null,
 				null,
 				responsavelProponenteProjeto,
-				emailsInteressadosList,
+				emailsUnicos.stream().toList(),
 				descricaoProjeto,
 				codigoMotivoArquivamento,
 				descricaoTipoMotivoArquivamento,
@@ -242,13 +250,15 @@ public class EmailService {
 			Long idProjeto)
 			throws MessagingException, UnsupportedEncodingException {
 
+		Set<String> emailsUnicos = new LinkedHashSet<>(emailsInteressadosList);
+
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(
 				idProjeto,
 				nomeResponsavelEnvio,
 				null,
 				null,
 				responsavelProponenteProjeto,
-				emailsInteressadosList,
+				emailsUnicos.stream().toList(),
 				descricaoProjeto,
 				null,
 				null,
@@ -266,13 +276,15 @@ public class EmailService {
 			String siglaProjeto)
 			throws MessagingException, UnsupportedEncodingException {
 
+		Set<String> emailsUnicos = new LinkedHashSet<>(emailsInteressadosList);
+
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(
 				idProjeto,
 				null,
 				null,
 				null,
 				null,
-				emailsInteressadosList,
+				emailsUnicos.stream().toList(),
 				null,
 				null,
 				null,
@@ -290,12 +302,14 @@ public class EmailService {
 	public boolean enviarEmailAvisoSubcapDicAutuado(List<String> emailsInteressadosList, String descricaoDic,
 			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
 
+		Set<String> emailsUnicos = new LinkedHashSet<>(emailsInteressadosList);
+
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				null,
 				null,
 				null,
 				null,
-				emailsInteressadosList,
+				emailsUnicos.stream().toList(),
 				null,
 				null,
 				null,
@@ -312,12 +326,14 @@ public class EmailService {
 	public boolean enviarEmailAvisoParecerGerenciaSubcap(List<String> emailsInteressadosList, String descricaoDic,
 			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
 
+		Set<String> emailsUnicos = new LinkedHashSet<>(emailsInteressadosList);
+
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				null,
 				null,
 				null,
 				null,
-				emailsInteressadosList,
+				emailsUnicos.stream().toList(),
 				null,
 				null,
 				null,
@@ -334,12 +350,14 @@ public class EmailService {
 	public boolean enviarEmailAvisoParecerGeocSubcapRealizado(List<String> emailsInteressadosList, String descricaoDic,
 			Long idProjeto) {
 
+		Set<String> emailsUnicos = new LinkedHashSet<>(emailsInteressadosList);
+
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				null,
 				null,
 				null,
 				null,
-				emailsInteressadosList,
+				emailsUnicos.stream().toList(),
 				null,
 				null,
 				null,
@@ -361,7 +379,9 @@ public class EmailService {
 
 		boolean todosEnviados = true;
 
-		for (String email : envioEmailDetalhesProgramaDto.emailsInteressadosList()) {
+		Set<String> emailsUnicos = new LinkedHashSet<>(envioEmailDetalhesProgramaDto.emailsInteressadosList());
+
+		for (String email : emailsUnicos) {
 
 			String nomeDestinatario = Optional
 					.ofNullable(envioEmailDetalhesProgramaDto.subAssinantesEmails().get(email))
@@ -404,7 +424,9 @@ public class EmailService {
 
 		boolean todosEnviados = true;
 
-		for (String email : envioEmailProgramaAutuadoDetalhesDto.emailsInteressadosList()) {
+		Set<String> emailsUnicos = new LinkedHashSet<>(envioEmailProgramaAutuadoDetalhesDto.emailsInteressadosList());
+
+		for (String email : emailsUnicos) {
 
 			String nomeDestinatario = Optional
 					.ofNullable(envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails().get(email))
@@ -421,9 +443,11 @@ public class EmailService {
 			boolean enviado = emailSender.enviarEmail(
 					envioAvisoProgramaAutuadoEmailBuilder,
 					List.of(email));
+
 			if (!enviado) {
 				todosEnviados = false;
 			}
+
 		}
 
 		return todosEnviados;
@@ -431,14 +455,16 @@ public class EmailService {
 	}
 
 	public boolean enviarEmailAvisoDicElegivel(List<String> emailsInteressadosList, String descricaoDic,
-			Long idProjeto, String tituloDIC ) {
+			Long idProjeto, String tituloDIC) {
+
+		Set<String> emailsUnicos = new LinkedHashSet<>(emailsInteressadosList);
 
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				null,
 				null,
 				null,
 				null,
-				emailsInteressadosList,
+				emailsUnicos.stream().toList(),
 				tituloDIC,
 				null,
 				null,
@@ -452,19 +478,28 @@ public class EmailService {
 
 	}
 
-	public boolean enviarEmailAvisoDicVinculadoPrograma( List<String> emailsInteressadosList, String descricaoDic,
+	public boolean enviarEmailAvisoDicVinculadoPrograma(List<String> emailsInteressadosList, String descricaoDic,
 			Long idProjeto, String descricaoPrograma) {
+
+		Set<String> emailsUnicos = new LinkedHashSet<>(emailsInteressadosList);
 
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				null,
 				null,
 				null,
 				null,
-				emailsInteressadosList,
+				emailsUnicos.stream().toList(),
 				null,
 				null,
 				null,
-				null, null, null, null, "", descricaoPrograma, "", null);
+				null,
+				null,
+				null,
+				null,
+				"",
+				descricaoPrograma,
+				"",
+				null);
 
 		envioDicVinculadoProgramaEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
 		envioDicVinculadoProgramaEmailBuilder.setSiglaProjeto(descricaoDic);
