@@ -32,4 +32,9 @@ public class EnvioDicVinculadoProgramaEmailBuilder extends EmailBuilderBase {
 
 	}
 
+	@Override
+	protected String montarLinkAcesso(EnvioEmailDetalhesDto dto) {
+		return "";
+	}
+
 }
