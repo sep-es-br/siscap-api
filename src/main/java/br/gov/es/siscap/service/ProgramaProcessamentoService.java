@@ -153,7 +153,7 @@ public class ProgramaProcessamentoService {
 
         if (todosJaAssinaram){
             programa.setStatus(StatusProgramaEnum.ASSINADO.getValue());
-            emailService.enviarEmailAvisoProgramaAssinadoSubcap( List.of(emailSubcap), programa.getTitulo(), programa.getId());
+            emailService.enviarEmailAvisoProgramaAssinadoSubcap( List.of(emailSubcap), programa);
         }
 
         repository.saveAndFlush(programa);

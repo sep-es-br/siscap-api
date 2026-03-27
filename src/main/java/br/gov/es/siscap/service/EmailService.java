@@ -9,6 +9,7 @@ import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Pessoa;
+import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.utils.EnvioAnaliseGestorDicEmailBuilder;
 import br.gov.es.siscap.utils.EnvioArquivamentoDicEmailBuilder;
@@ -429,8 +430,7 @@ public class EmailService {
 
 	}
 
-	public boolean enviarEmailAvisoProgramaAssinadoSubcap(List<String> emailsInteressadosList, String descricaoPrograma,
-			Long idPrograma) {
+	public boolean enviarEmailAvisoProgramaAssinadoSubcap(List<String> emailsInteressadosList, Programa programa) {
 
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto( null,
 				null,
@@ -444,12 +444,12 @@ public class EmailService {
 				null, 
 				null, 
 				null, 
-				idPrograma, 
-				"", 
-				"", "", null);
+				programa.getId(), 
+				programa.getTitulo(), 
+				programa.getSigla(), "", null);
 
 		envioAvisoSubcapProgramaAssinadoEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
-		envioAvisoSubcapProgramaAssinadoEmailBuilder.setSiglaPrograma(descricaoPrograma);
+		envioAvisoSubcapProgramaAssinadoEmailBuilder.setSiglaPrograma(programa.getSigla());
 
 		return emailSender.enviarEmail(envioAvisoSubcapProgramaAssinadoEmailBuilder,
 				envioEmailDicDetalhesDto.emailsInteressadosList());
