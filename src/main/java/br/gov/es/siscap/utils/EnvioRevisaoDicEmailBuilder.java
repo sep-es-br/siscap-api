@@ -13,25 +13,10 @@ public class EnvioRevisaoDicEmailBuilder extends EmailBuilderBase {
 
 	String siglaProjeto;
 
-	// public EnvioRevisaoDicEmailBuilder(EnvioEmailDicDetalhesDto dto) {
-	// 	super(dto);
-	// }
-
 	@Override
 	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
 		return "Prezado(a) %s".formatted(dto.nomeResponsavelEnvioEmail());
 	}
-
-	// @Override
-	// protected String montarLinkAcesso(EnvioEmailDicDetalhesDto dto) {
-	// 	if (dto.linkAcessoProjeto() == null || dto.linkAcessoProjeto().isBlank()) {
-	// 		return "";
-	// 	}
-	// 	return """
-	// 			    <p>Acesse o sistema SISCAP em:</p>
-	// 			    <a href="%s">%s</a>
-	// 			""".formatted(dto.linkAcessoProjeto(), dto.tituloProjeto());
-	// }
 
 	@Override
 	public String montarAssuntoEmail() {

@@ -291,7 +291,7 @@ public class ProjetoParecerService {
 		List<String> erros = new ArrayList<>();
 
 		boolean confirmacaoEnvioEmail = false;
-		List<String> emailsInteressadosList = new ArrayList<String>();
+		List<String> emailsInteressadosList = new ArrayList<>();
 		emailsInteressadosList.add(DESTINO_AVISO_PARECER_CAPTURA);
 
 		try {
@@ -301,16 +301,14 @@ public class ProjetoParecerService {
 
 			if (confirmacaoEnvioEmail) {
 				logger.info(
-						"Email aviso captura pareceres do projeto enviado com sucesso para o projeto id " + idProjeto);
+						"Email aviso captura pareceres do projeto enviado com sucesso para o projeto id {}", idProjeto );
 			} else {
 				erros.add("Erro ao enviar aviso captura pareceres do projeto id " + idProjeto);
 			}
 
-		} catch (UnsupportedEncodingException e) {
+		} catch (UnsupportedEncodingException | MessagingException e) {
 			logger.error(e.getMessage());
-		} catch (MessagingException e) {
-			logger.error(e.getMessage());
-		}
+		} 
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
@@ -321,7 +319,7 @@ public class ProjetoParecerService {
 
 	}
 
-	public Boolean verificarEnvioParecereGEOCProjeto(Long idProjeto) {
+	public boolean verificarEnvioParecereGEOCProjeto(Long idProjeto) {
 
 		var pareceres = projetoParecerRepository.findAllByProjetoId(idProjeto);
 

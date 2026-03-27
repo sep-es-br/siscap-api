@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.*;
+import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
@@ -34,8 +35,10 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -225,7 +228,7 @@ public class ProjetoService {
 				lotacaoUsuario.getValue(),
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
-                                projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
 
 		return projetoDtoRetorno;
 
@@ -350,7 +353,7 @@ public class ProjetoService {
 				false, null, null, null, null, null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
-                                projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
 
 	}
 
@@ -438,9 +441,7 @@ public class ProjetoService {
 				}
 			}
 
-		} catch (UnsupportedEncodingException e) {
-			logger.error(e.getMessage());
-		} catch (MessagingException e) {
+		} catch (UnsupportedEncodingException | MessagingException e) {
 			logger.error(e.getMessage());
 		}
 
@@ -466,7 +467,7 @@ public class ProjetoService {
 				this.buscarParecer(projetoParecer), null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
-                                projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
 
 	}
 
@@ -778,7 +779,7 @@ public class ProjetoService {
 		} catch (UnsupportedEncodingException | MessagingException e) {
 			logger.error(e.getMessage());
 			erros.add(e.getMessage());
-		} 
+		}
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
@@ -791,7 +792,7 @@ public class ProjetoService {
 
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
-		List<String> emailsInteressadosList = new ArrayList<String>();
+		List<String> emailsInteressadosList = new ArrayList<>();
 		emailsInteressadosList.add(DESTINO_SUBCAP);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
@@ -811,7 +812,7 @@ public class ProjetoService {
 		} catch (UnsupportedEncodingException | MessagingException e) {
 			logger.error(e.getMessage());
 			erros.add(e.getMessage());
-		} 
+		}
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
@@ -824,27 +825,20 @@ public class ProjetoService {
 
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
-		List<String> emailsInteressadosList = new ArrayList<String>();
+		List<String> emailsInteressadosList = new ArrayList<>();
 		emailsInteressadosList.add(DESTINO_GERENCIA_SUBCAP);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
 				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
 
-		try {
+		confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGeocSubcapRealizado(emailsInteressadosList,
+				projeto.getTitulo(), idDIC);
 
-			confirmacaoEnvioEmail = emailService.enviarEmailAvisoParecerGeocSubcapRealizado(emailsInteressadosList,
-					projeto.getTitulo(), idDIC);
-
-			if (confirmacaoEnvioEmail) {
-				logger.info("Email aviso de parecer gerencia SUBCAP entranhado enviado com sucesso.");
-			} else {
-				erros.add("Erro ao enviar aviso de parecer gerencia SUBCAP ");
-			}
-
-		} catch (UnsupportedEncodingException | MessagingException e) {
-			logger.error(e.getMessage());
-			erros.add(e.getMessage());
-		} 
+		if (confirmacaoEnvioEmail) {
+			logger.info("Email aviso de parecer gerencia SUBCAP entranhado enviado com sucesso.");
+		} else {
+			erros.add("Erro ao enviar aviso de parecer gerencia SUBCAP ");
+		}
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
@@ -854,7 +848,8 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public void enviarAvisoArquivamentoProjeto(Long id, String justificativa, String codigoMotivoArquivamento, Pessoa pessoa) {
+	public void enviarAvisoArquivamentoProjeto(Long id, String justificativa, String codigoMotivoArquivamento,
+			Pessoa pessoa) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -919,7 +914,7 @@ public class ProjetoService {
 
 			} catch (UnsupportedEncodingException | MessagingException e) {
 				logger.error(e.getMessage());
-			} 
+			}
 
 		} else {
 			erros.add("Não foi possível fazer o envio pois o proponente não foi encontrado - projeto id " + id);
@@ -950,6 +945,7 @@ public class ProjetoService {
 
 	@Transactional
 	public List<Long> vincularProjetosAoPrograma(Programa programa, List<Long> idProjetoPropostoList) {
+
 		logger.info("Vinculando projetos ao programa com id: {}", programa.getId());
 		logger.info("Ids dos projetos: {}", idProjetoPropostoList);
 
@@ -970,9 +966,13 @@ public class ProjetoService {
 			Projeto projeto = this.buscar(idProjetoProposto);
 			projeto.setPrograma(programa);
 			repository.saveAndFlush(projeto);
+			if (projetoPropostoSet.stream().noneMatch(projetoSet -> projetoSet.getId().equals(projeto.getId()))) {
+				this.enviarAvisoEquipeElaboracaoDicVinculadoPrograma(projeto.getId());
+			}
 		});
 
 		logger.info("Projetos vinculados ao programa com sucesso");
+
 		return this.buscarIdProjetoPropostoList(programa);
 	}
 
@@ -1320,6 +1320,88 @@ public class ProjetoService {
 					return new ProjetoPropostoOpcoesDto(projeto, valorDto, parecerGEOCEnviado);
 				})
 				.toList();
+	}
+
+	public boolean enviarAvisoEquipeElaboracaoDicElegivel(Long idDic) {
+
+		List<String> erros = new ArrayList<>();
+
+		Projeto projeto = this.buscar(idDic);
+
+		List<String> emailsInteressadosList = new ArrayList<>();
+
+		projeto.getProjetoPessoaSet().forEach(membroEquipe -> {
+
+			EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(membroEquipe.getPessoa().getSub());
+			String emailMembroEquipe = "";
+
+			if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
+				emailMembroEquipe = emailsSub.corporativo();
+			} else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+				emailMembroEquipe = emailsSub.email();
+			}
+
+			emailsInteressadosList.add(emailMembroEquipe);
+
+		});
+
+		String siglaDic = projeto.getSigla();
+		String tituloDic = projeto.getTitulo();
+
+		if (emailService.enviarEmailAvisoDicElegivel(emailsInteressadosList, siglaDic, idDic, tituloDic)) {
+			logger.info("Email aviso DIC Elegível id {}", idDic);
+		} else {
+			erros.add("Erro ao enviar aviso DIC Elegível id " + idDic);
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		return true;
+
+	}
+
+	public boolean enviarAvisoEquipeElaboracaoDicVinculadoPrograma(Long idDic) {
+
+		List<String> erros = new ArrayList<>();
+
+		Projeto projeto = this.buscar(idDic);
+
+		List<String> emailsInteressadosList = new ArrayList<>();
+
+		projeto.getProjetoPessoaSet().forEach(membroEquipe -> {
+
+			EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(membroEquipe.getPessoa().getSub());
+			String emailMembroEquipe = "";
+
+			if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
+				emailMembroEquipe = emailsSub.corporativo();
+			} else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+				emailMembroEquipe = emailsSub.email();
+			}
+
+			emailsInteressadosList.add(emailMembroEquipe);
+
+		});
+
+		String siglaDic = projeto.getSigla();
+		String siglaPrograma = projeto.getPrograma().getSigla();
+
+		if (emailService.enviarEmailAvisoDicVinculadoPrograma(emailsInteressadosList, siglaDic, idDic, siglaPrograma)) {
+			logger.info("Email aviso DIC id {} vinculado a um programa.", idDic);
+		} else {
+			erros.add("Erro ao enviar aviso DIC id " + idDic + " de vinculado a um programa.");
+		}
+
+		if (!erros.isEmpty()) {
+			erros.forEach(logger::error);
+			throw new ValidacaoSiscapException(erros);
+		}
+
+		return true;
+
 	}
 
 }

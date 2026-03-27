@@ -19,6 +19,8 @@ import br.gov.es.siscap.utils.EnvioAvisoPedidoParecerGerenciaSubcapEmailBuilder;
 import br.gov.es.siscap.utils.EnvioAvisoProgramaAutuadoEdocsEmailBuilder;
 import br.gov.es.siscap.utils.EnvioAvisoSubcapDicAutuadoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioComplementoDicEmailBuilder;
+import br.gov.es.siscap.utils.EnvioDicElegivelEmailBuilder;
+import br.gov.es.siscap.utils.EnvioDicVinculadoProgramaEmailBuilder;
 import br.gov.es.siscap.utils.EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioRevisaoDicEmailBuilder;
 import br.gov.es.siscap.utils.ProspeccaoEmailBuilder;
@@ -80,6 +82,8 @@ public class EmailService {
 	private final EnvioAvisoParecerGeocSubcapRealizadoEmailBuilder builderEnvioEmailAvisoParecerGEOCRealizado;
 	private final EnvioAvisoPedidoAssinaturaProgramaEmailBuilder envioAvisoPedidoAssinaturaProgramaEmailBuilder;
 	private final EnvioAvisoProgramaAutuadoEdocsEmailBuilder envioAvisoProgramaAutuadoEmailBuilder;
+	private final EnvioDicElegivelEmailBuilder envioDicElegivelEmailBuilder;
+	private final EnvioDicVinculadoProgramaEmailBuilder envioDicVinculadoProgramaEmailBuilder;
 
 	public boolean enviarEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto, List<String> emailsInteressadosList,
 			String nomeArquivo) throws MessagingException, UnsupportedEncodingException {
@@ -97,12 +101,12 @@ public class EmailService {
 
 		helper.setFrom(remetente, apelido);
 		helper.setSubject(assuntoEmail != null ? assuntoEmail : "Assunto nao definido");
-		helper.setText( corpoEmail != null ? corpoEmail : "Corpo do email nao definido" , true);
+		helper.setText(corpoEmail != null ? corpoEmail : "Corpo do email nao definido", true);
 
 		this.anexarRelatorios(helper, prospeccaoDetalhesDto.cartaConsultaDetalhes(), nomeArquivo);
 
 		for (String emailInteressado : emailsInteressadosList) {
-			helper.setTo( emailInteressado != null ? emailInteressado : "" );
+			helper.setTo(emailInteressado != null ? emailInteressado : "");
 			try {
 				this.sender.send(helper.getMimeMessage());
 				confirmacaoEnvioEmailList.add(true);
@@ -328,7 +332,7 @@ public class EmailService {
 	}
 
 	public boolean enviarEmailAvisoParecerGeocSubcapRealizado(List<String> emailsInteressadosList, String descricaoDic,
-			Long idProjeto) throws MessagingException, UnsupportedEncodingException {
+			Long idProjeto) {
 
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
 				null,
@@ -349,8 +353,7 @@ public class EmailService {
 
 	}
 
-	public boolean enviarEmailSolicitandoAssinaturasPrograma(EnvioEmailDetalhesDto envioEmailDetalhesProgramaDto)
-			throws MessagingException, UnsupportedEncodingException {
+	public boolean enviarEmailSolicitandoAssinaturasPrograma(EnvioEmailDetalhesDto envioEmailDetalhesProgramaDto) {
 
 		envioAvisoPedidoAssinaturaProgramaEmailBuilder
 				.setSubEmailDestinatarios(envioEmailDetalhesProgramaDto.subAssinantesEmails());
@@ -395,7 +398,8 @@ public class EmailService {
 	public boolean enviarEmailAvisoProgramaAutuado(EnvioEmailDetalhesDto envioEmailProgramaAutuadoDetalhesDto)
 			throws MessagingException, UnsupportedEncodingException {
 
-		envioAvisoProgramaAutuadoEmailBuilder.setSubEmailDestinatarios(envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails());
+		envioAvisoProgramaAutuadoEmailBuilder
+				.setSubEmailDestinatarios(envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails());
 		envioAvisoProgramaAutuadoEmailBuilder.setDtoMontagemEmailDic(envioEmailProgramaAutuadoDetalhesDto);
 
 		boolean todosEnviados = true;
@@ -423,6 +427,50 @@ public class EmailService {
 		}
 
 		return todosEnviados;
+
+	}
+
+	public boolean enviarEmailAvisoDicElegivel(List<String> emailsInteressadosList, String descricaoDic,
+			Long idProjeto, String tituloDIC ) {
+
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
+				null,
+				null,
+				null,
+				null,
+				emailsInteressadosList,
+				tituloDIC,
+				null,
+				null,
+				null, null, null, null, "", "", "", null);
+
+		envioDicElegivelEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		envioDicElegivelEmailBuilder.setSiglaProjeto(descricaoDic);
+
+		return emailSender.enviarEmail(envioDicElegivelEmailBuilder,
+				envioEmailDicDetalhesDto.emailsInteressadosList());
+
+	}
+
+	public boolean enviarEmailAvisoDicVinculadoPrograma( List<String> emailsInteressadosList, String descricaoDic,
+			Long idProjeto, String descricaoPrograma) {
+
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
+				null,
+				null,
+				null,
+				null,
+				emailsInteressadosList,
+				null,
+				null,
+				null,
+				null, null, null, null, "", descricaoPrograma, "", null);
+
+		envioDicVinculadoProgramaEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		envioDicVinculadoProgramaEmailBuilder.setSiglaProjeto(descricaoDic);
+
+		return emailSender.enviarEmail(envioDicVinculadoProgramaEmailBuilder,
+				envioEmailDicDetalhesDto.emailsInteressadosList());
 
 	}
 
