@@ -11,7 +11,8 @@ public record ProgramaAssinaturaEdocsDto(
 		Integer statusAssinatura,
 		LocalDateTime dataAssinatura,
 		String nomeAssinante,
-		String papelAssinante) {
+		String papelAssinante,
+		String textoAssinanteRecusa) {
 
 	public ProgramaAssinaturaEdocsDto(ProgramaAssinaturaEdocs entity) {
 		this(
@@ -20,18 +21,20 @@ public record ProgramaAssinaturaEdocsDto(
 				entity.getPessoa().getId(),
 				entity.getStatusAssinatura(),
 				entity.getDataAssinatura(),
-				entity.getPessoa().getNome(), "");
+				entity.getPessoa().getNome(), "", "");
 	}
 
-	public ProgramaAssinaturaEdocsDto(ProgramaAssinaturaEdocs entity, String papelAssinante) {
+	public ProgramaAssinaturaEdocsDto(ProgramaAssinaturaEdocs entity, String papelAssinante,
+			String textoRecusaAssinante) {
 		this(
 				entity.getId(),
 				entity.getPrograma().getId(),
 				entity.getPessoa().getId(),
 				entity.getStatusAssinatura(),
 				entity.getDataAssinatura(),
-				entity.getPessoa().getNome(), 
-				papelAssinante);
+				entity.getPessoa().getNome(),
+				papelAssinante,
+				textoRecusaAssinante);
 	}
 
 }

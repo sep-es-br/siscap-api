@@ -45,7 +45,7 @@ public record ProgramaDto(
 										assinante.getStatusAssinatura(),
 										assinante.getDataAssinatura(),
 										assinante.getPessoa().getNome(),
-										""))
+										"",""))
 								.toList(),
 				programa.getProtocoloEdocs(),
 				programa.getIdDocumentoCapturadoEdocs(),
