@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,9 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ProgramaProcessamentoService {
+
+    @Value("${email.destinatario-subcap}")
+	private String emailSubcap;
 
     private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
     private final AcessoCidadaoService acessoCidadaoService;
@@ -133,7 +137,7 @@ public class ProgramaProcessamentoService {
                 .filter(a -> subAssinante.equals(a.getPessoa().getSub()))
                 .findFirst()
                 .orElseThrow(() -> new ValidacaoSiscapException(
-                        List.of("Existe(m) documento(s) a serem assinados.")));
+                        List.of("Não existe(m) documento(s) a serem assinados.")));
 
         assinatura.setDataAssinatura(LocalDateTime.now());
         assinatura.setStatusAssinatura(TipoStatusAssinaturaEnum.ASSINADO.getValue());
@@ -141,8 +145,10 @@ public class ProgramaProcessamentoService {
         boolean todosJaAssinaram = programa.getProgramaAssinantesEdocsSet().stream().allMatch(
                 assinante -> assinante.getStatusAssinatura().equals(TipoStatusAssinaturaEnum.ASSINADO.getValue()));
 
-        if (todosJaAssinaram)
+        if (todosJaAssinaram){
             programa.setStatus(StatusProgramaEnum.ASSINADO.getValue());
+            emailService.enviarEmailAvisoProgramaAssinadoSubcap( List.of(emailSubcap), programa);
+        }
 
         repository.saveAndFlush(programa);
 
