@@ -88,7 +88,8 @@ public class EmailService {
 	private final EnvioAvisoProgramaAutuadoEdocsEmailBuilder envioAvisoProgramaAutuadoEmailBuilder;
 	private final EnvioDicElegivelEmailBuilder envioDicElegivelEmailBuilder;
 	private final EnvioDicVinculadoProgramaEmailBuilder envioDicVinculadoProgramaEmailBuilder;
-
+	private final EnvioAvisoSubcapProgramaAssinadoEmailBuilder envioAvisoSubcapProgramaAssinadoEmailBuilder;
+	
 	public boolean enviarEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto, List<String> emailsInteressadosList,
 			String nomeArquivo) throws MessagingException, UnsupportedEncodingException {
 
