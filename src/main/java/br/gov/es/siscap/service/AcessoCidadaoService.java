@@ -1,7 +1,10 @@
 package br.gov.es.siscap.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -123,6 +126,29 @@ public class AcessoCidadaoService {
     public EmailSubResponseDto buscarEmailsPorSub(String sub) {
         return new EmailSubResponseDto(
             ACWebClient.buscarEmailCorporativoPorSub(ACAuthService.getAuthorizationHeader(), sub));
+    }
+
+    public Map<String, String> buscarEmailsPorListaSub(List<String> subs) {
+
+        Map<String, String> emailsSubAssinates = new HashMap<>();
+
+        subs.forEach( sub -> {
+
+            EmailSubResponseDto emailsSub = this.buscarEmailsPorSub(sub);
+            String emailAssinanteAC = "";
+
+            if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
+                emailAssinanteAC = emailsSub.corporativo();
+            } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+                emailAssinanteAC = emailsSub.email();
+            }
+
+            emailsSubAssinates.put(sub, emailAssinanteAC);
+
+        });
+
+        return emailsSubAssinates;
+
     }
 
 }

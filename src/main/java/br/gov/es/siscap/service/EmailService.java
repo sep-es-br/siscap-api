@@ -42,6 +42,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -431,13 +432,17 @@ public class EmailService {
 
 		for (String email : emailsUnicos) {
 
-			String nomeDestinatario = Optional
-					.ofNullable(envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails().get(email))
-					.filter(sub -> !sub.isBlank())
-					.flatMap(sub -> Optional.ofNullable(pessoaPessoaService.buscarPorSub(sub))
-							.map(Pessoa::getNome)
-							.filter(nome -> !nome.isBlank())
-							.or(() -> buscarNomeNoAcessoCidadaoOptional(sub)))
+			Optional<String> sub = envioEmailProgramaAutuadoDetalhesDto.subAssinantesEmails().entrySet()
+					.stream()
+					.filter(entry -> entry.getValue().equals(email))
+					.map(Map.Entry::getKey)
+					.findFirst();
+
+			String nomeDestinatario = sub
+					.flatMap(s -> Optional.ofNullable(pessoaPessoaService.buscarPorSub(s)))
+					.map(Pessoa::getNome)
+					.filter(nome -> !nome.isBlank())
+					.or(() -> sub.flatMap(this::buscarNomeNoAcessoCidadaoOptional))
 					.orElse("");
 
 			envioAvisoProgramaAutuadoEmailBuilder.setEmailEmProcessamento(email);

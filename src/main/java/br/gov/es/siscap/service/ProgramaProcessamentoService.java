@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,8 +23,11 @@ import br.gov.es.siscap.dto.acessocidadaoapi.EmailSubResponseDto;
 import br.gov.es.siscap.enums.StatusProgramaEnum;
 import br.gov.es.siscap.enums.TipoStatusAssinaturaEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
+import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
+import br.gov.es.siscap.models.ProgramaPessoa;
+import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import jakarta.mail.MessagingException;
@@ -45,6 +49,7 @@ public class ProgramaProcessamentoService {
 
     private final Logger logger = LogManager.getLogger(ProgramaProcessamentoService.class);
 
+    @Transactional
     public void marcarCriacaoArquivoProgramaEdocs(Long idPrograma, List<String> assinantesEdocsPrograma,
             String idDocumentoEdocs) {
         this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma, idDocumentoEdocs);
@@ -122,7 +127,7 @@ public class ProgramaProcessamentoService {
 
     }
 
-    private Programa buscarPrograma(Long id) {
+    private Programa buscarPrograma(long id) {
         return repository.findById(id).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
     }
 
@@ -156,6 +161,7 @@ public class ProgramaProcessamentoService {
 
     }
 
+    @Transactional
     public void marcarProgramaAutuadoEdocsEAvisoAutuado(ProgramaDto programaDto,
             String protocoloEdocs, String idProcessoEdocs) {
 
@@ -195,8 +201,7 @@ public class ProgramaProcessamentoService {
 
     }
 
-    @Transactional
-    public void marcarProgramaAutuado(Long idPrograma, String protocoloEdocs, String idProcessoEdocs) {
+    public void marcarProgramaAutuado(long idPrograma, String protocoloEdocs, String idProcessoEdocs) {
 
         Programa programa = repository.findById(idPrograma)
                 .orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));
@@ -219,36 +224,28 @@ public class ProgramaProcessamentoService {
             throw new ValidacaoSiscapException(erros);
         }
 
-        List<String> emailsInteressadosList = new ArrayList<String>();
-        Map<String, String> emailsSubAssinates = new HashMap<>();
-
-        subAssinantes.forEach(sub -> {
-            EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
-            String emailAssinanteAC = "";
-
-            if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
-                emailAssinanteAC = emailsSub.corporativo();
-            } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
-                emailAssinanteAC = emailsSub.email();
-            }
-            emailsInteressadosList.add(emailAssinanteAC);
-            emailsSubAssinates.put(emailAssinanteAC, sub);
-        });
-
-        // subAssinantes.forEach(sub -> {
-        // EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
-        // if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
-        // emailsInteressadosList.add(emailsSub.corporativo());
-        // } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
-        // emailsInteressadosList.add(emailsSub.email());
-        // }
-        // });
+        Map<String, String> emailsSubAssinates = acessoCidadaoService.buscarEmailsPorListaSub(subAssinantes);
 
         Programa programa = this.buscarPrograma(idPrograma);
 
         String tituloPrograma = programa.getTitulo();
         String siglaPrograma = programa.getSigla();
         String protocoloEdocsPrograma = programa.getProtocoloEdocs();
+
+        List<String> subsEquipeCapacitacaoPrograma = programa.getProgramaPessoaSet()
+                .stream()
+                .map(ProgramaPessoa::getPessoa)
+                .map(Pessoa::getSub)
+                .toList();
+
+        if (!subsEquipeCapacitacaoPrograma.isEmpty()) {
+            emailsSubAssinates.putAll(acessoCidadaoService.buscarEmailsPorListaSub(subsEquipeCapacitacaoPrograma));
+        }
+
+        List<String> emailsInteressadosList = emailsSubAssinates.values()
+                .stream()
+                .distinct()
+                .toList();
 
         boolean confirmacaoEnvioEmail;
 
@@ -261,15 +258,6 @@ public class ProgramaProcessamentoService {
                     emailsSubAssinates,
                     protocoloEdocsPrograma);
 
-            // EnvioEmailDetalhesDto envioEmailDetalhesDto = new
-            // EnvioEmailDetalhesDto(idPrograma,
-            // "",
-            // "",
-            // emailsInteressadosList,
-            // tituloPrograma,
-            // siglaPrograma,
-            // protocoloEdocsPrograma);
-
             confirmacaoEnvioEmail = emailService.enviarEmailAvisoProgramaAutuado(envioEmailDetalhesDto);
 
             if (confirmacaoEnvioEmail) {
@@ -281,9 +269,7 @@ public class ProgramaProcessamentoService {
                         "Falha ao enviar e-mail de aviso de autuação do programa no E-Docs. ProgramaId= " + idPrograma);
             }
 
-        } catch (UnsupportedEncodingException e) {
-            logger.error(e.getMessage());
-        } catch (MessagingException e) {
+        } catch (UnsupportedEncodingException | MessagingException e) {
             logger.error(e.getMessage());
         }
 
