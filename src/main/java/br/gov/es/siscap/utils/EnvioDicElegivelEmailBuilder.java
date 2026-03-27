@@ -10,23 +10,29 @@ import lombok.Setter;
 @Getter
 @Setter
 @Component
-public class EnvioAvisoPedidoParecerGerenciaSubcapEmailBuilder extends EmailBuilderBase {
+public class EnvioDicElegivelEmailBuilder extends EmailBuilderBase {
 
 	String siglaProjeto;
 
 	@Override
 	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
-		return "Prezado(a) Gestor(a) da <strong>GEOC - Gerência de Operação de Crédito</strong>";
+		return "Prezados(as)";
 	}
 
 	@Override
 	public String montarAssuntoEmail() {
-		return "Pedido parecer gerencial SUBCAP DIC %s".formatted(this.getSiglaProjeto());
+		return "DIC %s - ELEGÍVEL".formatted(this.getSiglaProjeto());
 	}
 
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
-		return "Comunicamos que há um <strong>DIC (Documento Inicial para Captação)</strong> disponível para <strong>emissão de parecer</strong>.";
+		return "Informamos que o DIC [<strong>%s</strong>] está elegível para ser vinculado a um programa de captação."
+				.formatted(dto.tituloProjeto());
+	}
+
+	@Override
+	protected String montarLinkAcesso(EnvioEmailDetalhesDto dto) {
+		return "";
 	}
 
 }

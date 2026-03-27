@@ -60,7 +60,7 @@ public class IntegraccaoEdocsService {
 	private final AutenticacaoService autenticacaoService;
 	private final RelatoriosService relatoriosService;
 	private final ProjetoParecerService projetoParecerService;
-        private final PessoaService pessoaSrv;
+	private final PessoaService pessoaSrv;
 
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
@@ -134,7 +134,8 @@ public class IntegraccaoEdocsService {
 				.add(etapa);
 	}
 
-	public void assinarAutuarDespacharDicProccessoSUBCAP(Resource arquivoDic, String nomeArquivo, Long idProjeto, Pessoa pessoa) {
+	public void assinarAutuarDespacharDicProccessoSUBCAP(Resource arquivoDic, String nomeArquivo, Long idProjeto,
+			Pessoa pessoa) {
 
 		logger.info("Iniciando processo para Autuacao/Despacho do projeto {} para SUBCAP..", idProjeto);
 
@@ -147,7 +148,7 @@ public class IntegraccaoEdocsService {
 		autuarDicProjetoReativo(projetoDtoIntegrando, arquivoDic, nomeArquivo, pessoa)
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
-						erro -> logger.info("ERRO: {}", erro));
+						erro -> logger.error("ERRO: {}", erro.getMessage()));
 
 	}
 
@@ -169,6 +170,7 @@ public class IntegraccaoEdocsService {
 
 		Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
 				projetoParecerService.buscarTipoParecer(idParecer));
+
 		String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
 
 		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
@@ -179,18 +181,19 @@ public class IntegraccaoEdocsService {
 				.flatMap(mensagem -> {
 					logger.info("SUCESSO: {}", mensagem);
 					if (projetoParecerService.buscarTipoParecer(idParecer).equals("GEOC")) {
-						return this.entranharParecerProcesso(projetoDto, idParecer, subJwt);
+						return this.entranharParecerProcesso(projetoDto, subJwt);
 					} else {
 						return Mono.empty();
 					}
 				})
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
-						erro -> logger.error("ERRO: {}", erro));
+						erro -> logger.error("ERRO: {}", erro.getMessage()));
 
 	}
 
-	public void despacharProccessoEdocsOrgaoOrigem(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos, Pessoa pessoa) {
+	public void despacharProccessoEdocsOrgaoOrigem(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos,
+			Pessoa pessoa) {
 
 		logger.info("Iniciando processo para despachar processo E-Docs DIC do projeto {} para Orgao de Origem..",
 				idProjeto);
@@ -203,7 +206,8 @@ public class IntegraccaoEdocsService {
 
 		this.despacharProcessoEdcosDicComplementarReativo(projetoDto)
 				.doOnSuccess(
-						retorno -> projetoService.enviarAvisoSolicitarComplementacaoProjeto(idProjeto, complementos, pessoa))
+						retorno -> projetoService.enviarAvisoSolicitarComplementacaoProjeto(idProjeto, complementos,
+								pessoa))
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
 						erro -> logger.info("ERRO: {}", erro));
@@ -311,7 +315,8 @@ public class IntegraccaoEdocsService {
 				.thenReturn("Encerramento do processo no Edocs realizado com sucesso.");
 	}
 
-	public Mono<String> autuarDicProjetoReativo(ProjetoDto projetoDto, Resource arquivo, String nomeArquivo, Pessoa pessoa) {
+	public Mono<String> autuarDicProjetoReativo(ProjetoDto projetoDto, Resource arquivo, String nomeArquivo,
+			Pessoa pessoa) {
 
 		final long tamanho;
 		try {
@@ -541,7 +546,7 @@ public class IntegraccaoEdocsService {
 					if (retornoDadosProcesso.protocolo() != null && !retornoDadosProcesso.protocolo().isEmpty())
 						projetoService.atualizarProtocoloProcessoEdocsProjeto(ctx.getProjeto().id(),
 								retornoDadosProcesso.protocolo(),
-                                                                pessoa);
+								pessoa);
 
 					if (ctx.getIdDocumentos() != null && !ctx.getIdDocumentos()[0].isEmpty())
 						projetoService.atualizarIdArquivoCapturadoProcessoEdocsProjeto(ctx.getProjeto().id(),
@@ -1050,7 +1055,7 @@ public class IntegraccaoEdocsService {
 						EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
 						true, false))
 				.doOnSuccess(urlDto -> {
-					//logger.info("URL gerada: {}", urlDto);
+					// logger.info("URL gerada: {}", urlDto);
 					ctx.setDtoUploadArquivoResponse(urlDto);
 				})
 				.doOnError(e -> {
@@ -1440,7 +1445,7 @@ public class IntegraccaoEdocsService {
 		this.entranharDocumentosProcesso(projetoDto, pareceresProjeto)
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
-						erro -> logger.info("ERRO: {}", erro));
+						erro -> logger.info("ERRO: {}", erro.getMessage()));
 
 	}
 
@@ -1469,7 +1474,7 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	private Mono<String> entranharParecerProcesso(ProjetoDto projetoDto, Long idParecer, String subJwt) {
+	private Mono<String> entranharParecerProcesso(ProjetoDto projetoDto, String subJwt) {
 
 		Projeto projeto = projetoService.buscar(projetoDto.id());
 

@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.EquipeDto;
+import br.gov.es.siscap.dto.OrganizacaoDto;
 import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
@@ -315,23 +316,6 @@ public class ProgramaService {
 		return subJwt;
 
 	}
-
-	// private void validarAssinaturasSolicitadas(long idPrograma) {
-	// List<String> erros = new ArrayList<>();
-	// Programa programa = this.buscar(idPrograma);
-	// Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma =
-	// programa.getProgramaAssinantesEdocsSet();
-	// if (!assinantesDevemAssinarPrograma.isEmpty()) {
-	// erros.add(
-	// "Assinaturas já solicitadas para o programa id " + programa.getId() + ".");
-	// erros.forEach(logger::error);
-	// throw new ValidacaoSiscapException(erros);
-	// }
-	// if (!erros.isEmpty()) {
-	// erros.forEach(logger::error);
-	// throw new ValidacaoSiscapException(erros);
-	// }
-	// }
 
 	public void autuarProgramaEdocs(Long idPrograma) {
 		Programa programa = this.buscar(idPrograma);
