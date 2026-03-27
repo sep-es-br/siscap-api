@@ -503,11 +503,16 @@ public class IntegraccaoEdocsService {
 									ctx.getProjeto().sigla());
 						}
 
-						if (projetoParecerService.verificarEnvioParecereGEOCProjeto(ctx.getProjeto().id()))
-							projetoService.alterarStatusProjeto(
+						if (projetoParecerService.verificarEnvioParecereGEOCProjeto(ctx.getProjeto().id())){
+							projetoService.alterarStatusAtualProjetoByIdProjeto(
 									ctx.getProjeto().id(),
 									StatusProjetoEnum.ELEGIVEL.getValue(),
-                                                                        this.pessoaSrv.buscarPorSub(subUsuarioLogado));
+                                                                        subUsuarioLogado);
+                                                        projetoService.finalizarStatusAtualProjetoByIdProjeto(
+                                                                        ctx.getProjeto().id(), 
+                                                                        subUsuarioLogado);
+                                                }
+                                                
 
 						return "Atualização do parecer concluída com sucesso.";
 

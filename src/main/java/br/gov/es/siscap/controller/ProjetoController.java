@@ -133,8 +133,7 @@ public class ProjetoController {
                 
                 String subNovo = this.tokenService.validarToken(token);
                 
-                Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
-		service.alterarStatusProjeto(id, status.get("status"), pessoa);
+		service.alterarStatusAtualProjetoByIdProjeto(id, status.get("status"), subNovo);
 		return ResponseEntity.ok().body("Status do projeto alterado com sucesso!");
 	}
 

@@ -23,6 +23,7 @@ import br.gov.es.siscap.models.ProjetoIndicador;
 import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.models.TipoMotivoArquivamento;
+import br.gov.es.siscap.repository.PessoaRepository;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import br.gov.es.siscap.specification.ProjetoSpecification;
 import br.gov.es.siscap.utils.FormatadorCountAno;
@@ -48,6 +49,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 @Service
 @RequiredArgsConstructor
@@ -55,6 +57,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProjetoService {
 
 	private final ProjetoRepository repository;
+        private final PessoaRepository pessoaRepository;
+        
 	private final ProjetoPessoaService projetoPessoaService;
 	private final LocalidadeQuantiaService localidadeQuantiaService;
 	private final OrganizacaoService organizacaoService;
@@ -433,7 +437,7 @@ public class ProjetoService {
 			if (form.enviarProjetoPedirParecer()) {
 				logger.info("Envio email para solicitar pareceres Estrategico e Orçamentario");
 				if (this.enviarEmailPareceresEstrategicoOrcamentario(id, subResponsavelProponente, nomeProponente)) {
-					this.alterarStatusProjeto(id, StatusProjetoEnum.PARECER_SEP.getValue(), pessoa);
+					projeto.alterarStatus(StatusProjetoEnum.PARECER_SEP.getValue(), pessoa);
 					entityManager.flush();
 				}
 			}
@@ -489,7 +493,8 @@ public class ProjetoService {
 
 			projeto.setJustificativaExclusaoLogica(justificativa);
 
-			this.alterarStatusProjeto(id, StatusProjetoEnum.ENCERRADO.getValue(), pessoa);
+			projeto.alterarStatus(StatusProjetoEnum.ENCERRADO.getValue(), pessoa);
+                        projeto.finalizarStatusAtual(pessoa);
 
 			this.exclusaoLogica(projeto);
 
@@ -573,23 +578,6 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public void alterarStatusProjeto(Long id, String novoStatus, Pessoa pessoa) {
-
-		logger.info("Alterando status do projeto {} para {}.", id, novoStatus);
-
-		StatusProjetoEnum novoStatusEnum = StatusProjetoEnum.fromDescricao(novoStatus);
-
-		Projeto projeto = this.buscar(id);
-
-		projeto.alterarStatus(novoStatus, pessoa);
-
-		novoStatusEnum.validar(projeto);
-
-		repository.save(projeto);
-
-	}
-
-	@Transactional
 	public void inserirComplementacoesSeremRealizadasDIC(Projeto projeto,
 			List<ProjetoCamposComplementacaoDto> complementos) {
 
@@ -660,7 +648,7 @@ public class ProjetoService {
 
 					logger.info("Email enviado com sucesso");
 
-					this.alterarStatusProjeto(id, StatusProjetoEnum.EM_ELABORACAO.getValue(), pessoa);
+					projeto.alterarStatus(StatusProjetoEnum.EM_ELABORACAO.getValue(), pessoa);
 
 				} else {
 					erros.add("Erro ao enviar solicitação de revisão do projeto id " + id);
@@ -698,6 +686,7 @@ public class ProjetoService {
 		}
 
 		Projeto projeto = this.buscar(id);
+                pessoa = this.pessoaRepository.findById(pessoa.getId()).orElseThrow();
 
 		Optional<Pessoa> proponenteProjeto = projeto.getProjetoPessoaSet()
 				.stream()
@@ -729,7 +718,7 @@ public class ProjetoService {
 					logger.info(
 							"Email aviso solicitação de complementação do projeto enviado com sucesso para o projeto id "
 									+ id);
-					this.alterarStatusProjeto(id, StatusProjetoEnum.COMPLEMETACAO.getValue(), pessoa);
+					projeto.alterarStatus(StatusProjetoEnum.COMPLEMETACAO.getValue(), pessoa);
 					this.inserirComplementacoesSeremRealizadasDIC(projeto, complementos);
 				} else {
 					erros.add("Erro ao enviar aviso para complementação do projeto id " + id);
@@ -911,7 +900,8 @@ public class ProjetoService {
 
 				if (confirmacaoEnvioEmail) {
 					logger.info("Email aviso arquivamento projeto enviado com sucesso do projeto id " + id);
-					this.alterarStatusProjeto(id, StatusProjetoEnum.ARQUIVADO.getValue(), pessoa);
+					projeto.alterarStatus(StatusProjetoEnum.ARQUIVADO.getValue(), pessoa);
+                                        projeto.finalizarStatusAtual(pessoa);
 					this.registrarMotivoArquivamentoProjeto(id, codigoMotivoArquivamento, justificativa);
 				} else {
 					erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id);
@@ -1321,5 +1311,51 @@ public class ProjetoService {
 				})
 				.toList();
 	}
+        
+        @Transactional
+        public void alterarStatusAtualProjetoByIdProjeto(
+                Long idProjeto,
+                String novoStatus,
+                Long idPessoa
+        ) {
+            Projeto projeto = this.buscar(idProjeto);
+            Pessoa pessoa = this.pessoaRepository.findById(idPessoa).orElseThrow();
+            
+            projeto.alterarStatus(novoStatus, pessoa);
+        }
+        
+        @Transactional
+        public void alterarStatusAtualProjetoByIdProjeto(
+                Long idProjeto,
+                String novoStatus,
+                String subPessoa
+        ) {
+            Projeto projeto = this.buscar(idProjeto);
+            Pessoa pessoa = this.pessoaRepository.findBySub(subPessoa).orElseThrow();
+            
+            projeto.alterarStatus(novoStatus, pessoa);
+        }
+        
+        @Transactional
+        public void finalizarStatusAtualProjetoByIdProjeto(
+                Long idProjeto,
+                Long idPessoa
+        ) {
+            Projeto projeto = this.buscar(idProjeto);
+            Pessoa pessoa = this.pessoaRepository.findById(idPessoa).orElseThrow();
+            
+            projeto.finalizarStatusAtual(pessoa);
+        }
+        
+        @Transactional
+        public void finalizarStatusAtualProjetoByIdProjeto(
+                Long idProjeto,
+                String subPessoa
+        ) {
+            Projeto projeto = this.buscar(idProjeto);
+            Pessoa pessoa = this.pessoaRepository.findBySub(subPessoa).orElseThrow();
+            
+            projeto.finalizarStatusAtual(pessoa);
+        }
 
 }
