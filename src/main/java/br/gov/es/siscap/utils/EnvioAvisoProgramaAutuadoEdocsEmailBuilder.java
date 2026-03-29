@@ -3,7 +3,6 @@ package br.gov.es.siscap.utils;
 import java.util.Map;
 import java.util.Objects;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
@@ -15,15 +14,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class EnvioAvisoProgramaAutuadoEdocsEmailBuilder extends EmailBuilderBase {
-
-	@Value("${api.programa.assinantes.gestorSUBCAP}")
-	private String assinanteEdocsProgramaGestorSUBCAP;
-
-	@Value("${api.programa.assinantes.gestorSEP}")
-	private String assinanteEdocsProgramaGestorSEP;
-
-	@Value("${api.programa.assinantes.gestorGOVES}")
-	private String assinanteEdocsProgramaGestorGOVES;
 
 	private Map<String, String> subEmailDestinatarios;
 	private String emailEmProcessamento;
