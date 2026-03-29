@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.enums.edocs.ContextoIntegracaoEdocsEnum;
 import br.gov.es.siscap.models.Pessoa;
 import java.util.List;
@@ -24,15 +25,15 @@ public class AsyncExecutorService {
     private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
     @Async
-    public void executarAutuacaoEdocs(Long idProjeto, Pessoa pessoa) {
-        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue());
+    public void executarAutuacaoEdocs(Long idProjeto, Pessoa pessoa, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) {
+        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue(), exibirMarcaDagua);
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
         integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP(resource, nomeArquivo, idProjeto.longValue(), pessoa);
     }
 
     @Async
-    public void executarReentranhamentoDicEdocs(Long idProjeto, Pessoa pessoa) {
-        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue());
+    public void executarReentranhamentoDicEdocs(Long idProjeto, Pessoa pessoa, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) {
+        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue(), exibirMarcaDagua);
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
         integracaoEdocsService.reentranharDespacharDicProccessoComplementacaoSUBCAP(resource, nomeArquivo,
                 idProjeto.longValue(), pessoa);

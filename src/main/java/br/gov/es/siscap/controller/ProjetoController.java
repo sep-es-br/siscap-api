@@ -201,7 +201,7 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 		service.atualizar(idProjeto, form, false, pessoa);
-		asyncExecutorService.executarAutuacaoEdocs(idProjeto, pessoa);
+		asyncExecutorService.executarAutuacaoEdocs(idProjeto, pessoa, ExibirMarcaDaguaProgramaEnum.NAOEXIBIR);
 		return ResponseEntity.accepted().build();
 	}
 
@@ -237,7 +237,7 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 		service.atualizar(idProjeto, form, false, pessoa);
-		asyncExecutorService.executarReentranhamentoDicEdocs(idProjeto, pessoa);
+		asyncExecutorService.executarReentranhamentoDicEdocs(idProjeto, pessoa, ExibirMarcaDaguaProgramaEnum.NAOEXIBIR);
 		return ResponseEntity.accepted().build();
 	}
 

@@ -7,6 +7,7 @@ import br.gov.es.siscap.dto.ProspeccaoDetalhesDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
+import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
@@ -92,7 +93,7 @@ public class EmailService {
 	private final EnvioAvisoSubcapProgramaAssinadoEmailBuilder envioAvisoSubcapProgramaAssinadoEmailBuilder;
 	
 	public boolean enviarEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto, List<String> emailsInteressadosList,
-			String nomeArquivo) throws MessagingException, UnsupportedEncodingException {
+			String nomeArquivo, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) throws MessagingException, UnsupportedEncodingException {
 
 		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
 
@@ -109,7 +110,7 @@ public class EmailService {
 		helper.setSubject(assuntoEmail != null ? assuntoEmail : "Assunto nao definido");
 		helper.setText(corpoEmail != null ? corpoEmail : "Corpo do email nao definido", true);
 
-		this.anexarRelatorios(helper, prospeccaoDetalhesDto.cartaConsultaDetalhes(), nomeArquivo);
+		this.anexarRelatorios(helper, prospeccaoDetalhesDto.cartaConsultaDetalhes(), nomeArquivo, exibirMarcaDagua);
 
 		for (String emailInteressado : emailsInteressadosList) {
 			helper.setTo(emailInteressado != null ? emailInteressado : "");
@@ -126,26 +127,26 @@ public class EmailService {
 	}
 
 	private void anexarRelatorios(MimeMessageHelper helper, CartaConsultaDetalhesDto cartaConsultaDetalhesDto,
-			String nomeArquivo) throws MessagingException {
+			String nomeArquivo, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) throws MessagingException {
 
 		ObjetoOpcoesDto cartaConsultaObjeto = cartaConsultaDetalhesDto.objeto();
 
 		if (cartaConsultaObjeto.tipo().equals("Projeto")) {
-			this.prepararRecursoRelatorio(helper, cartaConsultaObjeto.id().intValue(), nomeArquivo);
+			this.prepararRecursoRelatorio(helper, cartaConsultaObjeto.id().intValue(), nomeArquivo, exibirMarcaDagua);
 		}
 
 		List<OpcoesDto> projetosPropostosList = cartaConsultaDetalhesDto.projetosPropostos();
 
 		if (!projetosPropostosList.isEmpty()) {
 			for (OpcoesDto projetoProposto : projetosPropostosList) {
-				this.prepararRecursoRelatorio(helper, projetoProposto.id().intValue(), nomeArquivo);
+				this.prepararRecursoRelatorio(helper, projetoProposto.id().intValue(), nomeArquivo, exibirMarcaDagua);
 			}
 		}
 	}
 
-	private void prepararRecursoRelatorio(MimeMessageHelper helper, int idProjeto, String nomeArquivo)
+	private void prepararRecursoRelatorio(MimeMessageHelper helper, int idProjeto, String nomeArquivo,ExibirMarcaDaguaProgramaEnum exibirMarcaDagua)
 			throws MessagingException {
-		Resource relatorioDIC = this.relatoriosService.gerarArquivo("DIC", idProjeto);
+		Resource relatorioDIC = this.relatoriosService.gerarArquivo("DIC", idProjeto, exibirMarcaDagua);
 		helper.addAttachment(nomeArquivo, relatorioDIC);
 	}
 
