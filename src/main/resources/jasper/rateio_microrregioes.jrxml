@@ -1,9 +1,11 @@
 <!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="rateio" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="0381e3be-37a4-4d7c-9ff2-6086efdb852d">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="pg_siscap_dev"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Siscap Hml"/>
 	<parameter name="idProjeto" class="java.lang.Integer"/>
-	<parameter name="pathRelatorios" class="java.lang.String"/>
+	<parameter name="pathRelatorios" class="java.lang.String">
+		<defaultValueExpression><![CDATA["."]]></defaultValueExpression>
+	</parameter>
 	<query language="plsql"><![CDATA[with total as (select
 	sum(lq.quantia) as total
 	from localidade_quantia lq
@@ -75,17 +77,17 @@ order by
 	<background splitType="Stretch"/>
 	<detail>
 		<band height="25">
-			<element kind="textField" uuid="fa4a8112-a52d-4c93-b2bb-8b2ec48f7460" x="0" y="0" width="267" height="20" forecolor="#0A588F">
+			<element kind="textField" uuid="fa4a8112-a52d-4c93-b2bb-8b2ec48f7460" x="0" y="0" width="267" height="20" forecolor="#0A588F" bold="true">
 				<expression><![CDATA[ (EQUALS($F{tipo_localidade}, "Estado") ? "Todo o Estado" : $F{nome_localidade})]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
-			<element kind="textField" uuid="be14b82a-fe29-404d-ad56-ea1f5d161a60" x="267" y="0" width="178" height="20" forecolor="#0A588F">
+			<element kind="textField" uuid="be14b82a-fe29-404d-ad56-ea1f5d161a60" x="267" y="0" width="178" height="20" forecolor="#0A588F" bold="true">
 				<expression><![CDATA[TEXT($F{quantia_localidade}, "¤ #,##0.00;¤ -#,##0.00")]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
-			<element kind="textField" uuid="4c8c7985-df72-4692-ba06-b3ba3df29c3a" x="445" y="0" width="89" height="20" forecolor="#0A588F" hTextAlign="Right">
+			<element kind="textField" uuid="4c8c7985-df72-4692-ba06-b3ba3df29c3a" x="445" y="0" width="89" height="20" forecolor="#0A588F" bold="true" hTextAlign="Right">
 				<expression><![CDATA[TEXT($F{percentual_localidade}, "###,##0.00'%'")]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>

@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.edocswebapi.EtapasIntegracaoDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
+import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.service.AsyncExecutorService;
@@ -179,7 +180,8 @@ public class ProjetoController {
 
 	@GetMapping("/dic/{idProjeto}")
 	public ResponseEntity<Resource> gerarDIC(@PathVariable Integer idProjeto) {
-		Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto);
+		Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto,
+                        ExibirMarcaDaguaProgramaEnum.EXIBIR);
 		String nomeArquivo = service.gerarNomeArquivo(idProjeto);
 		String contentType = "application/pdf";
 		return ResponseEntity.ok()
