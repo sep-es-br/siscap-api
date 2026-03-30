@@ -1,11 +1,10 @@
 package br.gov.es.siscap.enums;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Arrays;
-
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Projeto;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

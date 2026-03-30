@@ -5,12 +5,10 @@ import br.gov.es.siscap.form.CartaConsultaForm;
 import br.gov.es.siscap.utils.PreencherZerosEsquerda;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.Set;
-
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 

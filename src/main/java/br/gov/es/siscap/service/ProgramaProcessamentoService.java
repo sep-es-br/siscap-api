@@ -10,6 +10,7 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
+import br.gov.es.siscap.models.ProgramaPessoa;
 import br.gov.es.siscap.repository.PessoaRepository;
 import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
@@ -17,7 +18,6 @@ import jakarta.mail.MessagingException;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +47,6 @@ public class ProgramaProcessamentoService {
 
     private final Logger logger = LogManager.getLogger(ProgramaProcessamentoService.class);
 
-    @Transactional
     @Transactional
     public void marcarCriacaoArquivoProgramaEdocs(Long idPrograma, List<String> assinantesEdocsPrograma,
             String idDocumentoEdocs, Long idPessoa) {
@@ -210,6 +209,7 @@ public class ProgramaProcessamentoService {
         programa.setIdProcessoEdocs(idProcessoEdocs);
         programa.setProtocoloEdocs(protocoloEdocs);
         programa.alterarStatus(StatusProgramaEnum.AUTUADO, pessoa);
+        programa.getStatusAtual().finalizarStatus(pessoa);
 
         repository.saveAndFlush(programa);
 
@@ -265,11 +265,6 @@ public class ProgramaProcessamentoService {
         if (!subsEquipeCapacitacaoPrograma.isEmpty()) {
             emailsSubAssinates.putAll(acessoCidadaoService.buscarEmailsPorListaSub(subsEquipeCapacitacaoPrograma));
         }
-
-        List<String> emailsInteressadosList = emailsSubAssinates.values()
-                .stream()
-                .distinct()
-                .toList();
 
         boolean confirmacaoEnvioEmail;
 
