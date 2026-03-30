@@ -5,6 +5,7 @@ import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.form.ProjetoForm;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -116,7 +117,7 @@ public class Projeto extends ControleHistorico {
 
 	@Column(name = "id_documento_edocs", nullable = false, length = 50)
 	private String idDocumentoCapturadoEdocs;
-	
+
 	@Column(name = "id_processo_edocs", nullable = false, length = 50)
 	private String idProcessoEdocs;
 
@@ -128,11 +129,11 @@ public class Projeto extends ControleHistorico {
 
 	@OneToMany(mappedBy = "projeto")
 	private Set<ProjetoParecer> projetoParecerSet;
-        
-        @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
-        @Setter(AccessLevel.NONE)
-        private Set<StatusProjeto> historicoStatus;
-        
+
+	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Setter(AccessLevel.NONE)
+	private Set<StatusProjeto> historicoStatus;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
@@ -167,7 +168,7 @@ public class Projeto extends ControleHistorico {
 	}
 
 	public boolean isStatusElegivel() {
-		return Objects.equals( this.getStatusAtual().getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
+		return Objects.equals(this.getStatusAtual().getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
 	}
 
 	public boolean isElegivelParaVinculo() {
@@ -175,14 +176,14 @@ public class Projeto extends ControleHistorico {
 		if (!this.isStatusElegivel()) {
 			return false;
 		}
-		
+
 		if (this.getPrograma() == null) {
 			return true;
 		}
-		
-		return this.getPrograma().isRecusado() 
-			|| this.getPrograma().isEmEdicao();
-		
+
+		return this.getPrograma().isRecusado()
+				|| this.getPrograma().isEmEdicao();
+
 	}
 
 	private void setDadosProjeto(ProjetoForm form) {
@@ -200,39 +201,46 @@ public class Projeto extends ControleHistorico {
 		this.setPecasPlanejamento(form.pecasPlanejamento());
 		this.setProtocoloEdocs(form.protocoloEdocs());
 	}
-        
-        public void alterarStatus(String novoStatus, Pessoa pessoa) {
-            LocalDateTime agora = LocalDateTime.now();
 
-            // Finaliza o status atual, se existir
-            StatusProjeto atual = this.getStatusAtual();
-            if (atual != null) {
-                atual.setFimEm(agora);
-            }
+	public void alterarStatus(String novoStatus, Pessoa pessoa) {
+		LocalDateTime agora = LocalDateTime.now();
 
-            // Cria novo status
-            StatusProjeto novoStatusProjeto = new StatusProjeto();
-            novoStatusProjeto.setProjeto(this);
-            novoStatusProjeto.setInicioEm(agora);
-            novoStatusProjeto.setStatus(novoStatus);
-            novoStatusProjeto.setPessoa(pessoa);
+		// Finaliza o status atual, se existir
+		StatusProjeto atual = this.getStatusAtual();
+		if (atual != null) {
+			atual.setFimEm(agora);
+		}
 
-            // Inicializa coleção se estiver nula
-            if (this.getHistoricoStatus() == null) {
-                this.historicoStatus = new HashSet<>();
-            }
+		// Cria novo status
+		StatusProjeto novoStatusProjeto = new StatusProjeto();
+		novoStatusProjeto.setProjeto(this);
+		novoStatusProjeto.setInicioEm(agora);
+		novoStatusProjeto.setStatus(novoStatus);
+		novoStatusProjeto.setPessoa(pessoa);
 
-            this.getHistoricoStatus().add(novoStatusProjeto);
+		// Inicializa coleção se estiver nula
+		if (this.getHistoricoStatus() == null) {
+			this.historicoStatus = new HashSet<>();
+		}
 
-        }
-        
-        @Transient
-        public StatusProjeto getStatusAtual() {
-            if(historicoStatus == null) return null;
-            return historicoStatus.stream()
-                .filter(s -> s.getFimEm() == null)
-                .findFirst()
-                .orElse(null);
-        }
+		this.getHistoricoStatus().add(novoStatusProjeto);
+
+	}
+
+	@Transient
+	public StatusProjeto getStatusAtual() {
+		if (historicoStatus == null)
+			return null;
+		return historicoStatus.stream()
+				.filter(s -> s.getFimEm() == null)
+				.findFirst()
+				.orElseGet(() -> historicoStatus.stream()
+						.max(Comparator.comparing(StatusProjeto::getFimEm))
+						.orElse(null));
+		// return historicoStatus.stream()
+		// .filter(s -> s.getFimEm() == null)
+		// .findFirst()
+		// .orElse(null);
+	}
 
 }
