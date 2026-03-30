@@ -117,7 +117,7 @@ public class Projeto extends ControleHistorico {
 
 	@Column(name = "id_documento_edocs", nullable = false, length = 50)
 	private String idDocumentoCapturadoEdocs;
-	
+
 	@Column(name = "id_processo_edocs", nullable = false, length = 50)
 	private String idProcessoEdocs;
 
@@ -129,11 +129,11 @@ public class Projeto extends ControleHistorico {
 
 	@OneToMany(mappedBy = "projeto")
 	private Set<ProjetoParecer> projetoParecerSet;
-        
-        @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
-        @Setter(AccessLevel.NONE)
-        private Set<StatusProjeto> historicoStatus;
-        
+
+	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Setter(AccessLevel.NONE)
+	private Set<StatusProjeto> historicoStatus;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
@@ -177,14 +177,14 @@ public class Projeto extends ControleHistorico {
 		if (!this.isStatusElegivel()) {
 			return false;
 		}
-		
+
 		if (this.getPrograma() == null) {
 			return true;
 		}
-		
-		return this.getPrograma().isRecusado() 
-			|| this.getPrograma().isEmEdicao();
-		
+
+		return this.getPrograma().isRecusado()
+				|| this.getPrograma().isEmEdicao();
+
 	}
 
 	private void setDadosProjeto(ProjetoForm form) {
@@ -209,12 +209,12 @@ public class Projeto extends ControleHistorico {
             // Cria novo status
             StatusProjeto novoStatusProjeto = StatusProjeto.init(this, novoStatus);
 
-            // Inicializa coleção se estiver nula
-            if (this.getHistoricoStatus() == null) {
-                this.historicoStatus = new HashSet<>();
-            }
+		// Inicializa coleção se estiver nula
+		if (this.getHistoricoStatus() == null) {
+			this.historicoStatus = new HashSet<>();
+		}
 
-            this.getHistoricoStatus().add(novoStatusProjeto);
+		this.getHistoricoStatus().add(novoStatusProjeto);
 
         }
         
