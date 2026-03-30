@@ -168,7 +168,8 @@ public class Projeto extends ControleHistorico {
 	}
 
 	public boolean isStatusElegivel() {
-		return Objects.equals( this.getStatusAtual().getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
+            if(this.getStatusAtual() == null) return false;
+            return Objects.equals( this.getStatusAtual().getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
 	}
 
 	public boolean isElegivelParaVinculo() {
