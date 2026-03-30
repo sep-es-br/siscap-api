@@ -150,6 +150,7 @@ public class ProgramaProcessamentoService {
 
         if (todosJaAssinaram){
             programa.alterarStatus(StatusProgramaEnum.ASSINADO, assinatura.getPessoa());
+            programa.getStatusAtual().finalizarStatus(assinatura.getPessoa());
         }
 
         repository.saveAndFlush(programa);
@@ -332,6 +333,7 @@ public class ProgramaProcessamentoService {
         assinatura.setJustificativaRecusa(this.programaAssinaturaEdocsService.resolverMensagemRecusaAssinanteGestor(subAssinante));
 
         programa.alterarStatus(StatusProgramaEnum.RECUSADO, assinatura.getPessoa());
+        programa.getStatusAtual().finalizarStatus(assinatura.getPessoa());
 
         repository.saveAndFlush(programa);
 

@@ -18,7 +18,8 @@ public record ProgramaStatusDto(
             Integer status,
             Long idPessoa,
             String nomePessoa,
-            LocalDateTime inicioEm
+            LocalDateTime inicioEm,
+            LocalDateTime fimEm
         ) {
     
     
@@ -30,7 +31,8 @@ public record ProgramaStatusDto(
                 model.getStatus().getValue(), 
                 Optional.ofNullable(model.getPessoa()).map(Pessoa::getId).orElse(null), 
                 Optional.ofNullable(model.getPessoa()).map(Pessoa::getNome).orElse(null), 
-                model.getInicioEm()
+                model.getInicioEm(),
+                model.getFimEm()
         );
     }
 
