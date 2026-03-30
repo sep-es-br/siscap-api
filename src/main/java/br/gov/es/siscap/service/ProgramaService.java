@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.EquipeDto;
+import br.gov.es.siscap.dto.OrganizacaoDto;
 import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;

@@ -15,7 +15,6 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
 /**
@@ -26,8 +25,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Table(name = "status_projeto")
 @NoArgsConstructor
 @Getter
-@Setter
-
 public class StatusProjeto {
     
     
@@ -54,5 +51,27 @@ public class StatusProjeto {
         
         @Column(name = "status", nullable = false)
         private String status;
+        
+        public StatusProjeto finalizar(Pessoa pessoa){
+            if(this.fimEm != null)
+                return this;
+            
+            this.fimEm = LocalDateTime.now();
+            this.pessoa = pessoa;
+            
+            return this;
+        }
+        
+        public static StatusProjeto init(Projeto projeto, String status) {
+            StatusProjeto novoStatus = new StatusProjeto();
+            novoStatus.projeto = projeto;
+            novoStatus.inicioEm = LocalDateTime.now();
+            novoStatus.status = status;
+            return novoStatus;
+        }
+        
+        
+        
+        
     
 }

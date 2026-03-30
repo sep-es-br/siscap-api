@@ -39,18 +39,19 @@ proj.id = $P{IdProjeto}]]></query>
 	<background splitType="Stretch"/>
 	<detail>
 		<band height="20">
-			<element kind="textField" uuid="379dffb6-2a1b-47f5-b6a4-abda6af7b4f2" x="3" y="0" width="220" height="20" forecolor="#0A588F" textAdjust="StretchHeight" bold="false" hTextAlign="Left" vTextAlign="Middle">
+			<element kind="textField" uuid="379dffb6-2a1b-47f5-b6a4-abda6af7b4f2" x="0" y="0" width="130" height="20" forecolor="#0A588F" textAdjust="StretchHeight" bold="false" hTextAlign="Left" vTextAlign="Middle">
 				<expression><![CDATA[$F{descricaoacaoprincipal}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="textField" uuid="c556db42-1992-4417-b7aa-e6ee47378adc" x="227" y="0" width="116" height="20" forecolor="#0A588F" textAdjust="StretchHeight" pattern="¤#,##0.##;¤-#,##0.##" hTextAlign="Right" vTextAlign="Middle">
+			<element kind="textField" uuid="c556db42-1992-4417-b7aa-e6ee47378adc" x="140" y="0" width="116" height="20" forecolor="#0A588F" textAdjust="StretchHeight" pattern="¤#,##0.##;¤-#,##0.##" hTextAlign="Right" vTextAlign="Middle">
 				<expression><![CDATA[$F{valorestimado}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="textField" uuid="cda575cd-c94e-4b6d-8a14-67a2aeee1677" x="349" y="0" width="178" height="20" forecolor="#0A588F" textAdjust="StretchHeight" linkType="None" linkTarget="Self" hTextAlign="Left" vTextAlign="Middle">
+			<element kind="textField" uuid="cda575cd-c94e-4b6d-8a14-67a2aeee1677" x="270" y="0" width="263" height="20" forecolor="#0A588F" textAdjust="StretchHeight" linkType="None" linkTarget="Self" hTextAlign="Left" vTextAlign="Middle">
 				<expression><![CDATA[$F{descricaoacoessecundarias}]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
