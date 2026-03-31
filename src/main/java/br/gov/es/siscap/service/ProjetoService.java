@@ -60,8 +60,8 @@ import org.springframework.util.Assert;
 public class ProjetoService {
 
 	private final ProjetoRepository repository;
-        private final PessoaRepository pessoaRepository;
-        
+	private final PessoaRepository pessoaRepository;
+
 	private final ProjetoPessoaService projetoPessoaService;
 	private final LocalidadeQuantiaService localidadeQuantiaService;
 	private final OrganizacaoService organizacaoService;
@@ -288,6 +288,12 @@ public class ProjetoService {
 		tempProjeto.setRascunho(true);
 		tempProjeto.alterarStatus(StatusProjetoEnum.EM_ELABORACAO.getValue(), pessoa);
 
+		Pessoa pessoaRedatorProjeto = pessoaRepository.findById(form.idResponsavelProponente())
+				.orElseThrow(() -> new ValidacaoSiscapException(List.of(
+						"Redator do DIC não encontrado para o id : %s.".formatted(form.idResponsavelProponente()))));
+
+		tempProjeto.setPessoa(pessoaRedatorProjeto);
+
 		Projeto projeto = repository.save(tempProjeto);
 
 		Set<ProjetoPessoa> projetoPessoaSet;
@@ -495,7 +501,7 @@ public class ProjetoService {
 			projeto.setJustificativaExclusaoLogica(justificativa);
 
 			projeto.alterarStatus(StatusProjetoEnum.ENCERRADO.getValue(), pessoa);
-                        projeto.finalizarStatusAtual(pessoa);
+			projeto.finalizarStatusAtual(pessoa);
 
 			this.exclusaoLogica(projeto);
 
@@ -687,7 +693,7 @@ public class ProjetoService {
 		}
 
 		Projeto projeto = this.buscar(id);
-                pessoa = this.pessoaRepository.findById(pessoa.getId()).orElseThrow();
+		pessoa = this.pessoaRepository.findById(pessoa.getId()).orElseThrow();
 
 		Optional<Pessoa> proponenteProjeto = projeto.getProjetoPessoaSet()
 				.stream()
@@ -896,7 +902,7 @@ public class ProjetoService {
 				if (confirmacaoEnvioEmail) {
 					logger.info("Email aviso arquivamento projeto enviado com sucesso do projeto id " + id);
 					projeto.alterarStatus(StatusProjetoEnum.ARQUIVADO.getValue(), pessoa);
-                                        projeto.finalizarStatusAtual(pessoa);
+					projeto.finalizarStatusAtual(pessoa);
 					this.registrarMotivoArquivamentoProjeto(id, codigoMotivoArquivamento, justificativa);
 				} else {
 					erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id);
@@ -1301,7 +1307,9 @@ public class ProjetoService {
 	public List<ProjetoPropostoOpcoesDto> listarDicsElegiveisParaPrograma(String incluir) {
 		return repository.findAll(Sort.by(Sort.Direction.ASC, "titulo"))
 				.stream()
-				.filter((projeto) -> (incluir != null && Arrays.stream(incluir.split(";")).anyMatch(String.valueOf(projeto.getId())::equals)) || projeto.isElegivelParaVinculo())
+				.filter((projeto) -> (incluir != null
+						&& Arrays.stream(incluir.split(";")).anyMatch(String.valueOf(projeto.getId())::equals))
+						|| projeto.isElegivelParaVinculo())
 				.map(projeto -> {
 					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
@@ -1311,52 +1319,48 @@ public class ProjetoService {
 				})
 				.toList();
 	}
-        
-        @Transactional
-        public void alterarStatusAtualProjetoByIdProjeto(
-                Long idProjeto,
-                String novoStatus,
-                Long idPessoa
-        ) {
-            Projeto projeto = this.buscar(idProjeto);
-            Pessoa pessoa = this.pessoaRepository.findById(idPessoa).orElseThrow();
-            
-            projeto.alterarStatus(novoStatus, pessoa);
-        }
-        
-        @Transactional
-        public void alterarStatusAtualProjetoByIdProjeto(
-                Long idProjeto,
-                String novoStatus,
-                String subPessoa
-        ) {
-            Projeto projeto = this.buscar(idProjeto);
-            Pessoa pessoa = this.pessoaRepository.findBySub(subPessoa).orElseThrow();
-            
-            projeto.alterarStatus(novoStatus, pessoa);
-        }
-        
-        @Transactional
-        public void finalizarStatusAtualProjetoByIdProjeto(
-                Long idProjeto,
-                Long idPessoa
-        ) {
-            Projeto projeto = this.buscar(idProjeto);
-            Pessoa pessoa = this.pessoaRepository.findById(idPessoa).orElseThrow();
-            
-            projeto.finalizarStatusAtual(pessoa);
-        }
-        
-        @Transactional
-        public void finalizarStatusAtualProjetoByIdProjeto(
-                Long idProjeto,
-                String subPessoa
-        ) {
-            Projeto projeto = this.buscar(idProjeto);
-            Pessoa pessoa = this.pessoaRepository.findBySub(subPessoa).orElseThrow();
-            
-            projeto.finalizarStatusAtual(pessoa);
-        }
+
+	@Transactional
+	public void alterarStatusAtualProjetoByIdProjeto(
+			Long idProjeto,
+			String novoStatus,
+			Long idPessoa) {
+		Projeto projeto = this.buscar(idProjeto);
+		Pessoa pessoa = this.pessoaRepository.findById(idPessoa).orElseThrow();
+
+		projeto.alterarStatus(novoStatus, pessoa);
+	}
+
+	@Transactional
+	public void alterarStatusAtualProjetoByIdProjeto(
+			Long idProjeto,
+			String novoStatus,
+			String subPessoa) {
+		Projeto projeto = this.buscar(idProjeto);
+		Pessoa pessoa = this.pessoaRepository.findBySub(subPessoa).orElseThrow();
+
+		projeto.alterarStatus(novoStatus, pessoa);
+	}
+
+	@Transactional
+	public void finalizarStatusAtualProjetoByIdProjeto(
+			Long idProjeto,
+			Long idPessoa) {
+		Projeto projeto = this.buscar(idProjeto);
+		Pessoa pessoa = this.pessoaRepository.findById(idPessoa).orElseThrow();
+
+		projeto.finalizarStatusAtual(pessoa);
+	}
+
+	@Transactional
+	public void finalizarStatusAtualProjetoByIdProjeto(
+			Long idProjeto,
+			String subPessoa) {
+		Projeto projeto = this.buscar(idProjeto);
+		Pessoa pessoa = this.pessoaRepository.findBySub(subPessoa).orElseThrow();
+
+		projeto.finalizarStatusAtual(pessoa);
+	}
 
 	public boolean enviarAvisoEquipeElaboracaoDicElegivel(Long idDic) {
 
