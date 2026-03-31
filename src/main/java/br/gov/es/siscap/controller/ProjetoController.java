@@ -216,7 +216,7 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 		ProjetoDto projetoDto = service.atualizar(idProjeto, form, false, pessoa);
-		asyncExecutorService.assinarCapturaParecerDIC(idProjeto, projetoDto.parecerProjetoUsuario().id());
+		asyncExecutorService.assinarCapturaParecerDIC(idProjeto, projetoDto.parecerProjetoUsuario().id(), projetoDto.parecerProjetoUsuario().elegivel());
 		return ResponseEntity.accepted().build();
 	}
 

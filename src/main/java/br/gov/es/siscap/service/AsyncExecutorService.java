@@ -50,8 +50,8 @@ public class AsyncExecutorService {
     }
 
     @Async
-    public void assinarCapturaParecerDIC(Long idProjeto, Long idParecer) {
-        integracaoEdocsService.assinarCapturaParecerDIC(idProjeto, idParecer);
+    public void assinarCapturaParecerDIC(Long idProjeto, Long idParecer, Boolean elegivel) {
+        integracaoEdocsService.assinarCapturaParecerDIC(idProjeto, idParecer, elegivel);
     }
 
     @Async

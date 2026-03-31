@@ -6,16 +6,14 @@ import br.gov.es.siscap.enums.TipoPapelEnum;
 import br.gov.es.siscap.enums.TipoStatusEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 
 @Entity

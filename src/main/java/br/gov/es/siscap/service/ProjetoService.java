@@ -36,10 +36,8 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +50,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 
 @Service
 @RequiredArgsConstructor
@@ -275,6 +272,21 @@ public class ProjetoService {
 
 	}
 
+	private ProjetoParecerDto buscarParecer(ProjetoParecer projetoParecer, Boolean elegivel) {
+
+		if (projetoParecer == null)
+			return null;
+
+		String nomeUsuarioEnviou = "";
+		if (projetoParecer.getSubUsuarioEnviou() != null) {
+			Pessoa pessoa = pessoaService.buscarPorSub(projetoParecer.getSubUsuarioEnviou());
+			nomeUsuarioEnviou = pessoa.getNome();
+		}
+
+		return new ProjetoParecerDto(projetoParecer, nomeUsuarioEnviou, elegivel);
+
+	}
+
 	@Transactional
 	public ProjetoDto cadastrar(ProjetoForm form, boolean rascunho, Pessoa pessoa) {
 
@@ -468,7 +480,7 @@ public class ProjetoService {
 				false,
 				null, null,
 				null,
-				this.buscarParecer(projetoParecer), null,
+				this.buscarParecer(projetoParecer, form.parecerProjetoUsuario().elegivel()), null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());

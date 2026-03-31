@@ -12,6 +12,9 @@
 		<defaultValueExpression><![CDATA[3]]></defaultValueExpression>
 	</parameter>
 	<parameter name="descricaoTipoParecer" class="java.lang.String"/>
+	<parameter name="elegivel" class="java.lang.Boolean">
+		<defaultValueExpression><![CDATA[null]]></defaultValueExpression>
+	</parameter>
 	<query language="sql"><![CDATA[select
 	proj.id as id_projeto,
 	proj.criado_em as data_criacao_projeto,
@@ -142,12 +145,16 @@ group by proj.id,
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
 		</band>
-		<band height="60">
+		<band height="90">
 			<element kind="textField" uuid="ec1ecf2c-d378-4cfc-b248-f30609e588ec" x="0" y="23" width="535" height="30" markup="html">
 				<expression><![CDATA[$F{parecer}]]></expression>
 			</element>
 			<element kind="textField" uuid="f5505670-450d-4e27-b6f6-c7ba33e9fd82" x="1" y="0" width="380" height="20" forecolor="#000000" fontName="SansSerif" fontSize="10.0" bold="true">
 				<expression><![CDATA["Texto do parecer " + $P{descricaoTipoParecer}]]></expression>
+			</element>
+			<element kind="textField" uuid="e69359e4-6402-440f-a830-24b513145cd6" x="2" y="70" width="228" height="20" vTextAlign="Middle">
+				<printWhenExpression><![CDATA[$P{elegivel} != null]]></printWhenExpression>
+				<expression><![CDATA["DIC " + ($P{elegivel} ? "elegível" : "inelegível")]]></expression>
 			</element>
 		</band>
 	</detail>

@@ -51,8 +51,8 @@ public class RelatoriosService {
 		return exportarRelatorio(jasperPrint);
 	}
 
-	public Resource gerarArquivoParecerDIC(String nomeArquivo, Long idProjeto, Long idParecer, String descricaoTipoParecer) {
-		JasperPrint jasperPrint = preencherArquivoParecer(recuperarArquivo(nomeArquivo), idProjeto, idParecer, descricaoTipoParecer);
+	public Resource gerarArquivoParecerDIC(String nomeArquivo, Long idProjeto, Long idParecer, String descricaoTipoParecer, Boolean elegivel) {
+		JasperPrint jasperPrint = preencherArquivoParecer(recuperarArquivo(nomeArquivo), idProjeto, idParecer, descricaoTipoParecer, elegivel);
 		return exportarRelatorio(jasperPrint);
 	}
 
@@ -86,13 +86,14 @@ public class RelatoriosService {
 		}
 	}
 
-	private JasperPrint preencherArquivoParecer(InputStream relatorio, Long idProjeto, Long idParecer, String descricaoTipoParecer) {
+	private JasperPrint preencherArquivoParecer(InputStream relatorio, Long idProjeto, Long idParecer, String descricaoTipoParecer, Boolean elegivel) {
 		try {
 			HashMap<String, Object> map = new HashMap<>();
 			map.put("idProjeto", idProjeto);
 			map.put("pathRelatorios", raizRelatorios);
 			map.put("idParecer", idParecer);
 			map.put("descricaoTipoParecer", descricaoTipoParecer);
+                        map.put("elegivel", elegivel);
 			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
 			return JasperFillManager.fillReport(relatorio, map, dataSource.getConnection());
 		} catch (JRException | SQLException e) {

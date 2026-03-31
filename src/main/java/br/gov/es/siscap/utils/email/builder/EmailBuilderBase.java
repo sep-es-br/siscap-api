@@ -1,11 +1,10 @@
 package br.gov.es.siscap.utils.email.builder;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-
 import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 @Setter
 @Getter
