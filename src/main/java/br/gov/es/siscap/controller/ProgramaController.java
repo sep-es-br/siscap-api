@@ -32,16 +32,19 @@ import java.util.List;
 @RequestMapping("/programas")
 @RequiredArgsConstructor
 public class ProgramaController {
-
 	private final ProgramaService service;
+
 	private final RelatoriosService relatoriosService;
+
 	private final IntegraccaoEdocsService integracaoEdocsService;
 
 	@GetMapping
 	public Page<ProgramaListaDto> listarTodos(
-			@PageableDefault(size = 15, sort = "dataInicio", direction = Direction.DESC) Pageable pageable,
-			@RequestParam(required = false, defaultValue = "") String search) {
-		return service.listarTodos(pageable, search);
+    @PageableDefault(size = 15, sort = "dataInicio", direction = Direction.DESC) Pageable pageable,
+    @RequestParam(required = false, defaultValue = "") String search,
+    @RequestParam(required = false, defaultValue = "") String status
+  ) {
+		return service.listarTodos(pageable, search, status);
 	}
 
 	@GetMapping("/opcoes")

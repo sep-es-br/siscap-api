@@ -1,7 +1,6 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.EquipeDto;
-import br.gov.es.siscap.dto.OrganizacaoDto;
 import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
@@ -65,9 +64,10 @@ public class ProgramaService {
 	@Value("${api.programa.assinantes.gestorGOVES}")
 	private String assinanteEdocsProgramaGestorGOVES;
 
-	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search) {
-		return repository.paginarProgramasPorFiltroPesquisaSimples(search, pageable)
-				.map(ProgramaListaDto::new);
+	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search, String status) {
+		return repository
+      .paginarProgramasPorFiltroPesquisaSimples(search, pageable, status)
+      .map(ProgramaListaDto::new);
 	}
 
 	public List<OpcoesDto> listarOpcoesDropdown() {

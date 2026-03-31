@@ -10,12 +10,15 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProgramaRepository extends JpaRepository<Programa, Long> {
 
-	@Query("select p from Programa p " +
-			"where " +
-			"p.apagado = false and " +
-			"(lower(p.sigla) like lower(concat('%', :search ,'%')) or " +
-			"lower(p.titulo) like lower(concat('%', :search , '%')))")
-	Page<Programa> paginarProgramasPorFiltroPesquisaSimples(String search, Pageable pageable);
+	@Query(
+    "select p from Programa p " +
+    "where " +
+    "p.apagado = false and " +
+    "(:status is null or p.status = :status) and " +
+    "(lower(p.sigla) like lower(concat('%', :search ,'%')) or " +
+    "lower(p.titulo) like lower(concat('%', :search , '%')))"
+  )
+	Page<Programa> paginarProgramasPorFiltroPesquisaSimples(String search, Pageable pageable, String status);
 
 	@Query("select count(p) from Programa p where year(p.criadoEm) = year(current_date)")
 	int contagemAnoAtual();
