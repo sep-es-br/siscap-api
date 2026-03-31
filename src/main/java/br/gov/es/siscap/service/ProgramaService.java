@@ -64,7 +64,7 @@ public class ProgramaService {
 	@Value("${api.programa.assinantes.gestorGOVES}")
 	private String assinanteEdocsProgramaGestorGOVES;
 
-	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search, String status) {
+	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search, int status) {
 		return repository
       .paginarProgramasPorFiltroPesquisaSimples(search, pageable, status)
       .map(ProgramaListaDto::new);

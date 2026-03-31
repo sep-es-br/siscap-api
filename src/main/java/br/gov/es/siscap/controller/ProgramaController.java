@@ -42,7 +42,7 @@ public class ProgramaController {
 	public Page<ProgramaListaDto> listarTodos(
     @PageableDefault(size = 15, sort = "dataInicio", direction = Direction.DESC) Pageable pageable,
     @RequestParam(required = false, defaultValue = "") String search,
-    @RequestParam(required = false, defaultValue = "") String status
+    @RequestParam(required = false) int status
   ) {
 		return service.listarTodos(pageable, search, status);
 	}
