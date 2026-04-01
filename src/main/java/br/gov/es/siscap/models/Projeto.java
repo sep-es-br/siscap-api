@@ -30,7 +30,7 @@ public class Projeto extends ControleHistorico {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
-	private Long id;
+	private long id;
 
 	@Column(name = "sigla", length = 12)
 	private String sigla;

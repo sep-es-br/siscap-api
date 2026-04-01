@@ -58,7 +58,7 @@ public record ProjetoForm(
 
 			@Positive
 			@NotNull
-			Long idResponsavelProponente,
+			long idResponsavelProponente,
 
 			@NotEmpty
 			List<EquipeDto> equipeElaboracao,
