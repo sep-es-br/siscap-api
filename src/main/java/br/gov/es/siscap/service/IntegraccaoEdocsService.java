@@ -1161,7 +1161,7 @@ public class IntegraccaoEdocsService {
 						.map(ACAgentePublicoPapelDto::LotacaoGuid)
 						.orElse(""));
 
-		String resumo = String.format("AUTUAÇÃO PROJETO - %s", projetoDTO.titulo());
+		String resumo = String.format("DIC - %s %s", projetoDTO.sigla() , projetoDTO.titulo());
 
 		List<String> idsAgentesInteressados = projetoDTO.equipeElaboracao()
 				.stream()
@@ -1754,7 +1754,7 @@ public class IntegraccaoEdocsService {
 						.map(ACAgentePublicoPapelDto::LotacaoGuid)
 						.orElse(""));
 
-		String resumo = String.format("AUTUAÇÃO PROGRAMA - %s", programaDTO.titulo());
+		String resumo = String.format("Programa de Captação - %s %s", programaDTO.sigla(), programaDTO.titulo());
 
 		List<String> idsAgentesInteressados = programaDTO.equipeCaptacao()
 				.stream()
