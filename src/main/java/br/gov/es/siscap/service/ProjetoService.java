@@ -288,9 +288,12 @@ public class ProjetoService {
 		tempProjeto.setRascunho(true);
 		tempProjeto.alterarStatus(StatusProjetoEnum.EM_ELABORACAO.getValue(), pessoa);
 
-		Pessoa pessoaRedatorProjeto = pessoaRepository.findById(form.idResponsavelProponente())
+		// definir o usuario logado como redator original..
+		String subUsuario = autenticacaoService.getUsuarioLogado();
+		
+		Pessoa pessoaRedatorProjeto = pessoaRepository.findBySub(subUsuario)
 				.orElseThrow(() -> new ValidacaoSiscapException(List.of(
-						"Redator do DIC não encontrado para o id : %s.".formatted(form.idResponsavelProponente()))));
+						"Redator do DIC não encontrado para o SUB : %s.".formatted(subUsuario))));
 
 		tempProjeto.setPessoa(pessoaRedatorProjeto);
 
@@ -329,7 +332,7 @@ public class ProjetoService {
 
 				String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
 
-				PessoaDto pessoaProponenteDto = pessoaService.buscarPorId(this.buscarIdProponente(projetoPessoaSet));
+				PessoaDto pessoaProponenteDto = pessoaService.buscarPorId(projeto.getPessoa().getId());
 
 				String nomeProponente = pessoaProponenteDto.nome();
 
@@ -413,7 +416,7 @@ public class ProjetoService {
 		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesProjeto();
 		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar(projetoResult, projetoAcoesDto, rascunho);
 
-		String subResponsavelProponente = projeto.getPessoa().getSub();
+		String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
 
 		String nomeProponente = projeto.getPessoa().getNome();
 
