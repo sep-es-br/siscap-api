@@ -957,7 +957,8 @@ public class ProjetoService {
 			projetoPropostoSet.forEach(projeto -> {
 				if (idProjetoPropostoList.stream()
 						.noneMatch(idProjetoProposto -> idProjetoProposto.equals(projeto.getId()))) {
-					projeto.setPrograma(null);
+					projeto.removerPrograma();
+                                        entityManager.flush();
 				}
 			});
 
@@ -986,7 +987,7 @@ public class ProjetoService {
 
 		if (!projetoPropostoSet.isEmpty()) {
 			projetoPropostoSet.forEach(projeto -> {
-				projeto.setPrograma(null);
+				projeto.removerPrograma();
 			});
 
 			repository.saveAllAndFlush(projetoPropostoSet);

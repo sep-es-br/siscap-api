@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,6 +18,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.util.Assert;
 
 @Entity
 @Table(name = "projeto")
@@ -78,10 +80,10 @@ public class Projeto extends ControleHistorico {
 	@OneToMany(mappedBy = "projeto")
 	private Set<LocalidadeQuantia> localidadeQuantiaSet;
 
-	@ManyToOne
-	@JoinColumn(name = "id_programa")
-	@SQLJoinTableRestriction("apagado = FALSE")
-	private Programa programa;
+	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+	private Set<ProjetoPrograma> programaHistorico;
 
 	@ManyToOne
 	@JoinColumn(name = "id_area")
@@ -224,11 +226,40 @@ public class Projeto extends ControleHistorico {
             return this.getStatusAtual().finalizar(pessoa);
         }
         
-        @Transient
         public StatusProjeto getStatusAtual() {
             if(historicoStatus == null) return null;
             return historicoStatus.stream()
                     .sorted(Comparator.comparing(StatusProjeto::getInicioEm).reversed())
+                    .findFirst().orElse(null);
+        }
+        
+        public Programa getPrograma() {
+            return Optional.ofNullable(this.getHistoricoAtivo()).map(ProjetoPrograma::getPrograma).orElse(null);
+        }
+        
+        public void removerPrograma() {
+            ProjetoPrograma historicoAtivo = this.getHistoricoAtivo();
+            if(historicoAtivo == null) return;
+            
+            historicoAtivo.setApagadoEm(LocalDateTime.now());
+            
+        }
+        
+        public void setPrograma(Programa programa) {
+            
+            Assert.isNull(this.getHistoricoAtivo(), "Favor remover o programa antes de incluir outro");
+            
+            ProjetoPrograma novo = new ProjetoPrograma(this, programa);
+            if(this.programaHistorico == null){
+                this.programaHistorico = new HashSet<>();
+            } 
+                
+            this.programaHistorico.add(novo);
+        }
+        
+        private ProjetoPrograma getHistoricoAtivo() {
+            return programaHistorico.stream()
+                    .filter(pp -> pp.getApagadoEm() == null)
                     .findFirst().orElse(null);
         }
 
