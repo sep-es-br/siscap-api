@@ -1,5 +1,6 @@
 package br.gov.es.siscap.repository;
 
+import br.gov.es.siscap.enums.StatusProgramaEnum;
 import br.gov.es.siscap.models.Programa;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -12,7 +13,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProgramaRepository extends JpaRepository<Programa, Long> {
 
-	@Query("""
+	@Query(
+                """
                 SELECT p FROM Programa p
                 JOIN p.historicoStatus ps
                 WHERE ps.inicioEm = (
@@ -27,9 +29,13 @@ public interface ProgramaRepository extends JpaRepository<Programa, Long> {
                     LOWER(p.sigla) LIKE LOWER(CONCAT('%', :search, '%')) OR
                     LOWER(p.titulo) LIKE LOWER(CONCAT('%', :search, '%'))
                 )
-            """)
+            """
+	)
 	Page<Programa> paginarProgramasPorFiltroPesquisaSimples(
-			@Param("search") String search, @Param("pageable") Pageable pageable, @Param("status") Integer status);
+			@Param("search") String search,
+			@Param("pageable") Pageable pageable,
+			@Param("status") StatusProgramaEnum status
+	);
 
 	@Query("select count(p) from Programa p where year(p.criadoEm) = year(current_date)")
 	int contagemAnoAtual();
