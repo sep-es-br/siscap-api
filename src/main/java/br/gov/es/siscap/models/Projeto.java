@@ -30,7 +30,7 @@ public class Projeto extends ControleHistorico {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
-	private Long id;
+	private long id;
 
 	@Column(name = "sigla", length = 12)
 	private String sigla;
@@ -134,6 +134,10 @@ public class Projeto extends ControleHistorico {
 	@Setter(AccessLevel.NONE)
 	private Set<StatusProjeto> historicoStatus;
 
+	@ManyToOne()
+	@JoinColumn(name = "id_pessoa_redator")
+	private Pessoa pessoa;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
@@ -202,12 +206,12 @@ public class Projeto extends ControleHistorico {
 		this.setPecasPlanejamento(form.pecasPlanejamento());
 		this.setProtocoloEdocs(form.protocoloEdocs());
 	}
-        
-        public void alterarStatus(String novoStatus, Pessoa pessoa) {
-            this.finalizarStatusAtual(pessoa);
 
-            // Cria novo status
-            StatusProjeto novoStatusProjeto = StatusProjeto.init(this, novoStatus);
+	public void alterarStatus(String novoStatus, Pessoa pessoa) {
+		this.finalizarStatusAtual(pessoa);
+
+		// Cria novo status
+		StatusProjeto novoStatusProjeto = StatusProjeto.init(this, novoStatus);
 
 		// Inicializa coleção se estiver nula
 		if (this.getHistoricoStatus() == null) {
@@ -216,20 +220,22 @@ public class Projeto extends ControleHistorico {
 
 		this.getHistoricoStatus().add(novoStatusProjeto);
 
-        }
-        
-        public StatusProjeto finalizarStatusAtual(Pessoa pessoa) {
-            if(this.getStatusAtual() == null) return null;
-            
-            return this.getStatusAtual().finalizar(pessoa);
-        }
-        
-        @Transient
-        public StatusProjeto getStatusAtual() {
-            if(historicoStatus == null) return null;
-            return historicoStatus.stream()
-                    .sorted(Comparator.comparing(StatusProjeto::getInicioEm).reversed())
-                    .findFirst().orElse(null);
-        }
+	}
+
+	public StatusProjeto finalizarStatusAtual(Pessoa pessoa) {
+		if (this.getStatusAtual() == null)
+			return null;
+
+		return this.getStatusAtual().finalizar(pessoa);
+	}
+
+	@Transient
+	public StatusProjeto getStatusAtual() {
+		if (historicoStatus == null)
+			return null;
+		return historicoStatus.stream()
+				.sorted(Comparator.comparing(StatusProjeto::getInicioEm).reversed())
+				.findFirst().orElse(null);
+	}
 
 }
