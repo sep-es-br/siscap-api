@@ -231,7 +231,7 @@ public class ProjetoService {
 				this.buscarParecer(parecerProjeto),
 				lotacaoUsuario.getValue(),
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
-				projeto.getPessoa().getNome(),
+				Optional.ofNullable(projeto.getPessoa()).map(Pessoa::getNome).orElse(null),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
 
 	}
