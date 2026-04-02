@@ -18,18 +18,6 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoParecer;
-import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-import reactor.util.retry.Retry;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -41,6 +29,16 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
 
 @Service
 @RequiredArgsConstructor
@@ -152,7 +150,7 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	public void assinarCapturaParecerDIC(Long idProjeto, Long idParecer) {
+	public void assinarCapturaParecerDIC(Long idProjeto, Long idParecer, Boolean elegível) {
 
 		logger.info("Iniciando processo para Assinar e Capturar Pareceres do projeto {} no E-Docs..", idProjeto);
 
@@ -169,7 +167,7 @@ public class IntegraccaoEdocsService {
 		this.limparEtapas(chave);
 
 		Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
-				projetoParecerService.buscarTipoParecer(idParecer));
+				projetoParecerService.buscarTipoParecer(idParecer), elegível);
 
 		String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
 
@@ -177,7 +175,7 @@ public class IntegraccaoEdocsService {
 
 		String subJwt = autenticacaoService.getUsuarioSub();
 
-		this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado)
+		this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado, elegível)
 				.flatMap(mensagem -> {
 					logger.info("SUCESSO: {}", mensagem);
 					if (projetoParecerService.buscarTipoParecer(idParecer).equals("GEOC")) {
@@ -359,7 +357,7 @@ public class IntegraccaoEdocsService {
 	}
 
 	public Mono<String> assinarCapturarParecerProjetoReativo(ProjetoDto projetoDto, Resource arquivo,
-			String nomeArquivo, Long idParecer, String subUsuarioLogado) {
+			String nomeArquivo, Long idParecer, String subUsuarioLogado, Boolean elegivel) {
 
 		final long tamanho;
 		try {
@@ -382,7 +380,7 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> capturarAssinar(ctx, nomeArquivo))
 				.flatMap(this::consultarSituacaoCaptura)
 				.doOnSuccess(retorno -> finalizaTodasEtapas(chave))
-				.flatMap(ctx -> atualizarParecer(ctx, idParecer, subUsuarioLogado))
+				.flatMap(ctx -> atualizarParecer(ctx, idParecer, subUsuarioLogado, elegivel))
 				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idParecer))
 				.doOnSuccess(v -> logger.info("Parecer {} atualizado com sucesso", idParecer))
 				.doOnError(e -> logger.error("Erro ao atualizar parecer {}", idParecer, e))
@@ -484,7 +482,7 @@ public class IntegraccaoEdocsService {
 				.thenReturn(ctx);
 	}
 
-	private Mono<String> atualizarParecer(FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado) {
+	private Mono<String> atualizarParecer(FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado, Boolean elegivel) {
 
 		return FeignReativo.fromFeign(() -> consultarDadosArquivoCapturado(ctx.getIdDocumentos()[0], ctx.getToken()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
@@ -509,9 +507,13 @@ public class IntegraccaoEdocsService {
 						}
 
 						if (projetoParecerService.verificarEnvioParecereGEOCProjeto(ctx.getProjeto().id())){
-							projetoService.alterarStatusAtualProjetoByIdProjeto(
+                                                        
+                                                        System.out.println(elegivel);
+                                                        String resultado = elegivel ? StatusProjetoEnum.ELEGIVEL.getValue() : StatusProjetoEnum.ARQUIVADO.getValue();
+                                                        
+                                                        projetoService.alterarStatusAtualProjetoByIdProjeto(
 									ctx.getProjeto().id(),
-									StatusProjetoEnum.ELEGIVEL.getValue(),
+									resultado,
                                                                         subUsuarioLogado);
                                                         projetoService.finalizarStatusAtualProjetoByIdProjeto(
                                                                         ctx.getProjeto().id(), 
@@ -1161,7 +1163,7 @@ public class IntegraccaoEdocsService {
 						.map(ACAgentePublicoPapelDto::LotacaoGuid)
 						.orElse(""));
 
-		String resumo = String.format("AUTUAÇÃO PROJETO - %s", projetoDTO.titulo());
+		String resumo = String.format("DIC - %s %s", projetoDTO.sigla() , projetoDTO.titulo());
 
 		List<String> idsAgentesInteressados = projetoDTO.equipeElaboracao()
 				.stream()
@@ -1754,7 +1756,7 @@ public class IntegraccaoEdocsService {
 						.map(ACAgentePublicoPapelDto::LotacaoGuid)
 						.orElse(""));
 
-		String resumo = String.format("AUTUAÇÃO PROGRAMA - %s", programaDTO.titulo());
+		String resumo = String.format("Programa de Captação - %s %s", programaDTO.sigla(), programaDTO.titulo());
 
 		List<String> idsAgentesInteressados = programaDTO.equipeCaptacao()
 				.stream()

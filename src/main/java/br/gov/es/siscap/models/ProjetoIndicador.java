@@ -1,16 +1,14 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.dto.ProjetoIndicadorDto;
+import br.gov.es.siscap.enums.TipoStatusEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-
-import br.gov.es.siscap.dto.ProjetoIndicadorDto;
-import br.gov.es.siscap.enums.TipoStatusEnum;
 
 
 @Entity

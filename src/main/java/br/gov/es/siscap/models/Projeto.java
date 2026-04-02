@@ -30,7 +30,7 @@ public class Projeto extends ControleHistorico {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
-	private Long id;
+	private long id;
 
 	@Column(name = "sigla", length = 12)
 	private String sigla;
@@ -117,7 +117,7 @@ public class Projeto extends ControleHistorico {
 
 	@Column(name = "id_documento_edocs", nullable = false, length = 50)
 	private String idDocumentoCapturadoEdocs;
-	
+
 	@Column(name = "id_processo_edocs", nullable = false, length = 50)
 	private String idProcessoEdocs;
 
@@ -129,11 +129,15 @@ public class Projeto extends ControleHistorico {
 
 	@OneToMany(mappedBy = "projeto")
 	private Set<ProjetoParecer> projetoParecerSet;
-        
-        @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
-        @Setter(AccessLevel.NONE)
-        private Set<StatusProjeto> historicoStatus;
-        
+
+	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Setter(AccessLevel.NONE)
+	private Set<StatusProjeto> historicoStatus;
+
+	@ManyToOne()
+	@JoinColumn(name = "id_pessoa_redator")
+	private Pessoa pessoa;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
@@ -168,7 +172,8 @@ public class Projeto extends ControleHistorico {
 	}
 
 	public boolean isStatusElegivel() {
-		return Objects.equals( this.getStatusAtual().getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
+            if(this.getStatusAtual() == null) return false;
+            return Objects.equals( this.getStatusAtual().getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
 	}
 
 	public boolean isElegivelParaVinculo() {
@@ -176,14 +181,14 @@ public class Projeto extends ControleHistorico {
 		if (!this.isStatusElegivel()) {
 			return false;
 		}
-		
+
 		if (this.getPrograma() == null) {
 			return true;
 		}
-		
-		return this.getPrograma().isRecusado() 
-			|| this.getPrograma().isEmEdicao();
-		
+
+		return this.getPrograma().isRecusado()
+				|| this.getPrograma().isEmEdicao();
+
 	}
 
 	private void setDadosProjeto(ProjetoForm form) {
@@ -201,34 +206,36 @@ public class Projeto extends ControleHistorico {
 		this.setPecasPlanejamento(form.pecasPlanejamento());
 		this.setProtocoloEdocs(form.protocoloEdocs());
 	}
-        
-        public void alterarStatus(String novoStatus, Pessoa pessoa) {
-            this.finalizarStatusAtual(pessoa);
 
-            // Cria novo status
-            StatusProjeto novoStatusProjeto = StatusProjeto.init(this, novoStatus);
+	public void alterarStatus(String novoStatus, Pessoa pessoa) {
+		this.finalizarStatusAtual(pessoa);
 
-            // Inicializa coleção se estiver nula
-            if (this.getHistoricoStatus() == null) {
-                this.historicoStatus = new HashSet<>();
-            }
+		// Cria novo status
+		StatusProjeto novoStatusProjeto = StatusProjeto.init(this, novoStatus);
 
-            this.getHistoricoStatus().add(novoStatusProjeto);
+		// Inicializa coleção se estiver nula
+		if (this.getHistoricoStatus() == null) {
+			this.historicoStatus = new HashSet<>();
+		}
 
-        }
-        
-        public StatusProjeto finalizarStatusAtual(Pessoa pessoa) {
-            if(this.getStatusAtual() == null) return null;
-            
-            return this.getStatusAtual().finalizar(pessoa);
-        }
-        
-        @Transient
-        public StatusProjeto getStatusAtual() {
-            if(historicoStatus == null) return null;
-            return historicoStatus.stream()
-                    .sorted(Comparator.comparing(StatusProjeto::getInicioEm).reversed())
-                    .findFirst().orElse(null);
-        }
+		this.getHistoricoStatus().add(novoStatusProjeto);
+
+	}
+
+	public StatusProjeto finalizarStatusAtual(Pessoa pessoa) {
+		if (this.getStatusAtual() == null)
+			return null;
+
+		return this.getStatusAtual().finalizar(pessoa);
+	}
+
+	@Transient
+	public StatusProjeto getStatusAtual() {
+		if (historicoStatus == null)
+			return null;
+		return historicoStatus.stream()
+				.sorted(Comparator.comparing(StatusProjeto::getInicioEm).reversed())
+				.findFirst().orElse(null);
+	}
 
 }

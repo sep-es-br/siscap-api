@@ -2,13 +2,12 @@ package br.gov.es.siscap.form;
 
 import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProjetoAcaoDto;
-import br.gov.es.siscap.dto.RateioDto;
-import br.gov.es.siscap.dto.ValorDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import br.gov.es.siscap.dto.ProjetoParecerDto;
+import br.gov.es.siscap.dto.RateioDto;
+import br.gov.es.siscap.dto.ValorDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-
 import java.util.List;
 
 public record ProjetoForm(
@@ -58,7 +57,7 @@ public record ProjetoForm(
 
 			@Positive
 			@NotNull
-			Long idResponsavelProponente,
+			long idResponsavelProponente,
 
 			@NotEmpty
 			List<EquipeDto> equipeElaboracao,

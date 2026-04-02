@@ -1,6 +1,7 @@
 package br.gov.es.siscap.repository;
 
 import br.gov.es.siscap.models.Programa;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,5 +35,12 @@ public interface ProgramaRepository extends JpaRepository<Programa, Long> {
 			"ap.apagado = false and " +
 			"p.id = :id ")
 	Programa buscarPorIdComAssinantesEPessoa(Long id);
+        
+        @Query("""
+            SELECT p FROM Programa p
+            LEFT JOIN FETCH p.historicoStatus
+            WHERE p.id = :id
+        """)
+        Optional<Programa> findByIdWithHistorico(Long id);
 
 }

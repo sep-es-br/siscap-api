@@ -204,7 +204,6 @@ public class PessoaService {
 		return new PessoaDto(pessoa, conteudo, idOrganizacoes, idOrganizacaoResponsavel);
 	}
 
-	@Transactional
 	public Pessoa salvarNovaPessoaAcessoCidadao(Pessoa pessoa) {
 		return repository.save(pessoa);
 	}
@@ -365,7 +364,7 @@ public class PessoaService {
 			Optional<Pessoa> pessoa = repository.buscarPorSubOuNomeTratado(dados.sub(), dados.nome());
 			if (pessoa.isPresent()) {
 				pessoa.get().setSub(dados.sub());
-				idPessoa = pessoa.get().getId().toString();
+				idPessoa = Long.toString(pessoa.get().getId());
 				repository.save(pessoa.get());
 			}
 		} else {
@@ -378,7 +377,7 @@ public class PessoaService {
 
 			associarOrganizacoesAPessoa(pessoa, organizacoes);
 
-			idPessoa = pessoa.getId().toString();
+			idPessoa = Long.toString(pessoa.getId());
 
 			logger.info("Pessoa criada com sucesso.");
 

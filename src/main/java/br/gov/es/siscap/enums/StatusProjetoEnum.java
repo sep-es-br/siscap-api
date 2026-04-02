@@ -1,11 +1,10 @@
 package br.gov.es.siscap.enums;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Arrays;
-
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Projeto;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -13,40 +12,48 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public enum StatusProjetoEnum {
 
-	EM_ELABORACAO("Em Elaboração") {
+	EM_ELABORACAO("Elaboração") {
         @Override
         public void validar(Projeto projeto) {
             exigirNulo(projeto.getProtocoloEdocs(), "protocolo E-Docs");
         }
     },
 
-	EM_ANALISE("Em Análise") {
+	EM_ANALISE("Análise") {
 		@Override
-		public void validar(Projeto projeto) {}
+		public void validar(Projeto projeto) {
+			 // TODO implementar regra de negócio
+		}
 	},
 	ARQUIVADO("Arquivado") {
 		@Override
-		public void validar(Projeto projeto) {}
+		public void validar(Projeto projeto) {
+			// TODO implementar regra de negócio
+		}
 	},
 	PARECER_SEP("Parecer SEP") {
 		@Override
-		public void validar(Projeto projeto) {}
+		public void validar(Projeto projeto) {
+			// TODO implementar regra de negócio
+		}
 	},
-	// PARECER_ESTRATEGICO_ORCAMENTARIO("Aguardando Parecer") {
-	// 	@Override
-	// 	public void validar(Projeto projeto) {}
-	// },
-	COMPLEMETACAO("Em Complementação") {
+	COMPLEMETACAO("Complementação") {
 		@Override
-		public void validar(Projeto projeto) {}
+		public void validar(Projeto projeto) {
+			// TODO implementar regra de negócio
+		}
 	},
 	ENCERRADO("Encerrado") {
 		@Override
-		public void validar(Projeto projeto) {}
+		public void validar(Projeto projeto) {
+			// TODO implementar regra de negócio
+		}
 	},
 	ELEGIVEL("Elegível") {
 		@Override
-		public void validar(Projeto projeto) {}
+		public void validar(Projeto projeto) {
+			// TODO implementar regra de negócio
+		}
 	};
 
 	private final String value;

@@ -1,8 +1,8 @@
 package br.gov.es.siscap.dto;
 
 import br.gov.es.siscap.models.Projeto;
+import br.gov.es.siscap.models.StatusProjeto;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,7 +57,7 @@ public record ProjetoDto(
 		this(projeto.getId(),
 				projeto.getSigla(),
 				projeto.getTitulo(),
-				projeto.getStatusAtual().getStatus(),
+				Optional.ofNullable(projeto.getStatusAtual()).map(StatusProjeto::getStatus).orElse(null),
 				valor,
 				projeto.getObjetivo(),
 				projeto.getObjetivoEspecifico(),
@@ -94,7 +94,7 @@ public record ProjetoDto(
 		this(projeto.getId(),
 				projeto.getSigla(),
 				projeto.getTitulo(),
-				projeto.getStatusAtual().getStatus(),
+				Optional.ofNullable(projeto.getStatusAtual()).map(StatusProjeto::getStatus).orElse(null),
 				null,
 				projeto.getObjetivo(),
 				projeto.getObjetivoEspecifico(),

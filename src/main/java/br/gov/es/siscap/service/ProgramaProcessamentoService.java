@@ -1,21 +1,5 @@
 package br.gov.es.siscap.service;
 
-import java.io.UnsupportedEncodingException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
@@ -27,11 +11,24 @@ import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
 import br.gov.es.siscap.models.ProgramaPessoa;
-import br.gov.es.siscap.models.ProjetoPessoa;
+import br.gov.es.siscap.repository.PessoaRepository;
 import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import jakarta.mail.MessagingException;
+import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -46,26 +43,31 @@ public class ProgramaProcessamentoService {
     private final ProgramaRepository repository;
     private final ProgramaAssinaturaEdocsRepository programaAssinaturaEdocsRepository;
     private final PessoaService pessoaService;
+    private final PessoaRepository pessoaRepository;
 
     private final Logger logger = LogManager.getLogger(ProgramaProcessamentoService.class);
 
     @Transactional
     public void marcarCriacaoArquivoProgramaEdocs(Long idPrograma, List<String> assinantesEdocsPrograma,
-            String idDocumentoEdocs) {
-        this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma, idDocumentoEdocs);
+            String idDocumentoEdocs, Long idPessoa) {
+        this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma, idDocumentoEdocs, idPessoa);
         this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, assinantesEdocsPrograma);
     }
 
     @Transactional
     public void marcarComoAguardandoAssinaturas(Long idPrograma, List<String> assinantesEdocsPrograma,
-            String idDocumentoEdocs) {
+            String idDocumentoEdocs, Long idPessoa) {
         logger.info("Registra as pendencias de assinatura no programa;");
-        Programa programa = this.buscarPrograma(idPrograma);
+        Pessoa pessoa = pessoaRepository.findById(idPessoa).orElseThrow();
+        
+        Programa programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
         if (programaAssinaturaEdocsService.buscarPorPrograma(programa).isEmpty()) {
             programaAssinaturaEdocsService.cadastrar(programa, assinantesEdocsPrograma);
         }
+        programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
+        
         programa.setIdDocumentoCapturadoEdocs(idDocumentoEdocs);
-        programa.setStatus(StatusProgramaEnum.AGUARDANDOASSINATURAS.getValue());
+        programa.alterarStatus(StatusProgramaEnum.AGUARDANDOASSINATURAS, pessoa);
         repository.save(programa);
     }
 
@@ -95,7 +97,7 @@ public class ProgramaProcessamentoService {
             emailsSubAssinates.put(emailAssinanteAC, sub);
         });
 
-        Programa programa = this.buscarPrograma(idPrograma);
+        Programa programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
 
         String tituloPrograma = programa.getTitulo();
         String siglaPrograma = programa.getSigla();
@@ -127,10 +129,6 @@ public class ProgramaProcessamentoService {
 
     }
 
-    private Programa buscarPrograma(long id) {
-        return repository.findById(id).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
-    }
-
     @Transactional
     public void marcarProgramaAssinado(long idPrograma, String subAssinante) {
 
@@ -151,8 +149,8 @@ public class ProgramaProcessamentoService {
                 assinante -> assinante.getStatusAssinatura().equals(TipoStatusAssinaturaEnum.ASSINADO.getValue()));
 
         if (todosJaAssinaram){
-            programa.setStatus(StatusProgramaEnum.ASSINADO.getValue());
-            emailService.enviarEmailAvisoProgramaAssinadoSubcap( List.of(emailSubcap), programa);
+            programa.alterarStatus(StatusProgramaEnum.ASSINADO, assinatura.getPessoa());
+            programa.getStatusAtual().finalizarStatus(assinatura.getPessoa());
         }
 
         repository.saveAndFlush(programa);
@@ -163,11 +161,11 @@ public class ProgramaProcessamentoService {
 
     @Transactional
     public void marcarProgramaAutuadoEdocsEAvisoAutuado(ProgramaDto programaDto,
-            String protocoloEdocs, String idProcessoEdocs) {
+            String protocoloEdocs, String idProcessoEdocs, Long idPessoa) {
 
         Objects.requireNonNull(programaDto, "programaDto não pode ser nulo");
 
-        marcarProgramaAutuado(programaDto.id(), protocoloEdocs, idProcessoEdocs);
+        marcarProgramaAutuado(programaDto.id(), protocoloEdocs, idProcessoEdocs, idPessoa);
 
         try {
 
@@ -201,14 +199,18 @@ public class ProgramaProcessamentoService {
 
     }
 
-    public void marcarProgramaAutuado(long idPrograma, String protocoloEdocs, String idProcessoEdocs) {
+    @Transactional
+    public void marcarProgramaAutuado(Long idPrograma, String protocoloEdocs, String idProcessoEdocs, Long idPessoa) {
 
+        Pessoa pessoa = pessoaRepository.findById(idPessoa).orElseThrow();
+        
         Programa programa = repository.findById(idPrograma)
                 .orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));
 
         programa.setIdProcessoEdocs(idProcessoEdocs);
         programa.setProtocoloEdocs(protocoloEdocs);
-        programa.setStatus(StatusProgramaEnum.AUTUADO.getValue());
+        programa.alterarStatus(StatusProgramaEnum.AUTUADO, pessoa);
+        programa.getStatusAtual().finalizarStatus(pessoa);
 
         repository.saveAndFlush(programa);
 
@@ -224,9 +226,32 @@ public class ProgramaProcessamentoService {
             throw new ValidacaoSiscapException(erros);
         }
 
-        Map<String, String> emailsSubAssinates = acessoCidadaoService.buscarEmailsPorListaSub(subAssinantes);
+        List<String> emailsInteressadosList = new ArrayList<String>();
+        Map<String, String> emailsSubAssinates = new HashMap<>();
 
-        Programa programa = this.buscarPrograma(idPrograma);
+        subAssinantes.forEach(sub -> {
+            EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
+            String emailAssinanteAC = "";
+
+            if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
+                emailAssinanteAC = emailsSub.corporativo();
+            } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+                emailAssinanteAC = emailsSub.email();
+            }
+            emailsInteressadosList.add(emailAssinanteAC);
+            emailsSubAssinates.put(emailAssinanteAC, sub);
+        });
+
+        // subAssinantes.forEach(sub -> {
+        // EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
+        // if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
+        // emailsInteressadosList.add(emailsSub.corporativo());
+        // } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
+        // emailsInteressadosList.add(emailsSub.email());
+        // }
+        // });
+
+        Programa programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
 
         String tituloPrograma = programa.getTitulo();
         String siglaPrograma = programa.getSigla();
@@ -241,11 +266,6 @@ public class ProgramaProcessamentoService {
         if (!subsEquipeCapacitacaoPrograma.isEmpty()) {
             emailsSubAssinates.putAll(acessoCidadaoService.buscarEmailsPorListaSub(subsEquipeCapacitacaoPrograma));
         }
-
-        List<String> emailsInteressadosList = emailsSubAssinates.values()
-                .stream()
-                .distinct()
-                .toList();
 
         boolean confirmacaoEnvioEmail;
 
@@ -312,7 +332,8 @@ public class ProgramaProcessamentoService {
         assinatura.setStatusAssinatura(TipoStatusAssinaturaEnum.RECUSOUSEASSINAR.getValue());
         assinatura.setJustificativaRecusa(this.programaAssinaturaEdocsService.resolverMensagemRecusaAssinanteGestor(subAssinante));
 
-        programa.setStatus(StatusProgramaEnum.RECUSADO.getValue());
+        programa.alterarStatus(StatusProgramaEnum.RECUSADO, assinatura.getPessoa());
+        programa.getStatusAtual().finalizarStatus(assinatura.getPessoa());
 
         repository.saveAndFlush(programa);
 
