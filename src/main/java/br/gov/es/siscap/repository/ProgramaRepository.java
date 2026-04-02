@@ -13,13 +13,20 @@ import org.springframework.stereotype.Repository;
 public interface ProgramaRepository extends JpaRepository<Programa, Long> {
 
 	@Query("""
-            	SELECT p from Programa p
-            	WHERE
-            		p.apagado = false AND
-            		(:status IS NULL OR p.status = :status) AND
-            		(:search IS NULL OR :search = '' OR
-            		LOWER(p.sigla) LIKE LOWER(concat('%', :search, '%')) OR
-            		LOWER(p.titulo) LIKE LOWER(concat('%', :search, '%')))
+                SELECT p FROM Programa p
+                JOIN p.historicoStatus ps
+                WHERE ps.inicioEm = (
+                    SELECT MAX(hp.inicioEm)
+                    FROM ProgramaStatus hp
+                    WHERE hp.programa = p
+                )
+                AND p.apagado = false
+                AND (:status IS NULL OR ps.status = :status)
+                AND (
+                    :search IS NULL OR :search = '' OR
+                    LOWER(p.sigla) LIKE LOWER(CONCAT('%', :search, '%')) OR
+                    LOWER(p.titulo) LIKE LOWER(CONCAT('%', :search, '%'))
+                )
             """)
 	Page<Programa> paginarProgramasPorFiltroPesquisaSimples(
 			@Param("search") String search, @Param("pageable") Pageable pageable, @Param("status") Integer status);
