@@ -72,8 +72,12 @@ public class ProgramaService {
 
 	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search, int status) {
 
-		Integer statusParam = (false || (status <= -1)) ? null : status;
-		return repository.paginarProgramasPorFiltroPesquisaSimples(search, pageable, statusParam).map(ProgramaListaDto::new);
+		StatusProgramaEnum statusParam =
+				(status <= -1) ? null : StatusProgramaEnum.fromCodigo(status);
+
+		return repository
+				.paginarProgramasPorFiltroPesquisaSimples(search, pageable, statusParam)
+				.map(ProgramaListaDto::new);
 	}
 
 	public List<OpcoesDto> listarOpcoesDropdown() {
