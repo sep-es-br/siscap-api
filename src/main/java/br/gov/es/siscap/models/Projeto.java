@@ -208,6 +208,10 @@ public class Projeto extends ControleHistorico {
 	}
 
 	public void alterarStatus(String novoStatus, Pessoa pessoa) {
+            
+                if(this.getStatusAtual() != null && this.getStatusAtual().getStatus().equals(novoStatus))
+                    return;
+            
 		this.finalizarStatusAtual(pessoa);
 
 		// Cria novo status
