@@ -175,7 +175,8 @@ public class IntegraccaoEdocsService {
 
 		String subJwt = autenticacaoService.getUsuarioSub();
 
-		this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado, elegível)
+		this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado,
+				elegível)
 				.flatMap(mensagem -> {
 					logger.info("SUCESSO: {}", mensagem);
 					if (projetoParecerService.buscarTipoParecer(idParecer).equals("GEOC")) {
@@ -482,7 +483,8 @@ public class IntegraccaoEdocsService {
 				.thenReturn(ctx);
 	}
 
-	private Mono<String> atualizarParecer(FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado, Boolean elegivel) {
+	private Mono<String> atualizarParecer(FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado,
+			Boolean elegivel) {
 
 		return FeignReativo.fromFeign(() -> consultarDadosArquivoCapturado(ctx.getIdDocumentos()[0], ctx.getToken()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
@@ -506,20 +508,23 @@ public class IntegraccaoEdocsService {
 									ctx.getProjeto().sigla());
 						}
 
-						if (projetoParecerService.verificarEnvioParecereGEOCProjeto(ctx.getProjeto().id())){
-                                                        
-                                                        System.out.println(elegivel);
-                                                        String resultado = elegivel ? StatusProjetoEnum.ELEGIVEL.getValue() : StatusProjetoEnum.ARQUIVADO.getValue();
-                                                        
-                                                        projetoService.alterarStatusAtualProjetoByIdProjeto(
+						if (projetoParecerService.verificarEnvioParecereGEOCProjeto(ctx.getProjeto().id())) {
+
+							String resultado = elegivel ? StatusProjetoEnum.ELEGIVEL.getValue()
+									: StatusProjetoEnum.ARQUIVADO.getValue();
+
+							projetoService.alterarStatusAtualProjetoByIdProjeto(
 									ctx.getProjeto().id(),
 									resultado,
-                                                                        subUsuarioLogado);
-                                                        projetoService.finalizarStatusAtualProjetoByIdProjeto(
-                                                                        ctx.getProjeto().id(), 
-                                                                        subUsuarioLogado);
-                                                }
-                                                
+									subUsuarioLogado);
+
+							projetoService.finalizarStatusAtualProjetoByIdProjeto(
+									ctx.getProjeto().id(),
+									subUsuarioLogado);
+
+							projetoService.enviarAvisoEquipeElaboracaoDicElegivel(ctx.getProjeto().id());
+
+						}
 
 						return "Atualização do parecer concluída com sucesso.";
 
@@ -1163,7 +1168,7 @@ public class IntegraccaoEdocsService {
 						.map(ACAgentePublicoPapelDto::LotacaoGuid)
 						.orElse(""));
 
-		String resumo = String.format("DIC - %s %s", projetoDTO.sigla() , projetoDTO.titulo());
+		String resumo = String.format("DIC - %s %s", projetoDTO.sigla(), projetoDTO.titulo());
 
 		List<String> idsAgentesInteressados = projetoDTO.equipeElaboracao()
 				.stream()
