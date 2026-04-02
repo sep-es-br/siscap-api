@@ -16,7 +16,7 @@ public class EnvioAvisoParecerGeocSubcapRealizadoEmailBuilder extends EmailBuild
 
 	@Override
 	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
-		return "Prezado(a),";
+		return "Prezado(a)";
 	}
 
 	@Override
@@ -26,7 +26,7 @@ public class EnvioAvisoParecerGeocSubcapRealizadoEmailBuilder extends EmailBuild
 
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
-		return "Comunicamos que realizado o parecer GEOC para o <strong>DIC (Documento Inicial para Captação)</strong>.";
+		return "Comunicamos que foi realizado o parecer GEOC para o <strong>DIC (Documento Inicial para Captação)</strong>.";
 	}
 	
 }
