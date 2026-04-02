@@ -33,118 +33,93 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/programas")
 @RequiredArgsConstructor
 public class ProgramaController {
+    private final ProgramaService service;
 
-	private final ProgramaService service;
-	private final RelatoriosService relatoriosService;
-	private final IntegraccaoEdocsService integracaoEdocsService;
-        
-        private final TokenService tokenService;
-        private final PessoaService pessoaSrv;
+    private final RelatoriosService relatoriosService;
 
-	@GetMapping
-	public Page<ProgramaListaDto> listarTodos(
-			@PageableDefault(size = 15, sort = "dataInicio", direction = Direction.DESC) Pageable pageable,
-			@RequestParam(required = false, defaultValue = "") String search) {
-		return service.listarTodos(pageable, search);
-	}
+    private final IntegraccaoEdocsService integracaoEdocsService;
 
-	@GetMapping("/opcoes")
-	public List<OpcoesDto> listarOpcoesDropdown() {
-		return service.listarOpcoesDropdown();
-	}
+    @GetMapping
+    public Page<ProgramaListaDto> listarTodos(
+            @PageableDefault(size = 15, sort = "dataInicio", direction = Direction.DESC) Pageable pageable,
+            @RequestParam(required = false, defaultValue = "") String search,
+            @RequestParam(required = false) int status
+    ) {
+        Page<ProgramaListaDto> pageList = service.listarTodos(pageable, search, status);
+        return pageList;
+    }
 
-	@GetMapping("/{id}")
-	public ProgramaDto buscarPorId(@NotNull @Positive @PathVariable Long id) {
-		return service.buscarPorId(id);
-	}
+    @GetMapping("/opcoes")
+    public List<OpcoesDto> listarOpcoesDropdown() {
+        return service.listarOpcoesDropdown();
+    }
 
-	@PostMapping
-	public ResponseEntity<ProgramaDto> cadastrar(
-			@Valid @RequestBody ProgramaForm form,
-                        @RequestHeader("Authorization") String auth) {
-            
-		String token = auth.replace("Bearer ", "");
-                
-                
-                String subNovo = this.tokenService.validarToken(token);
-                
-                
-		return new ResponseEntity<>(service.cadastrar(form, subNovo), HttpStatus.CREATED);
-	}
+    @GetMapping("/{id}")
+    public ProgramaDto buscarPorId(@NotNull @Positive @PathVariable Long id) {
+        return service.buscarPorId(id);
+    }
 
-	@PutMapping("/{id}")
-	public ResponseEntity<ProgramaDto> atualizar(
-			@NotNull @Positive @PathVariable Long id,
-			@Valid @RequestBody ProgramaForm form) {
-		return ResponseEntity.ok(service.atualizar(id, form));
-	}
+    @PostMapping
+    public ResponseEntity<ProgramaDto> cadastrar(
+            @Valid @RequestBody ProgramaForm form) {
+        return new ResponseEntity<>(service.cadastrar(form), HttpStatus.CREATED);
+    }
 
-	@DeleteMapping("/{id}")
-	public ResponseEntity<String> excluir(
-			@NotNull @Positive @PathVariable Long id) {
-		service.excluir(id);
-		return ResponseEntity.ok("Programa excluido com sucesso!");
-	}
+    @PutMapping("/{id}")
+    public ResponseEntity<ProgramaDto> atualizar(
+            @NotNull @Positive @PathVariable Long id,
+            @Valid @RequestBody ProgramaForm form) {
+        return ResponseEntity.ok(service.atualizar(id, form));
+    }
 
-	@PostMapping("/programa/{idPrograma}/edocs/solicitarassinaturas")
-	public ResponseEntity<Resource> solicitarAssinaturasProgramaEdocs(@PathVariable Long idPrograma,
-                        @RequestHeader("Authorization") String auth) {
-            
-		String token = auth.replace("Bearer ", "");
-                
-                
-                String subNovo = this.tokenService.validarToken(token);
-                
-                Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
-                
-		service.criarArquivoProgramaEdocsAssinaturasPendentes(idPrograma, pessoa.getId());
-		return ResponseEntity.accepted().build();
-	}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> excluir(
+            @NotNull @Positive @PathVariable Long id) {
+        service.excluir(id);
+        return ResponseEntity.ok("Programa excluido com sucesso!");
+    }
 
-	@GetMapping("/programa/{idPrograma}/baixar-pdf")
-	public ResponseEntity<Resource> gerarPDFPrograma(@PathVariable Integer idPrograma) {
-		Resource resource = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma,
-				ExibirMarcaDaguaProgramaEnum.EXIBIR);
-		String nomeArquivo = service.gerarNomeArquivo(idPrograma.longValue());
-		String contentType = "application/pdf";
-		return ResponseEntity.ok()
-				.contentType(MediaType.parseMediaType(contentType))
-				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + ".pdf\"")
-				.body(resource);
-	}
+    @PostMapping("/programa/{idPrograma}/edocs/solicitarassinaturas")
+    public ResponseEntity<Resource> solicitarAssinaturasProgramaEdocs(@PathVariable Long idPrograma) {
+        service.criarArquivoProgramaEdocsAssinaturasPendentes(idPrograma);
+        return ResponseEntity.accepted().build();
+    }
 
-	@PostMapping("/programa/{idPrograma}/edocs/assinar")
-	public ResponseEntity<Resource> assinarProgramaEdocs( @PathVariable Long idPrograma ) {
-		service.assinarProgramaEdocs( idPrograma );
-		return ResponseEntity.accepted().build();
-	}
+    @GetMapping("/programa/{idPrograma}/baixar-pdf")
+    public ResponseEntity<Resource> gerarPDFPrograma(@PathVariable Integer idPrograma) {
+        Resource resource = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma,
+                ExibirMarcaDaguaProgramaEnum.EXIBIR);
+        String nomeArquivo = service.gerarNomeArquivo(idPrograma.longValue());
+        String contentType = "application/pdf";
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + ".pdf\"")
+                .body(resource);
+    }
 
-	@PostMapping("/programa/{idPrograma}/edocs/autuar")
-	public ResponseEntity<Void> autuarProgramaEdocs(@PathVariable Long idPrograma,
-                        @RequestHeader("Authorization") String auth) {
-            
-		String token = auth.replace("Bearer ", "");
-                
-                
-                String subNovo = this.tokenService.validarToken(token);
-                
-                Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
-                
-		service.autuarProgramaEdocs(idPrograma, pessoa.getId());
-		return ResponseEntity.accepted().build();
-	}
+    @PostMapping("/programa/{idPrograma}/edocs/assinar")
+    public ResponseEntity<Resource> assinarProgramaEdocs(@PathVariable Long idPrograma) {
+        service.assinarProgramaEdocs(idPrograma);
+        return ResponseEntity.accepted().build();
+    }
 
-	@GetMapping("/programa/edocs/fases/{idPrograma}")
-	public ResponseEntity<List<EtapasIntegracaoDto>> integracaoEdocsFases(@PathVariable Long idPrograma) {
-		var fases = integracaoEdocsService.consultarFasesIntegracaoEdocsPrograma(idPrograma);
-		return ResponseEntity.ok(fases);
-	}
+    @PostMapping("/programa/{idPrograma}/edocs/autuar")
+    public ResponseEntity<Void> autuarProgramaEdocs(@PathVariable Long idPrograma) {
+        service.autuarProgramaEdocs(idPrograma);
+        return ResponseEntity.accepted().build();
+    }
 
-	@PostMapping("/programa/{idPrograma}/edocs/recusaassinar")
-	public ResponseEntity<Void> recusarAssinaturaProgramaEdocs(@PathVariable Long idPrograma,
-			@Valid @RequestBody AssinanteRequestDto request) {
-		service.recusarAssinaturaProgramaEdocs(idPrograma, request.subAssinante());
-		return ResponseEntity.accepted().build();
-	}
+    @GetMapping("/programa/edocs/fases/{idPrograma}")
+    public ResponseEntity<List<EtapasIntegracaoDto>> integracaoEdocsFases(@PathVariable Long idPrograma) {
+        var fases = integracaoEdocsService.consultarFasesIntegracaoEdocsPrograma(idPrograma);
+        return ResponseEntity.ok(fases);
+    }
+
+    @PostMapping("/programa/{idPrograma}/edocs/recusaassinar")
+    public ResponseEntity<Void> recusarAssinaturaProgramaEdocs(@PathVariable Long idPrograma,
+                                                               @Valid @RequestBody AssinanteRequestDto request) {
+        service.recusarAssinaturaProgramaEdocs(idPrograma, request.subAssinante());
+        return ResponseEntity.accepted().build();
+    }
 
 }
