@@ -65,9 +65,9 @@ public class ProgramaService {
 	private String assinanteEdocsProgramaGestorGOVES;
 
 	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search, int status) {
-		return repository
-      .paginarProgramasPorFiltroPesquisaSimples(search, pageable, status)
-      .map(ProgramaListaDto::new);
+
+		Integer statusParam = (false || (status <= -1)) ? null : status;
+		return repository.paginarProgramasPorFiltroPesquisaSimples(search, pageable, statusParam).map(ProgramaListaDto::new);
 	}
 
 	public List<OpcoesDto> listarOpcoesDropdown() {
