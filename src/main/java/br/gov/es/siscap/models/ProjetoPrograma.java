@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 
 /**
@@ -26,6 +27,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Table(name = "projeto_programa")
 @NoArgsConstructor
 @Getter
+@SQLRestriction("""
+    (select p.apagado
+     from programa p
+     where p.id = id_programa) = false
+""")
 public class ProjetoPrograma {
     
     @Id
