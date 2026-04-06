@@ -42,11 +42,14 @@ public class ProgramaController {
         private final PessoaService pessoaSrv;
 
 	@GetMapping
-	public Page<ProgramaListaDto> listarTodos(
-			@PageableDefault(size = 15, sort = "dataInicio", direction = Direction.DESC) Pageable pageable,
-			@RequestParam(required = false, defaultValue = "") String search) {
-		return service.listarTodos(pageable, search);
-	}
+        public Page<ProgramaListaDto> listarTodos(
+                @PageableDefault(size = 15, sort = "dataInicio", direction = Direction.DESC) Pageable pageable,
+                @RequestParam(required = false, defaultValue = "") String search,
+                @RequestParam(required = false) int status
+        ) {
+            Page<ProgramaListaDto> pageList = service.listarTodos(pageable, search, status);
+            return pageList;
+        }
 
 	@GetMapping("/opcoes")
 	public List<OpcoesDto> listarOpcoesDropdown() {

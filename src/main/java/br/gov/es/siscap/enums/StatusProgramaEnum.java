@@ -15,4 +15,14 @@ public enum StatusProgramaEnum {
 
 	private final int value;
 
+
+
+	public static StatusProgramaEnum fromCodigo(int codigo) {
+		for (StatusProgramaEnum s : values()) {
+			if (s.getValue() == codigo) {
+				return s;
+			}
+		}
+		throw new IllegalArgumentException("Status inválido: " + codigo);
+	}
 }

@@ -1,24 +1,35 @@
 package br.gov.es.siscap.models;
 
-import br.gov.es.siscap.enums.StatusProjetoEnum;
-import br.gov.es.siscap.enums.TipoStatusEnum;
-import br.gov.es.siscap.form.ProjetoForm;
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.Assert;
+
+import br.gov.es.siscap.enums.StatusProjetoEnum;
+import br.gov.es.siscap.enums.TipoStatusEnum;
+import br.gov.es.siscap.form.ProjetoForm;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "projeto")
@@ -32,7 +43,7 @@ public class Projeto extends ControleHistorico {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
-	private Long id;
+	private long id;
 
 	@Column(name = "sigla", length = 12)
 	private String sigla;
@@ -136,6 +147,10 @@ public class Projeto extends ControleHistorico {
 	@Setter(AccessLevel.NONE)
 	private Set<StatusProjeto> historicoStatus;
 
+	@ManyToOne()
+	@JoinColumn(name = "id_pessoa_redator")
+	private Pessoa pessoa;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
@@ -204,12 +219,16 @@ public class Projeto extends ControleHistorico {
 		this.setPecasPlanejamento(form.pecasPlanejamento());
 		this.setProtocoloEdocs(form.protocoloEdocs());
 	}
-        
-        public void alterarStatus(String novoStatus, Pessoa pessoa) {
-            this.finalizarStatusAtual(pessoa);
 
-            // Cria novo status
-            StatusProjeto novoStatusProjeto = StatusProjeto.init(this, novoStatus);
+	public void alterarStatus(String novoStatus, Pessoa pessoa) {
+            
+                if(this.getStatusAtual() != null && this.getStatusAtual().getStatus().equals(novoStatus))
+                    return;
+            
+		this.finalizarStatusAtual(pessoa);
+
+		// Cria novo status
+		StatusProjeto novoStatusProjeto = StatusProjeto.init(this, novoStatus);
 
 		// Inicializa coleção se estiver nula
 		if (this.getHistoricoStatus() == null) {
