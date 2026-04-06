@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -970,13 +969,15 @@ public class ProjetoService {
 		}
 
 		idProjetoPropostoList.forEach(idProjetoProposto -> {
-			Projeto projeto = this.buscar(idProjetoProposto);
-			projeto.setPrograma(programa);
-			repository.saveAndFlush(projeto);
-			if (projetoPropostoSet.stream()
-					.noneMatch(projetoSet -> Objects.equals(projetoSet.getId(), projeto.getId()))) {
-				this.enviarAvisoEquipeElaboracaoDicVinculadoPrograma(projeto.getId());
-			}
+                        if(projetoPropostoSet.stream().noneMatch(projeto -> idProjetoProposto.equals(projeto.getId()))) {
+                            Projeto projeto = this.buscar(idProjetoProposto);
+                            projeto.setPrograma(programa);
+                            repository.saveAndFlush(projeto);
+                            if (projetoPropostoSet.stream()
+                                            .noneMatch(projetoSet -> Objects.equals(projetoSet.getId(), projeto.getId()))) {
+                                    this.enviarAvisoEquipeElaboracaoDicVinculadoPrograma(projeto.getId());
+                            }
+                        }
 		});
 
 		logger.info("Projetos vinculados ao programa com sucesso");
