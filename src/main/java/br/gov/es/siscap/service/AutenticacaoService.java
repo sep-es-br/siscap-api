@@ -50,7 +50,7 @@ public class AutenticacaoService {
 	public Mono<String> getUsuarioSubReativo() {
 		return ReactiveSecurityContextHolder.getContext()
 				.map(ctx -> ctx.getAuthentication())
-				.map(auth -> auth.getName() ) ;
+				.map(auth -> auth.getName());
 	}
 
 	public String getUsuarioLogado() {
@@ -130,9 +130,13 @@ public class AutenticacaoService {
 
 		Boolean isLotadoSubeo = verficarUsuarioEstaLotadoSubeo(usuario.getSub(), userInfo.role());
 
+		String nomeLotacaoUsuario = usuarioService.lotacaoUsuario(usuario.getSub())
+				.map(p -> p.Nome())
+				.orElse("");
+
 		return new UsuarioDto(token, usuario.getPessoa().getNome(), getEmailUserInfo(userInfo), usuario.getSub(),
 				imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente, isLotadoSubcap,
-				isLotadoSubepp, isLotadoSubeo);
+				isLotadoSubepp, isLotadoSubeo, nomeLotacaoUsuario);
 
 	}
 
@@ -360,33 +364,30 @@ public class AutenticacaoService {
 				String lotacaoGuid = Optional.ofNullable(papelMap.get("lotacaoGuid"))
 						.map(Object::toString)
 						.orElse("");
-			
+
 				String prioritario = Optional.ofNullable(papelMap.get("prioritario"))
 						.map(Object::toString)
 						.orElse("false");
-			
+
 				if (lotacaoGuid.isBlank()) {
 					return; // continue
 				}
-			
+
 				String guidOrganizacao = organogramaService
 						.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid)
 						.guidOrganizacao();
-			
+
 				String cnpjOrganizacao = organogramaService
 						.listarDadosOrganizacaoPorGuid(guidOrganizacao)
 						.cnpj();
-			
+
 				organizacaoService.buscarPorCnpj(cnpjOrganizacao)
 						.ifPresentOrElse(
 								organizacao -> organizacoesSet.add(
-										Map.of("organizacao", organizacao, "prioritario", prioritario)
-								),
+										Map.of("organizacao", organizacao, "prioritario", prioritario)),
 								() -> logger.info(
 										"Organização não encontrada para o CNPJ fornecido: [{}].",
-										cnpjOrganizacao
-								)
-						);
+										cnpjOrganizacao));
 			});
 
 		}
