@@ -15,9 +15,11 @@ import br.gov.es.siscap.repository.PessoaRepository;
 import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import jakarta.mail.MessagingException;
+
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProgramaProcessamentoService {
 
     @Value("${email.destinatario-subcap}")
-	private String emailSubcap;
+    private String emailSubcap;
 
     private final ProgramaAssinaturaEdocsService programaAssinaturaEdocsService;
     private final AcessoCidadaoService acessoCidadaoService;
@@ -54,18 +56,18 @@ public class ProgramaProcessamentoService {
         this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, assinantesEdocsPrograma);
     }
 
-    @Transactional
-    public void marcarComoAguardandoAssinaturas(Long idPrograma, List<String> assinantesEdocsPrograma,
-            String idDocumentoEdocs, Long idPessoa) {
+    public void marcarComoAguardandoAssinaturas(long idPrograma, List<String> assinantesEdocsPrograma,
+            String idDocumentoEdocs, long idPessoa) {
         logger.info("Registra as pendencias de assinatura no programa;");
         Pessoa pessoa = pessoaRepository.findById(idPessoa).orElseThrow();
-        
-        Programa programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
+
+        Programa programa = repository.findById(idPrograma)
+                .orElseThrow(() -> new RuntimeException("Programa não encontrado"));
         if (programaAssinaturaEdocsService.buscarPorPrograma(programa).isEmpty()) {
             programaAssinaturaEdocsService.cadastrar(programa, assinantesEdocsPrograma);
         }
         programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
-        
+
         programa.setIdDocumentoCapturadoEdocs(idDocumentoEdocs);
         programa.alterarStatus(StatusProgramaEnum.AGUARDANDOASSINATURAS, pessoa);
         repository.save(programa);
@@ -97,7 +99,8 @@ public class ProgramaProcessamentoService {
             emailsSubAssinates.put(emailAssinanteAC, sub);
         });
 
-        Programa programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
+        Programa programa = repository.findById(idPrograma)
+                .orElseThrow(() -> new RuntimeException("Programa não encontrado"));
 
         String tituloPrograma = programa.getTitulo();
         String siglaPrograma = programa.getSigla();
@@ -148,9 +151,10 @@ public class ProgramaProcessamentoService {
         boolean todosJaAssinaram = programa.getProgramaAssinantesEdocsSet().stream().allMatch(
                 assinante -> assinante.getStatusAssinatura().equals(TipoStatusAssinaturaEnum.ASSINADO.getValue()));
 
-        if (todosJaAssinaram){
+        if (todosJaAssinaram) {
             programa.alterarStatus(StatusProgramaEnum.ASSINADO, assinatura.getPessoa());
             programa.getStatusAtual().finalizarStatus(assinatura.getPessoa());
+            emailService.enviarEmailAvisoProgramaAssinadoSubcap(Arrays.asList(emailSubcap),programa);
         }
 
         repository.saveAndFlush(programa);
@@ -199,11 +203,10 @@ public class ProgramaProcessamentoService {
 
     }
 
-    @Transactional
-    public void marcarProgramaAutuado(Long idPrograma, String protocoloEdocs, String idProcessoEdocs, Long idPessoa) {
+    public void marcarProgramaAutuado(long idPrograma, String protocoloEdocs, String idProcessoEdocs, long idPessoa) {
 
         Pessoa pessoa = pessoaRepository.findById(idPessoa).orElseThrow();
-        
+
         Programa programa = repository.findById(idPrograma)
                 .orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));
 
@@ -216,7 +219,7 @@ public class ProgramaProcessamentoService {
 
     }
 
-    private boolean enviarAvisoProgramaAutuado(Long idPrograma, List<String> subAssinantes) {
+    private boolean enviarAvisoProgramaAutuado(long idPrograma, List<String> subAssinantes) {
 
         List<String> erros = new ArrayList<>();
 
@@ -226,7 +229,7 @@ public class ProgramaProcessamentoService {
             throw new ValidacaoSiscapException(erros);
         }
 
-        List<String> emailsInteressadosList = new ArrayList<String>();
+        List<String> emailsInteressadosList = new ArrayList<>();
         Map<String, String> emailsSubAssinates = new HashMap<>();
 
         subAssinantes.forEach(sub -> {
@@ -242,15 +245,6 @@ public class ProgramaProcessamentoService {
             emailsSubAssinates.put(emailAssinanteAC, sub);
         });
 
-        // subAssinantes.forEach(sub -> {
-        // EmailSubResponseDto emailsSub = acessoCidadaoService.buscarEmailsPorSub(sub);
-        // if (emailsSub.corporativo() != null && !emailsSub.corporativo().isBlank()) {
-        // emailsInteressadosList.add(emailsSub.corporativo());
-        // } else if (emailsSub.email() != null && !emailsSub.email().isBlank()) {
-        // emailsInteressadosList.add(emailsSub.email());
-        // }
-        // });
-
         Programa programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
 
         String tituloPrograma = programa.getTitulo();
@@ -265,6 +259,7 @@ public class ProgramaProcessamentoService {
 
         if (!subsEquipeCapacitacaoPrograma.isEmpty()) {
             emailsSubAssinates.putAll(acessoCidadaoService.buscarEmailsPorListaSub(subsEquipeCapacitacaoPrograma));
+            emailsInteressadosList.addAll(subsEquipeCapacitacaoPrograma);
         }
 
         boolean confirmacaoEnvioEmail;
@@ -330,7 +325,8 @@ public class ProgramaProcessamentoService {
         assinatura.setDataAssinatura(null);
         assinatura.setDataRecusa(LocalDateTime.now());
         assinatura.setStatusAssinatura(TipoStatusAssinaturaEnum.RECUSOUSEASSINAR.getValue());
-        assinatura.setJustificativaRecusa(this.programaAssinaturaEdocsService.resolverMensagemRecusaAssinanteGestor(subAssinante));
+        assinatura.setJustificativaRecusa(
+                this.programaAssinaturaEdocsService.resolverMensagemRecusaAssinanteGestor(subAssinante));
 
         programa.alterarStatus(StatusProgramaEnum.RECUSADO, assinatura.getPessoa());
         programa.getStatusAtual().finalizarStatus(assinatura.getPessoa());
@@ -340,5 +336,7 @@ public class ProgramaProcessamentoService {
         programaAssinaturaEdocsRepository.saveAndFlush(assinatura);
 
     }
+
+    
 
 }
