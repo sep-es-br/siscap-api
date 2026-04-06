@@ -971,6 +971,8 @@ public class ProjetoService {
 		idProjetoPropostoList.forEach(idProjetoProposto -> {
                         if(projetoPropostoSet.stream().noneMatch(projeto -> idProjetoProposto.equals(projeto.getId()))) {
                             Projeto projeto = this.buscar(idProjetoProposto);
+                            projeto.removerPrograma();
+                            entityManager.flush();
                             projeto.setPrograma(programa);
                             repository.saveAndFlush(projeto);
                             if (projetoPropostoSet.stream()
