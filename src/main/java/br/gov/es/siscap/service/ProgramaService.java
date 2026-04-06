@@ -16,13 +16,11 @@ import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
-import br.gov.es.siscap.models.ProgramaStatus;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.PessoaRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -231,12 +229,12 @@ public class ProgramaService {
 			throw new ValidacaoSiscapException(
 					List.of("Programa não pode ser excluído pois já possui um protocolo E-Docs associado."));
 		}
-
-		programa.apagar();
-		repository.saveAndFlush(programa);
-
+                
 		programaPessoaService.excluirPorPrograma(programa);
 		projetoService.desvincularProjetosDoPrograma(programa);
+                
+		programa.apagar();
+		repository.saveAndFlush(programa);
 
 		logger.info("Programa excluído com sucesso");
 
