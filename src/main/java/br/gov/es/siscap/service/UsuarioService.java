@@ -7,6 +7,7 @@ import br.gov.es.siscap.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,7 +62,7 @@ public class UsuarioService implements UserDetailsService {
         String lotacaoGuidUsuario = this.lotacaoGuidUsuario(subUsuario);
         return lotacaoGuidUsuario.equalsIgnoreCase(guidSUBEO);
     }
-    
+
     public String lotacaoGuidUsuario(String subUsuario) {
 
         // ⚙️ Simulação de ambiente de teste
@@ -72,7 +73,7 @@ public class UsuarioService implements UserDetailsService {
                 default -> lotacaoSimulada;
             };
         }
-        
+
         List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService
                 .listarPapeisAgentePublicoPorSub(subUsuario);
 
@@ -82,8 +83,22 @@ public class UsuarioService implements UserDetailsService {
                 .map(ACAgentePublicoPapelDto::LotacaoGuid)
                 .orElseGet(() -> listaPapeisUsuario.stream()
                         .findFirst()
-                        .map( ACAgentePublicoPapelDto::LotacaoGuid )
+                        .map(ACAgentePublicoPapelDto::LotacaoGuid)
                         .orElse(""));
+
+    }
+
+    public Optional<ACAgentePublicoPapelDto> lotacaoUsuario(String subUsuario) {
+
+        List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService
+                .listarPapeisAgentePublicoPorSub(subUsuario);
+
+        return Optional.ofNullable(listaPapeisUsuario.stream()
+                .filter(papel -> Boolean.TRUE.equals(papel.Prioritario()))
+                .findFirst()
+                .orElseGet(() -> listaPapeisUsuario.stream()
+                        .findFirst()
+                        .orElse(null)));
 
     }
 
