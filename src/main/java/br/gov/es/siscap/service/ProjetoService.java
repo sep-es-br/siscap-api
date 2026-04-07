@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -231,7 +230,7 @@ public class ProjetoService {
 				this.buscarParecer(parecerProjeto),
 				lotacaoUsuario.getValue(),
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
-				projeto.getPessoa().getNome(),
+				Optional.ofNullable(projeto.getPessoa()).map(Pessoa::getNome).orElse(null),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
 
 	}
@@ -961,7 +960,8 @@ public class ProjetoService {
 			projetoPropostoSet.forEach(projeto -> {
 				if (idProjetoPropostoList.stream()
 						.noneMatch(idProjetoProposto -> idProjetoProposto.equals(projeto.getId()))) {
-					projeto.setPrograma(null);
+					projeto.removerPrograma();
+                                        entityManager.flush();
 				}
 			});
 
@@ -969,13 +969,17 @@ public class ProjetoService {
 		}
 
 		idProjetoPropostoList.forEach(idProjetoProposto -> {
-			Projeto projeto = this.buscar(idProjetoProposto);
-			projeto.setPrograma(programa);
-			repository.saveAndFlush(projeto);
-			if (projetoPropostoSet.stream()
-					.noneMatch(projetoSet -> Objects.equals(projetoSet.getId(), projeto.getId()))) {
-				this.enviarAvisoEquipeElaboracaoDicVinculadoPrograma(projeto.getId());
-			}
+                        if(projetoPropostoSet.stream().noneMatch(projeto -> idProjetoProposto.equals(projeto.getId()))) {
+                            Projeto projeto = this.buscar(idProjetoProposto);
+                            projeto.removerPrograma();
+                            entityManager.flush();
+                            projeto.setPrograma(programa);
+                            repository.saveAndFlush(projeto);
+                            if (projetoPropostoSet.stream()
+                                            .noneMatch(projetoSet -> Objects.equals(projetoSet.getId(), projeto.getId()))) {
+                                    this.enviarAvisoEquipeElaboracaoDicVinculadoPrograma(projeto.getId());
+                            }
+                        }
 		});
 
 		logger.info("Projetos vinculados ao programa com sucesso");
@@ -991,7 +995,7 @@ public class ProjetoService {
 
 		if (!projetoPropostoSet.isEmpty()) {
 			projetoPropostoSet.forEach(projeto -> {
-				projeto.setPrograma(null);
+				projeto.removerPrograma();
 			});
 
 			repository.saveAllAndFlush(projetoPropostoSet);

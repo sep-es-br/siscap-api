@@ -164,7 +164,12 @@ public class Programa extends ControleHistorico {
     public void alterarStatus(StatusProgramaEnum novoStatus, Pessoa pessoa) {
      
         ProgramaStatus ultimoStatus = this.getStatusAtual();
-        if(ultimoStatus != null) ultimoStatus.finalizarStatus(pessoa);
+        if(ultimoStatus != null) {
+            if(ultimoStatus.getStatus().equals(novoStatus))
+                return;
+            
+            ultimoStatus.finalizarStatus(pessoa);
+        }
         
         this.getHistoricoStatus().add(ProgramaStatus.init(this, novoStatus));
     }

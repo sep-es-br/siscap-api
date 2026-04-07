@@ -13,8 +13,10 @@
 	proj.sigla as sigla_dic,
 	proj.titulo as titulo_dic
 	from programa prog
+	join projeto_programa pp on
+		prog.id = pp.id_programa
 	join projeto proj on
-	proj.id_programa = prog.id
+		proj.id = pp.id_projeto
 	where prog.id = $P{idPrograma} and proj.apagado = false ]]></query>
 	<field name="idDIC" class="java.lang.Integer"/>
 	<field name="protocolo_edocs_dic" class="java.lang.String"/>
