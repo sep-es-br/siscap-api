@@ -1,18 +1,17 @@
 package br.gov.es.siscap.repository;
 
 import br.gov.es.siscap.models.Pessoa;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Repository
 public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
@@ -35,6 +34,8 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 	Optional<Pessoa> buscarPorSubOuNomeTratado(String sub, String nome);
 
 	Optional<Pessoa> findBySub(String sub);
+        
+        Optional<Pessoa> findByEmail(String email);
 
 	boolean existsByEmail(String email);
 

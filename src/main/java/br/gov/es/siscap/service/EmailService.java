@@ -30,15 +30,6 @@ import br.gov.es.siscap.utils.ProspeccaoEmailBuilder;
 import br.gov.es.siscap.utils.email.sender.EmailSenderBase;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Service;
-
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -47,6 +38,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -440,6 +438,7 @@ public class EmailService {
 					.findFirst();
 
 			String nomeDestinatario = sub
+                                        .map(s -> s.contains("@") ? this.pessoaPessoaService.buscarProEmail(s).getSub() : s) // fix: resolver essa gambiarra
 					.flatMap(s -> Optional.ofNullable(pessoaPessoaService.buscarPorSub(s)))
 					.map(Pessoa::getNome)
 					.filter(nome -> !nome.isBlank())
