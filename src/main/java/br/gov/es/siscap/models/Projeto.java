@@ -1,18 +1,5 @@
 package br.gov.es.siscap.models;
 
-import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLJoinTableRestriction;
-import org.hibernate.annotations.SQLRestriction;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.util.Assert;
-
 import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.form.ProjetoForm;
@@ -26,10 +13,21 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLJoinTableRestriction;
+import org.hibernate.annotations.SQLRestriction;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.util.Assert;
 
 @Entity
 @Table(name = "projeto")
@@ -92,6 +90,20 @@ public class Projeto extends ControleHistorico {
 	private Set<LocalidadeQuantia> localidadeQuantiaSet;
 
 	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+        @SQLRestriction("""
+                            apagado_em IS NULL AND
+                            NOT EXISTS (
+                                SELECT 1
+                                FROM programa_status ps
+                                WHERE ps.id_programa = id_programa
+                                  AND ps.status = 5
+                                  AND ps.inicio_em = (
+                                      SELECT MAX(ps2.inicio_em)
+                                      FROM programa_status ps2
+                                      WHERE ps2.id_programa = ps.id_programa
+                                  )
+                            )
+                        """)
         @Getter(AccessLevel.NONE)
         @Setter(AccessLevel.NONE)
 	private Set<ProjetoPrograma> programaHistorico;
@@ -278,8 +290,10 @@ public class Projeto extends ControleHistorico {
         
         private ProjetoPrograma getHistoricoAtivo() {
             return programaHistorico.stream()
-                    .filter(pp -> pp.getApagadoEm() == null)
-                    .findFirst().orElse(null);
+                .filter(pp -> pp.getApagadoEm() == null)
+                .filter(pp -> !pp.getPrograma().isRecusado()) // ou equivalente
+                .findFirst()
+                .orElse(null);
         }
 
 }

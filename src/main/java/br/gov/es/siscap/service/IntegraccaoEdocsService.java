@@ -58,7 +58,6 @@ public class IntegraccaoEdocsService {
 	private final AutenticacaoService autenticacaoService;
 	private final RelatoriosService relatoriosService;
 	private final ProjetoParecerService projetoParecerService;
-	private final PessoaService pessoaSrv;
 
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
@@ -467,7 +466,7 @@ public class IntegraccaoEdocsService {
 		return FeignReativo.fromFeign(() -> entranharDocumentosProcessoEdocs(
 				ctx.getProjeto().idProcessoEdocs(),
 				ctx.getIdDocumentos(),
-				ctx.getProjeto().subResponsavelProponente(),
+				ctx.getSubUsuarioExecutandoFluxo() ,
 				ctx.getToken()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
@@ -1390,7 +1389,7 @@ public class IntegraccaoEdocsService {
 	}
 
 	private String entranharDocumentosProcessoEdocs(String idProcessoEdocs, String[] idDocumentosEntranhar,
-			String subResponsavelProponente, String token) {
+			String subUsuarioExecutandoFluxo, String token) {
 
 		logger.info("Iniciar processo para entranhar documento no E-Docs.");
 
@@ -1399,7 +1398,7 @@ public class IntegraccaoEdocsService {
 		RestricaoAcessoBodyDto restricaoAcessoBodyDto = new RestricaoAcessoBodyDto(true, null, null);
 
 		List<ACAgentePublicoPapelDto> papeisAgentePublico = acessoCidadaoService
-				.listarPapeisAgentePublicoPorSub(subResponsavelProponente);
+				.listarPapeisAgentePublicoPorSub(subUsuarioExecutandoFluxo);
 
 		String idPapelResponsavel = papeisAgentePublico.stream()
 				.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
@@ -1464,12 +1463,15 @@ public class IntegraccaoEdocsService {
 
 		var chave = new ChaveEtapasIntegracao(projetoDto.id(), ContextoIntegracaoEdocsEnum.DIC);
 
+		String subUsuario = autenticacaoService.getUsuarioSub();
+
 		return buscarTokenReativo()
 				.onErrorResume(tratarErroToken(chave, EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO))
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token, pareceresProjeto.stream()
 						.map(ProjetoParecer::getGuidDocumentoEdocs)
-						.toArray(String[]::new)))
+						.toArray(String[]::new),
+						subUsuario))
 				.flatMap(this::entranharDocumentoEdocs)
 				.flatMap(this::consultarSituacaoEntranhamento)
 				.doOnSuccess(retorno -> {
@@ -1497,11 +1499,13 @@ public class IntegraccaoEdocsService {
 
 		var chave = new ChaveEtapasIntegracao(projetoDto.id(), ContextoIntegracaoEdocsEnum.DIC);
 
+		String subUsuario = autenticacaoService.getUsuarioSub();
+
 		return buscarTokenReativo(subJwt)
 				.onErrorResume(tratarErroToken(chave, EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO))
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token,
-						new String[] { projetoParecer.getGuidDocumentoEdocs() }))
+						new String[] { projetoParecer.getGuidDocumentoEdocs() }, subUsuario))
 				.flatMap(this::entranharDocumentoEdocs)
 				.flatMap(this::consultarSituacaoEntranhamento)
 				.flatMap(retorno -> Mono
