@@ -27,11 +27,12 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Table(name = "projeto_programa")
 @NoArgsConstructor
 @Getter
-@SQLRestriction("""
-    (select p.apagado
-     from programa p
-     where p.id = id_programa) = false
-""")
+@SQLRestriction(""" 
+                    apagado_em IS NULL AND
+                    (select p.apagado
+                    from programa p
+                    where p.id = id_programa) = false
+                """)
 public class ProjetoPrograma {
     
     @Id
