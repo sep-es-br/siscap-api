@@ -1,5 +1,6 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.ProjetoParecerDto;
 import br.gov.es.siscap.enums.LotacaoUsuarioEnum;
 import br.gov.es.siscap.enums.StatusParecerEnum;
@@ -151,9 +152,9 @@ public class ProjetoParecerService {
 					List.of("Texto do parecer não informado."));
 		}
 
-		Set<ProjetoParecer> ProjetoParecerSet = this.buscarPorProjeto(projeto);
+		Set<ProjetoParecer> projetoParecerSet = this.buscarPorProjeto(projeto);
 
-		Set<ProjetoParecer> pareceresProjetoAtualizarSet = this.atualizarPareceresProjeto(projeto, ProjetoParecerSet,
+		Set<ProjetoParecer> pareceresProjetoAtualizarSet = this.atualizarPareceresProjeto(projeto, projetoParecerSet,
 				projetoParecerDto);
 
 		projetoParecerRepository.saveAllAndFlush(pareceresProjetoAtualizarSet);

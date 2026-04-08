@@ -75,6 +75,7 @@ public class ProjetoService {
 	private final ProjetoComplementosService projetoComplementosService;
 	private final ProjetoParecerService projetoParecerService;
 	private final UsuarioService usuarioService;
+	//private final AsyncExecutorService asyncExecutorService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -483,12 +484,18 @@ public class ProjetoService {
 				false,
 				false,
 				false,
-				null, null,
+				projeto.getIdProcessoEdocs(), null,
 				null,
 				this.buscarParecer(projetoParecer, form.parecerProjetoUsuario().elegivel()), null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+
+		// // avalia se o projeto possuir parecere e se ele nao esta legivel.. 
+		// // unico que pode inabilitar um parecer eh a GEOC..
+		// if (Boolean.FALSE.equals(form.parecerProjetoUsuario().elegivel())) {
+		// 	asyncExecutorService.encerrarProcessoEdocs(projetoDtoAtualizado);
+		// }
 
 	}
 

@@ -22,13 +22,13 @@ public class AsyncExecutorService {
     private final ProjetoService service;
     private final IntegraccaoEdocsService integracaoEdocsService;
     private final ProgramaProcessamentoService programaProcessamentoService;
-    private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
+    private final Logger logger = LogManager.getLogger(AsyncExecutorService.class);
 
     @Async
     public void executarAutuacaoEdocs(Long idProjeto, Pessoa pessoa, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) {
         Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue(), exibirMarcaDagua);
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
-        integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP(resource, nomeArquivo, idProjeto.longValue(), pessoa);
+        integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP(resource, nomeArquivo, idProjeto, pessoa);
     }
 
     @Async
@@ -36,12 +36,12 @@ public class AsyncExecutorService {
         Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue(), exibirMarcaDagua);
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
         integracaoEdocsService.reentranharDespacharDicProccessoComplementacaoSUBCAP(resource, nomeArquivo,
-                idProjeto.longValue(), pessoa);
+                idProjeto, pessoa);
     }
 
     @Async
     public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos, Pessoa pessoa) {
-        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto.longValue(), complementos, pessoa);
+        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto, complementos, pessoa);
     }
 
     @Async
