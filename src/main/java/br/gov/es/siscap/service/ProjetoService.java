@@ -95,10 +95,10 @@ public class ProjetoService {
 	private String guidSUBCAP;
 
 	@Value("${email.gerencia-subcap}")
-	private String DESTINO_GERENCIA_SUBCAP;
+	private String emailDestinoGerenciaSubcap;
 
 	@Value("${email.destinatario-subcap}")
-	private String DESTINO_SUBCAP;
+	private String emailDestinoSubcap;
 
 	public Page<ProjetoListaDto> listarTodos(
 			Pageable pageable,
@@ -771,7 +771,7 @@ public class ProjetoService {
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
 		List<String> emailsInteressadosList = new ArrayList<>();
-		emailsInteressadosList.add(DESTINO_GERENCIA_SUBCAP);
+		emailsInteressadosList.add(emailDestinoGerenciaSubcap);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
 				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
@@ -804,7 +804,7 @@ public class ProjetoService {
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
 		List<String> emailsInteressadosList = new ArrayList<>();
-		emailsInteressadosList.add(DESTINO_SUBCAP);
+		emailsInteressadosList.add(emailDestinoSubcap);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
 				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
@@ -837,7 +837,7 @@ public class ProjetoService {
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
 		List<String> emailsInteressadosList = new ArrayList<>();
-		emailsInteressadosList.add(DESTINO_GERENCIA_SUBCAP);
+		emailsInteressadosList.add(emailDestinoGerenciaSubcap);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
 				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
