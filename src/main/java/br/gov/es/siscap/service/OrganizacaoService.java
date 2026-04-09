@@ -46,7 +46,7 @@ public class OrganizacaoService {
 
 	@PostConstruct
 	protected void init() {
-		this.sincronizarOrganizacoesBancoComOrganogramaAPI();
+		// this.sincronizarOrganizacoesBancoComOrganogramaAPI();
 	}
 
 	@Scheduled(cron = "${api.organograma.sync.organizacoes-cron}", zone = "America/Sao_Paulo")
