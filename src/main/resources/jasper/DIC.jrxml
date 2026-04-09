@@ -1,7 +1,7 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap.jrdax"/>
 	<parameter name="idProjeto" class="java.lang.Integer">
 		<defaultValueExpression><![CDATA[3]]></defaultValueExpression>
 	</parameter>
@@ -35,7 +35,13 @@ from projeto proj
 	inner join projeto_pessoa proj_pes on proj.id = proj_pes.id_projeto
 	inner join pessoa pes on proj_pes.id_pessoa = pes.id and proj_pes.id_tipo_status = 1
 	inner join localidade_quantia lq on proj.id = lq.id_projeto
-	left join pessoa pes_redator on proj.id_pessoa_redator = pes_redator.id
+	left join ( select status_projeto.id_pessoa, 
+				status_projeto.id_projeto
+				from status_projeto
+				where status = 'Análise' and id_pessoa is not null
+				order by status_projeto.id_projeto, inicio_em desc
+				LIMIT 1 ) as ultima_analise_projeto on ultima_analise_projeto.id_projeto = proj.id
+	left join pessoa pes_redator on ultima_analise_projeto.id_pessoa = pes_redator.id
 where
 	proj_pes.id_tipo_papel = 2 and
 	proj_pes.apagado  = false and
@@ -413,20 +419,15 @@ group by
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</element>
 		<element kind="textField" uuid="7619d86a-cad4-412f-bce2-1bb290b5e50b" x="0" y="14" width="535" height="11" forecolor="#838383" fontSize="8.0" hTextAlign="Center">
-			<expression><![CDATA["DIC criado por " + $F{redator_original_dic} 
-+ " em " + ($F{data_criacao_projeto} != null 
-    ? new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
-        .format($F{data_criacao_projeto})
-    : "")]]></expression>
-			<property name="com.jaspersoft.studio.unit.width" value="px"/>
-			<property name="com.jaspersoft.studio.unit.height" value="px"/>
-		</element>
-		<element kind="textField" uuid="f3e42f63-088e-4322-b49a-86ed836f7fdb" x="0" y="14" width="535" height="11" forecolor="#838383" fontSize="8.0" hTextAlign="Center">
-			<expression><![CDATA["DIC criado por " + $F{redator_original_dic} 
-+ " em " + ($F{data_criacao_projeto} != null 
-    ? new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
-        .format($F{data_criacao_projeto})
-    : "")]]></expression>
+			<expression><![CDATA[(
+    "S".equalsIgnoreCase($P{exibirMarcaDagua})
+    ? "DIC enviado por " + $F{redator_original_dic} + " em " +
+        ($F{data_criacao_projeto} != null
+            ? new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+                .format($F{data_criacao_projeto})
+            : "")
+    : null
+)]]></expression>
 			<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</element>
