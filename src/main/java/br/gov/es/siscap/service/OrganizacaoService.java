@@ -54,16 +54,16 @@ public class OrganizacaoService {
 
 		logger.info("Iniciando job de sincronização de organizações");
 
-		long inicio = System.currentTimeMillis();
+		// long inicio = System.currentTimeMillis();
 
-		try {
-			this.sincronizarOrganizacoesBancoComOrganogramaAPI();
-			long duracao = System.currentTimeMillis() - inicio;
-			logger.info("Job finalizado com sucesso em {} ms", duracao);
-		} catch (Exception e) {
-			logger.error("Erro ao executar job de sincronização", e);
-			throw e;
-		}
+		// try {
+		// 	this.sincronizarOrganizacoesBancoComOrganogramaAPI();
+		// 	long duracao = System.currentTimeMillis() - inicio;
+		// 	logger.info("Job finalizado com sucesso em {} ms", duracao);
+		// } catch (Exception e) {
+		// 	logger.error("Erro ao executar job de sincronização", e);
+		// 	throw e;
+		// }
 
 	}
 
