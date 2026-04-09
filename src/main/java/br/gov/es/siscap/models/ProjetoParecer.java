@@ -1,5 +1,11 @@
 package br.gov.es.siscap.models;
 
+import java.time.LocalDateTime;
+import java.util.Objects;
+
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import br.gov.es.siscap.dto.ProjetoParecerDto;
 import br.gov.es.siscap.enums.LotacaoUsuarioEnum;
 import br.gov.es.siscap.enums.StatusParecerEnum;
@@ -38,7 +44,7 @@ public class ProjetoParecer extends ControleHistorico {
 	@Column(name = "guid_unidade_organizacao", nullable = false)
 	private String guidUnidadeOrganizacao;
 
-	@Column(name = "texto_parecer", nullable = true, length=2000)
+	@Column(name = "texto_parecer", nullable = true, length=20000)
 	private String textoParecer;
 
 	@Column(name = "status_parecer", nullable = false)
