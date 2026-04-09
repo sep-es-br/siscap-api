@@ -4,6 +4,7 @@ import br.gov.es.siscap.exception.service.SiscapImagemException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,9 @@ import java.util.UUID;
 
 @Service
 public class ImagemPerfilService {
+
+	@Value("${app.imagem.default:static/imagens/Icon-siscap.png}")
+	private String imagemDefault;
 
 	private final Path diretorioPadrao;
 	private final Logger logger = LogManager.getLogger(ImagemPerfilService.class);
@@ -57,22 +61,32 @@ public class ImagemPerfilService {
 
 	public Resource buscar(String nomeImagem) {
 		try {
+			
 			if (nomeImagem == null)
 				return null;
+
 			logger.info("Buscar imagem {}.", nomeImagem);
+
 			Path caminhoImagem = load(nomeImagem);
+			
 			Resource resource = new UrlResource(caminhoImagem.toUri());
+			
 			if (resource.exists() || resource.isReadable()) {
 				logger.info("Imagem {} encontrada.", nomeImagem);
-			} else {
-				logger.error("Imagem {} não encontrada no diretório de imagens.", nomeImagem);
+				return resource;
 			}
 
-			return resource;
+			logger.warn("Imagem {} não encontrada. Retornando padrão.", nomeImagem);
+        	return getImagemPadrao();
+
 		} catch (MalformedURLException e) {
 			logger.error("Não foi possível ler o arquivo {}. {}", nomeImagem, e.getMessage());
-			throw new SiscapImagemException("Não foi possível ler o arquivo " + nomeImagem);
+			return getImagemPadrao();
 		}
+	}
+
+	private Resource getImagemPadrao() {
+		return new ClassPathResource(imagemDefault);
 	}
 
 	public void apagar(String nomeImagem) {

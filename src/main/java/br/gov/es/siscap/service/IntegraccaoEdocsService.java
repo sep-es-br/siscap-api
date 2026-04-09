@@ -466,7 +466,7 @@ public class IntegraccaoEdocsService {
 		return FeignReativo.fromFeign(() -> entranharDocumentosProcessoEdocs(
 				ctx.getProjeto().idProcessoEdocs(),
 				ctx.getIdDocumentos(),
-				ctx.getSubUsuarioExecutandoFluxo() ,
+				ctx.getSubUsuarioExecutandoFluxo(),
 				ctx.getToken()))
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.repeatWhenEmpty(flux -> flux.delayElements(Duration.ofSeconds(2)))
@@ -1499,19 +1499,18 @@ public class IntegraccaoEdocsService {
 
 		var chave = new ChaveEtapasIntegracao(projetoDto.id(), ContextoIntegracaoEdocsEnum.DIC);
 
-		String subUsuario = autenticacaoService.getUsuarioSub();
-
 		return buscarTokenReativo(subJwt)
 				.onErrorResume(tratarErroToken(chave, EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO))
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token,
-						new String[] { projetoParecer.getGuidDocumentoEdocs() }, subUsuario))
+						new String[] { projetoParecer.getGuidDocumentoEdocs() }, subJwt))
 				.flatMap(this::entranharDocumentoEdocs)
 				.flatMap(this::consultarSituacaoEntranhamento)
-				.flatMap(retorno -> Mono
-						.fromRunnable(() -> projetoService.enviarEmailSubSecretariaSubcap(projetoDto.id()))
-						.subscribeOn(Schedulers.boundedElastic()) // evita travar o event loop
-						.thenReturn("Entranhamento do parecer referente ao DIC concluído com sucesso."));
+				.flatMap(retorno -> Mono.fromCallable(() -> {
+					projetoService.enviarEmailSubSecretariaSubcap(projetoDto.id());
+					return "Entranhamento do parecer referente ao DIC concluído com sucesso.";
+				})
+					.subscribeOn(Schedulers.boundedElastic()));
 
 	}
 
