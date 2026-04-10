@@ -157,7 +157,7 @@ group by proj.id,
 				<expression><![CDATA[$F{parecer}]]></expression>
 			</element>
 			<element kind="textField" uuid="f5505670-450d-4e27-b6f6-c7ba33e9fd82" x="1" y="0" width="380" height="20" forecolor="#000000" fontName="SansSerif" fontSize="10.0" bold="true">
-				<expression><![CDATA["parecer " + $P{descricaoTipoParecer}]]></expression>
+				<expression><![CDATA["Parecer " + $P{descricaoTipoParecer}]]></expression>
 			</element>
 		</band>
 	</detail>
