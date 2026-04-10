@@ -1318,7 +1318,7 @@ public class ProjetoService {
 	}
 
 	public List<ProjetoPropostoOpcoesDto> listarDicsElegiveisParaPrograma(String incluir) {
-		return repository.findAll(Sort.by(Sort.Direction.ASC, "titulo"))
+		return repository.findAll(Sort.by(Sort.Direction.DESC, "criadoEm"))
 				.stream()
 				.filter((projeto) -> (incluir != null
 						&& Arrays.stream(incluir.split(";")).anyMatch(String.valueOf(projeto.getId())::equals))

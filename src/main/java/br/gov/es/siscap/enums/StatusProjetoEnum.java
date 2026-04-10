@@ -13,11 +13,11 @@ import lombok.RequiredArgsConstructor;
 public enum StatusProjetoEnum {
 
 	EM_ELABORACAO("Elaboração") {
-        @Override
-        public void validar(Projeto projeto) {
-            exigirNulo(projeto.getProtocoloEdocs(), "protocolo E-Docs");
-        }
-    },
+            @Override
+            public void validar(Projeto projeto) {
+                exigirNulo(projeto.getProtocoloEdocs(), "protocolo E-Docs");
+            }
+        },
 
 	EM_ANALISE("Análise") {
 		@Override
@@ -54,7 +54,13 @@ public enum StatusProjetoEnum {
 		public void validar(Projeto projeto) {
 			// TODO implementar regra de negócio
 		}
-	};
+	},
+        INELEGIVEL("Inelegível") {
+            @Override
+            public void validar(Projeto projeto) {
+                
+            }
+        };
 
 	private final String value;
 
