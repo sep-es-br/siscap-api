@@ -537,7 +537,6 @@ public class ProjetoService {
 
 	private void exclusaoLogica(Projeto projeto) {
 
-		projeto.apagarProjeto();
 
 		projetoPessoaService.excluirPorProjeto(projeto);
 
@@ -548,8 +547,13 @@ public class ProjetoService {
 		projetoAcaoService.excluirPorProjeto(projeto);
 
 		projetoParecerService.excluirPorProjeto(projeto);
-
-		repository.deleteById(projeto.getId());
+                
+                
+                
+		projeto.apagarProjeto();
+                repository.deleteById(projeto.getId());
+                
+		
 
 	}
 
