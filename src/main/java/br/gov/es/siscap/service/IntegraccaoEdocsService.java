@@ -510,7 +510,7 @@ public class IntegraccaoEdocsService {
 						if (projetoParecerService.verificarEnvioParecereGEOCProjeto(ctx.getProjeto().id())) {
 
 							String resultado = elegivel ? StatusProjetoEnum.ELEGIVEL.getValue()
-									: StatusProjetoEnum.ARQUIVADO.getValue();
+									: StatusProjetoEnum.INELEGIVEL.getValue();
 
 							projetoService.alterarStatusAtualProjetoByIdProjeto(
 									ctx.getProjeto().id(),

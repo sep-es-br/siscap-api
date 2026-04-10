@@ -5,6 +5,8 @@ import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.StatusProjeto;
 import br.gov.es.siscap.utils.FormatadorData;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import java.time.LocalDateTime;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,15 +27,23 @@ public class ProjetoSpecification {
 	}
 
 	public static Specification<Projeto> filtroStatus(String status) {
-		return (root, query, cb) -> {
+            return (root, query, cb) -> {
+
                 Join<Projeto, StatusProjeto> statusJoin = root.join("historicoStatus");
 
+                // Subquery para pegar o maior inicioEm
+                Subquery<LocalDateTime> subquery = query.subquery(LocalDateTime.class);
+                Root<StatusProjeto> subRoot = subquery.from(StatusProjeto.class);
+
+                subquery.select(cb.greatest(subRoot.<LocalDateTime>get("inicioEm")))
+                        .where(cb.equal(subRoot.get("projeto"), root));
+
                 return cb.and(
-                    cb.isNull(statusJoin.get("fimEm")),
+                    cb.equal(statusJoin.get("inicioEm"), subquery),
                     cb.equal(statusJoin.get("status"), status)
                 );
             };
-	}
+        }
 
 	public static Specification<Projeto> filtroData(String dataPeriodoInicio, String dataPeriodoFim) {
 		LocalDateTime inicio = FormatadorData
