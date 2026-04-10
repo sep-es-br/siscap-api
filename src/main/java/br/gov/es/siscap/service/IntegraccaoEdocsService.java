@@ -178,7 +178,7 @@ public class IntegraccaoEdocsService {
 				elegível)
 				.flatMap(mensagem -> {
 					logger.info("SUCESSO: {}", mensagem);
-					if (projetoParecerService.buscarTipoParecer(idParecer).equals("GEOC")) {
+					if (projetoParecerService.buscarTipoParecer(idParecer).equals("CAPTAÇÃO")) {
 						return this.entranharParecerProcesso(projetoDto, subJwt);
 					} else {
 						return Mono.empty();
@@ -1494,7 +1494,7 @@ public class IntegraccaoEdocsService {
 
 		if (projetoParecer == null)
 			throw new ValidacaoSiscapException(
-					List.of(String.format("Parecer SUBCAP - GEOC não encontrado para o projeto ID: %d",
+					List.of(String.format("Parecer de Captação não encontrado para o projeto ID: %d",
 							projetoDto.id())));
 
 		var chave = new ChaveEtapasIntegracao(projetoDto.id(), ContextoIntegracaoEdocsEnum.DIC);

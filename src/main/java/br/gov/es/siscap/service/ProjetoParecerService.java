@@ -129,7 +129,7 @@ public class ProjetoParecerService {
 		else if (projetoParecerDto.guidUnidadeOrganizacao().equals(guidSUBEO))
 			tipoParecer = "ORÇAMENTÁRIO";
 		else if (projetoParecerDto.guidUnidadeOrganizacao().equals(guidSUBCAP))
-			tipoParecer = "GEOC";
+			tipoParecer = "CAPTAÇÃO";
 
 		if (projetoParecerDto.id() == null || projetoParecerDto.id() == 0) {
 			if (projetoParecerRepository.existsByProjetoIdAndGuidUnidadeOrganizacao(projeto.getId(),
@@ -215,7 +215,7 @@ public class ProjetoParecerService {
 		else if (projetoParecer.getGuidUnidadeOrganizacao().equals(guidSUBEO))
 			tipoParecer = "ORÇAMENTÁRIO";
 		else if (projetoParecer.getGuidUnidadeOrganizacao().equals(guidSUBCAP))
-			tipoParecer = "GEOC";
+			tipoParecer = "CAPTAÇÃO";
 
 		return tipoParecer;
 

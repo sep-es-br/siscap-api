@@ -21,7 +21,7 @@ public class EnvioAvisoParecerGeocSubcapRealizadoEmailBuilder extends EmailBuild
 
 	@Override
 	public String montarAssuntoEmail() {
-		return "Parecer gerencial GEOC DIC %s realizado".formatted(this.getSiglaProjeto());
+		return "Parecer gerencial de captação DIC %s realizado".formatted(this.getSiglaProjeto());
 	}
 
 	@Override
