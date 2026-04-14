@@ -53,6 +53,13 @@ public class FluxoContextoIntegracaoDto {
         this.chaveContextoIntegracao = chaveContextoIntegracao;
     }
 
+    public FluxoContextoIntegracaoDto( ProjetoDto projeto, String token, ChaveEtapasIntegracao chaveContextoIntegracao, String subUsuario ) {
+        this.projeto = projeto;
+        this.token = token;
+        this.chaveContextoIntegracao = chaveContextoIntegracao;
+        this.subUsuarioExecutandoFluxo = subUsuario;
+    }
+
     public FluxoContextoIntegracaoDto(ProjetoDto projeto, String token, String[] idDocumentos, String subUsuario) {
         this.projeto = projeto;
         this.token = token;

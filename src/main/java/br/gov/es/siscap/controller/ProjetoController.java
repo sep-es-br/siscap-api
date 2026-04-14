@@ -201,7 +201,7 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 		service.atualizar(idProjeto, form, false, pessoa);
-		asyncExecutorService.executarAutuacaoEdocs(idProjeto, pessoa, ExibirMarcaDaguaProgramaEnum.NAOEXIBIR);
+		asyncExecutorService.executarAutuacaoEdocs(idProjeto, pessoa, ExibirMarcaDaguaProgramaEnum.NAOEXIBIR, subNovo);
 		return ResponseEntity.accepted().build();
 	}
 

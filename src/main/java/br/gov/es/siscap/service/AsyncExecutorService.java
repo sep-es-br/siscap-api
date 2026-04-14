@@ -25,10 +25,10 @@ public class AsyncExecutorService {
     private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
     @Async
-    public void executarAutuacaoEdocs(Long idProjeto, Pessoa pessoa, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) {
+    public void executarAutuacaoEdocs(Long idProjeto, Pessoa pessoa, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua, String subUsuario) {
         Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue(), exibirMarcaDagua);
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
-        integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP(resource, nomeArquivo, idProjeto.longValue(), pessoa);
+        integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP(resource, nomeArquivo, idProjeto.longValue(), pessoa, subUsuario);
     }
 
     @Async

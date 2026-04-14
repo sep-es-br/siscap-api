@@ -132,7 +132,7 @@ public class IntegraccaoEdocsService {
 	}
 
 	public void assinarAutuarDespacharDicProccessoSUBCAP(Resource arquivoDic, String nomeArquivo, Long idProjeto,
-			Pessoa pessoa) {
+			Pessoa pessoa, String subUsuario) {
 
 		logger.info("Iniciando processo para Autuacao/Despacho do projeto {} para SUBCAP..", idProjeto);
 
@@ -142,7 +142,7 @@ public class IntegraccaoEdocsService {
 
 		ProjetoDto projetoDtoIntegrando = projetoService.buscarPorId(idProjeto);
 
-		autuarDicProjetoReativo(projetoDtoIntegrando, arquivoDic, nomeArquivo, pessoa)
+		autuarDicProjetoReativo(projetoDtoIntegrando, arquivoDic, nomeArquivo, pessoa, subUsuario)
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
 						erro -> logger.error("ERRO: {}", erro.getMessage()));
@@ -314,7 +314,7 @@ public class IntegraccaoEdocsService {
 	}
 
 	public Mono<String> autuarDicProjetoReativo(ProjetoDto projetoDto, Resource arquivo, String nomeArquivo,
-			Pessoa pessoa) {
+			Pessoa pessoa, String subUsuario) {
 
 		final long tamanho;
 		try {
@@ -338,7 +338,7 @@ public class IntegraccaoEdocsService {
 		return buscarTokenReativo()
 				.onErrorResume(tratarErroToken(chaveContexto, EtapasIntegracaoEdocsEnum.CAPTURAASSINA))
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
-				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token, chaveContexto))
+				.map(token -> new FluxoContextoIntegracaoDto(projetoDto, token, chaveContexto, subUsuario))
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
 				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
 				.flatMap(ctx -> capturarAssinar(ctx, nomeArquivo))
