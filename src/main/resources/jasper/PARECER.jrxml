@@ -145,10 +145,12 @@ group by proj.id,
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
 			<element kind="textField" uuid="9c8e3b47-cc05-4b3a-bbb3-a6085d6d3cbf" stretchType="ContainerHeight" mode="Transparent" x="90" y="81" width="380" height="19" backcolor="rgba(237, 86, 83, 0.9019608)" fontName="SansSerif" textAdjust="StretchHeight" bold="true" hTextAlign="Justified" vTextAlign="Top">
+				<printWhenExpression><![CDATA[$P{elegivel} != null]]></printWhenExpression>
 				<expression><![CDATA[$P{elegivel} ? "Elegível" : "Inelegível"]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
 			<element kind="staticText" uuid="f77c8765-381f-4802-bca2-d3f1fec4dc91" x="0" y="80" width="90" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
+				<printWhenExpression><![CDATA[$P{elegivel} != null]]></printWhenExpression>
 				<text><![CDATA[Conclusão:]]></text>
 			</element>
 		</band>
