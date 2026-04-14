@@ -672,7 +672,6 @@ public class ProjetoService {
 
 					logger.info("Email enviado com sucesso");
 
-					projeto.alterarStatus(StatusProjetoEnum.EM_ELABORACAO.getValue(), pessoa);
 
 				} else {
 					erros.add("Erro ao enviar solicitação de revisão do projeto id %s".formatted(id));
@@ -682,10 +681,9 @@ public class ProjetoService {
 				logger.error(e.getMessage());
 			}
 
-		} else {
-			erros.add("Não foi possível fazer o envio pois o proponente não foi encontrado - projeto id %s"
-					.formatted(id));
 		}
+                
+		projeto.alterarStatus(StatusProjetoEnum.EM_ELABORACAO.getValue(), pessoa);
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
@@ -740,8 +738,6 @@ public class ProjetoService {
 					logger.info(
 							"Email aviso solicitação de complementação do projeto enviado com sucesso para o projeto id {}",
 							id);
-					projeto.alterarStatus(StatusProjetoEnum.COMPLEMETACAO.getValue(), pessoa);
-					this.inserirComplementacoesSeremRealizadasDIC(projeto, complementos);
 				} else {
 					erros.add("Erro ao enviar aviso para complementação do projeto id " + id);
 				}
@@ -750,9 +746,10 @@ public class ProjetoService {
 				logger.error(e.getMessage());
 			}
 
-		} else {
-			erros.add("Não foi possível fazer o envio pois o proponente não foi encontrado - projeto id " + id);
 		}
+                projeto.alterarStatus(StatusProjetoEnum.COMPLEMETACAO.getValue(), pessoa);
+		this.inserirComplementacoesSeremRealizadasDIC(projeto, complementos);
+                
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
@@ -914,9 +911,6 @@ public class ProjetoService {
 
 				if (confirmacaoEnvioEmail) {
 					logger.info("Email aviso arquivamento projeto enviado com sucesso do projeto id {}", id);
-					projeto.alterarStatus(StatusProjetoEnum.ARQUIVADO.getValue(), pessoa);
-					projeto.finalizarStatusAtual(pessoa);
-					this.registrarMotivoArquivamentoProjeto(id, codigoMotivoArquivamento, justificativa);
 				} else {
 					erros.add("Erro ao enviar aviso de arquivamento do projeto id " + id);
 				}
@@ -925,9 +919,11 @@ public class ProjetoService {
 				logger.error(e.getMessage());
 			}
 
-		} else {
-			erros.add("Não foi possível fazer o envio pois o proponente não foi encontrado - projeto id " + id);
 		}
+                
+                projeto.alterarStatus(StatusProjetoEnum.ARQUIVADO.getValue(), pessoa);
+                projeto.finalizarStatusAtual(pessoa);
+                this.registrarMotivoArquivamentoProjeto(id, codigoMotivoArquivamento, justificativa);
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
