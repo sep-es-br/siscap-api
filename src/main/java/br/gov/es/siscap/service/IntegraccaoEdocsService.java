@@ -225,13 +225,15 @@ public class IntegraccaoEdocsService {
 
 		logger.info("Iniciando processo para reentranhamento DIC complementado do projeto {} para SUBCAP..", idProjeto);
 
+		String subJwt = autenticacaoService.getUsuarioSub();
+
 		var chave = new ChaveEtapasIntegracao(idProjeto, ContextoIntegracaoEdocsEnum.DIC);
 
 		this.limparEtapas(chave);
 
 		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 
-		reentranharDicProjetoReativo(projetoDto, arquivoDic, nomeArquivo, pessoa)
+		reentranharDicProjetoReativo(projetoDto, arquivoDic, nomeArquivo, pessoa, subJwt)
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
 						erro -> logger.info("ERRO: {}", erro));
@@ -389,7 +391,7 @@ public class IntegraccaoEdocsService {
 	}
 
 	public Mono<String> reentranharDicProjetoReativo(ProjetoDto projetoDto, Resource arquivoCorrigido,
-			String nomeArquivo, Pessoa pessoa) {
+			String nomeArquivo, Pessoa pessoa, String subJwt) {
 
 		final long tamanho;
 		try {
@@ -425,7 +427,7 @@ public class IntegraccaoEdocsService {
 									msgAlerta);
 							throw new ValidacaoSiscapException(List.of(msgAlerta));
 						}
-						return new FluxoContextoIntegracaoDto(projetoDto, token, chave);
+						return new FluxoContextoIntegracaoDto(projetoDto, token, chave, subJwt);
 					} catch (Exception e) {
 						this.registrarFalhaEtapa(
 								chave,
