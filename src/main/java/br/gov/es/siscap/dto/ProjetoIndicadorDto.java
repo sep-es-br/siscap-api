@@ -1,5 +1,7 @@
 package br.gov.es.siscap.dto;
 
+import java.util.List;
+
 import br.gov.es.siscap.models.ProjetoIndicador;
 
 public record ProjetoIndicadorDto(
@@ -7,7 +9,9 @@ public record ProjetoIndicadorDto(
 	String tipoIndicador,
 	String descricaoIndicador,
 	String descricaoMeta,
-	Long idStatus ){
+	Long idStatus,
+	Integer idIndicadorCatalogo,
+	List<ProjetoIndicadorCatalogoMetaDto> metasIndicadorCatalogo){
 		
 	public ProjetoIndicadorDto(ProjetoIndicador projetoIndicador) {
 		this(
@@ -15,7 +19,21 @@ public record ProjetoIndicadorDto(
 			projetoIndicador.getTipoIndicador(),
 			projetoIndicador.getDescricaoIndicador(),
 			projetoIndicador.getDescricaoMeta(),
-			projetoIndicador.getTipoStatus().getId()
+			projetoIndicador.getTipoStatus().getId(),
+			projetoIndicador.getIndicadorCatalogo().getId(),
+			null
+		);
+	}
+
+	public ProjetoIndicadorDto(ProjetoIndicador projetoIndicador, List<ProjetoIndicadorCatalogoMetaDto> metasIndicadorCatalogo) {
+		this(
+			projetoIndicador.getId(),
+			projetoIndicador.getTipoIndicador(),
+			projetoIndicador.getDescricaoIndicador(),
+			projetoIndicador.getDescricaoMeta(),
+			projetoIndicador.getTipoStatus().getId(),
+			projetoIndicador.getIndicadorCatalogo().getId(),
+			metasIndicadorCatalogo
 		);
 	}
 

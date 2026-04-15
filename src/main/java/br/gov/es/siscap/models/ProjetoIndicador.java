@@ -7,6 +7,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.Set;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -39,6 +42,13 @@ public class ProjetoIndicador extends ControleHistorico {
 
 	@Column(name = "meta_indicador", nullable = false, length = 2000)
 	private String descricaoMeta;
+
+	@ManyToOne()
+	@JoinColumn(name = "id_indicador_catalogo")
+	private IndicadorCatalogo indicadorCatalogo;
+
+	@OneToMany(mappedBy = "projeto_indicador")
+	private Set<ProjetoIndicadorCatalogoMeta> projetoIndicadorCatalogoMeta;
 
 	@ManyToOne()
 	@JoinColumn(name = "id_tipo_status")
