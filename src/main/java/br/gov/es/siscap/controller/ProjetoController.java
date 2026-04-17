@@ -82,6 +82,7 @@ public class ProjetoController {
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 
 		return new ResponseEntity<>(service.cadastrar(form, rascunho, pessoa), HttpStatus.CREATED);
+		
 	}
 
 	@PutMapping("/{id}")

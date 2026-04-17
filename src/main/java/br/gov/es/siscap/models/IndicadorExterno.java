@@ -9,17 +9,17 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "indicador_catalogo")
+@Table(name = "indicador_externo")
 @NoArgsConstructor
 @Getter
 @Setter
-@SQLDelete(sql = "update indicador_catalogo set apagado = true where id=?")
+@SQLDelete(sql = "update indicador_externo set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
-public class IndicadorCatalogo extends ControleHistorico {
+public class IndicadorExterno extends ControleHistorico {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "indicador_catalogo_id_gen")
-	@SequenceGenerator(name = "indicador_catalogo_id_gen", sequenceName = "indicador_catalogo_id_seq", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "indicador_externo_id_gen")
+	@SequenceGenerator(name = "indicador_externo_id_gen", sequenceName = "indicador_externo_id_seq", allocationSize = 1)
 	@Column(name = "id", nullable = false)
 	private Integer id;
 

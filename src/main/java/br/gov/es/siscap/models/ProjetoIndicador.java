@@ -44,8 +44,8 @@ public class ProjetoIndicador extends ControleHistorico {
 	private String descricaoMeta;
 
 	@ManyToOne()
-	@JoinColumn(name = "id_indicador_catalogo")
-	private IndicadorCatalogo indicadorCatalogo;
+	@JoinColumn(name = "id_indicador_externo")
+	private IndicadorExterno indicadorExterno;
 
 	@OneToMany(mappedBy = "projeto_indicador")
 	private Set<ProjetoIndicadorCatalogoMeta> projetoIndicadorCatalogoMeta;

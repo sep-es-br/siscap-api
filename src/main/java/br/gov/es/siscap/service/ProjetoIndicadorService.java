@@ -31,6 +31,7 @@ public class ProjetoIndicadorService {
 
 	@Transactional
 	public Set<ProjetoIndicador> cadastrar(Projeto projeto, List<ProjetoIndicadorDto> projetoIndicadorDtoList) {
+		
 		logger.info("Cadastrando indicadores do Projeto com id: {}", projeto.getId());
 		
 		Set<ProjetoIndicador> ProjetoIndicadorSet = new HashSet<>();
@@ -43,8 +44,11 @@ public class ProjetoIndicadorService {
 		});
 
 		List<ProjetoIndicador> ProjetoIndicadorList = projetoIndicadorRepository.saveAll(ProjetoIndicadorSet);
+
 		logger.info("Equipe do projeto cadastrada com sucesso");
+
 		return new HashSet<>(ProjetoIndicadorList);
+
 	}
 
 	@Transactional
