@@ -23,10 +23,14 @@ public class ProjetoIndicadorCatalogoMeta extends ControleHistorico {
 	@Column(name = "id", nullable = false)
 	private Integer id;
 
-    @Column(name = "ano", nullable = false)
-    private Integer ano;
+	@Column(name = "ano", nullable = false)
+	private Integer ano;
 
-    @Column(name = "valor", nullable = false)
-    private String valor;
+	@Column(name = "valor", nullable = false)
+	private String valor;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "id_projeto_indicador", nullable = false)
+	private ProjetoIndicador projetoIndicador;
 
 }

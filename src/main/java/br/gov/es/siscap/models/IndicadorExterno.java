@@ -1,10 +1,12 @@
 package br.gov.es.siscap.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -18,46 +20,26 @@ import org.hibernate.annotations.SQLRestriction;
 public class IndicadorExterno extends ControleHistorico {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "indicador_externo_id_gen")
-	@SequenceGenerator(name = "indicador_externo_id_gen", sequenceName = "indicador_externo_id_seq", allocationSize = 1)
-	@Column(name = "id", nullable = false)
-	private Integer id;
-
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_gestao_indicador", nullable = false)
-	private GestaoIndicador gestaoIndicador;
-
-	@Column(name = "nome", length = 255, nullable = false)
-	private String nome;
-
-	@Column(name = "formula", columnDefinition = "TEXT")
-	private String formula;
-
-	@Column(name = "fonte", length = 255)
-	private String fonte;
-
-	@Column(name = "unidade_medida", length = 50)
-	private String unidadeMedida;
-
-	@Column(name = "base_referencia_valor", precision = 10, scale = 2)
-	private String baseReferenciaValor;
-
-	@Column(name = "fonte_origem", length = 30, nullable = false)
-    private String fonteOrigem; // EXTERNO, MANUAL, LEGADO
-
-	// @Column(name = "base_referencia_ano")
-	// private Integer baseReferenciaAno;
-
-	// @Column(name = "polaridade", length = 20)
-	// @Builder.Default
-	// private String polaridade = "negativa"; // negativa (quanto menor, melhor) ou positiva
-
-	// @Column(name = "observacoes", columnDefinition = "TEXT")
-	// private String observacoes;
-
-	// @Column(name = "justificativa_base", columnDefinition = "TEXT")
-	// private String justificativaBase;
+    @Column(name = "id", nullable = false)
+    private Long id;
+ 
+    @Column(name = "nome", nullable = false, length = 500)
+    private String nome;
+ 
+    @Column(name = "unidade_medida", length = 100)
+    private String unidadeMedida;
+ 
+    @Column(name = "polaridade", length = 50)
+    private String polaridade;
+ 
+    @Column(name = "medido_por", length = 100)
+    private String medidoPor;
+ 
+    @Column(name = "criado_em")
+    private LocalDateTime criadoEm;
+ 
+    @Column(name = "atualizado_em")
+    private LocalDateTime atualizadoEm;
 
 	@ManyToOne()
 	@JoinColumn(name = "id_tipo_status")

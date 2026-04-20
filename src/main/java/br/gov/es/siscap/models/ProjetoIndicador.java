@@ -8,11 +8,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-
 
 @Entity
 @Table(name = "projeto_indicador")
@@ -33,7 +33,7 @@ public class ProjetoIndicador extends ControleHistorico {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_projeto", nullable = false)
 	private Projeto projeto;
-	
+
 	@Column(name = "tipo_indicador", nullable = false)
 	private String tipoIndicador;
 
@@ -47,8 +47,8 @@ public class ProjetoIndicador extends ControleHistorico {
 	@JoinColumn(name = "id_indicador_externo")
 	private IndicadorExterno indicadorExterno;
 
-	@OneToMany(mappedBy = "projeto_indicador")
-	private Set<ProjetoIndicadorCatalogoMeta> projetoIndicadorCatalogoMeta;
+	@OneToMany(mappedBy = "projetoIndicador", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<ProjetoIndicadorCatalogoMeta> metas = new HashSet<>();
 
 	@ManyToOne()
 	@JoinColumn(name = "id_tipo_status")

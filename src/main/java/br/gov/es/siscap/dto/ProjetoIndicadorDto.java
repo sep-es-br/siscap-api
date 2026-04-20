@@ -5,12 +5,13 @@ import java.util.List;
 import br.gov.es.siscap.models.ProjetoIndicador;
 
 public record ProjetoIndicadorDto(
+	
 	Integer idIndicador,
 	String tipoIndicador,
 	String descricaoIndicador,
 	String descricaoMeta,
 	Long idStatus,
-	Integer idIndicadorExterno,
+	Long idIndicadorExterno,
 	List<ProjetoIndicadorCatalogoMetaDto> metasProjetoIndicadorExterno){
 		
 	public ProjetoIndicadorDto(ProjetoIndicador projetoIndicador) {
@@ -20,7 +21,7 @@ public record ProjetoIndicadorDto(
 			projetoIndicador.getDescricaoIndicador(),
 			projetoIndicador.getDescricaoMeta(),
 			projetoIndicador.getTipoStatus().getId(),
-			projetoIndicador.getIndicadorCatalogo().getId(),
+			projetoIndicador.getIndicadorExterno().getId(),
 			null
 		);
 	}
@@ -32,7 +33,7 @@ public record ProjetoIndicadorDto(
 			projetoIndicador.getDescricaoIndicador(),
 			projetoIndicador.getDescricaoMeta(),
 			projetoIndicador.getTipoStatus().getId(),
-			projetoIndicador.getIndicadorCatalogo().getId(),
+			projetoIndicador.getIndicadorExterno().getId(),
 			metasIndicadorCatalogo
 		);
 	}
