@@ -20,29 +20,18 @@ import org.hibernate.annotations.SQLRestriction;
 public class IndicadorExterno extends ControleHistorico {
 
 	@Id
-    @Column(name = "id", nullable = false)
-    private Long id;
- 
-    @Column(name = "nome", nullable = false, length = 500)
-    private String nome;
- 
-    @Column(name = "unidade_medida", length = 100)
-    private String unidadeMedida;
- 
-    @Column(name = "polaridade", length = 50)
-    private String polaridade;
- 
-    @Column(name = "medido_por", length = 100)
-    private String medidoPor;
- 
-    @Column(name = "criado_em")
-    private LocalDateTime criadoEm;
- 
-    @Column(name = "atualizado_em")
-    private LocalDateTime atualizadoEm;
+    @Column(name = "id_indicador")
+    private Integer id;
 
-	@ManyToOne()
-	@JoinColumn(name = "id_tipo_status")
-	private TipoStatus tipoStatus;
+    private String nome;
+
+    @Column(name = "unidade_medida")
+    private String unidadeMedida;
+
+    private String polaridade;
+
+    @Column(name = "medido_por")
+    private String medidoPor;
+    
 
 }

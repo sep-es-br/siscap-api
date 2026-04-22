@@ -32,19 +32,20 @@ public class IndicadorGestaoExterno extends ControleHistorico {
     @Column(name = "model_label", length = 1000)
     private String modelLabel;
  
-    @Column(name = "criado_em")
-    private LocalDateTime criadoEm;
+    // @Column(name = "criado_em")
+    // private LocalDateTime criadoEm;
  
-    @Column(name = "atualizado_em")
-    private LocalDateTime atualizadoEm;
+    // @Column(name = "atualizado_em")
+    // private LocalDateTime atualizadoEm;
  
-    @Column(name = "apagado")
-    private Boolean apagado;
+    // @Column(name = "apagado")
+    // private Boolean apagado;
  
     @OneToMany(mappedBy = "gestao", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<IndicadorDesafioExterno> desafios;
  
     @OneToMany(mappedBy = "gestao", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<IndicadorOrganizadorExterno> organizadores;
+    
     
 }

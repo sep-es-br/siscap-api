@@ -22,36 +22,35 @@ public class IndicadorFatoExterno extends ControleHistorico {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "id_fato")
     private Long id;
- 
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "indicador_id", nullable = false)
-    private IndicadorExterno indicador;
- 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gestao_id", nullable = false)
+    @JoinColumn(name = "id_gestao")
     private IndicadorGestaoExterno gestao;
- 
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "desafio_id", nullable = false)
+    @JoinColumn(name = "id_desafio")
     private IndicadorDesafioExterno desafio;
- 
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organizador_id", nullable = false)
+    @JoinColumn(name = "id_organizador")
     private IndicadorOrganizadorExterno organizador;
- 
-    @Column(name = "ano", nullable = false)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_indicador")
+    private IndicadorExterno indicador;
+
     private Integer ano;
- 
-    @Column(name = "meta", precision = 18, scale = 4)
-    private BigDecimal meta;
- 
-    @Column(name = "maior_ano")
-    private Integer maiorAno;
- 
-    @Column(name = "maior_meta", precision = 18, scale = 4)
-    private BigDecimal maiorMeta;
+
+    @Column(name = "valor_meta")
+    private BigDecimal valorMeta;
+
+    @Column(name = "maior_ano_indicador")
+    private Integer maiorAnoIndicador;
+
+    @Column(name = "maior_meta_indicador")
+    private BigDecimal maiorMetaIndicador;
  
     @Column(name = "dt_importacao", nullable = false)
     private LocalDateTime dtImportacao;

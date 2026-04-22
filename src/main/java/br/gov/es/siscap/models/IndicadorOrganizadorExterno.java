@@ -1,7 +1,5 @@
 package br.gov.es.siscap.models;
 
-import java.time.LocalDateTime;
-
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -27,22 +25,16 @@ public class IndicadorOrganizadorExterno extends ControleHistorico {
  
     @Id
     @Column(name = "id", nullable = false)
-    private Long id;
+    private Integer id;
  
     @Column(name = "nome", nullable = false, length = 255)
     private String nome;
- 
+
+    @Column(name = "model_name")
+    private String modelName;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gestao_id", nullable = false)
-    private IndicadorGestaoExterno gestao;
- 
-    @Column(name = "criado_em")
-    private LocalDateTime criadoEm;
- 
-    @Column(name = "atualizado_em")
-    private LocalDateTime atualizadoEm;
- 
-    @Column(name = "apagado")
-    private Boolean apagado;
+    @JoinColumn(name = "id_organizador_pai")
+    private IndicadorOrganizadorExterno pai;
 
 }

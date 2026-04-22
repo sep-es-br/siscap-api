@@ -18,23 +18,14 @@ import java.time.LocalDateTime;
 public class IndicadorDesafioExterno extends ControleHistorico {
  
     @Id
-    @Column(name = "id", nullable = false)
-    private Long id;
- 
-    @Column(name = "nome", nullable = false, length = 500)
+    @Column(name = "id_desafio")
+    private Integer id;
+
     private String nome;
- 
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gestao_id", nullable = false)
+    @JoinColumn(name = "id_gestao")
     private IndicadorGestaoExterno gestao;
- 
-    @Column(name = "criado_em")
-    private LocalDateTime criadoEm;
- 
-    @Column(name = "atualizado_em")
-    private LocalDateTime atualizadoEm;
- 
-    @Column(name = "apagado")
-    private Boolean apagado;
+
 
 }
