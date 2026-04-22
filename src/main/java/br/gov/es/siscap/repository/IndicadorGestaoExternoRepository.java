@@ -9,18 +9,13 @@ import br.gov.es.siscap.models.IndicadorGestaoExterno;
 
 public interface IndicadorGestaoExternoRepository extends JpaRepository<IndicadorGestaoExterno, Long> {
 
-    /**
-     * Busca todas as gestões ativas com seus labels e valores já carregados,
-     * evitando N+1 com JOIN FETCH.
-     */
     @Query("""
-            SELECT DISTINCT g FROM IndicadorGestaoExterno g
-            LEFT JOIN FETCH g.labels l
-            LEFT JOIN FETCH l.valores
+            SELECT DISTINCT g FROM Gestao g
+            LEFT JOIN FETCH g.labels gl
+            LEFT JOIN FETCH gl.label l
             WHERE g.ativa = true
-            AND (g.apagado = false OR g.apagado IS NULL)
             ORDER BY g.nome
-            """)
+        """)
     List<IndicadorGestaoExterno> findAllAtivasComLabels();
 
 }

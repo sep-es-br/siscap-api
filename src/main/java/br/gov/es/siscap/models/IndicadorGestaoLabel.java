@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -24,7 +23,7 @@ public class IndicadorGestaoLabel extends ControleHistorico {
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("idGestao")
     @JoinColumn(name = "id_gestao")
-    private IndicadorFatoExterno gestao;
+    private IndicadorGestaoExterno gestao;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("idLabel")

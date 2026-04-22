@@ -11,7 +11,7 @@ public record ProjetoIndicadorDto(
 	String descricaoIndicador,
 	String descricaoMeta,
 	Long idStatus,
-	Long idIndicadorExterno,
+	Integer idIndicadorExterno,
 	List<ProjetoIndicadorCatalogoMetaDto> metasProjetoIndicadorExterno){
 		
 	public ProjetoIndicadorDto(ProjetoIndicador projetoIndicador) {

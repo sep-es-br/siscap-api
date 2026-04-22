@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -31,21 +31,8 @@ public class IndicadorGestaoExterno extends ControleHistorico {
  
     @Column(name = "model_label", length = 1000)
     private String modelLabel;
- 
-    // @Column(name = "criado_em")
-    // private LocalDateTime criadoEm;
- 
-    // @Column(name = "atualizado_em")
-    // private LocalDateTime atualizadoEm;
- 
-    // @Column(name = "apagado")
-    // private Boolean apagado;
- 
-    @OneToMany(mappedBy = "gestao", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<IndicadorDesafioExterno> desafios;
- 
-    @OneToMany(mappedBy = "gestao", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<IndicadorOrganizadorExterno> organizadores;
     
-    
+    @OneToMany(mappedBy = "gestao", fetch = FetchType.LAZY)
+    private List<IndicadorGestaoLabel> labels;
+
 }
