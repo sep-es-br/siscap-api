@@ -14,7 +14,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @Setter
 @SQLDelete(sql = "update indicador_gestao_label set apagado = true where id=?")
-@SQLRestriction("apagado = FALSE and id_tipo_status = 1")
+@SQLRestriction("apagado = FALSE")
 public class IndicadorGestaoLabel extends ControleHistorico {
  
     @EmbeddedId
@@ -31,6 +31,5 @@ public class IndicadorGestaoLabel extends ControleHistorico {
     private IndicadorLabel label;
 
     private Integer ordem;
-    
     
 }

@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -14,15 +16,17 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @Setter
 @SQLDelete(sql = "update indicador_label set apagado = true where id=?")
-@SQLRestriction("apagado = FALSE and id_tipo_status = 1")
+@SQLRestriction("apagado = FALSE")
 public class IndicadorLabel extends ControleHistorico {
- 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_label")
     private Integer id;
 
     private String nome;
-    
-    
+
+    @OneToMany(mappedBy = "label", fetch = FetchType.LAZY)
+    private Set<IndicadorLabelValor> valores;
+
 }

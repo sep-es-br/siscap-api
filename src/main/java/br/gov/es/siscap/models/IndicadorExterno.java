@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -33,5 +31,4 @@ public class IndicadorExterno extends ControleHistorico {
     @Column(name = "medido_por")
     private String medidoPor;
     
-
 }

@@ -20,7 +20,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @SQLDelete(sql = "update indicador_organizador_externo set apagado = true where id=?")
-@SQLRestriction("apagado = FALSE and id_tipo_status = 1")
+@SQLRestriction("apagado = FALSE")
 public class IndicadorOrganizadorExterno extends ControleHistorico {
  
     @Id

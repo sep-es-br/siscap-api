@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.indicadoresexternos.LabelDTO;
+import br.gov.es.siscap.dto.indicadoresexternos.LabelValorDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesGestaoIndicadorDto;
 import br.gov.es.siscap.models.IndicadorGestaoExterno;
 import br.gov.es.siscap.models.IndicadorGestaoLabel;
@@ -27,12 +28,25 @@ public class IndicadorExternoService {
 
 					List<LabelDTO> labels = gestao.getLabels().stream()
 							.sorted(Comparator.comparing(IndicadorGestaoLabel::getOrdem))
-							.map(gl -> new LabelDTO(
-									gl.getLabel().getId(),
-									gl.getLabel().getNome(),
-									gl.getOrdem(),
-									List.of() // ainda sem valores
-					))
+							.map(gl -> {
+
+								var label = gl.getLabel();
+
+								List<LabelValorDTO> valores = label.getValores() != null
+										? label.getValores().stream()
+												.map(v -> new LabelValorDTO(
+														v.getId(),
+														v.getValor()))
+												.distinct() // evita duplicidade por causa do join fetch
+												.toList()
+										: List.of();
+
+								return new LabelDTO(
+										label.getId(),
+										label.getNome(),
+										gl.getOrdem(),
+										valores);
+							})
 							.toList();
 
 					return new OpcoesGestaoIndicadorDto(
