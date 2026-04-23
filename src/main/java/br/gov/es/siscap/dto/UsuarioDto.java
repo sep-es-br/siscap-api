@@ -16,5 +16,6 @@ public record UsuarioDto(
 		boolean isProponente,
 		boolean isSubcap,
 		boolean isSubepp,
-		boolean isSubeo) {
+		boolean isSubeo,
+		String nomeLotacaoUsuario) {
 }

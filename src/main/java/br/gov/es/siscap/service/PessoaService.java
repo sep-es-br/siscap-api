@@ -1,28 +1,5 @@
 package br.gov.es.siscap.service;
 
-import java.io.IOException;
-import java.text.Normalizer;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import br.gov.es.siscap.dto.PessoaDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
@@ -41,7 +18,28 @@ import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.PessoaRepository;
+import java.io.IOException;
+import java.text.Normalizer;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -189,6 +187,10 @@ public class PessoaService {
 	public Pessoa buscarPorSub(String sub) {
 		return repository.findBySub(sub).orElseThrow(() -> new PessoaNaoEncontradoException(sub));
 	}
+        
+        public Pessoa buscarProEmail(String email) {
+            return repository.findByEmail(email).orElseThrow(() -> new PessoaNaoEncontradoException(email));
+        }
 
 	public PessoaDto buscarMeuPerfil(String subNovo) throws IOException {
 		Pessoa pessoa = buscarPorSub(subNovo);
@@ -204,7 +206,6 @@ public class PessoaService {
 		return new PessoaDto(pessoa, conteudo, idOrganizacoes, idOrganizacaoResponsavel);
 	}
 
-	@Transactional
 	public Pessoa salvarNovaPessoaAcessoCidadao(Pessoa pessoa) {
 		return repository.save(pessoa);
 	}
@@ -365,7 +366,7 @@ public class PessoaService {
 			Optional<Pessoa> pessoa = repository.buscarPorSubOuNomeTratado(dados.sub(), dados.nome());
 			if (pessoa.isPresent()) {
 				pessoa.get().setSub(dados.sub());
-				idPessoa = pessoa.get().getId().toString();
+				idPessoa = Long.toString(pessoa.get().getId());
 				repository.save(pessoa.get());
 			}
 		} else {
@@ -378,7 +379,7 @@ public class PessoaService {
 
 			associarOrganizacoesAPessoa(pessoa, organizacoes);
 
-			idPessoa = pessoa.getId().toString();
+			idPessoa = Long.toString(pessoa.getId());
 
 			logger.info("Pessoa criada com sucesso.");
 
@@ -477,10 +478,6 @@ public class PessoaService {
 	}
 
 	public String obterEmailValido(Pessoa pessoa) {
-
-		if (pessoa.getEmail() != null && !pessoa.getEmail().isBlank()) {
-			return pessoa.getEmail();
-		}
 
 		logger.warn("Pessoa sub [{}] sem e-mail no SISCAP. Buscando no Acesso Cidadão.", pessoa.getSub());
 

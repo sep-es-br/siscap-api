@@ -1,8 +1,25 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.form.ProjetoForm;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,10 +27,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.format.annotation.DateTimeFormat;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.Set;
+import org.springframework.util.Assert;
 
 @Entity
 @Table(name = "projeto")
@@ -27,7 +41,7 @@ public class Projeto extends ControleHistorico {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
-	private Long id;
+	private long id;
 
 	@Column(name = "sigla", length = 12)
 	private String sigla;
@@ -45,9 +59,6 @@ public class Projeto extends ControleHistorico {
 	@SQLJoinTableRestriction("apagado = FALSE")
 	@JoinColumn(name = "id_tipo_status", nullable = false)
 	private TipoStatus tipoStatus;
-
-	@Column(name = "status", nullable = false)
-	private String status;
 
 	@Column(name = "fase", nullable = false)
 	private String fase;
@@ -78,10 +89,24 @@ public class Projeto extends ControleHistorico {
 	@OneToMany(mappedBy = "projeto")
 	private Set<LocalidadeQuantia> localidadeQuantiaSet;
 
-	@ManyToOne
-	@JoinColumn(name = "id_programa")
-	@SQLJoinTableRestriction("apagado = FALSE")
-	private Programa programa;
+	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+        @SQLRestriction("""
+                            apagado_em IS NULL AND
+                            NOT EXISTS (
+                                SELECT 1
+                                FROM programa_status ps
+                                WHERE ps.id_programa = id_programa
+                                  AND ps.status = 5
+                                  AND ps.inicio_em = (
+                                      SELECT MAX(ps2.inicio_em)
+                                      FROM programa_status ps2
+                                      WHERE ps2.id_programa = ps.id_programa
+                                  )
+                            )
+                        """)
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+	private Set<ProjetoPrograma> programaHistorico;
 
 	@ManyToOne
 	@JoinColumn(name = "id_area")
@@ -117,7 +142,7 @@ public class Projeto extends ControleHistorico {
 
 	@Column(name = "id_documento_edocs", nullable = false, length = 50)
 	private String idDocumentoCapturadoEdocs;
-	
+
 	@Column(name = "id_processo_edocs", nullable = false, length = 50)
 	private String idProcessoEdocs;
 
@@ -129,6 +154,14 @@ public class Projeto extends ControleHistorico {
 
 	@OneToMany(mappedBy = "projeto")
 	private Set<ProjetoParecer> projetoParecerSet;
+
+	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Setter(AccessLevel.NONE)
+	private Set<StatusProjeto> historicoStatus;
+
+	@ManyToOne()
+	@JoinColumn(name = "id_pessoa_redator")
+	private Pessoa pessoa;
 
 	public Projeto(Long id) {
 		this.setId(id);
@@ -163,6 +196,26 @@ public class Projeto extends ControleHistorico {
 		return Objects.equals(this.getTipoStatus().getId(), TipoStatusEnum.ATIVO.getValue());
 	}
 
+	public boolean isStatusElegivel() {
+            if(this.getStatusAtual() == null) return false;
+            return Objects.equals( this.getStatusAtual().getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
+	}
+
+	public boolean isElegivelParaVinculo() {
+
+		if (!this.isStatusElegivel()) {
+			return false;
+		}
+
+		if (this.getPrograma() == null) {
+			return true;
+		}
+
+		return this.getPrograma().isRecusado()
+				|| this.getPrograma().isEmEdicao();
+
+	}
+
 	private void setDadosProjeto(ProjetoForm form) {
 		this.setSigla(form.sigla());
 		this.setTitulo(form.titulo());
@@ -178,5 +231,69 @@ public class Projeto extends ControleHistorico {
 		this.setPecasPlanejamento(form.pecasPlanejamento());
 		this.setProtocoloEdocs(form.protocoloEdocs());
 	}
+
+	public void alterarStatus(String novoStatus, Pessoa pessoa) {
+            
+                if(this.getStatusAtual() != null && this.getStatusAtual().getStatus().equals(novoStatus))
+                    return;
+            
+		this.finalizarStatusAtual(pessoa);
+
+		// Cria novo status
+		StatusProjeto novoStatusProjeto = StatusProjeto.init(this, novoStatus);
+
+		// Inicializa coleção se estiver nula
+		if (this.getHistoricoStatus() == null) {
+			this.historicoStatus = new HashSet<>();
+		}
+
+		this.getHistoricoStatus().add(novoStatusProjeto);
+
+        }
+        
+        public StatusProjeto finalizarStatusAtual(Pessoa pessoa) {
+            if(this.getStatusAtual() == null) return null;
+            
+            return this.getStatusAtual().finalizar(pessoa);
+        }
+        
+        public StatusProjeto getStatusAtual() {
+            if(historicoStatus == null) return null;
+            return historicoStatus.stream()
+                    .sorted(Comparator.comparing(StatusProjeto::getInicioEm).reversed())
+                    .findFirst().orElse(null);
+        }
+        
+        public Programa getPrograma() {
+            return Optional.ofNullable(this.getHistoricoAtivo()).map(ProjetoPrograma::getPrograma).orElse(null);
+        }
+        
+        public void removerPrograma() {
+            ProjetoPrograma historicoAtivo = this.getHistoricoAtivo();
+            if(historicoAtivo == null) return;
+            
+            historicoAtivo.setApagadoEm(LocalDateTime.now());
+            
+        }
+        
+        public void setPrograma(Programa programa) {
+            
+            Assert.isNull(this.getHistoricoAtivo(), "Favor remover o programa antes de incluir outro");
+            
+            ProjetoPrograma novo = new ProjetoPrograma(this, programa);
+            if(this.programaHistorico == null){
+                this.programaHistorico = new HashSet<>();
+            } 
+                
+            this.programaHistorico.add(novo);
+        }
+        
+        private ProjetoPrograma getHistoricoAtivo() {
+            return programaHistorico.stream()
+                .filter(pp -> pp.getApagadoEm() == null)
+                .filter(pp -> !pp.getPrograma().isRecusado()) // ou equivalente
+                .findFirst()
+                .orElse(null);
+        }
 
 }

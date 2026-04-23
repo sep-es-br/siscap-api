@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.InteressadoDto;
 import br.gov.es.siscap.dto.ProspeccaoDetalhesDto;
 import br.gov.es.siscap.dto.ProspeccaoDto;
 import br.gov.es.siscap.dto.listagem.ProspeccaoListaDto;
+import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.form.ProspeccaoForm;
 import br.gov.es.siscap.models.CartaConsulta;
 import br.gov.es.siscap.models.Prospeccao;
@@ -113,14 +114,14 @@ public class ProspeccaoService {
 	}
 
 	@Transactional
-	public void enviarEmailProspeccao(Long id) throws MessagingException, UnsupportedEncodingException {
+	public void enviarEmailProspeccao(Long id, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) throws MessagingException, UnsupportedEncodingException {
 		ProspeccaoDetalhesDto prospeccaoDetalhesDto = this.buscarDetalhesPorId(id);
 
 		List<String> emailsInteressadosList = prospeccaoInteressadoService.buscarEmailsInteressadosPorPropeccao(this.buscar(id));
 
 		String nomeArquivo = this.projetoService.gerarNomeArquivo(id.intValue()) + ".pdf";
 
-		boolean confirmacaoEnvioEmail = emailService.enviarEmail(prospeccaoDetalhesDto, emailsInteressadosList, nomeArquivo);
+		boolean confirmacaoEnvioEmail = emailService.enviarEmail(prospeccaoDetalhesDto, emailsInteressadosList, nomeArquivo,exibirMarcaDagua);
 
 		if (confirmacaoEnvioEmail) {
 			this.alterarDadosProspeccaoEnvioEmail(id);

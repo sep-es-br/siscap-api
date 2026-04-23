@@ -3,6 +3,7 @@ package br.gov.es.siscap.controller;
 import br.gov.es.siscap.dto.ProspeccaoDetalhesDto;
 import br.gov.es.siscap.dto.ProspeccaoDto;
 import br.gov.es.siscap.dto.listagem.ProspeccaoListaDto;
+import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.form.ProspeccaoForm;
 import br.gov.es.siscap.service.ProspeccaoService;
 import jakarta.mail.MessagingException;
@@ -65,7 +66,7 @@ public class ProspeccaoController {
 
 	@PostMapping("/{id}/prospectar")
 	public ResponseEntity<String> enviarEmailProspeccao(@NotNull @Positive @PathVariable Long id) throws MessagingException, UnsupportedEncodingException {
-		service.enviarEmailProspeccao(id);
+		service.enviarEmailProspeccao(id, ExibirMarcaDaguaProgramaEnum.NAOEXIBIR);
 		return ResponseEntity.ok("E-mail(s) de prospecção enviado(s) com sucesso!");
 	}
 }

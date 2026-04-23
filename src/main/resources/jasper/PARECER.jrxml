@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
@@ -12,6 +12,9 @@
 		<defaultValueExpression><![CDATA[3]]></defaultValueExpression>
 	</parameter>
 	<parameter name="descricaoTipoParecer" class="java.lang.String"/>
+	<parameter name="elegivel" class="java.lang.Boolean">
+		<defaultValueExpression><![CDATA[null]]></defaultValueExpression>
+	</parameter>
 	<query language="sql"><![CDATA[select
 	proj.id as id_projeto,
 	proj.criado_em as data_criacao_projeto,
@@ -109,7 +112,7 @@ group by proj.id,
 		</element>
 	</pageHeader>
 	<detail>
-		<band height="91">
+		<band height="109">
 			<element kind="staticText" uuid="3a32ca85-421c-48f9-8fc2-b6ed11deb489" x="0" y="0" width="80" height="20" forecolor="#000000" fontName="SansSerif" removeLineWhenBlank="true" bold="true" hTextAlign="Left">
 				<text><![CDATA[Proponente:]]></text>
 			</element>
@@ -141,13 +144,22 @@ group by proj.id,
 				<expression><![CDATA[$F{titulo_projeto}]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
+			<element kind="textField" uuid="9c8e3b47-cc05-4b3a-bbb3-a6085d6d3cbf" stretchType="ContainerHeight" mode="Transparent" x="90" y="81" width="380" height="19" backcolor="rgba(237, 86, 83, 0.9019608)" fontName="SansSerif" textAdjust="StretchHeight" bold="true" hTextAlign="Justified" vTextAlign="Top">
+				<printWhenExpression><![CDATA[$P{elegivel} != null]]></printWhenExpression>
+				<expression><![CDATA[$P{elegivel} ? "Elegível" : "Inelegível"]]></expression>
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
+			</element>
+			<element kind="staticText" uuid="f77c8765-381f-4802-bca2-d3f1fec4dc91" x="0" y="80" width="90" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
+				<printWhenExpression><![CDATA[$P{elegivel} != null]]></printWhenExpression>
+				<text><![CDATA[Conclusão:]]></text>
+			</element>
 		</band>
-		<band height="60">
-			<element kind="textField" uuid="ec1ecf2c-d378-4cfc-b248-f30609e588ec" x="0" y="23" width="535" height="30">
+		<band height="90">
+			<element kind="textField" uuid="ec1ecf2c-d378-4cfc-b248-f30609e588ec" x="0" y="23" width="535" height="30" markup="html" textAdjust="StretchHeight">
 				<expression><![CDATA[$F{parecer}]]></expression>
 			</element>
 			<element kind="textField" uuid="f5505670-450d-4e27-b6f6-c7ba33e9fd82" x="1" y="0" width="380" height="20" forecolor="#000000" fontName="SansSerif" fontSize="10.0" bold="true">
-				<expression><![CDATA["Texto do parecer " + $P{descricaoTipoParecer}]]></expression>
+				<expression><![CDATA["Parecer " + $P{descricaoTipoParecer}]]></expression>
 			</element>
 		</band>
 	</detail>

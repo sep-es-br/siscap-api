@@ -9,15 +9,14 @@ import org.hibernate.annotations.SQLRestriction;
 import br.gov.es.siscap.dto.ProjetoParecerDto;
 import br.gov.es.siscap.enums.LotacaoUsuarioEnum;
 import br.gov.es.siscap.enums.StatusParecerEnum;
+import br.gov.es.siscap.enums.StatusProjetoEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
-
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -96,5 +95,23 @@ public class ProjetoParecer extends ControleHistorico {
 		this.setStatusParecer(parecerDto.statusParecer());
 		this.setTextoParecer(parecerDto.textoParecer());
 	}
+        
+        @Transient
+        public Boolean getResultado() {
+            Boolean result = null;
+            
+            if(this.lotacaoParecer == LotacaoUsuarioEnum.SUBCAP) {
+                
+                String status = this.projeto.getStatusAtual().getStatus();
+                
+                if(status.equals(StatusProjetoEnum.ELEGIVEL.getValue()))
+                    result = true;
+                else if(status.equals(StatusProjetoEnum.ARQUIVADO.getValue()))
+                    result = false;
+                
+            }
+            
+            return result;
+        }
 
 }

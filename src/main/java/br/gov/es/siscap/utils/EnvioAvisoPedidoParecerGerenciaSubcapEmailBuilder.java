@@ -26,9 +26,7 @@ public class EnvioAvisoPedidoParecerGerenciaSubcapEmailBuilder extends EmailBuil
 
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
-
 		return "Comunicamos que há um <strong>DIC (Documento Inicial para Captação)</strong> disponível para <strong>emissão de parecer</strong>.";
-
 	}
 
 }

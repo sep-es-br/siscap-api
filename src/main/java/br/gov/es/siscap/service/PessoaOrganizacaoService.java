@@ -126,7 +126,7 @@ public class PessoaOrganizacaoService {
 			return this.cadastrarPorOrganizacao(organizacao, idPessoaResponsavel);
 		}
 
-		if (pessoaOrganizacao.getPessoa().getId().equals(idPessoaResponsavel)) {
+		if (pessoaOrganizacao.getPessoa().getId() == idPessoaResponsavel) {
 			return pessoaOrganizacao;
 		}
 
@@ -136,7 +136,6 @@ public class PessoaOrganizacaoService {
 		pessoaOrganizacaoNovoResponsavel.setIsResponsavel(true);
 
 		pessoaOrganizacaoRepository.saveAndFlush(pessoaOrganizacao);
-		//PessoaOrganizacao pessoaOrganizacaoResultado = pessoaOrganizacaoRepository.save(pessoaOrganizacaoNovoResponsavel);
 
 		logger.info("Vinculo entre Pessoa e Organizacao por Organizacao atualizado com sucesso");
 		return this.buscarPorOrganizacao(organizacao);
@@ -221,20 +220,21 @@ public class PessoaOrganizacaoService {
 
 	@Transactional
 	protected void sincronizarResponsaveisOrganizacoesBancoComAcessoCidadaoAPI() {
+		
 		logger.info("Sincronizando dados de Pessoa e PessoaOrganizacao (Responsavel) do banco da aplicacao com os dados da API Acesso Cidadao");
 
 		Set<Organizacao> organizacaoSet = organizacaoRepository.findAllByGuidNotNullAndTipoOrganizacao(new TipoOrganizacao(TipoOrganizacaoEnum.SECRETARIA.getValue()));
 
 		Set<PessoaOrganizacao> pessoaOrganizacaoSet = new HashSet<>();
 
-		organizacaoSet.forEach((organizacao) -> {
+		organizacaoSet.forEach( organizacao -> {
 
 			try {
 				ACAgentePublicoPapelDto gestorConjunto = acessoCidadaoService.buscarGestorNovoConjuntoPorGuidOrganizacao(organizacao.getGuid());
 				Optional<Pessoa> pessoaResponsavelOpt = pessoaRepository.buscarPorSubOuNomeTratado(gestorConjunto.AgentePublicoSub(), gestorConjunto.AgentePublicoNome());
 
 				pessoaResponsavelOpt.ifPresentOrElse(
-							(pessoa) -> {
+							pessoa -> {
 								Pessoa pessoaAtualizada = this.atualizarDadosPessoaBancoPorAcessoCidadaoAPI(pessoa, gestorConjunto);
 								pessoaOrganizacaoSet.addAll(this.validarResponsavelOrganizacaoComPessoa(pessoaAtualizada, organizacao));
 							},
@@ -255,7 +255,6 @@ public class PessoaOrganizacaoService {
 		logger.info("Dados de Pessoa e PessoaOrganizacao (Responsavel) sincronizados com sucesso");
 	}
 
-	@Transactional
 	protected Pessoa atualizarDadosPessoaBancoPorAcessoCidadaoAPI(Pessoa pessoa, ACAgentePublicoPapelDto gestorConjunto) {
 		logger.info("Atualizando dados de Pessoa do banco de dados da aplicacao com os dados da API Acesso Cidadao (contexto papel do gestor do conjunto)");
 
@@ -265,7 +264,6 @@ public class PessoaOrganizacaoService {
 		return pessoaRepository.saveAndFlush(pessoa);
 	}
 
-	@Transactional
 	protected Pessoa cadastrarNovaPessoaBancoPorAcessoCidadaoAPI(ACAgentePublicoPapelDto gestorConjunto) {
 		logger.info("Cadastrando nova Pessoa do banco de dados da aplicacao com os dados da API Acesso Cidadao (contexto papel do gestor do conjunto)");
 
@@ -291,7 +289,7 @@ public class PessoaOrganizacaoService {
 			return pessoaOrganizacaoSet;
 		}
 
-		if (!(responsavelBanco.getPessoa().getId().equals(responsavelAPI.getPessoa().getId()))) {
+		if ((responsavelBanco.getPessoa().getId() != responsavelAPI.getPessoa().getId())) {
 
 			responsavelBanco.setIsResponsavel(false);
 			pessoaOrganizacaoSet.add(responsavelBanco);

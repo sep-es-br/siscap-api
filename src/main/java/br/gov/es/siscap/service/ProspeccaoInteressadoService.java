@@ -117,6 +117,6 @@ public class ProspeccaoInteressadoService {
 	}
 
 	private boolean compararProspeccaoInteressadoComInteressadoDto(ProspeccaoInteressado prospeccaoInteressado, InteressadoDto interessadoDto) {
-		return prospeccaoInteressado.getPessoa().getId().equals(interessadoDto.idInteressado());
+		return prospeccaoInteressado.getPessoa().getId() == interessadoDto.idInteressado();
 	}
 }

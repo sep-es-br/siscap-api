@@ -1,8 +1,10 @@
 package br.gov.es.siscap.dto;
 
-import br.gov.es.siscap.models.*;
-
+import br.gov.es.siscap.models.Projeto;
+import br.gov.es.siscap.models.StatusProjeto;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public record ProjetoDto(
 		Long id,
@@ -39,7 +41,9 @@ public record ProjetoDto(
 		ProjetoParecerDto parecerProjetoUsuario,
 		Long lotacaoUsuario,
 		List<ProjetoParecerDto> pareceresProjeto,
-		String nomeProponente ) {
+		String nomeProponente,
+                List<StatusProjetoDto> historico
+        ) {
 
 	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente,
 			List<EquipeDto> equipeElaboracao,
@@ -49,11 +53,11 @@ public record ProjetoDto(
 			Boolean podeSolicitarComplementacao,
 			Boolean podeResponderComplementacao, String idProcessoEdocs, String idDocumentoDicEdocs,
 			List<ProjetoCamposComplementacaoDto> camposComplementar,
-			ProjetoParecerDto parecerProjeto, Long lotacaoUsuario, List<ProjetoParecerDto> pareceresProjeto, String nomeProponente) {
+			ProjetoParecerDto parecerProjeto, Long lotacaoUsuario, List<ProjetoParecerDto> pareceresProjeto, String nomeProponente, List<StatusProjetoDto> historico) {
 		this(projeto.getId(),
 				projeto.getSigla(),
 				projeto.getTitulo(),
-				projeto.getStatus(),
+				Optional.ofNullable(projeto.getStatusAtual()).map(StatusProjeto::getStatus).orElse(null),
 				valor,
 				projeto.getObjetivo(),
 				projeto.getObjetivoEspecifico(),
@@ -81,7 +85,8 @@ public record ProjetoDto(
 				idProcessoEdocs,
 				idDocumentoDicEdocs,
 				camposComplementar,
-				parecerProjeto, lotacaoUsuario, pareceresProjeto, nomeProponente);
+				parecerProjeto, lotacaoUsuario, pareceresProjeto, nomeProponente,
+                                historico);
 
 	}
 
@@ -89,7 +94,7 @@ public record ProjetoDto(
 		this(projeto.getId(),
 				projeto.getSigla(),
 				projeto.getTitulo(),
-				projeto.getStatus(),
+				Optional.ofNullable(projeto.getStatusAtual()).map(StatusProjeto::getStatus).orElse(null),
 				null,
 				projeto.getObjetivo(),
 				projeto.getObjetivoEspecifico(),
@@ -118,7 +123,8 @@ public record ProjetoDto(
 				null,
 				null,
 				null, null, 
-				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(), "" );
+				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(), "" ,
+                                Optional.ofNullable(projeto.getHistoricoStatus()).map(hl -> hl.stream().map(StatusProjetoDto::new).toList()).orElse(new ArrayList<>()));
 
 	}
 

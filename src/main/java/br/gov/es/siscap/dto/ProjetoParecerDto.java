@@ -1,10 +1,9 @@
 package br.gov.es.siscap.dto;
 
+import br.gov.es.siscap.models.ProjetoParecer;
 import java.time.LocalDateTime;
 
-import br.gov.es.siscap.models.ProjetoParecer;
-
-public record ProjetoParecerDto(
+ public record ProjetoParecerDto(
 		Long id,
 		Long idProjeto,
 		String guidUnidadeOrganizacao,
@@ -14,20 +13,39 @@ public record ProjetoParecerDto(
 		String guidDocumentoEdocs,
 		String usuarioFezEnvioParecer,
 		Long parecerLotacao,
-		String registroArquivoEdocs) {
+		String registroArquivoEdocs,
+                Boolean elegivel) {
 
 	public ProjetoParecerDto(ProjetoParecer projetoParecer, String usuarioFezEnvioParecer) {
-		this(
-				projetoParecer.getId(),
-				projetoParecer.getProjeto().getId(),
-				projetoParecer.getGuidUnidadeOrganizacao(),
-				projetoParecer.getTextoParecer(),
-				projetoParecer.getStatusParecer(),
-				projetoParecer.getDataEnvio(),
-				projetoParecer.getGuidDocumentoEdocs(),
-				usuarioFezEnvioParecer,
-				projetoParecer.getLotacaoParecer().getValue(),
-				projetoParecer.getRegistroArquivoEdocs());
+		
+            this(
+                projetoParecer.getId(),
+                projetoParecer.getProjeto().getId(),
+                projetoParecer.getGuidUnidadeOrganizacao(),
+                projetoParecer.getTextoParecer(),
+                projetoParecer.getStatusParecer(),
+                projetoParecer.getDataEnvio(),
+                projetoParecer.getGuidDocumentoEdocs(),
+                usuarioFezEnvioParecer,
+                projetoParecer.getLotacaoParecer().getValue(),
+                projetoParecer.getRegistroArquivoEdocs(),
+                projetoParecer.getResultado());
+	}
+        
+	public ProjetoParecerDto(ProjetoParecer projetoParecer, String usuarioFezEnvioParecer, Boolean elegivel) {
+		
+            this(
+                projetoParecer.getId(),
+                projetoParecer.getProjeto().getId(),
+                projetoParecer.getGuidUnidadeOrganizacao(),
+                projetoParecer.getTextoParecer(),
+                projetoParecer.getStatusParecer(),
+                projetoParecer.getDataEnvio(),
+                projetoParecer.getGuidDocumentoEdocs(),
+                usuarioFezEnvioParecer,
+                projetoParecer.getLotacaoParecer().getValue(),
+                projetoParecer.getRegistroArquivoEdocs(),
+                elegivel);
 	}
 
 	public ProjetoParecerDto(ProjetoParecer projetoParecer) {
@@ -41,7 +59,8 @@ public record ProjetoParecerDto(
 				projetoParecer.getGuidDocumentoEdocs(),
 				projetoParecer.getSubUsuarioEnviou(),
 				projetoParecer.getLotacaoParecer().getValue(),
-				projetoParecer.getRegistroArquivoEdocs());
+				projetoParecer.getRegistroArquivoEdocs(),
+                                projetoParecer.getResultado());
 	}
 
 }

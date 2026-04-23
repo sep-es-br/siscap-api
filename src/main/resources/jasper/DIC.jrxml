@@ -1,12 +1,15 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap.jrdax"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
 	<parameter name="idProjeto" class="java.lang.Integer">
 		<defaultValueExpression><![CDATA[3]]></defaultValueExpression>
 	</parameter>
 	<parameter name="pathRelatorios" class="java.lang.String">
 		<defaultValueExpression><![CDATA["jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="exibirMarcaDagua" class="java.lang.String">
+		<defaultValueExpression><![CDATA["N"]]></defaultValueExpression>
 	</parameter>
 	<query language="sql"><![CDATA[select
 	proj.id as id_projeto,
@@ -25,12 +28,14 @@
 	proj.solucoes_propostas as solucoes_propostas_projeto,
 	proj.impactos as impactos_projeto,
 	proj.arranjos_institucionais as arranjos_institucionais_projeto,
-	proj.pecas_planejamento as pecas_planejamento
+	proj.pecas_planejamento as pecas_planejamento,
+	pes_redator.nome as redator_original_dic
 from projeto proj
 	inner join organizacao org on proj.id_organizacao = org.id
 	inner join projeto_pessoa proj_pes on proj.id = proj_pes.id_projeto
 	inner join pessoa pes on proj_pes.id_pessoa = pes.id and proj_pes.id_tipo_status = 1
 	inner join localidade_quantia lq on proj.id = lq.id_projeto
+	left join pessoa pes_redator on proj.id_pessoa_redator = pes_redator.id
 where
 	proj_pes.id_tipo_papel = 2 and
 	proj_pes.apagado  = false and
@@ -50,7 +55,8 @@ group by
 	proj.situacao_problema,
 	proj.solucoes_propostas,
 	proj.impactos,
-	proj.arranjos_institucionais]]></query>
+	proj.arranjos_institucionais,
+	pes_redator.nome]]></query>
 	<field name="id_projeto" class="java.lang.Integer">
 		<property name="com.jaspersoft.studio.field.name" value="id"/>
 		<property name="com.jaspersoft.studio.field.label" value="id"/>
@@ -131,7 +137,18 @@ group by
 		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
 	</field>
 	<field name="pecas_planejamento" class="java.lang.String"/>
-	<background splitType="Stretch"/>
+	<field name="redator_original_dic" class="java.lang.String"/>
+	<background height="800" splitType="Stretch">
+		<element kind="image" uuid="1929a37c-7152-4d32-a6bf-1086e3038f96" positionType="Float" x="0" y="0" width="535" height="800" scaleImage="FillFrame" printInFirstWholeBand="true">
+			<expression><![CDATA[( "S".equalsIgnoreCase($P{exibirMarcaDagua} != null ? $P{exibirMarcaDagua}.trim() : null)
+    ? $P{pathRelatorios} + "/minuta.png"
+    : null )]]></expression>
+			<property name="net.sf.jasperreports.style.scaleImage" value="FillFrame"/>
+			<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+		</element>
+		<property name="com.jaspersoft.studio.unit.height" value="px"/>
+	</background>
 	<pageHeader height="86" splitType="Stretch">
 		<element kind="textField" uuid="2d626a4e-c647-42a2-b888-682538d04d1f" x="0" y="40" width="310" height="20" forecolor="#0A588F" fontName="SansSerif" fontSize="10.0" bold="true">
 			<expression><![CDATA["DIC n. " + $F{contagem_anual_projeto} + "-" + $F{abreviatura_organizacao} + "-" + 
@@ -314,17 +331,17 @@ group by
 					<expression><![CDATA[$P{pathRelatorios}]]></expression>
 				</parameter>
 			</element>
-			<element kind="staticText" uuid="f3accc1a-66e2-4038-82d3-6d19dadbdf66" x="0" y="22" width="220" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+			<element kind="staticText" uuid="f3accc1a-66e2-4038-82d3-6d19dadbdf66" x="0" y="22" width="130" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Ação Principal]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="staticText" uuid="4ac9dde6-1d6b-49bd-a2ac-780dcc77dd4a" x="234" y="22" width="116" height="20" fontName="SansSerif" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<element kind="staticText" uuid="4ac9dde6-1d6b-49bd-a2ac-780dcc77dd4a" x="140" y="22" width="116" height="20" fontName="SansSerif" bold="true" hTextAlign="Right" vTextAlign="Middle">
 				<text><![CDATA[Valor Estimado  ]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="staticText" uuid="ee271e7b-a68a-47f2-953d-528fd6d0083c" x="356" y="22" width="178" height="20" forecolor="#000000" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
+			<element kind="staticText" uuid="ee271e7b-a68a-47f2-953d-528fd6d0083c" x="270" y="22" width="263" height="20" forecolor="#000000" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
 				<text><![CDATA[Ações Secundárias]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -391,8 +408,27 @@ group by
 		</band>
 	</detail>
 	<pageFooter height="42" splitType="Stretch">
-		<element kind="staticText" uuid="bbd021c3-5e53-4eb9-a462-b0010db26fbe" x="0" y="20" width="535" height="22" forecolor="#838383" fontName="SansSerif" hTextAlign="Center" vTextAlign="Bottom">
+		<element kind="staticText" uuid="bbd021c3-5e53-4eb9-a462-b0010db26fbe" x="0" y="26" width="535" height="15" forecolor="#838383" fontName="SansSerif" hTextAlign="Center" vTextAlign="Bottom">
 			<text><![CDATA[Documento Inicial para Captação emitido através do Sistema de Captação de Recursos - SISCAP]]></text>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</element>
+		<element kind="textField" uuid="7619d86a-cad4-412f-bce2-1bb290b5e50b" x="0" y="14" width="535" height="11" forecolor="#838383" fontSize="8.0" hTextAlign="Center">
+			<expression><![CDATA["DIC criado por " + $F{redator_original_dic} 
++ " em " + ($F{data_criacao_projeto} != null 
+    ? new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+        .format($F{data_criacao_projeto})
+    : "")]]></expression>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</element>
+		<element kind="textField" uuid="f3e42f63-088e-4322-b49a-86ed836f7fdb" x="0" y="14" width="535" height="11" forecolor="#838383" fontSize="8.0" hTextAlign="Center">
+			<expression><![CDATA["DIC criado por " + $F{redator_original_dic} 
++ " em " + ($F{data_criacao_projeto} != null 
+    ? new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+        .format($F{data_criacao_projeto})
+    : "")]]></expression>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</element>
 	</pageFooter>
 </jasperReport>

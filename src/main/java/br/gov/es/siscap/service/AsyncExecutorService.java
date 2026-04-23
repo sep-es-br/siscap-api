@@ -1,18 +1,18 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.ProgramaDto;
+import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
+import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
+import br.gov.es.siscap.enums.edocs.ContextoIntegracaoEdocsEnum;
+import br.gov.es.siscap.models.Pessoa;
 import java.util.List;
-
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import br.gov.es.siscap.dto.ProgramaDto;
-import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
-import br.gov.es.siscap.dto.ProjetoDto;
-import br.gov.es.siscap.enums.edocs.ContextoIntegracaoEdocsEnum;
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -25,23 +25,23 @@ public class AsyncExecutorService {
     private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
     @Async
-    public void executarAutuacaoEdocs(Long idProjeto) {
-        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue());
+    public void executarAutuacaoEdocs(Long idProjeto, Pessoa pessoa, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua, String subUsuario) {
+        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue(), exibirMarcaDagua);
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
-        integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP(resource, nomeArquivo, idProjeto.longValue());
+        integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP(resource, nomeArquivo, idProjeto.longValue(), pessoa, subUsuario);
     }
 
     @Async
-    public void executarReentranhamentoDicEdocs(Long idProjeto) {
-        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue());
+    public void executarReentranhamentoDicEdocs(Long idProjeto, Pessoa pessoa, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) {
+        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue(), exibirMarcaDagua);
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
         integracaoEdocsService.reentranharDespacharDicProccessoComplementacaoSUBCAP(resource, nomeArquivo,
-                idProjeto.longValue());
+                idProjeto.longValue(), pessoa);
     }
 
     @Async
-    public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos) {
-        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto.longValue(), complementos);
+    public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos, Pessoa pessoa) {
+        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto.longValue(), complementos, pessoa);
     }
 
     @Async
@@ -50,8 +50,8 @@ public class AsyncExecutorService {
     }
 
     @Async
-    public void assinarCapturaParecerDIC(Long idProjeto, Long idParecer) {
-        integracaoEdocsService.assinarCapturaParecerDIC(idProjeto, idParecer);
+    public void assinarCapturaParecerDIC(Long idProjeto, Long idParecer, Boolean elegivel) {
+        integracaoEdocsService.assinarCapturaParecerDIC(idProjeto, idParecer, elegivel);
     }
 
     @Async
@@ -61,7 +61,7 @@ public class AsyncExecutorService {
 
     @Async
     public void criarArquivoProgramaFaseAssinaturaEdocsServidor(Long idPrograma, List<String> subAssinantes,
-            String nomeArquivo) {
+            String nomeArquivo, Long idPessoa) {
 
         integracaoEdocsService.enviarArquivoAssinaturasPendentes(idPrograma, subAssinantes, nomeArquivo)
                 .doOnSuccess(idDocumento -> 
@@ -69,7 +69,8 @@ public class AsyncExecutorService {
                             .marcarCriacaoArquivoProgramaEdocs(
                                     idPrograma,
                                     subAssinantes,
-                                    idDocumento)
+                                    idDocumento,
+                                    idPessoa)
                 )
                 .doOnError(e -> 
                     logger.error("Erro ao integrar com E-Docs para criar arquivo em fase assinatura. Programa {}",
@@ -80,29 +81,23 @@ public class AsyncExecutorService {
     }
 
     @Async
-    public void assinarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, String idDocumentoCapturadoEdocs,
-            String subAssinante) {
+    public void assinarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, String idDocumentoCapturadoEdocs, String subAssinante ) {
 
-        var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
+        var chave = new ChaveEtapasIntegracao( idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA );
 
         integracaoEdocsService.assinarArquivoPendenteReativo( idPrograma, idDocumentoCapturadoEdocs, chave )
                 .doOnSuccess( idDocumentoAutuado -> {
-
                     if (idDocumentoAutuado != null) {
                         programaProcessamentoService
                                 .atualizarIdDocumentoEdocsNoPrograma(
                                         idPrograma,
-                                        idDocumentoAutuado
-                                );
+                                        idDocumentoAutuado);
                     }
-
                     programaProcessamentoService
                             .marcarProgramaAssinado(
                                     idPrograma,
                                     subAssinante);
-
                     integracaoEdocsService.finalizaTodasEtapas(chave);
-                                    
                 })
                 .doOnError(e -> 
                     logger.error("Erro ao integrar com E-Docs para assinar arquivo em fase assinatura. Programa {}",
@@ -111,7 +106,7 @@ public class AsyncExecutorService {
     }
 
     @Async
-    public void autuarProgramaEdocs(ProgramaDto programaDto) {
+    public void autuarProgramaEdocs(ProgramaDto programaDto, Long idPessoa) {
         var chave = new ChaveEtapasIntegracao(programaDto.id(), ContextoIntegracaoEdocsEnum.PROGRAMA);
         integracaoEdocsService.autuarProgramaProjetoReativo(
                 programaDto.id(),
@@ -119,10 +114,19 @@ public class AsyncExecutorService {
                 .doOnSuccess(ctx -> {
                     programaProcessamentoService
                             .marcarProgramaAutuadoEdocsEAvisoAutuado( programaDto,
-                                    ctx.getProtocolo(), ctx.getIdProcesso() );
+                                    ctx.getProtocolo(), ctx.getIdProcesso() , idPessoa);
                     integracaoEdocsService.finalizaTodasEtapas(chave);
                 })
                 .subscribe();
+    }
+
+    @Async
+    public void recusarAssinaturaProgramaEdocs(Long idPrograma, String idDocumentoCapturadoEdocs,
+            String subAssinante) {
+        programaProcessamentoService
+                .assinanteRecusouAssinarPrograma(
+                        idPrograma,
+                        subAssinante);
     }
 
 }

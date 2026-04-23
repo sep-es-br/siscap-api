@@ -1,24 +1,5 @@
 package br.gov.es.siscap.service;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.core.io.Resource;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.stereotype.Service;
-
 import br.gov.es.siscap.dto.UsuarioDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACUserInfoDto;
 import br.gov.es.siscap.enums.Permissoes;
@@ -30,7 +11,24 @@ import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.UsuarioRepository;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.core.io.Resource;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -52,7 +50,7 @@ public class AutenticacaoService {
 	public Mono<String> getUsuarioSubReativo() {
 		return ReactiveSecurityContextHolder.getContext()
 				.map(ctx -> ctx.getAuthentication())
-				.map(auth -> auth.getName() ) ;
+				.map(auth -> auth.getName());
 	}
 
 	public String getUsuarioLogado() {
@@ -132,9 +130,13 @@ public class AutenticacaoService {
 
 		Boolean isLotadoSubeo = verficarUsuarioEstaLotadoSubeo(usuario.getSub(), userInfo.role());
 
+		String nomeLotacaoUsuario = usuarioService.lotacaoUsuario(usuario.getSub())
+				.map(p -> p.Nome())
+				.orElse("");
+
 		return new UsuarioDto(token, usuario.getPessoa().getNome(), getEmailUserInfo(userInfo), usuario.getSub(),
 				imagemPerfil, permissoes, idOrganizacoes, usuario.getPessoa().getId(), isProponente, isLotadoSubcap,
-				isLotadoSubepp, isLotadoSubeo);
+				isLotadoSubepp, isLotadoSubeo, nomeLotacaoUsuario);
 
 	}
 
@@ -362,33 +364,30 @@ public class AutenticacaoService {
 				String lotacaoGuid = Optional.ofNullable(papelMap.get("lotacaoGuid"))
 						.map(Object::toString)
 						.orElse("");
-			
+
 				String prioritario = Optional.ofNullable(papelMap.get("prioritario"))
 						.map(Object::toString)
 						.orElse("false");
-			
+
 				if (lotacaoGuid.isBlank()) {
 					return; // continue
 				}
-			
+
 				String guidOrganizacao = organogramaService
 						.listarUnidadeInfoPorLotacaoGuid(lotacaoGuid)
 						.guidOrganizacao();
-			
+
 				String cnpjOrganizacao = organogramaService
 						.listarDadosOrganizacaoPorGuid(guidOrganizacao)
 						.cnpj();
-			
+
 				organizacaoService.buscarPorCnpj(cnpjOrganizacao)
 						.ifPresentOrElse(
 								organizacao -> organizacoesSet.add(
-										Map.of("organizacao", organizacao, "prioritario", prioritario)
-								),
+										Map.of("organizacao", organizacao, "prioritario", prioritario)),
 								() -> logger.info(
 										"Organização não encontrada para o CNPJ fornecido: [{}].",
-										cnpjOrganizacao
-								)
-						);
+										cnpjOrganizacao));
 			});
 
 		}
