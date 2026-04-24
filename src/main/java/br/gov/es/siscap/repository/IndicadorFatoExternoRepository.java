@@ -6,13 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import br.gov.es.siscap.models.IndicadorExterno;
 import br.gov.es.siscap.models.IndicadorFatoExterno;
 
-public interface IndicadorExternoRepository extends JpaRepository<IndicadorExterno, Long> {
+public interface IndicadorFatoExternoRepository extends JpaRepository<IndicadorFatoExterno, Long> {
 
     @Query("""
-                SELECT DISTINCT f
+                SELECT DISTINCT f.indicador
                 FROM IndicadorFatoExterno f
                 JOIN f.gestao g
                 LEFT JOIN g.labels gl
@@ -20,7 +19,7 @@ public interface IndicadorExternoRepository extends JpaRepository<IndicadorExter
                   AND (:desafios IS NULL OR f.desafio.id IN :desafios)
                   AND (:labels IS NULL OR gl.label.id IN :labels)
             """)
-    List<IndicadorFatoExterno> buscarPorFiltros(
+    List<IndicadorExterno> buscarPorFiltros(
             @Param("idGestao") Long idGestao,
             @Param("labels") List<Long> labels,
             @Param("desafios") List<Long> desafios);

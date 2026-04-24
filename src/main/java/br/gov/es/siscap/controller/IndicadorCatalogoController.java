@@ -16,27 +16,21 @@ public class IndicadorCatalogoController {
 
 	private final IndicadorExternoService service;
 
-	// @GetMapping("/opcoes")
-	// public List<OpcoesDto> listarOpcoesDropdown(
-	// 			@RequestParam(required = false) Long filtroTipoOrganizacao
-	// ) {
-	// 	return service.listarOpcoesDropdown(filtroTipoOrganizacao);
-	// }
-
 	@GetMapping("/gestao")
-	public List<OpcoesGestaoIndicadorDto> listarGestoesAtivasIndicadores(
-	) {
+	public List<OpcoesGestaoIndicadorDto> listarGestoesAtivasIndicadores() {
 		return service.listarGestoesAtivasIndicadores();
 	}
 
 	@GetMapping("/indicadores")
 	public List<OpcoesIndicadoresDto> listarIndicadoresFiltro(
-		@RequestParam(required = false) Long filtroGestao,
-		@RequestParam(required = false) List<Long> filtroLabel,
-		@RequestParam(required = false) List<Long> filtroLableValor,
-		@RequestParam(required = false) List<Long> filtroDesafio
-	) {
-		return service.listarIndicadoresFiltro();
+			@RequestParam(required = false) Long filtroGestao,
+			@RequestParam(required = false) List<Long> filtroLabel,
+			@RequestParam(required = false) List<Long> filtroLableValor,
+			@RequestParam(required = false) List<Long> filtroDesafio) {
+		return service.listarIndicadoresFiltro(filtroGestao,
+				filtroLabel,
+				filtroLableValor,
+				filtroDesafio);
 	}
 
 }

@@ -12,11 +12,11 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "indicador_externo")
+@Table(name = "indicador_fato_externo")
 @NoArgsConstructor
 @Getter
 @Setter
-@SQLDelete(sql = "update indicador_externo set apagado = true where id=?")
+@SQLDelete(sql = "update indicador_fato_externo set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
 public class IndicadorFatoExterno extends ControleHistorico {
 

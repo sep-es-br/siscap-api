@@ -9,6 +9,6 @@ public record OpcoesIndicadoresDto(
     String polaridade,
     String medidoPor,
     IndicadorGestaoResumoDTO gestao,
-    List<DesafioDTO> desafios,
+    DesafioDTO desafio,
     List<LabelDTO> labels
 ) {}
