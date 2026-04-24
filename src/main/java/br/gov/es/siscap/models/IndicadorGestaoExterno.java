@@ -35,4 +35,7 @@ public class IndicadorGestaoExterno extends ControleHistorico {
     @OneToMany(mappedBy = "gestao", fetch = FetchType.LAZY)
     private Set<IndicadorGestaoLabel> labels;
 
+    @OneToMany(mappedBy = "gestao", fetch = FetchType.LAZY)
+    private Set<IndicadorDesafioExterno> desafios;
+
 }

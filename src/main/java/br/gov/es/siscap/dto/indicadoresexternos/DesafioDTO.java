@@ -1,6 +1,6 @@
 package br.gov.es.siscap.dto.indicadoresexternos;
 
-public record IndicadorDesafioExternoDTO(
+public record DesafioDTO(
     Integer id,
-    String nome ) {
-}
+    String nome
+) {}
