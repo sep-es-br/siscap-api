@@ -89,8 +89,8 @@ public class IndicadorExternoService {
 		List<Long> valores = (filtroLabelValor == null || filtroLabelValor.isEmpty()) ? null : filtroLabelValor;
 		List<Long> desafios = (filtroDesafio == null || filtroDesafio.isEmpty()) ? null : filtroDesafio;
 
-		List<IndicadorFatoExterno> indicadores = indicadorExternoRepository.buscarPorFiltros(
-				filtroGestao, labels, desafios);
+		List<IndicadorExterno> indicadores = indicadorExternoRepository.buscarPorFiltros(
+			filtroGestao, labels, desafios);
 
 		return indicadores.stream()
 				.map(this::toDto)
@@ -98,49 +98,49 @@ public class IndicadorExternoService {
 
 	}
 
-	private OpcoesIndicadoresDto toDto(IndicadorFatoExterno ie) {
+	private OpcoesIndicadoresDto toDto(IndicadorExterno ie) {
 
 		return new OpcoesIndicadoresDto(
 
-				ie.getIndicador().getId(),
-				ie.getIndicador().getNome(),
-				ie.getIndicador().getUnidadeMedida(),
-				ie.getIndicador().getPolaridade(),
-				ie.getIndicador().getMedidoPor(),
+				ie.getId(),
+				ie.getNome(),
+				ie.getUnidadeMedida(),
+				ie.getPolaridade(),
+				ie.getMedidoPor());
 
-				// GESTÃO
-				ie.getGestao() != null
-						? new IndicadorGestaoResumoDTO(
-								ie.getGestao().getId(),
-								ie.getGestao().getNome(),
-								ie.getGestao().getAtiva())
-						: null,
+				// // GESTÃO
+				// ie.getGestao() != null
+				// 		? new IndicadorGestaoResumoDTO(
+				// 				ie.getGestao().getId(),
+				// 				ie.getGestao().getNome(),
+				// 				ie.getGestao().getAtiva())
+				// 		: null,
 
-				// DESAFIOS
-				ie.getDesafio() != null
-						? new DesafioDTO(
-								ie.getDesafio().getId(),
-								ie.getDesafio().getNome())
-						: null,
+				// // DESAFIOS
+				// ie.getDesafio() != null
+				// 		? new DesafioDTO(
+				// 				ie.getDesafio().getId(),
+				// 				ie.getDesafio().getNome())
+				// 		: null,
 
-				// LABELS
-				ie.getGestao().getLabels() != null
-						? ie.getGestao().getLabels().stream()
-								.map(igl -> new LabelDTO(
-										igl.getLabel().getId(),
-										igl.getLabel().getNome(),
-										0,
-										igl.getLabel().getValores() != null
-												? igl.getLabel().getValores().stream()
-														.map(v -> new LabelValorDTO(
-																v.getId(),
-																v.getValor()))
-														.distinct() // evita duplicidade por causa do join fetch
-														.toList()
-												: List.of()
-									))
-								.toList()
-						: List.of());
+				// // LABELS
+				// ie.getGestao().getLabels() != null
+				// 		? ie.getGestao().getLabels().stream()
+				// 				.map(igl -> new LabelDTO(
+				// 						igl.getLabel().getId(),
+				// 						igl.getLabel().getNome(),
+				// 						0,
+				// 						igl.getLabel().getValores() != null
+				// 								? igl.getLabel().getValores().stream()
+				// 										.map(v -> new LabelValorDTO(
+				// 												v.getId(),
+				// 												v.getValor()))
+				// 										.distinct() // evita duplicidade por causa do join fetch
+				// 										.toList()
+				// 								: List.of()
+				// 					))
+				// 				.toList()
+				// 		: List.of());
 
 	}
 
