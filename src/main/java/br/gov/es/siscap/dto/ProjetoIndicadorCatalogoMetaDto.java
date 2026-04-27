@@ -6,9 +6,9 @@ public record ProjetoIndicadorCatalogoMetaDto(
 
 		Long idLocalidade,
 
-		@NotNull String ano,
+		String ano,
 
-		@NotNull String valor
+		String valor
 
 ) {
 }
