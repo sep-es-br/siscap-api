@@ -1,15 +1,12 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.indicadoresexternos.DesafioDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.IndicadorDesafioExternoDTO;
-import br.gov.es.siscap.dto.indicadoresexternos.IndicadorGestaoResumoDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.LabelDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.LabelValorDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesGestaoIndicadorDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesIndicadoresDto;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.models.IndicadorExterno;
-import br.gov.es.siscap.models.IndicadorFatoExterno;
 import br.gov.es.siscap.models.IndicadorGestaoExterno;
 import br.gov.es.siscap.models.IndicadorGestaoLabel;
 import br.gov.es.siscap.repository.IndicadorExternoRepository;
@@ -18,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 @Service
