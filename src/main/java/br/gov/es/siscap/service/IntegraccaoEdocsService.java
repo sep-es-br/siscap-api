@@ -525,6 +525,8 @@ public class IntegraccaoEdocsService {
 
 							projetoService.enviarAvisoEquipeElaboracaoDicElegivel(ctx.getProjeto().id());
 
+							encerrarProcessoEdcosClient(ctx);
+
 						}
 
 						return "Atualização do parecer concluída com sucesso.";
