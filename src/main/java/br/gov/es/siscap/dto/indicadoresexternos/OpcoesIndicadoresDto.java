@@ -1,5 +1,6 @@
 package br.gov.es.siscap.dto.indicadoresexternos;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public record OpcoesIndicadoresDto(
@@ -7,8 +8,8 @@ public record OpcoesIndicadoresDto(
     String nomeIndicador,
     String unidadeMedida,
     String polaridade,
-    String medidoPor
-    // IndicadorGestaoResumoDTO gestao,
-    // DesafioDTO desafio,
-    // List<LabelDTO> labels
+    String medidoPor,
+    List<MetasIndicadorExternoDto> metasIndicador,
+    Integer maiorAnoInidicador,
+    BigDecimal maiorMetaIndicador
 ) {}
