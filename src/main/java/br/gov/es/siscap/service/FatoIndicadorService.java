@@ -7,20 +7,22 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.gov.es.siscap.dto.indicadoresexternos.IndicadorFatoAgrupadoDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.MetasIndicadorExternoDto;
 import br.gov.es.siscap.models.IndicadorExterno;
 import br.gov.es.siscap.models.IndicadorFatoExterno;
 import br.gov.es.siscap.repository.IndicadorFatoExternoRepository;
+import lombok.RequiredArgsConstructor;
 
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class FatoIndicadorService {
 
         private final IndicadorFatoExternoRepository fatoIndicadorRepository;
-
-        public FatoIndicadorService(IndicadorFatoExternoRepository fatoIndicadorRepository) {
-                this.fatoIndicadorRepository = Objects.requireNonNull(fatoIndicadorRepository,
-                                "fatoIndicadorRepository cannot be null");
-        }
 
         public Map<Integer, IndicadorFatoAgrupadoDTO> buscarDadosAgrupados(List<IndicadorExterno> indicadores) {
 
