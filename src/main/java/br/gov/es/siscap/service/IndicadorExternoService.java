@@ -85,8 +85,7 @@ public class IndicadorExternoService {
 		}
 
 		List<Long> labels = (filtroLabel == null || filtroLabel.isEmpty()) ? null : filtroLabel;
-		// List<Long> valores = (filtroLabelValor == null || filtroLabelValor.isEmpty())
-		// ? null : filtroLabelValor;
+		List<Long> valores = (filtroLabelValor == null || filtroLabelValor.isEmpty()) ? null : filtroLabelValor;
 		List<Long> desafios = (filtroDesafio == null || filtroDesafio.isEmpty()) ? null : filtroDesafio;
 
 		List<IndicadorExterno> indicadores = indicadorExternoRepository.buscarPorFiltros(

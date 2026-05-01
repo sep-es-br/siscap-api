@@ -26,7 +26,7 @@ public interface IndicadorFatoExternoRepository extends JpaRepository<IndicadorF
 
         @Query("""
                 SELECT f
-                FROM FatoIndicador f
+                FROM IndicadorFatoExterno f
                 JOIN FETCH f.indicador i
                 WHERE i.id IN :ids
         """)

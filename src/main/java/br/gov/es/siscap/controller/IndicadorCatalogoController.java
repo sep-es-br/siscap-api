@@ -26,10 +26,12 @@ public class IndicadorCatalogoController {
 			@RequestParam(required = false) List<Long> label,
 			@RequestParam(required = false) List<Long> lableValor,
 			@RequestParam(required = false) List<Long> desafio) {
+
 		return service.listarIndicadoresFiltro(idGestao,
 				label,
 				lableValor,
 				desafio);
+
 	}
 
 }

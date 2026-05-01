@@ -53,6 +53,7 @@ public class FatoIndicadorService {
                         // metas (lista)
                         List<MetasIndicadorExternoDto> metas = lista.stream()
                                         .map(f -> new MetasIndicadorExternoDto(
+                                                        f.getId(),
                                                         f.getAno(),
                                                         f.getValorMeta()))
                                         .toList();
