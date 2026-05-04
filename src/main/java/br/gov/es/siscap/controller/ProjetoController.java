@@ -56,10 +56,9 @@ public class ProjetoController {
 
 	@GetMapping("/opcoes")
 	public List<ProjetoPropostoOpcoesDto> listarOpcoesDropdown(
-		@RequestParam(required = false) boolean elegiveis,
-                @RequestParam(required = false) String incluir
-	) {
-		if ( elegiveis )
+			@RequestParam(required = false) boolean elegiveis,
+			@RequestParam(required = false) String incluir) {
+		if (elegiveis)
 			return service.listarDicsElegiveisParaPrograma(incluir);
 		else
 			return service.listarOpcoesDropdown();
@@ -82,13 +81,14 @@ public class ProjetoController {
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 
 		return new ResponseEntity<>(service.cadastrar(form, rascunho, pessoa), HttpStatus.CREATED);
-		
+
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id, @Valid @RequestBody ProjetoForm form,
-			@RequestParam(required = false, defaultValue = "false") boolean rascunho,
-			@RequestHeader("Authorization") String auth) {
+	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id, 
+		@Valid @RequestBody ProjetoForm form,
+		@RequestParam(required = false, defaultValue = "false") boolean rascunho,
+		@RequestHeader("Authorization") String auth) {
 
 		String token = auth.replace("Bearer ", "");
 
@@ -127,10 +127,9 @@ public class ProjetoController {
 			@RequestHeader("Authorization") String auth) {
 
 		String token = auth.replace("Bearer ", "");
-                
-                
-                String subNovo = this.tokenService.validarToken(token);
-                
+
+		String subNovo = this.tokenService.validarToken(token);
+
 		service.alterarStatusAtualProjetoByIdProjeto(id, status.get("status"), subNovo);
 		return ResponseEntity.ok().body("Status do projeto alterado com sucesso!");
 	}
@@ -182,7 +181,7 @@ public class ProjetoController {
 	@GetMapping("/dic/{idProjeto}")
 	public ResponseEntity<Resource> gerarDIC(@PathVariable Integer idProjeto) {
 		Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto,
-                        ExibirMarcaDaguaProgramaEnum.EXIBIR);
+				ExibirMarcaDaguaProgramaEnum.EXIBIR);
 		String nomeArquivo = service.gerarNomeArquivo(idProjeto);
 		String contentType = "application/pdf";
 		return ResponseEntity.ok()
@@ -217,7 +216,8 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 		ProjetoDto projetoDto = service.atualizar(idProjeto, form, false, pessoa);
-		asyncExecutorService.assinarCapturaParecerDIC(idProjeto, projetoDto.parecerProjetoUsuario().id(), projetoDto.parecerProjetoUsuario().elegivel());
+		asyncExecutorService.assinarCapturaParecerDIC(idProjeto, projetoDto.parecerProjetoUsuario().id(),
+				projetoDto.parecerProjetoUsuario().elegivel());
 		return ResponseEntity.accepted().build();
 	}
 
