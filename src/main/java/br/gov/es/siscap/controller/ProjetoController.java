@@ -43,8 +43,6 @@ public class ProjetoController {
 	private final TokenService tokenService;
 	private final PessoaService pessoaSrv;
 
-	// private final Logger logger = LogManager.getLogger(ProjetoController.class);
-
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
 			@PageableDefault(size = 15, sort = "criadoEm", direction = Sort.Direction.DESC) Pageable pageable,

@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class ProjetoIndicadorService {
 
 	private final ProjetoIndicadorRepository projetoIndicadorRepository;
-	private final Logger logger = LogManager.getLogger(ProjetoIndicador.class);
+	private final Logger logger = LogManager.getLogger(ProjetoIndicadorService.class);
 
 	public Set<ProjetoIndicador> buscarPorProjeto(Projeto projeto) {
 		logger.info("Buscando indicadores do Projeto com id: {}", projeto.getId());
@@ -34,20 +34,20 @@ public class ProjetoIndicadorService {
 		
 		logger.info("Cadastrando indicadores do Projeto com id: {}", projeto.getId());
 		
-		Set<ProjetoIndicador> ProjetoIndicadorSet = new HashSet<>();
+		Set<ProjetoIndicador> projetoIndicadorSet = new HashSet<>();
 
 		logger.info("Lista de indicadores vindas do front : {}", projetoIndicadorDtoList);
 		
 		projetoIndicadorDtoList.forEach( indicadorDto -> {
 			ProjetoIndicador indicadorProjeto = new ProjetoIndicador(projeto, indicadorDto);
-			ProjetoIndicadorSet.add(indicadorProjeto);
+			projetoIndicadorSet.add(indicadorProjeto);
 		});
 
-		List<ProjetoIndicador> ProjetoIndicadorList = projetoIndicadorRepository.saveAll(ProjetoIndicadorSet);
+		List<ProjetoIndicador> projetoIndicadorList = projetoIndicadorRepository.saveAll(projetoIndicadorSet);
 
 		logger.info("Equipe do projeto cadastrada com sucesso");
 
-		return new HashSet<>(ProjetoIndicadorList);
+		return new HashSet<>(projetoIndicadorList);
 
 	}
 

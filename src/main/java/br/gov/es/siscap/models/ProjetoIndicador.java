@@ -48,19 +48,33 @@ public class ProjetoIndicador extends ControleHistorico {
 	private IndicadorExterno indicadorExterno;
 
 	@OneToMany(mappedBy = "projetoIndicador", cascade = CascadeType.ALL, orphanRemoval = true)
-	private Set<ProjetoIndicadorCatalogoMeta> metas = new HashSet<>();
+	private Set<ProjetoIndicadorExternoMeta> metas = new HashSet<>();
 
 	@ManyToOne()
 	@JoinColumn(name = "id_tipo_status")
 	private TipoStatus tipoStatus;
 
 	public ProjetoIndicador(Projeto projeto, ProjetoIndicadorDto indicador) {
+
 		this.setProjeto(projeto);
 		this.setId(indicador.idIndicador());
 		this.setTipoIndicador(indicador.tipoIndicador());
 		this.setDescricaoIndicador(indicador.descricaoIndicador());
 		this.setDescricaoMeta(indicador.descricaoMeta());
 		this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
+
+		if (indicador.metas() != null) {
+			indicador.metas().forEach(metaDto -> {
+				ProjetoIndicadorExternoMeta meta = new ProjetoIndicadorExternoMeta(metaDto);
+				this.addMeta(meta);
+			});
+		}
+
+	}
+
+	public void addMeta(ProjetoIndicadorExternoMeta meta) {
+		meta.setProjetoIndicador(this);
+		this.metas.add(meta);
 	}
 
 }

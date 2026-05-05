@@ -21,7 +21,7 @@ public record ProjetoIndicadorDto(
 			projetoIndicador.getDescricaoIndicador(),
 			projetoIndicador.getDescricaoMeta(),
 			projetoIndicador.getTipoStatus().getId(),
-			projetoIndicador.getIndicadorExterno().getId(),
+			projetoIndicador.getIndicadorExterno() != null ? projetoIndicador.getIndicadorExterno().getId()  : null,
 			null
 		);
 	}
@@ -33,7 +33,7 @@ public record ProjetoIndicadorDto(
 			projetoIndicador.getDescricaoIndicador(),
 			projetoIndicador.getDescricaoMeta(),
 			projetoIndicador.getTipoStatus().getId(),
-			projetoIndicador.getIndicadorExterno().getId(),
+			projetoIndicador.getIndicadorExterno() != null ? projetoIndicador.getIndicadorExterno().getId()  : null,
 			metasIndicadorCatalogo
 		);
 	}
