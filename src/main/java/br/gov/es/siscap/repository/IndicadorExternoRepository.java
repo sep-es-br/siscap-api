@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import br.gov.es.siscap.models.IndicadorExterno;
 
-public interface IndicadorExternoRepository extends JpaRepository<IndicadorExterno, Long> {
+public interface IndicadorExternoRepository extends JpaRepository<IndicadorExterno, Integer> {
 
     @Query("""
                 SELECT DISTINCT ie

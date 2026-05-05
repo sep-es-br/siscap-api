@@ -17,7 +17,7 @@ import org.hibernate.annotations.SQLRestriction;
 @SQLRestriction("apagado = FALSE")
 public class IndicadorExterno extends ControleHistorico {
 
-	@Id
+    @Id
     @Column(name = "id_indicador")
     private Integer id;
 

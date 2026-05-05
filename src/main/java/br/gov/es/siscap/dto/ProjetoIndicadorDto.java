@@ -21,8 +21,12 @@ public record ProjetoIndicadorDto(
 			projetoIndicador.getDescricaoIndicador(),
 			projetoIndicador.getDescricaoMeta(),
 			projetoIndicador.getTipoStatus().getId(),
-			projetoIndicador.getIndicadorExterno() != null ? projetoIndicador.getIndicadorExterno().getId()  : null,
-			null
+			projetoIndicador.getIndicadorExterno() != null ? projetoIndicador.getIndicadorExterno().getId() : null,
+			projetoIndicador.getMetas() != null 
+            ? projetoIndicador.getMetas().stream()
+                .map(ProjetoIndicadorCatalogoMetaDto::new)
+                .toList()
+            : List.of()
 		);
 	}
 
