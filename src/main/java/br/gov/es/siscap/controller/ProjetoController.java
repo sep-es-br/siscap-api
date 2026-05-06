@@ -94,9 +94,7 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 
-		return ResponseEntity.ok(null);
-
-		// return ResponseEntity.ok(service.atualizar(id, form, rascunho, pessoa));
+		return ResponseEntity.ok(service.atualizar(id, form, rascunho, pessoa));
 
 	}
 

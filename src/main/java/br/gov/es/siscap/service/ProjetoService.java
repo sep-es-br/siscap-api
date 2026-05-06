@@ -416,11 +416,9 @@ public class ProjetoService {
 				});
 
 		List<ProjetoIndicadorDto> projetoIndicadoresDto = form.indicadoresProjeto();
-		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projetoResult,
-				projetoIndicadoresDto);
+		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar( projetoResult, projetoIndicadoresDto );
 
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(),
-				form.rateio());
+		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);

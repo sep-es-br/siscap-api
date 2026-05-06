@@ -68,10 +68,20 @@ public class ProjetoIndicadorService {
 
 		Set<ProjetoIndicador> projetoIndicadorSet = this.buscarPorProjeto(projeto);
 
-		Set<ProjetoIndicador> indicadoresProjetoAtualizarSet = this.atualizarIndicadoresProjeto(projeto,
-				projetoIndicadorSet, projetoIndicadorDtoList);
+		Set<ProjetoIndicador> indicadoresProjetoAtualizarSet = this.atualizarIndicadoresProjeto( projeto, projetoIndicadorSet, projetoIndicadorDtoList );
 
 		projetoIndicadorRepository.saveAllAndFlush(indicadoresProjetoAtualizarSet);
+
+		Set<Integer> idsDto = projetoIndicadorDtoList.stream()
+			.map(ProjetoIndicadorDto::idIndicador)
+			.filter(Objects::nonNull)
+			.collect(Collectors.toSet());
+
+		Set<ProjetoIndicador> indicadoresParaRemover = projetoIndicadorSet.stream()
+			.filter(indicador -> !idsDto.contains(indicador.getId()))
+			.collect(Collectors.toSet());
+
+		projetoIndicadorRepository.deleteAll(indicadoresParaRemover);
 
 		logger.info("Indicadores do projeto alterados com sucesso");
 
