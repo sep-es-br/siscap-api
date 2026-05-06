@@ -61,8 +61,8 @@ public class ProjetoIndicador extends ControleHistorico {
 		this.setDescricaoIndicador(indicador.descricaoIndicador());
 		this.setDescricaoMeta(indicador.descricaoMeta());
 		this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
-		if (indicador.metas() != null) {
-			indicador.metas().forEach(metaDto -> {
+		if (indicador.metasIndicadorProjeto() != null) {
+			indicador.metasIndicadorProjeto().forEach(metaDto -> {
 				ProjetoIndicadorExternoMeta meta = new ProjetoIndicadorExternoMeta(metaDto);
 				this.addMeta(meta);
 			});

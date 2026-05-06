@@ -129,8 +129,8 @@ public class ProjetoIndicadorService {
 							indicador.setIndicadorExterno(indicadorExterno);
 
 							// metas informadas no DTO para o indicador externo selecionado
-							if (dto.metas() != null) {
-								atualizarMetas(indicador, dto.metas());
+							if (dto.metasIndicadorProjeto() != null) {
+								atualizarMetas(indicador, dto.metasIndicadorProjeto());
 							}
 
 						} else {

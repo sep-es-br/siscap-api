@@ -12,7 +12,7 @@ public record ProjetoIndicadorDto(
 	String descricaoMeta,
 	Long idStatus,
 	Integer idIndicadorExterno,
-	List<ProjetoIndicadorCatalogoMetaDto> metas){
+	List<ProjetoIndicadorCatalogoMetaDto> metasIndicadorProjeto){
 		
 	public ProjetoIndicadorDto(ProjetoIndicador projetoIndicador) {
 		this(
