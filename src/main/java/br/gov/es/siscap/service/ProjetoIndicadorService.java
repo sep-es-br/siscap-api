@@ -119,7 +119,15 @@ public class ProjetoIndicadorService {
 
 		return dtoList.stream()
 				.map(dto -> {
+
+					Integer idIndicadorExterno = dto.idIndicadorExterno();
+
+					if (idIndicadorExterno == null) {
+						throw new IllegalArgumentException("Id não pode ser null");
+					}
+
 					ProjetoIndicador indicador;
+
 					if (dto.idIndicador() != null && indicadoresExistentesMap.containsKey(dto.idIndicador())) {
 
 						indicador = indicadoresExistentesMap.get(dto.idIndicador());
@@ -130,10 +138,10 @@ public class ProjetoIndicadorService {
 						indicador.setTipoStatus(new TipoStatus(dto.idStatus()));
 
 						// indicador externo
-						if (dto.idIndicadorExterno() != null) {
+						if (idIndicadorExterno != null) {
 
 							IndicadorExterno indicadorExterno = indicadorExternoRepository
-									.findById(dto.idIndicadorExterno())
+									.findById(idIndicadorExterno)
 									.orElseThrow(() -> new RuntimeException("Indicador externo não encontrado"));
 
 							indicador.setIndicadorExterno(indicadorExterno);
@@ -143,12 +151,18 @@ public class ProjetoIndicadorService {
 								atualizarMetas(indicador, dto.metasIndicadorProjeto());
 							}
 
-						} else {
-							indicador.setIndicadorExterno(null);
-						}
+						} 
 
 					} else {
+
+						IndicadorExterno indicadorExterno = indicadorExternoRepository
+									.findById(idIndicadorExterno)
+									.orElseThrow(() -> new RuntimeException("Indicador externo não encontrado"));
+
 						indicador = new ProjetoIndicador(projeto, dto);
+
+						indicador.setIndicadorExterno(indicadorExterno);
+
 					}
 					
 					return indicador;
