@@ -1,5 +1,7 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.indicadoresexternos.FiltroIndicadorDto;
+import br.gov.es.siscap.dto.indicadoresexternos.FiltroLabelDto;
 import br.gov.es.siscap.dto.indicadoresexternos.IndicadorDesafioExternoDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.IndicadorFatoAgrupadoDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.LabelDTO;
@@ -8,7 +10,6 @@ import br.gov.es.siscap.dto.indicadoresexternos.OpcoesGestaoIndicadorDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesIndicadoresDto;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.models.IndicadorExterno;
-import br.gov.es.siscap.models.IndicadorFatoExterno;
 import br.gov.es.siscap.models.IndicadorGestaoExterno;
 import br.gov.es.siscap.models.IndicadorGestaoLabel;
 import br.gov.es.siscap.repository.IndicadorExternoRepository;
@@ -76,21 +77,42 @@ public class IndicadorExternoService {
 
 	public List<OpcoesIndicadoresDto> listarIndicadoresFiltro(
 			Long filtroGestao,
-			List<Long> filtroLabel,
-			List<Long> filtroLabelValor,
-			List<Long> filtroDesafio) {
+			FiltroIndicadorDto filtro) {
 
 		if (filtroGestao == null) {
 			throw new SiscapServiceException(Arrays.asList("Gestão é obrigatória"));
 		}
 
-		List<Long> labels = (filtroLabel == null || filtroLabel.isEmpty()) ? null : filtroLabel;
-		List<Long> valores = (filtroLabelValor == null || filtroLabelValor.isEmpty()) ? null : filtroLabelValor;
-		List<Long> desafios = (filtroDesafio == null || filtroDesafio.isEmpty()) ? null : filtroDesafio;
+		List<Long> labels = null;
+		List<Long> valores = null;
+		List<Long> desafios = null;
 
-		List<IndicadorExterno> indicadores = indicadorExternoRepository.buscarPorFiltros( filtroGestao, labels, desafios );
+		if (filtro != null) {
 
-		// busca dados da fato_indicador em lote
+			if (filtro.labels() != null && !filtro.labels().isEmpty()) {
+
+				labels = filtro.labels().stream()
+						.map(FiltroLabelDto::idLabel)
+						.distinct()
+						.toList();
+
+				valores = filtro.labels().stream()
+						.flatMap(label -> label.idLabelValores().stream())
+						.distinct()
+						.toList();
+			}
+
+			if (filtro.desafios() != null
+					&& !filtro.desafios().isEmpty()) {
+
+				desafios = filtro.desafios();
+
+			}
+		}
+
+		List<IndicadorExterno> indicadores = indicadorExternoRepository.buscarPorFiltros(filtroGestao, labels,
+				desafios);
+
 		Map<Integer, IndicadorFatoAgrupadoDTO> dadosPorIndicador = fatoIndicadorService
 				.buscarDadosAgrupados(indicadores);
 
@@ -101,7 +123,6 @@ public class IndicadorExternoService {
 	}
 
 	private OpcoesIndicadoresDto toDto(IndicadorExterno ie, IndicadorFatoAgrupadoDTO dadosFato) {
-
 		return new OpcoesIndicadoresDto(
 				ie.getId(),
 				ie.getNome(),
@@ -111,41 +132,6 @@ public class IndicadorExternoService {
 				dadosFato.metas(),
 				dadosFato.maiorAno() != null ? dadosFato.maiorAno() : null,
 				dadosFato.maiorMeta() != null ? dadosFato.maiorMeta() : null);
-
-		// // GESTÃO
-		// ie.getGestao() != null
-		// ? new IndicadorGestaoResumoDTO(
-		// ie.getGestao().getId(),
-		// ie.getGestao().getNome(),
-		// ie.getGestao().getAtiva())
-		// : null,
-
-		// // DESAFIOS
-		// ie.getDesafio() != null
-		// ? new DesafioDTO(
-		// ie.getDesafio().getId(),
-		// ie.getDesafio().getNome())
-		// : null,
-
-		// // LABELS
-		// ie.getGestao().getLabels() != null
-		// ? ie.getGestao().getLabels().stream()
-		// .map(igl -> new LabelDTO(
-		// igl.getLabel().getId(),
-		// igl.getLabel().getNome(),
-		// 0,
-		// igl.getLabel().getValores() != null
-		// ? igl.getLabel().getValores().stream()
-		// .map(v -> new LabelValorDTO(
-		// v.getId(),
-		// v.getValor()))
-		// .distinct() // evita duplicidade por causa do join fetch
-		// .toList()
-		// : List.of()
-		// ))
-		// .toList()
-		// : List.of());
-
 	}
 
 }
