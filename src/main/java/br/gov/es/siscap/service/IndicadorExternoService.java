@@ -88,8 +88,7 @@ public class IndicadorExternoService {
 		List<Long> valores = (filtroLabelValor == null || filtroLabelValor.isEmpty()) ? null : filtroLabelValor;
 		List<Long> desafios = (filtroDesafio == null || filtroDesafio.isEmpty()) ? null : filtroDesafio;
 
-		List<IndicadorExterno> indicadores = indicadorExternoRepository.buscarPorFiltros(
-				filtroGestao, labels, desafios);
+		List<IndicadorExterno> indicadores = indicadorExternoRepository.buscarPorFiltros( filtroGestao, labels, desafios );
 
 		// busca dados da fato_indicador em lote
 		Map<Integer, IndicadorFatoAgrupadoDTO> dadosPorIndicador = fatoIndicadorService
