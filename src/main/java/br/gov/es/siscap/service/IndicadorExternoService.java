@@ -9,12 +9,17 @@ import br.gov.es.siscap.dto.indicadoresexternos.LabelValorDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesGestaoIndicadorDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesIndicadoresDto;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
+import br.gov.es.siscap.form.IndicadorAvulsoForm;
 import br.gov.es.siscap.models.IndicadorExterno;
 import br.gov.es.siscap.models.IndicadorGestaoExterno;
 import br.gov.es.siscap.models.IndicadorGestaoLabel;
 import br.gov.es.siscap.repository.IndicadorExternoRepository;
 import br.gov.es.siscap.repository.IndicadorGestaoExternoRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,7 +73,10 @@ public class IndicadorExternoService {
 							gestao.getId(),
 							gestao.getNome(),
 							labels,
-							desafios);
+							desafios,
+							gestao.getDoAno() != null ? gestao.getDoAno() : 0,
+							gestao.getAteAno() != null ? gestao.getAteAno() : 0
+							);
 
 				})
 				.toList();
@@ -133,5 +141,15 @@ public class IndicadorExternoService {
 				dadosFato.maiorAno() != null ? dadosFato.maiorAno() : null,
 				dadosFato.maiorMeta() != null ? dadosFato.maiorMeta() : null);
 	}
+
+    public List<OpcoesIndicadoresDto> cadastrarIndicadorAvulso(IndicadorAvulsoForm form) {
+        
+		if (form == null) {
+			throw new SiscapServiceException(Arrays.asList("Dados do indicador são obrigatórios"));
+		}
+
+		return null;
+
+    }
 
 }

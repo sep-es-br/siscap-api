@@ -6,5 +6,7 @@ public record OpcoesGestaoIndicadorDto(
     long idGestao,
     String nomeGestao,
     List<LabelDTO> labels,
-    List<IndicadorDesafioExternoDTO> desafios
+    List<IndicadorDesafioExternoDTO> desafios,
+    int doAno,
+    int ateAno
 ) {}

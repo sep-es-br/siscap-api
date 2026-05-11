@@ -31,6 +31,12 @@ public class IndicadorGestaoExterno extends ControleHistorico {
  
     @Column(name = "model_label", length = 1000)
     private String modelLabel;
+
+    @Column(name = "do_ano")
+    private Integer doAno;      
+
+    @Column(name = "ate_ano")
+    private Integer ateAno;
     
     @OneToMany(mappedBy = "gestao", fetch = FetchType.LAZY)
     private Set<IndicadorGestaoLabel> labels;
