@@ -11,6 +11,8 @@ import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.UsuarioRepository;
+import jakarta.transaction.Transactional;
+
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -187,6 +189,7 @@ public class AutenticacaoService {
 		return usuario;
 	}
 
+	@Transactional
 	private Pessoa criarPessoa(ACUserInfoDto userInfo) {
 		Pessoa pessoa;
 		logger.info("Pessoa não encontrada, procedendo para criação de uma nova pessoa.");
