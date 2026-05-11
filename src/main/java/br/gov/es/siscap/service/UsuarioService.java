@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.config.security.AuthorizationRequestResolver;
 import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.models.Pessoa;
+import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -73,6 +74,12 @@ public class UsuarioService implements UserDetailsService {
                 default -> lotacaoSimulada;
             };
         }
+        
+        
+        Usuario usuarioBanco = (Usuario) this.repository.findBySub(subUsuario);
+        
+        if(usuarioBanco.getPapeis() != null && usuarioBanco.getPapeis().contains("SUBCAP"))
+            return guidSUBCAP;
 
         List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService
                 .listarPapeisAgentePublicoPorSub(subUsuario);

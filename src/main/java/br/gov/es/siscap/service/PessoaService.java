@@ -206,6 +206,7 @@ public class PessoaService {
 		return new PessoaDto(pessoa, conteudo, idOrganizacoes, idOrganizacaoResponsavel);
 	}
 
+	@Transactional
 	public Pessoa salvarNovaPessoaAcessoCidadao(Pessoa pessoa) {
 		return repository.save(pessoa);
 	}
