@@ -5,6 +5,7 @@ import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.StatusProjeto;
 import br.gov.es.siscap.utils.FormatadorData;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import java.time.LocalDateTime;
@@ -56,7 +57,9 @@ public class ProjetoSpecification {
 
 	public static Specification<Projeto> filtroStatusParecerSEP() {
             return (root, query, cb) -> {
-                Join<Projeto, StatusProjeto> statusJoin = root.join("historicoStatus");
+                Join<Projeto, StatusProjeto> statusJoin = root.join("historicoStatus", JoinType.LEFT);
+
+                query.distinct(true);
 
                 return cb.and(
                     cb.isNull(statusJoin.get("fimEm")),

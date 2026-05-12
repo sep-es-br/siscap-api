@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.UsuarioRepository;
+import br.gov.es.siscap.utils.OverrideProperties;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public class UsuarioService implements UserDetailsService {
 
     private final UsuarioRepository repository;
     private final AcessoCidadaoService acessoCidadaoService;
+    private final OverrideProperties overrideProperties;
 
     private final Logger logger = LogManager.getLogger(AuthorizationRequestResolver.class);
 
@@ -66,6 +68,11 @@ public class UsuarioService implements UserDetailsService {
 
     public String lotacaoGuidUsuario(String subUsuario) {
 
+        String overrideLotacao = overrideProperties.getLotacaoUsuario().get(subUsuario);
+        if (overrideLotacao != null) {
+            return overrideLotacao;
+        }
+
         // ⚙️ Simulação de ambiente de teste
         if (lotacaoSimulada != null && !lotacaoSimulada.isEmpty()) {
             return switch (lotacaoSimulada.toUpperCase()) {
@@ -74,11 +81,10 @@ public class UsuarioService implements UserDetailsService {
                 default -> lotacaoSimulada;
             };
         }
-        
-        
+
         Usuario usuarioBanco = (Usuario) this.repository.findBySub(subUsuario);
-        
-        if(usuarioBanco.getPapeis() != null && usuarioBanco.getPapeis().contains("SUBCAP"))
+
+        if (usuarioBanco.getPapeis() != null && usuarioBanco.getPapeis().contains("SUBCAP"))
             return guidSUBCAP;
 
         List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService
