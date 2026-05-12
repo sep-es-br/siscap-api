@@ -106,60 +106,6 @@ public class ProjetoService {
 			Long idOrganizacao,
 			String status) {
 
-		// Specification<Projeto> especificacaoSiglaTitulo = siglaOuTitulo.isBlank() ?
-		// null
-		// : ProjetoSpecification.filtroSiglaTitulo(siglaOuTitulo);
-		// // Specification<Projeto> especificacaoIdOrganizacao = idOrganizacao == 0 ?
-		// null
-		// // : ProjetoSpecification.filtroIdOrganizacao(idOrganizacao);
-		// Specification<Projeto> especificacaoStatus = status.equals("Status") ? null
-		// : ProjetoSpecification.filtroStatus(status);
-
-		// String subUsuario = autenticacaoService.getUsuarioLogado();
-
-		// LotacaoUsuarioEnum lotacaoUsuario = LotacaoUsuarioEnum.fromGuid(
-		// usuarioService.lotacaoGuidUsuario(subUsuario),
-		// guidSUBEPP,
-		// guidSUBEO,
-		// guidSUBCAP);
-
-		// boolean podeVerParecerSEP = lotacaoUsuario == LotacaoUsuarioEnum.SUBEPP
-		// || lotacaoUsuario == LotacaoUsuarioEnum.SUBEO;
-
-		// // Specification<Projeto> filtroBase = Specification
-		// // .where(especificacaoSiglaTitulo)
-		// // .and(especificacaoStatus);
-
-		// // Specification<Projeto> filtroOrganizacao = especificacaoIdOrganizacao;
-		// // Specification<Projeto> filtroParecerSEP =
-		// // ProjetoSpecification.filtroStatusParecerSEP();
-		// // Specification<Projeto> filtroPesquisa;
-		// // if (podeVerParecerSEP) {
-		// // filtroPesquisa = filtroBase.and(
-		// // Specification.where(filtroOrganizacao)
-		// // .or(filtroParecerSEP));
-		// // } else {
-		// // filtroPesquisa = filtroBase.and(filtroOrganizacao);
-		// // }
-		// Specification<Projeto> filtroPesquisa = Specification
-		// .where(especificacaoSiglaTitulo)
-		// .and(especificacaoStatus);
-		// Specification<Projeto> filtroOrganizacao = idOrganizacao == null
-		// ? null
-		// : ProjetoSpecification.filtroIdOrganizacao(idOrganizacao);
-		// if (podeVerParecerSEP) {
-		// if (filtroOrganizacao != null) {
-		// filtroPesquisa = filtroPesquisa.and(
-		// filtroOrganizacao.or(
-		// ProjetoSpecification.filtroStatusParecerSEP()));
-		// } else {
-		// filtroPesquisa = filtroPesquisa.and(
-		// ProjetoSpecification.filtroStatusParecerSEP());
-		// }
-		// } else {
-		// filtroPesquisa = filtroPesquisa.and(filtroOrganizacao);
-		// }
-
 		Specification<Projeto> especificacaoSiglaTitulo = (siglaOuTitulo == null || siglaOuTitulo.isBlank())
 				? null
 				: ProjetoSpecification.filtroSiglaTitulo(siglaOuTitulo);
@@ -179,48 +125,21 @@ public class ProjetoService {
 		boolean podeVerParecerSEP = lotacaoUsuario == LotacaoUsuarioEnum.SUBEPP
 				|| lotacaoUsuario == LotacaoUsuarioEnum.SUBEO;
 
-		/*
-		 * =========================================
-		 * FILTROS NORMAIS DA ORGANIZAÇÃO
-		 * =========================================
-		 */
 		Specification<Projeto> filtroProjetosOrganizacao = Specification.where(
-				idOrganizacao == null
+				idOrganizacao == null || idOrganizacao == 0 
 						? null
 						: ProjetoSpecification.filtroIdOrganizacao(idOrganizacao))
 				.and(especificacaoSiglaTitulo)
 				.and(especificacaoStatus);
 
-		/*
-		 * =========================================
-		 * FILTRO DOS PROJETOS COM PARECER SEP
-		 * =========================================
-		 */
 		Specification<Projeto> filtroProjetosParecerSEP = ProjetoSpecification.filtroStatusParecerSEP();
-
-		/*
-		 * =========================================
-		 * REGRA DE ACESSO
-		 * =========================================
-		 *
-		 * Usuário comum:
-		 * -> vê apenas projetos da organização
-		 *
-		 * SUBEPP / SUBEO:
-		 * -> vê projetos da organização
-		 * OU
-		 * projetos com parecer SEP
-		 */
 		Specification<Projeto> filtroPesquisa;
 
 		if (podeVerParecerSEP) {
-
 			filtroPesquisa = Specification
 					.where(filtroProjetosOrganizacao)
 					.or(filtroProjetosParecerSEP);
-
 		} else {
-
 			filtroPesquisa = filtroProjetosOrganizacao;
 		}
 
