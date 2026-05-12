@@ -49,6 +49,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -94,22 +95,77 @@ public class ProjetoService {
 	private String guidSUBCAP;
 
 	@Value("${email.gerencia-subcap}")
-	private String DESTINO_GERENCIA_SUBCAP;
+	private String destinoGerenciaSubcap;
 
 	@Value("${email.destinatario-subcap}")
-	private String DESTINO_SUBCAP;
+	private String destinoSubcap;
 
 	public Page<ProjetoListaDto> listarTodos(
-			Pageable pageable,
+			@NonNull Pageable pageable,
 			String siglaOuTitulo,
 			Long idOrganizacao,
 			String status) {
 
-		Specification<Projeto> especificacaoSiglaTitulo = siglaOuTitulo.isBlank() ? null
+		// Specification<Projeto> especificacaoSiglaTitulo = siglaOuTitulo.isBlank() ?
+		// null
+		// : ProjetoSpecification.filtroSiglaTitulo(siglaOuTitulo);
+		// // Specification<Projeto> especificacaoIdOrganizacao = idOrganizacao == 0 ?
+		// null
+		// // : ProjetoSpecification.filtroIdOrganizacao(idOrganizacao);
+		// Specification<Projeto> especificacaoStatus = status.equals("Status") ? null
+		// : ProjetoSpecification.filtroStatus(status);
+
+		// String subUsuario = autenticacaoService.getUsuarioLogado();
+
+		// LotacaoUsuarioEnum lotacaoUsuario = LotacaoUsuarioEnum.fromGuid(
+		// usuarioService.lotacaoGuidUsuario(subUsuario),
+		// guidSUBEPP,
+		// guidSUBEO,
+		// guidSUBCAP);
+
+		// boolean podeVerParecerSEP = lotacaoUsuario == LotacaoUsuarioEnum.SUBEPP
+		// || lotacaoUsuario == LotacaoUsuarioEnum.SUBEO;
+
+		// // Specification<Projeto> filtroBase = Specification
+		// // .where(especificacaoSiglaTitulo)
+		// // .and(especificacaoStatus);
+
+		// // Specification<Projeto> filtroOrganizacao = especificacaoIdOrganizacao;
+		// // Specification<Projeto> filtroParecerSEP =
+		// // ProjetoSpecification.filtroStatusParecerSEP();
+		// // Specification<Projeto> filtroPesquisa;
+		// // if (podeVerParecerSEP) {
+		// // filtroPesquisa = filtroBase.and(
+		// // Specification.where(filtroOrganizacao)
+		// // .or(filtroParecerSEP));
+		// // } else {
+		// // filtroPesquisa = filtroBase.and(filtroOrganizacao);
+		// // }
+		// Specification<Projeto> filtroPesquisa = Specification
+		// .where(especificacaoSiglaTitulo)
+		// .and(especificacaoStatus);
+		// Specification<Projeto> filtroOrganizacao = idOrganizacao == null
+		// ? null
+		// : ProjetoSpecification.filtroIdOrganizacao(idOrganizacao);
+		// if (podeVerParecerSEP) {
+		// if (filtroOrganizacao != null) {
+		// filtroPesquisa = filtroPesquisa.and(
+		// filtroOrganizacao.or(
+		// ProjetoSpecification.filtroStatusParecerSEP()));
+		// } else {
+		// filtroPesquisa = filtroPesquisa.and(
+		// ProjetoSpecification.filtroStatusParecerSEP());
+		// }
+		// } else {
+		// filtroPesquisa = filtroPesquisa.and(filtroOrganizacao);
+		// }
+
+		Specification<Projeto> especificacaoSiglaTitulo = (siglaOuTitulo == null || siglaOuTitulo.isBlank())
+				? null
 				: ProjetoSpecification.filtroSiglaTitulo(siglaOuTitulo);
-		Specification<Projeto> especificacaoIdOrganizacao = idOrganizacao == 0 ? null
-				: ProjetoSpecification.filtroIdOrganizacao(idOrganizacao);
-		Specification<Projeto> especificacaoStatus = status.equals("Status") ? null
+
+		Specification<Projeto> especificacaoStatus = (status == null || status.equals("Status"))
+				? null
 				: ProjetoSpecification.filtroStatus(status);
 
 		String subUsuario = autenticacaoService.getUsuarioLogado();
@@ -123,31 +179,56 @@ public class ProjetoService {
 		boolean podeVerParecerSEP = lotacaoUsuario == LotacaoUsuarioEnum.SUBEPP
 				|| lotacaoUsuario == LotacaoUsuarioEnum.SUBEO;
 
-		Specification<Projeto> filtroBase = Specification
-				.where(especificacaoSiglaTitulo)
+		/*
+		 * =========================================
+		 * FILTROS NORMAIS DA ORGANIZAÇÃO
+		 * =========================================
+		 */
+		Specification<Projeto> filtroProjetosOrganizacao = Specification.where(
+				idOrganizacao == null
+						? null
+						: ProjetoSpecification.filtroIdOrganizacao(idOrganizacao))
+				.and(especificacaoSiglaTitulo)
 				.and(especificacaoStatus);
 
-		Specification<Projeto> filtroOrganizacao = especificacaoIdOrganizacao;
+		/*
+		 * =========================================
+		 * FILTRO DOS PROJETOS COM PARECER SEP
+		 * =========================================
+		 */
+		Specification<Projeto> filtroProjetosParecerSEP = ProjetoSpecification.filtroStatusParecerSEP();
 
-		Specification<Projeto> filtroParecerSEP = ProjetoSpecification.filtroStatusParecerSEP();
-
+		/*
+		 * =========================================
+		 * REGRA DE ACESSO
+		 * =========================================
+		 *
+		 * Usuário comum:
+		 * -> vê apenas projetos da organização
+		 *
+		 * SUBEPP / SUBEO:
+		 * -> vê projetos da organização
+		 * OU
+		 * projetos com parecer SEP
+		 */
 		Specification<Projeto> filtroPesquisa;
 
 		if (podeVerParecerSEP) {
-			filtroPesquisa = filtroBase.and(
-					Specification.where(filtroOrganizacao)
-							.or(filtroParecerSEP));
+
+			filtroPesquisa = Specification
+					.where(filtroProjetosOrganizacao)
+					.or(filtroProjetosParecerSEP);
+
 		} else {
-			filtroPesquisa = filtroBase.and(filtroOrganizacao);
+
+			filtroPesquisa = filtroProjetosOrganizacao;
 		}
 
-		return repository.findAll(filtroPesquisa, pageable)
+		return repository.findAll( filtroPesquisa, pageable )
 				.map(projeto -> {
 					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
-
 					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
-
-					return new ProjetoListaDto(projeto, valorDto.quantia(), lotacaoUsuario.getValue());
+					return new ProjetoListaDto( projeto, valorDto.quantia(), lotacaoUsuario.getValue() );
 				});
 
 	}
@@ -302,7 +383,7 @@ public class ProjetoService {
 
 		// definir o usuario logado como redator original..
 		String subUsuario = autenticacaoService.getUsuarioLogado();
-		
+
 		Pessoa pessoaRedatorProjeto = pessoaRepository.findBySub(subUsuario)
 				.orElseThrow(() -> new ValidacaoSiscapException(List.of(
 						"Redator do DIC não encontrado para o SUB : %s.".formatted(subUsuario))));
@@ -537,7 +618,6 @@ public class ProjetoService {
 
 	private void exclusaoLogica(Projeto projeto) {
 
-
 		projetoPessoaService.excluirPorProjeto(projeto);
 
 		localidadeQuantiaService.excluir(projeto);
@@ -547,13 +627,9 @@ public class ProjetoService {
 		projetoAcaoService.excluirPorProjeto(projeto);
 
 		projetoParecerService.excluirPorProjeto(projeto);
-                
-                
-                
+
 		projeto.apagarProjeto();
-                repository.deleteById(projeto.getId());
-                
-		
+		repository.deleteById(projeto.getId());
 
 	}
 
@@ -672,7 +748,6 @@ public class ProjetoService {
 
 					logger.info("Email enviado com sucesso");
 
-
 				} else {
 					erros.add("Erro ao enviar solicitação de revisão do projeto id %s".formatted(id));
 				}
@@ -682,7 +757,7 @@ public class ProjetoService {
 			}
 
 		}
-                
+
 		projeto.alterarStatus(StatusProjetoEnum.EM_ELABORACAO.getValue(), pessoa);
 
 		if (!erros.isEmpty()) {
@@ -747,9 +822,8 @@ public class ProjetoService {
 			}
 
 		}
-                projeto.alterarStatus(StatusProjetoEnum.COMPLEMETACAO.getValue(), pessoa);
+		projeto.alterarStatus(StatusProjetoEnum.COMPLEMETACAO.getValue(), pessoa);
 		this.inserirComplementacoesSeremRealizadasDIC(projeto, complementos);
-                
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
@@ -765,7 +839,7 @@ public class ProjetoService {
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
 		List<String> emailsInteressadosList = new ArrayList<>();
-		emailsInteressadosList.add(DESTINO_GERENCIA_SUBCAP);
+		emailsInteressadosList.add(destinoGerenciaSubcap);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
 				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
@@ -798,7 +872,7 @@ public class ProjetoService {
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
 		List<String> emailsInteressadosList = new ArrayList<>();
-		emailsInteressadosList.add(DESTINO_SUBCAP);
+		emailsInteressadosList.add(destinoSubcap);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
 				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
@@ -831,7 +905,7 @@ public class ProjetoService {
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
 		List<String> emailsInteressadosList = new ArrayList<>();
-		emailsInteressadosList.add(DESTINO_GERENCIA_SUBCAP);
+		emailsInteressadosList.add(destinoGerenciaSubcap);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
 				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
@@ -920,10 +994,10 @@ public class ProjetoService {
 			}
 
 		}
-                
-                projeto.alterarStatus(StatusProjetoEnum.ARQUIVADO.getValue(), pessoa);
-                projeto.finalizarStatusAtual(pessoa);
-                this.registrarMotivoArquivamentoProjeto(id, codigoMotivoArquivamento, justificativa);
+
+		projeto.alterarStatus(StatusProjetoEnum.ARQUIVADO.getValue(), pessoa);
+		projeto.finalizarStatusAtual(pessoa);
+		this.registrarMotivoArquivamentoProjeto(id, codigoMotivoArquivamento, justificativa);
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);
@@ -961,7 +1035,7 @@ public class ProjetoService {
 				if (idProjetoPropostoList.stream()
 						.noneMatch(idProjetoProposto -> idProjetoProposto.equals(projeto.getId()))) {
 					projeto.removerPrograma();
-                                        entityManager.flush();
+					entityManager.flush();
 				}
 			});
 
@@ -969,17 +1043,17 @@ public class ProjetoService {
 		}
 
 		idProjetoPropostoList.forEach(idProjetoProposto -> {
-                        if(projetoPropostoSet.stream().noneMatch(projeto -> idProjetoProposto.equals(projeto.getId()))) {
-                            Projeto projeto = this.buscar(idProjetoProposto);
-                            projeto.removerPrograma();
-                            entityManager.flush();
-                            projeto.setPrograma(programa);
-                            repository.saveAndFlush(projeto);
-                            if (projetoPropostoSet.stream()
-                                            .noneMatch(projetoSet -> Objects.equals(projetoSet.getId(), projeto.getId()))) {
-                                    this.enviarAvisoEquipeElaboracaoDicVinculadoPrograma(projeto.getId());
-                            }
-                        }
+			if (projetoPropostoSet.stream().noneMatch(projeto -> idProjetoProposto.equals(projeto.getId()))) {
+				Projeto projeto = this.buscar(idProjetoProposto);
+				projeto.removerPrograma();
+				entityManager.flush();
+				projeto.setPrograma(programa);
+				repository.saveAndFlush(projeto);
+				if (projetoPropostoSet.stream()
+						.noneMatch(projetoSet -> Objects.equals(projetoSet.getId(), projeto.getId()))) {
+					this.enviarAvisoEquipeElaboracaoDicVinculadoPrograma(projeto.getId());
+				}
+			}
 		});
 
 		logger.info("Projetos vinculados ao programa com sucesso");
