@@ -10,27 +10,27 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "projeto_indicador_avulso_meta")
+@Table(name = "projeto_indicador_avulso")
 @NoArgsConstructor
 @Getter
 @Setter
-@SQLDelete(sql = "UPDATE projeto_indicador_avulso_meta SET apagado = true WHERE id=?")
+@SQLDelete(sql = "UPDATE projeto_indicador_avulso SET apagado = true WHERE id=?")
 @SQLRestriction("apagado = false")
-public class ProjetoIndicadorAvulsoMeta extends ControleHistorico {
+public class ProjetoIndicadorAvulso extends ControleHistorico {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", nullable = false)
     private Integer id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_projeto_indicador_avulso", nullable = false)
-    private ProjetoIndicadorAvulso projetoIndicadorAvulso;
+    @JoinColumn(name = "id_projeto", nullable = false)
+    private Projeto projeto;
 
-    @Column(name = "ano")
-    private Integer ano;
-
-    @Column(name = "valor")
-    private String valor;
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_indicador_avulso", nullable = false)
+    private IndicadorAvulso indicadorAvulso;
 
 }
