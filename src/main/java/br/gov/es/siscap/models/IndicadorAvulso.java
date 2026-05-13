@@ -54,16 +54,16 @@ public class IndicadorAvulso extends ControleHistorico {
 
     public IndicadorAvulso(ProjetoIndicadorAvulsoDto indicador) {
 
-        this.id = indicador.idIndicador();
+        this.id = indicador.indicadorAvulso().id();
 
-        this.baseDeReferencia = indicador.baseDeReferencia();
-        this.fonteIndicador = indicador.fonteIndicador();
-        this.nomeIndicador = indicador.nomeIndicador();
-        this.unidadeMedida = indicador.unidadeMedida();
-        this.medidoPor = indicador.medidoPor();
+        this.baseDeReferencia = indicador.indicadorAvulso().baseDeReferencia();
+        this.fonteIndicador = indicador.indicadorAvulso().fonteIndicador();
+        this.nomeIndicador = indicador.indicadorAvulso().nomeIndicador();
+        this.unidadeMedida = indicador.indicadorAvulso().unidadeMedida();
+        this.medidoPor = indicador.indicadorAvulso().medidoPor();
 
-        if (indicador.metasIndicadorAvulsoProjeto() != null) {
-            indicador.metasIndicadorAvulsoProjeto().forEach(metaDto -> {
+        if (indicador.indicadorAvulso().metasGlobais() != null) {
+            indicador.indicadorAvulso().metasGlobais().forEach(metaDto -> {
                 IndicadorAvulsoMeta meta = new IndicadorAvulsoMeta(metaDto);
                 this.addMetaGlobal(meta);
             });

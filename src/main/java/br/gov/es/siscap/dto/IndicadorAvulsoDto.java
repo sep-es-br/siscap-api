@@ -6,7 +6,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 
 public record IndicadorAvulsoDto(
-    Long id,
+    Integer id,
 
     @Size(max = 2000)
     String nomeIndicador,

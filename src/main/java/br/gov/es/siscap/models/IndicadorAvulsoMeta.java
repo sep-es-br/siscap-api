@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import br.gov.es.siscap.dto.IndicadorAvulsoMetaDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoMetaDto;
 
 @Entity
@@ -47,6 +48,10 @@ public class IndicadorAvulsoMeta extends ControleHistorico {
     ) {
         this.ano = metaDto.anoMeta();
         this.valor = metaDto.valorMeta();
+    }
+
+    public IndicadorAvulsoMeta(IndicadorAvulsoMetaDto metaDto) {
+        //TODO Auto-generated constructor stub
     }
 
 }
