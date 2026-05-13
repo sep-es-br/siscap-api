@@ -80,7 +80,9 @@ public record ProjetoForm(
 			@NotNull
 			boolean enviarProjetoPedirParecer,
 
-			ProjetoParecerDto parecerProjetoUsuario
+			ProjetoParecerDto parecerProjetoUsuario,
+
+			List<ProjetoIndicadorDto> indicadoresAvulsosProjeto
 
 ) {
 }
