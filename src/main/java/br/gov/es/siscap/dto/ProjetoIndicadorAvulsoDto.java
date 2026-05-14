@@ -8,7 +8,7 @@ public record ProjetoIndicadorAvulsoDto(
 	
 	Long id,
 
-	Long idIndicadorAvulso,
+	Integer idIndicadorAvulso,
 
 	@Valid
 	IndicadorAvulsoDto indicadorAvulso,

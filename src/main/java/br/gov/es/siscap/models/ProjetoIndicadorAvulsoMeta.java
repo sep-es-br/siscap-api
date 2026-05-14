@@ -9,6 +9,8 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoMetaDto;
+
 @Entity
 @Table(name = "projeto_indicador_avulso_meta")
 @NoArgsConstructor
@@ -32,5 +34,14 @@ public class ProjetoIndicadorAvulsoMeta extends ControleHistorico {
 
     @Column(name = "valor")
     private String valor;
+
+    public ProjetoIndicadorAvulsoMeta(
+            ProjetoIndicadorAvulso projetoIndicadorAvulso,
+            ProjetoIndicadorAvulsoMetaDto dto) {
+        this.id = dto.id();
+        this.projetoIndicadorAvulso = projetoIndicadorAvulso;
+        this.ano = dto.anoMeta();
+        this.valor = dto.valorMeta();
+    }
 
 }

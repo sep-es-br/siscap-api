@@ -21,6 +21,7 @@ import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
+import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
 import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.models.TipoMotivoArquivamento;
@@ -75,6 +76,7 @@ public class ProjetoService {
 	private final ProjetoComplementosService projetoComplementosService;
 	private final ProjetoParecerService projetoParecerService;
 	private final UsuarioService usuarioService;
+	private final ProjetoIndicadorAvulsoService projetoIndicadorAvulsoService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -414,10 +416,13 @@ public class ProjetoService {
 					String subResponsavelProponente = pessoaService.buscarSubPorId(p.getPessoa().getId());
 					p.getPessoa().setSub(subResponsavelProponente);
 				});
-
+		
 		List<ProjetoIndicadorDto> projetoIndicadoresDto = form.indicadoresProjeto();
 		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar( projetoResult, projetoIndicadoresDto );
 
+		List<ProjetoIndicadorAvulsoDto> projetoIndicadoresAvuslsosDto = form.indicadoresAvulsosProjeto();
+		Set<ProjetoIndicadorAvulso> projetoIndicadoresAvulsoSet = projetoIndicadorAvulsoService.sincronizar( projetoResult, projetoIndicadoresAvuslsosDto );
+		
 		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
