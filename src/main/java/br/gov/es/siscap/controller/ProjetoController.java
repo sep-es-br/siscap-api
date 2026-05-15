@@ -28,6 +28,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -68,6 +69,7 @@ public class ProjetoController {
 	}
 
 	@PostMapping
+	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form,
 			@RequestParam(required = false, defaultValue = "false") boolean rascunho,
 			@RequestHeader("Authorization") String auth) {
@@ -83,10 +85,11 @@ public class ProjetoController {
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id, 
-		@Valid @RequestBody ProjetoForm form,
-		@RequestParam(required = false, defaultValue = "false") boolean rascunho,
-		@RequestHeader("Authorization") String auth) {
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id,
+			@Valid @RequestBody ProjetoForm form,
+			@RequestParam(required = false, defaultValue = "false") boolean rascunho,
+			@RequestHeader("Authorization") String auth) {
 
 		String token = auth.replace("Bearer ", "");
 
