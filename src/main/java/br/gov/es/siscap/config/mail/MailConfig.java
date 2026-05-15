@@ -12,37 +12,40 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 public class MailConfig {
 
 	@Value("${spring.mail.host}")
-	private String HOST;
+	private String host;
 
 	@Value("${spring.mail.port}")
-	private String PORT;
+	private String port;
 
-	 
-//	@Value("${spring.mail.username}")
-//	private String USERNAME;
-//
-//	@Value("${spring.mail.password}")
-//	private String PASSWORD;
-//	;
+	@Value("${spring.mail.username:}")
+	private String username;
+
+	@Value("${spring.mail.password:}")
+	private String password;
 
 	@Value("${spring.mail.properties.mail.smtp.auth}")
-	private String AUTH;
+	private String auth;
 
 	@Value("${spring.mail.properties.mail.smtp.starttls.enable}")
-	private String STARTTLS_ENABLE;
+	private String starttlsenable;
 
 	@Bean
 	public JavaMailSenderImpl mailSender() {
+
 		JavaMailSenderImpl javaMailSenderImpl = new JavaMailSenderImpl();
-		javaMailSenderImpl.setHost(HOST);
-		javaMailSenderImpl.setPort(Integer.parseInt(PORT));
-//		 javaMailSenderImpl.setUsername(USERNAME);;
-//		 javaMailSenderImpl.setPassword(PASSWORD);
+		javaMailSenderImpl.setHost(host);
+		javaMailSenderImpl.setPort(Integer.parseInt(port));
+
+		if (Boolean.parseBoolean(auth)) {
+			javaMailSenderImpl.setUsername(username);
+			javaMailSenderImpl.setPassword(password);
+		}
+
 		javaMailSenderImpl.setDefaultEncoding("UTF-8");
 
 		Properties props = javaMailSenderImpl.getJavaMailProperties();
-		props.put("mail.smtp.auth", AUTH);
-		props.put("mail.smtp.starttls.enable", STARTTLS_ENABLE);
+		props.put("mail.smtp.auth", auth);
+		props.put("mail.smtp.starttls.enable", starttlsenable);
 
 		return javaMailSenderImpl;
 	}
