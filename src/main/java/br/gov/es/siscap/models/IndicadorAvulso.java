@@ -17,7 +17,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor
 @Getter
 @Setter
-@SQLDelete(sql = "update projeto_indicador_avulso set apagado = true where id=?")
+@SQLDelete(sql = "update indicador_avulso set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
 public class IndicadorAvulso extends ControleHistorico {
 

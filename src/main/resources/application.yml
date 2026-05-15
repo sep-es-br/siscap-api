@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://10.243.135.62:5432/siscap # DEV
+    url: jdbc:postgresql://localhost:5432/siscap_3
     username: postgres
-    password: TeWoAGdjmDs4rQahgwcH26ZbR
+    password: postgres
     hikari:
       maximum-pool-size: 1000
       minimum-idle: 5
@@ -30,9 +30,10 @@ spring:
             enable: false
 
   flyway:
-    url: jdbc:postgresql://10.243.135.62:5432/siscap # DEV
+    clean-disabled: false
+    url: jdbc:postgresql://localhost:5432/siscap_3
     user: postgres
-    password: TeWoAGdjmDs4rQahgwcH26ZbR
+    password: postgres
     enabled: true
     outOfOrder: true
 
@@ -160,3 +161,4 @@ pentahoBI:
   baseURL: https://bi.sep.es.gov.br/pentaho/plugin/cda/api/doQuery?
   userId: anonimo.bi
   password: Da$hb0ard
+

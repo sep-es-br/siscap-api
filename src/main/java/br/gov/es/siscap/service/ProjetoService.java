@@ -96,10 +96,10 @@ public class ProjetoService {
 	private String guidSUBCAP;
 
 	@Value("${email.gerencia-subcap}")
-	private String DESTINO_GERENCIA_SUBCAP;
+	private String destinoGerenciaSubcap;
 
 	@Value("${email.destinatario-subcap}")
-	private String DESTINO_SUBCAP;
+	private String destinoSubcap;
 
 	public Page<ProjetoListaDto> listarTodos(
 			Pageable pageable,
@@ -189,6 +189,8 @@ public class ProjetoService {
 
 		Set<ProjetoIndicador> indicadores = projetoIndicadorService.buscarPorProjeto(projeto);
 
+		Set<ProjetoIndicadorAvulso> indicadoresAvulsos = projetoIndicadorAvulsoService.buscarPorProjeto(projeto);
+
 		Set<ProjetoAcao> acoes = projetoAcaoService.buscarPorProjeto(projeto);
 
 		String subUsuario = autenticacaoService.getUsuarioLogado();
@@ -233,8 +235,15 @@ public class ProjetoService {
 				lotacaoUsuario.getValue(),
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				Optional.ofNullable(projeto.getPessoa()).map(Pessoa::getNome).orElse(null),
-				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
+				this.buscarIndicadoresAvulsos(indicadoresAvulsos) );
 
+	}
+
+	private List<ProjetoIndicadorAvulsoDto> buscarIndicadoresAvulsos(Set<ProjetoIndicadorAvulso> projetoIndicadorAvulsoSet) {
+		return projetoIndicadorAvulsoSet.stream()
+				.map(ProjetoIndicadorAvulsoDto::new)
+				.toList();
 	}
 
 	private List<ProjetoIndicadorDto> buscarIndicadores(Set<ProjetoIndicador> projetoIndicadorSet) {
@@ -335,6 +344,10 @@ public class ProjetoService {
 
 		projetoIndicadorService.cadastrar(projeto, indicadoresProjetoParaGravar);
 
+		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjetoParaGravar = form.indicadoresAvulsosProjeto();
+
+		projetoIndicadorAvulsoService.sincronizar(projeto, indicadoresAvulsosProjetoParaGravar);
+
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
 
 		projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
@@ -376,7 +389,9 @@ public class ProjetoService {
 				false, null, null, null, null, null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
-				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
+				indicadoresAvulsosProjetoParaGravar
+			);
 
 	}
 
@@ -491,7 +506,8 @@ public class ProjetoService {
 				this.buscarParecer(projetoParecer, form.parecerProjetoUsuario().elegivel()), null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
-				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
+				this.buscarIndicadoresAvulsos(projetoIndicadoresAvulsoSet));
 
 	}
 
@@ -768,7 +784,7 @@ public class ProjetoService {
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
 		List<String> emailsInteressadosList = new ArrayList<>();
-		emailsInteressadosList.add(DESTINO_GERENCIA_SUBCAP);
+		emailsInteressadosList.add(destinoGerenciaSubcap);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
 				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
@@ -801,7 +817,7 @@ public class ProjetoService {
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
 		List<String> emailsInteressadosList = new ArrayList<>();
-		emailsInteressadosList.add(DESTINO_SUBCAP);
+		emailsInteressadosList.add(destinoSubcap);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
 				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));
@@ -834,7 +850,7 @@ public class ProjetoService {
 		List<String> erros = new ArrayList<>();
 		boolean confirmacaoEnvioEmail;
 		List<String> emailsInteressadosList = new ArrayList<>();
-		emailsInteressadosList.add(DESTINO_GERENCIA_SUBCAP);
+		emailsInteressadosList.add(destinoGerenciaSubcap);
 
 		Projeto projeto = Optional.ofNullable(this.buscar(idDIC))
 				.orElseThrow(() -> new IllegalArgumentException("Projeto não encontrado para o ID: " + idDIC));

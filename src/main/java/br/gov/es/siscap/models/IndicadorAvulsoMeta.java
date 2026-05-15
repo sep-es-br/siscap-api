@@ -34,7 +34,7 @@ public class IndicadorAvulsoMeta extends ControleHistorico {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_indicador", nullable = false)
+    @JoinColumn(name = "id_indicador_avulso", nullable = false)
     private IndicadorAvulso indicadorAvulso;
 
     @Column(name = "ano")

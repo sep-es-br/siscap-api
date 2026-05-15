@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -22,7 +25,7 @@ public class ProjetoIndicadorAvulso extends ControleHistorico {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id", nullable = false)
+    @Column(name = "id", nullable = false)
     private Integer id;
 
     @NotNull
@@ -35,10 +38,14 @@ public class ProjetoIndicadorAvulso extends ControleHistorico {
     @JoinColumn(name = "id_indicador_avulso", nullable = false)
     private IndicadorAvulso indicadorAvulso;
 
-    public ProjetoIndicadorAvulso(Projeto projeto, IndicadorAvulso indicadorAvulso, ProjetoIndicadorAvulsoDto indicadorAvulsoDto) {
-		this.setProjeto(projeto);
-		this.setId(indicadorAvulsoDto.idIndicadorAvulso());
-		this.setIndicadorAvulso(indicadorAvulso);
-	}
-    
+    @OneToMany(mappedBy = "projetoIndicadorAvulso", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProjetoIndicadorAvulsoMeta> metas = new HashSet<>();
+
+    public ProjetoIndicadorAvulso(Projeto projeto, IndicadorAvulso indicadorAvulso,
+        ProjetoIndicadorAvulsoDto indicadorAvulsoDto) {
+        this.setProjeto(projeto);
+        this.setId(indicadorAvulsoDto.idIndicadorAvulso());
+        this.setIndicadorAvulso(indicadorAvulso);
+    }
+
 }

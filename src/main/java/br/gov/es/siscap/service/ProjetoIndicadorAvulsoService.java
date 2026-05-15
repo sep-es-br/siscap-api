@@ -25,8 +25,14 @@ public class ProjetoIndicadorAvulsoService {
 	private final IndicadorAvulsoRepository indicadorAvulsoRepository;
 	private final Logger logger = LogManager.getLogger(ProjetoIndicadorAvulsoService.class);
 
+	public Set<ProjetoIndicadorAvulso> buscarPorProjeto(Projeto projeto) {
+		logger.info("Buscando indicadores avulsos do Projeto com id: {}", projeto.getId());
+		return this.projetoIndicadorAvulsoRepository.findAllByProjeto(projeto);
+	}
+
 	@Transactional
-	public Set<ProjetoIndicadorAvulso> sincronizar( Projeto projeto, List<ProjetoIndicadorAvulsoDto> projetoIndicadorAvulsoDtoList) {
+	public Set<ProjetoIndicadorAvulso> sincronizar(Projeto projeto,
+			List<ProjetoIndicadorAvulsoDto> projetoIndicadorAvulsoDtoList) {
 
 		logger.info("Sincronizando indicadores avulsos do Projeto com id: {}", projeto.getId());
 		logger.info("Lista de indicadores avulsos vindos do front: {}", projetoIndicadorAvulsoDtoList);
@@ -70,9 +76,10 @@ public class ProjetoIndicadorAvulsoService {
 
 	}
 
-	private void removerIndicadoresNaoEnviados( Projeto projeto, List<ProjetoIndicadorAvulsoDto> projetoIndicadorAvulsoDtoList) {
+	private void removerIndicadoresNaoEnviados(Projeto projeto,
+			List<ProjetoIndicadorAvulsoDto> projetoIndicadorAvulsoDtoList) {
 
-		Set<Long> idsRecebidos = projetoIndicadorAvulsoDtoList.stream()
+		Set<Integer> idsRecebidos = projetoIndicadorAvulsoDtoList.stream()
 				.map(ProjetoIndicadorAvulsoDto::id)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toSet());
@@ -84,16 +91,12 @@ public class ProjetoIndicadorAvulsoService {
 				.toList();
 
 		if (!indicadoresParaRemover.isEmpty()) {
-			logger.info("Removendo relacao de indicadores avulsos com projeto não enviados: {}",indicadoresParaRemover.size());
+			logger.info("Removendo relacao de indicadores avulsos com projeto não enviados: {}",
+					indicadoresParaRemover.size());
 			projetoIndicadorAvulsoRepository.deleteAll(indicadoresParaRemover);
 		}
 
 	}
-
-	// public Set<ProjetoIndicador> buscarPorProjeto(Projeto projeto) {
-	// logger.info("Buscando indicadores do Projeto com id: {}", projeto.getId());
-	// return this.projetoIndicadorAvulsoRepository.findAllByProjeto(projeto);
-	// }
 
 	// @Transactional
 	// public Set<ProjetoIndicadorAvulso> cadastrar(Projeto projeto,

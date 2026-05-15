@@ -43,7 +43,7 @@ public record ProjetoDto(
 		List<ProjetoParecerDto> pareceresProjeto,
 		String nomeProponente,
 		List<StatusProjetoDto> historico,
-		List<IndicadorAvulsoDto> indicadoresAvulsosProjeto ) {
+		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto ) {
 
 	public ProjetoDto(Projeto projeto,
 			ValorDto valor,
@@ -67,7 +67,7 @@ public record ProjetoDto(
 			List<ProjetoParecerDto> pareceresProjeto,
 			String nomeProponente,
 			List<StatusProjetoDto> historico,
-			List<IndicadorAvulsoDto> indicadoresAvulsosProjeto) {
+			List<ProjetoIndicadorAvulsoDto> projetoIndicadorAvulsos) {
 
 		this(projeto.getId(),
 				projeto.getSigla(),
@@ -105,7 +105,7 @@ public record ProjetoDto(
 				pareceresProjeto,
 				nomeProponente,
 				historico,
-				indicadoresAvulsosProjeto);
+				projetoIndicadorAvulsos);
 
 	}
 
