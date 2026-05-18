@@ -14,6 +14,9 @@ import br.gov.es.siscap.service.PessoaService;
 import br.gov.es.siscap.service.ProjetoService;
 import br.gov.es.siscap.service.RelatoriosService;
 import br.gov.es.siscap.service.TokenService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -47,6 +50,7 @@ public class ProjetoController {
 
 	// private final Logger logger = LogManager.getLogger(ProjetoController.class);
 
+	@Operation(summary = "Lista DICs", description = "Retorna uma página de projetos filtrando opcionalmente por sigla/título, organização e status.")
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
 			@PageableDefault(size = 15, sort = "criadoEm", direction = Sort.Direction.DESC) Pageable pageable,
@@ -58,10 +62,9 @@ public class ProjetoController {
 
 	@GetMapping("/opcoes")
 	public List<ProjetoPropostoOpcoesDto> listarOpcoesDropdown(
-		@RequestParam(required = false) boolean elegiveis,
-                @RequestParam(required = false) String incluir
-	) {
-		if ( elegiveis )
+			@RequestParam(required = false) boolean elegiveis,
+			@RequestParam(required = false) String incluir) {
+		if (elegiveis)
 			return service.listarDicsElegiveisParaPrograma(incluir);
 		else
 			return service.listarOpcoesDropdown();
@@ -128,10 +131,9 @@ public class ProjetoController {
 			@RequestHeader("Authorization") String auth) {
 
 		String token = auth.replace("Bearer ", "");
-                
-                
-                String subNovo = this.tokenService.validarToken(token);
-                
+
+		String subNovo = this.tokenService.validarToken(token);
+
 		service.alterarStatusAtualProjetoByIdProjeto(id, status.get("status"), subNovo);
 		return ResponseEntity.ok().body("Status do projeto alterado com sucesso!");
 	}
@@ -183,7 +185,7 @@ public class ProjetoController {
 	@GetMapping("/dic/{idProjeto}")
 	public ResponseEntity<Resource> gerarDIC(@PathVariable Integer idProjeto) {
 		Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto,
-                        ExibirMarcaDaguaProgramaEnum.EXIBIR);
+				ExibirMarcaDaguaProgramaEnum.EXIBIR);
 		String nomeArquivo = service.gerarNomeArquivo(idProjeto);
 		String contentType = "application/pdf";
 		return ResponseEntity.ok()
@@ -218,7 +220,8 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 		ProjetoDto projetoDto = service.atualizar(idProjeto, form, false, pessoa);
-		asyncExecutorService.assinarCapturaParecerDIC(idProjeto, projetoDto.parecerProjetoUsuario().id(), projetoDto.parecerProjetoUsuario().elegivel());
+		asyncExecutorService.assinarCapturaParecerDIC(idProjeto, projetoDto.parecerProjetoUsuario().id(),
+				projetoDto.parecerProjetoUsuario().elegivel());
 		return ResponseEntity.accepted().build();
 	}
 
