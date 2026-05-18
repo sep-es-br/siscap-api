@@ -69,7 +69,6 @@ public class ProjetoController {
 	}
 
 	@PostMapping
-	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ProjetoDto> cadastrar(@Valid @RequestBody ProjetoForm form,
 			@RequestParam(required = false, defaultValue = "false") boolean rascunho,
 			@RequestHeader("Authorization") String auth) {
@@ -85,7 +84,6 @@ public class ProjetoController {
 	}
 
 	@PutMapping("/{id}")
-	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id,
 			@Valid @RequestBody ProjetoForm form,
 			@RequestParam(required = false, defaultValue = "false") boolean rascunho,

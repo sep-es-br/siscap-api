@@ -21,7 +21,7 @@ public record IndicadorAvulsoDto(
 
         @Size(max = 255) String baseDeReferencia,
 
-        @Valid List<IndicadorAvulsoMetaDto> metasGlobais
+        @Valid List<IndicadorAvulsoMetaDto> metasIndicadorAvulsoGeral
 
 ) {
 

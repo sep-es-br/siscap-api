@@ -1,5 +1,6 @@
 package br.gov.es.siscap.models;
 
+import br.gov.es.siscap.dto.IndicadorAvulsoDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoDto;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -52,19 +53,19 @@ public class IndicadorAvulso extends ControleHistorico {
     @OneToMany( mappedBy = "indicadorAvulso", cascade = CascadeType.ALL, orphanRemoval = true )
     private Set<IndicadorAvulsoMeta> metasIndicadorAvulso = new HashSet<>();
 
-    public IndicadorAvulso(ProjetoIndicadorAvulsoDto indicador) {
+    public IndicadorAvulso(IndicadorAvulsoDto indicador) {
 
-        this.id = indicador.indicadorAvulso().id();
+        this.id = indicador.id();
 
-        this.baseDeReferencia = indicador.indicadorAvulso().baseDeReferencia();
-        this.fonteIndicador = indicador.indicadorAvulso().fonteIndicador();
-        this.nomeIndicador = indicador.indicadorAvulso().nomeIndicador();
-        this.unidadeMedida = indicador.indicadorAvulso().unidadeMedida();
-        this.medidoPor = indicador.indicadorAvulso().medidoPor();
+        this.baseDeReferencia = indicador.baseDeReferencia();
+        this.fonteIndicador = indicador.fonteIndicador();
+        this.nomeIndicador = indicador.nomeIndicador();
+        this.unidadeMedida = indicador.unidadeMedida();
+        this.medidoPor = indicador.medidoPor();
 
-        if (indicador.indicadorAvulso().metasGlobais() != null) {
-            indicador.indicadorAvulso().metasGlobais().forEach(metaDto -> {
-                IndicadorAvulsoMeta meta = new IndicadorAvulsoMeta(metaDto);
+        if (indicador.metasIndicadorAvulsoGeral() != null) {
+            indicador.metasIndicadorAvulsoGeral().forEach( metaDto -> {
+                IndicadorAvulsoMeta meta = new IndicadorAvulsoMeta(this, metaDto);
                 this.addMetaGlobal(meta);
             });
         }

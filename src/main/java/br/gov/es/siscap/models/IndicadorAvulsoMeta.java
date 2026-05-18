@@ -20,7 +20,7 @@ import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoMetaDto;
 @SQLRestriction("apagado = FALSE")
 public class IndicadorAvulsoMeta extends ControleHistorico {
 
-	@Id
+    @Id
     @GeneratedValue(
         strategy = GenerationType.SEQUENCE,
         generator = "indicador_avulso_meta_id_gen"
@@ -37,21 +37,16 @@ public class IndicadorAvulsoMeta extends ControleHistorico {
     @JoinColumn(name = "id_indicador_avulso", nullable = false)
     private IndicadorAvulso indicadorAvulso;
 
-    @Column(name = "ano")
+    @Column(name = "ano", nullable = false)
     private Integer ano;
 
-    @Column(name = "valor", precision = 19, scale = 2)
+    @Column(name = "valor", nullable = false)
     private String valor;
 
-    public IndicadorAvulsoMeta(
-        ProjetoIndicadorAvulsoMetaDto metaDto
-    ) {
+    public IndicadorAvulsoMeta(IndicadorAvulso indicadorAvulso, IndicadorAvulsoMetaDto metaDto) {
+        this.indicadorAvulso = indicadorAvulso;
         this.ano = metaDto.anoMeta();
         this.valor = metaDto.valorMeta();
     }
-
-    public IndicadorAvulsoMeta(IndicadorAvulsoMetaDto metaDto) {
-        //TODO Auto-generated constructor stub
-    }
-
+    
 }
