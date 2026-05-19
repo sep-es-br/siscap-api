@@ -1251,8 +1251,12 @@ public class ProjetoService {
 			OrganizacaoDto organizacaoDto = organizacaoService.buscarPorId(idOrganizacaoProjeto);
 			nomeOrganizacaoProjeto = String.format("%s - %s", organizacaoDto.abreviatura(), organizacaoDto.nome());
 		} catch (IOException e) {
-			logger.error(e.getMessage());
-			throw new RuntimeException("Erro ao buscar dados organizacao projeto.");
+			logger.error(
+					"Erro ao buscar dados organizacao projeto id {}..",
+					idProjeto,
+					e);
+			throw new ValidacaoSiscapException(List.of(
+					"Erro ao buscar dados organizacao projeto."));
 		}
 
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
