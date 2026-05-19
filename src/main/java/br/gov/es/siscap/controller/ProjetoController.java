@@ -15,8 +15,6 @@ import br.gov.es.siscap.service.ProjetoService;
 import br.gov.es.siscap.service.RelatoriosService;
 import br.gov.es.siscap.service.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -47,8 +45,6 @@ public class ProjetoController {
 
 	private final TokenService tokenService;
 	private final PessoaService pessoaSrv;
-
-	// private final Logger logger = LogManager.getLogger(ProjetoController.class);
 
 	@Operation(summary = "Lista DICs", description = "Retorna uma página de projetos filtrando opcionalmente por sigla/título, organização e status.")
 	@GetMapping

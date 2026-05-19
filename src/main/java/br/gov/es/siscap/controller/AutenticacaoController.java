@@ -4,6 +4,7 @@ import br.gov.es.siscap.dto.UsuarioDto;
 import br.gov.es.siscap.service.AcessoCidadaoAutorizacaoService;
 import br.gov.es.siscap.service.AutenticacaoService;
 import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
 
+@Hidden
 @RestController
 @RequestMapping("/signin")
 @RequiredArgsConstructor
@@ -42,8 +44,6 @@ public class AutenticacaoController {
 	@GetMapping("/acesso-cidadao-response")
 	public RedirectView acessoCidadaoResponse(String accessToken) {
 		
-		//autorizacaoACService.storeEdocsToken( "accessTokenACPuro", accessToken );
-
 		DecodedJWT jwt = JWT.decode(accessToken);
 
 		Map<String, Claim> claims = jwt.getClaims();
@@ -57,6 +57,7 @@ public class AutenticacaoController {
 		String tokenEmBase64 = Base64.getEncoder().encodeToString(accessToken.getBytes());
 
 		return new RedirectView(String.format("%s/token?token=%s", frontEndHost, tokenEmBase64));
+
 	}
 
 	@GetMapping("/user-info")
