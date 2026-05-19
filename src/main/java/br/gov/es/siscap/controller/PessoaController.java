@@ -34,7 +34,7 @@ import br.gov.es.siscap.service.AutenticacaoService;
 import br.gov.es.siscap.service.CacheAgentesGovesService;
 import br.gov.es.siscap.service.OrganizacaoService;
 
-@Tag(name = "Pessoas", description = "Operações relacionadas ao cadastro, consulta, sincronização e gerenciamento de usuários do SISCAP.")
+@Tag(name = "Pessoas", description = "")
 @RestController
 @RequestMapping("/pessoas")
 @RequiredArgsConstructor

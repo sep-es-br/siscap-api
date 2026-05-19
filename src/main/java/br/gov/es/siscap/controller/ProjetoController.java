@@ -32,7 +32,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "DIC", description = "Operações relacionadas ao ciclo de vida de Projetos e Documento Inicial de Captação (DIC), incluindo criação, atualização, status, integração com eDocs e geração de relatórios.")
+@Tag(name = "DIC", description = "")
 @RestController
 @RequestMapping("/projetos")
 @RequiredArgsConstructor
@@ -46,7 +46,6 @@ public class ProjetoController {
 	private final TokenService tokenService;
 	private final PessoaService pessoaSrv;
 
-	@Operation(summary = "Lista DICs", description = "Retorna uma página de projetos filtrando opcionalmente por sigla/título, organização e status.")
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
 			@PageableDefault(size = 15, sort = "criadoEm", direction = Sort.Direction.DESC) Pageable pageable,

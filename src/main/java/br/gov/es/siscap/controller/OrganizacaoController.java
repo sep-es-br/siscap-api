@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 
-@Tag(name = "Organizações", description = "Endpoints para gerenciamento, consulta e manutenção das organizações cadastradas no sistema, incluindo listagens e opções utilizadas em formulários e seletores.Endpoints para gerenciamento, consulta e manutenção das organizações cadastradas no sistema, incluindo listagens e opções utilizadas em formulários e seletores.")
+@Tag(name = "Organizações", description = "")
 @RestController
 @RequestMapping("/organizacoes")
 @RequiredArgsConstructor

@@ -30,7 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Programas", description = "Endpoints para gerenciamento de programas, incluindo cadastro, consulta, atualização, geração de documentos e integração com o eDocs para assinatura, autuação e acompanhamento de processos.")
+@Tag(name = "Programas", description = "")
 @RestController
 @RequestMapping("/programas")
 @RequiredArgsConstructor

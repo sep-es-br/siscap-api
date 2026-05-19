@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Dashboard", description = "")
+@Tag(name = "Carta Consulta", description = "")
 @RestController
 @RequestMapping("/cartas-consulta")
 @RequiredArgsConstructor

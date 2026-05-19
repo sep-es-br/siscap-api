@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 // 12/02/2025
 // ALTERACOES PROVISORIAS APENAS PARA APRESENTACAO; A SEREM REMOVIDAS POSTERIORMENTE
-@Tag(name = "Dashboard", description = "Endpoints para consulta de dados consolidados, indicadores e informações gerenciais exibidas no dashboard do sistema.")
+@Tag(name = "Dashboard", description = "")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/dashboard")

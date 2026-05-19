@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
 
-@Tag(name = "Prospecção", description = "Operações relacionadas ao ciclo de vida do processo de prospecção de recursos após elaboracao e elegibilidade do DIC.")
+@Tag(name = "Prospecção", description = "")
 @RestController
 @RequestMapping("/prospeccoes")
 @RequiredArgsConstructor
