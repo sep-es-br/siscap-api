@@ -126,7 +126,7 @@ public class ProjetoService {
 				|| lotacaoUsuario == LotacaoUsuarioEnum.SUBEO;
 
 		Specification<Projeto> filtroProjetosOrganizacao = Specification.where(
-				idOrganizacao == null || idOrganizacao == 0 
+				idOrganizacao == null || idOrganizacao == 0
 						? null
 						: ProjetoSpecification.filtroIdOrganizacao(idOrganizacao))
 				.and(especificacaoSiglaTitulo)
@@ -143,11 +143,11 @@ public class ProjetoService {
 			filtroPesquisa = filtroProjetosOrganizacao;
 		}
 
-		return repository.findAll( filtroPesquisa, pageable )
+		return repository.findAll(filtroPesquisa, pageable)
 				.map(projeto -> {
 					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
-					return new ProjetoListaDto( projeto, valorDto.quantia(), lotacaoUsuario.getValue() );
+					return new ProjetoListaDto(projeto, valorDto.quantia(), lotacaoUsuario.getValue());
 				});
 
 	}
@@ -1251,8 +1251,12 @@ public class ProjetoService {
 			OrganizacaoDto organizacaoDto = organizacaoService.buscarPorId(idOrganizacaoProjeto);
 			nomeOrganizacaoProjeto = String.format("%s - %s", organizacaoDto.abreviatura(), organizacaoDto.nome());
 		} catch (IOException e) {
-			logger.error(e.getMessage());
-			throw new RuntimeException("Erro ao buscar dados organizacao projeto.");
+			logger.error(
+					"Erro ao buscar dados organizacao projeto id {}..",
+					idProjeto,
+					e);
+			throw new ValidacaoSiscapException(List.of(
+					"Erro ao buscar dados organizacao projeto."));
 		}
 
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
@@ -1448,6 +1452,38 @@ public class ProjetoService {
 
 		return true;
 
+	}
+
+	public void reenviarEmailPedidoParecer(Long idProjeto) {
+		logger.info("Reenviando e-mail de solicitação de parecer estratégico e orçamentário para o DIC id {}.",
+				idProjeto);
+
+		Projeto projeto = this.buscar(idProjeto);
+
+		if (!projeto.getStatusAtual().getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())) {
+			throw new ValidacaoSiscapException(List.of(
+					"Só é possível reenviar o pedido de parecer para projetos em Parecer SEP."));
+		}
+
+		Set<ProjetoPessoa> pessoasDoProjeto = projeto.getProjetoPessoaSet();
+
+		String subResponsavelProponente = this.buscarSubResponsavelProponente(pessoasDoProjeto);
+		String nomeProponente = projeto.getPessoa().getNome();
+
+		try {
+			this.enviarEmailPareceresEstrategicoOrcamentario(
+					idProjeto,
+					subResponsavelProponente,
+					nomeProponente);
+		} catch (UnsupportedEncodingException | MessagingException e) {
+			logger.error(
+					"Erro ao reenviar e-mail de solicitação de parecer estratégico e orçamentário para o DIC id {}.",
+					idProjeto,
+					e);
+
+			throw new ValidacaoSiscapException(List.of(
+					"Erro ao reenviar e-mail de solicitação de parecer estratégico e orçamentário."));
+		}
 	}
 
 }
