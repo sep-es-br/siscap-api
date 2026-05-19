@@ -15,6 +15,8 @@ import br.gov.es.siscap.service.PessoaService;
 import br.gov.es.siscap.service.ProjetoService;
 import br.gov.es.siscap.service.RelatoriosService;
 import br.gov.es.siscap.service.TokenService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -31,6 +33,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "DIC", description = "")
 @RestController
 @RequestMapping("/projetos")
 @RequiredArgsConstructor
@@ -43,8 +46,6 @@ public class ProjetoController {
 
 	private final TokenService tokenService;
 	private final PessoaService pessoaSrv;
-
-	// private final Logger logger = LogManager.getLogger(ProjetoController.class);
 
 	@GetMapping
 	public Page<ProjetoListaDto> listarTodos(
