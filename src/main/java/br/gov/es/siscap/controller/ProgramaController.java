@@ -13,6 +13,7 @@ import br.gov.es.siscap.service.PessoaService;
 import br.gov.es.siscap.service.ProgramaService;
 import br.gov.es.siscap.service.RelatoriosService;
 import br.gov.es.siscap.service.TokenService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -29,6 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Programas", description = "Endpoints para gerenciamento de programas, incluindo cadastro, consulta, atualização, geração de documentos e integração com o eDocs para assinatura, autuação e acompanhamento de processos.")
 @RestController
 @RequestMapping("/programas")
 @RequiredArgsConstructor

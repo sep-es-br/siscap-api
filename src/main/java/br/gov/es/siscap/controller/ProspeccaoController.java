@@ -6,6 +6,7 @@ import br.gov.es.siscap.dto.listagem.ProspeccaoListaDto;
 import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.form.ProspeccaoForm;
 import br.gov.es.siscap.service.ProspeccaoService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
 
+@Tag(name = "Prospecção", description = "Operações relacionadas ao ciclo de vida do processo de prospecção de recursos após elaboracao e elegibilidade do DIC.")
 @RestController
 @RequestMapping("/prospeccoes")
 @RequiredArgsConstructor

@@ -8,6 +8,7 @@ import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.form.PessoaForm;
 import br.gov.es.siscap.service.PessoaService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ import br.gov.es.siscap.service.AutenticacaoService;
 import br.gov.es.siscap.service.CacheAgentesGovesService;
 import br.gov.es.siscap.service.OrganizacaoService;
 
+@Tag(name = "Pessoas", description = "Operações relacionadas ao cadastro, consulta, sincronização e gerenciamento de usuários do SISCAP.")
 @RestController
 @RequestMapping("/pessoas")
 @RequiredArgsConstructor

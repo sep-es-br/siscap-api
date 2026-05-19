@@ -24,6 +24,8 @@ public class OpenAPIConfiguration {
     @Value("${openapi.server.url}")
     private String absoluteUrl;
 
+    @Value("${openapi.external-docs.url}")
+    private String externalDocsUrl;
 
     @Bean
     public OpenAPI defineOpenApi() {
@@ -34,7 +36,7 @@ public class OpenAPIConfiguration {
                 .components(new Components().addSecuritySchemes("Bearer Authentication", createAPIKeyScheme()))
                 .externalDocs(new ExternalDocumentation()
                         .description("Captação de Recursos - Governo do Estado do Espírito Santo")
-                        .url("https://hom.indicadores.es.gov.br/home"))
+                        .url(externalDocsUrl))
                 .tags(
                         List.of(
                             new Tag().name("DIC").description("Endpoints para manipulação dos DIC´s.")

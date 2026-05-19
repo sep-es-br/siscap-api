@@ -2,6 +2,7 @@ package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.DashboardDadosDto;
 import br.gov.es.siscap.service.DashboardService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 // 12/02/2025
 // ALTERACOES PROVISORIAS APENAS PARA APRESENTACAO; A SEREM REMOVIDAS POSTERIORMENTE
-
+@Tag(name = "Dashboard", description = "")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/dashboard")
