@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestControllerAdvice
 public class RestExceptionHandler {
@@ -24,59 +26,68 @@ public class RestExceptionHandler {
 	@ExceptionHandler(NaoEncontradoException.class)
 	private ResponseEntity<MensagemErroRest> projetoNaoEncontradoHandler(NaoEncontradoException e) {
 		var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND, "Recurso não encontrado.",
-					List.of(e.getMessage()));
+				List.of(e.getMessage()));
 		return montarRetorno(mensagem);
 	}
 
 	@ExceptionHandler(SiscapServiceException.class)
 	private ResponseEntity<MensagemErroRest> sisCapServiceHandler(SiscapServiceException e) {
 		var mensagem = new MensagemErroRest(HttpStatus.INTERNAL_SERVER_ERROR,
-					"O SisCap API teve problemas ao processar a requisição", e.getErros());
+				"O SisCap API teve problemas ao processar a requisição", e.getErros());
 		return montarRetorno(mensagem);
 	}
 
 	@ExceptionHandler(DataIntegrityViolationException.class)
 	private ResponseEntity<MensagemErroRest> dataIntegrityViolationHandler(DataIntegrityViolationException e) {
 		var mensagem = new MensagemErroRest(HttpStatus.BAD_REQUEST,
-					"O SisCap API identificou violação de integridade na base de dados",
-					Collections.singletonList("Por favor, contate o suporte."));
+				"O SisCap API identificou violação de integridade na base de dados",
+				Collections.singletonList("Por favor, contate o suporte."));
 		return montarRetorno(mensagem);
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	private ResponseEntity<MensagemErroRest> methodArgumentNotValidHandler(MethodArgumentNotValidException exception) {
-		List<String> errorMessage = exception.getFieldErrors().stream()
-					.map(e -> e.getField() + " " + e.getDefaultMessage()).toList();
-		var mensagem = new MensagemErroRest(HttpStatus.BAD_REQUEST,
-					"Erro ", errorMessage);
+
+		List<String> erros = exception.getFieldErrors()
+				.stream()
+				.map(e -> "Campo '" + e.getField() + "': " + e.getDefaultMessage())
+				.toList();
+
+		var mensagem = new MensagemErroRest(
+				HttpStatus.BAD_REQUEST,
+				"Existem campos inválidos no formulário.",
+				erros);
+
 		return montarRetorno(mensagem);
+
 	}
 
 	@ExceptionHandler(NoResourceFoundException.class)
 	private ResponseEntity<MensagemErroRest> noResourceFounddHandler(NoResourceFoundException exception) {
 		var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND,
-					"Recurso não encontrado", Collections.singletonList("/" + exception.getResourcePath() + " não existe."));
+				"Recurso não encontrado",
+				Collections.singletonList("/" + exception.getResourcePath() + " não existe."));
 		return montarRetorno(mensagem);
 	}
 
 	@ExceptionHandler(ValidacaoSiscapException.class)
 	private ResponseEntity<MensagemErroRest> validacaoSiscapHandler(ValidacaoSiscapException exception) {
 		var mensagem = new MensagemErroRest(HttpStatus.BAD_REQUEST, "Existem alguns problemas com o cadastro.",
-					exception.getErros());
+				exception.getErros());
 		return montarRetorno(mensagem);
 	}
 
 	@ExceptionHandler(UsuarioSemPermissaoException.class)
 	private ResponseEntity<MensagemErroRest> usuarioSemPermissaoHandler(UsuarioSemPermissaoException exception) {
 		var mensagem = new MensagemErroRest(HttpStatus.UNAUTHORIZED, "Acesso negado",
-					Collections.singletonList(exception.getMessage()));
+				Collections.singletonList(exception.getMessage()));
 		return montarRetorno(mensagem);
 	}
 
 	@ExceptionHandler(UsuarioSemAutorizacaoException.class)
 	private ResponseEntity<MensagemErroRest> usuarioSemAutorizacaoHandler(UsuarioSemAutorizacaoException exception) {
 		var mensagem = new MensagemErroRest(HttpStatus.FORBIDDEN, "Usuário sem autorização",
-					Collections.singletonList(exception.getMessage()));
+				Collections.singletonList(exception.getMessage()));
 		return montarRetorno(mensagem);
 	}
 
@@ -88,25 +99,31 @@ public class RestExceptionHandler {
 
 	@ExceptionHandler(OrganizacaoSemResponsavelException.class)
 	private ResponseEntity<MensagemErroRest> organizacaoSemResponsavelHandler(OrganizacaoSemResponsavelException e) {
-		var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND, "Erro ao preencher cadastro de projeto", Collections.singletonList(e.getMessage()));
+		var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND, "Erro ao preencher cadastro de projeto",
+				Collections.singletonList(e.getMessage()));
 		return montarRetorno(mensagem);
 	}
 
 	@ExceptionHandler(EquipeSemResponsavelProponenteException.class)
-	private ResponseEntity<MensagemErroRest> equipeSemResposavelProponenteHandler(EquipeSemResponsavelProponenteException e) {
-		var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND, "Erro ao processar a requisição", Collections.singletonList(e.getMessage()));
+	private ResponseEntity<MensagemErroRest> equipeSemResposavelProponenteHandler(
+			EquipeSemResponsavelProponenteException e) {
+		var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND, "Erro ao processar a requisição",
+				Collections.singletonList(e.getMessage()));
 		return montarRetorno(mensagem);
 	}
 
 	@ExceptionHandler(RelatorioNomeArquivoException.class)
 	private ResponseEntity<MensagemErroRest> relatorioNomeArquivoHandler(RelatorioNomeArquivoException e) {
-		var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND, "Erro ao gerar relatório", Collections.singletonList(e.getMessage()));
+		var mensagem = new MensagemErroRest(HttpStatus.NOT_FOUND, "Erro ao gerar relatório",
+				Collections.singletonList(e.getMessage()));
 		return montarRetorno(mensagem);
 	}
 
 	@ExceptionHandler(CartaConsultaObjetoInvalidoException.class)
-	private ResponseEntity<MensagemErroRest> cartaConsultaObjetoInvalidoHandler(CartaConsultaObjetoInvalidoException e) {
-		var mensagem = new MensagemErroRest(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao buscar a(s) carta(s) consulta", Collections.singletonList(e.getMessage()));
+	private ResponseEntity<MensagemErroRest> cartaConsultaObjetoInvalidoHandler(
+			CartaConsultaObjetoInvalidoException e) {
+		var mensagem = new MensagemErroRest(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao buscar a(s) carta(s) consulta",
+				Collections.singletonList(e.getMessage()));
 		return montarRetorno(mensagem);
 	}
 

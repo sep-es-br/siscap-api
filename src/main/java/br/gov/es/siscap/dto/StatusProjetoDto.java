@@ -6,7 +6,6 @@ package br.gov.es.siscap.dto;
 
 
 import br.gov.es.siscap.models.Pessoa;
-import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.StatusProjeto;
 import java.time.LocalDateTime;
 import java.util.Optional;

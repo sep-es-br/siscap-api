@@ -2,6 +2,7 @@ package br.gov.es.siscap.form;
 
 import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProjetoAcaoDto;
+import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import br.gov.es.siscap.dto.ProjetoParecerDto;
 import br.gov.es.siscap.dto.RateioDto;
@@ -62,6 +63,7 @@ public record ProjetoForm(
 			@NotEmpty
 			List<EquipeDto> equipeElaboracao,
 
+			@NotEmpty
 			List<ProjetoIndicadorDto> indicadoresProjeto,
 			
 			@NotEmpty
@@ -80,7 +82,10 @@ public record ProjetoForm(
 			@NotNull
 			boolean enviarProjetoPedirParecer,
 
-			ProjetoParecerDto parecerProjetoUsuario
+			ProjetoParecerDto parecerProjetoUsuario,
+
+			@Valid
+			List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto
 
 ) {
 }

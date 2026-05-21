@@ -162,6 +162,9 @@ public class Projeto extends ControleHistorico {
 	@ManyToOne()
 	@JoinColumn(name = "id_pessoa_redator")
 	private Pessoa pessoa;
+						
+	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<ProjetoIndicadorAvulso> projetoIndicadorAvulsoSet;
 
 	public Projeto(Long id) {
 		this.setId(id);

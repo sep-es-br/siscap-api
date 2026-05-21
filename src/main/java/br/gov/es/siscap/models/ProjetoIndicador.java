@@ -7,9 +7,12 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-
 
 @Entity
 @Table(name = "projeto_indicador")
@@ -30,7 +33,7 @@ public class ProjetoIndicador extends ControleHistorico {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_projeto", nullable = false)
 	private Projeto projeto;
-	
+
 	@Column(name = "tipo_indicador", nullable = false)
 	private String tipoIndicador;
 
@@ -39,6 +42,13 @@ public class ProjetoIndicador extends ControleHistorico {
 
 	@Column(name = "meta_indicador", nullable = false, length = 2000)
 	private String descricaoMeta;
+
+	@ManyToOne()
+	@JoinColumn(name = "id_indicador_externo")
+	private IndicadorExterno indicadorExterno;
+
+	@OneToMany(mappedBy = "projetoIndicador", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<ProjetoIndicadorExternoMeta> metas = new HashSet<>();
 
 	@ManyToOne()
 	@JoinColumn(name = "id_tipo_status")
@@ -51,6 +61,17 @@ public class ProjetoIndicador extends ControleHistorico {
 		this.setDescricaoIndicador(indicador.descricaoIndicador());
 		this.setDescricaoMeta(indicador.descricaoMeta());
 		this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
+		if (indicador.metasIndicadorProjeto() != null) {
+			indicador.metasIndicadorProjeto().forEach(metaDto -> {
+				ProjetoIndicadorExternoMeta meta = new ProjetoIndicadorExternoMeta(metaDto);
+				this.addMeta(meta);
+			});
+		}
+	}
+
+	public void addMeta(ProjetoIndicadorExternoMeta meta) {
+		meta.setProjetoIndicador(this);
+		this.metas.add(meta);
 	}
 
 }

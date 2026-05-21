@@ -21,6 +21,7 @@ import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
+import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
 import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.models.TipoMotivoArquivamento;
@@ -76,6 +77,7 @@ public class ProjetoService {
 	private final ProjetoComplementosService projetoComplementosService;
 	private final ProjetoParecerService projetoParecerService;
 	private final UsuarioService usuarioService;
+	private final ProjetoIndicadorAvulsoService projetoIndicadorAvulsoService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -187,6 +189,8 @@ public class ProjetoService {
 
 		Set<ProjetoIndicador> indicadores = projetoIndicadorService.buscarPorProjeto(projeto);
 
+		Set<ProjetoIndicadorAvulso> indicadoresAvulsos = projetoIndicadorAvulsoService.buscarPorProjeto(projeto);
+
 		Set<ProjetoAcao> acoes = projetoAcaoService.buscarPorProjeto(projeto);
 
 		String subUsuario = autenticacaoService.getUsuarioLogado();
@@ -231,8 +235,15 @@ public class ProjetoService {
 				lotacaoUsuario.getValue(),
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				Optional.ofNullable(projeto.getPessoa()).map(Pessoa::getNome).orElse(null),
-				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
+				this.buscarIndicadoresAvulsos(indicadoresAvulsos) );
 
+	}
+
+	private List<ProjetoIndicadorAvulsoDto> buscarIndicadoresAvulsos(Set<ProjetoIndicadorAvulso> projetoIndicadorAvulsoSet) {
+		return projetoIndicadorAvulsoSet.stream()
+				.map(ProjetoIndicadorAvulsoDto::new)
+				.toList();
 	}
 
 	private List<ProjetoIndicadorDto> buscarIndicadores(Set<ProjetoIndicador> projetoIndicadorSet) {
@@ -333,6 +344,10 @@ public class ProjetoService {
 
 		projetoIndicadorService.cadastrar(projeto, indicadoresProjetoParaGravar);
 
+		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjetoParaGravar = form.indicadoresAvulsosProjeto();
+
+		projetoIndicadorAvulsoService.sincronizar(projeto, indicadoresAvulsosProjetoParaGravar);
+
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
 
 		projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
@@ -374,7 +389,9 @@ public class ProjetoService {
 				false, null, null, null, null, null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
-				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
+				indicadoresAvulsosProjetoParaGravar
+			);
 
 	}
 
@@ -414,13 +431,14 @@ public class ProjetoService {
 					String subResponsavelProponente = pessoaService.buscarSubPorId(p.getPessoa().getId());
 					p.getPessoa().setSub(subResponsavelProponente);
 				});
-
+		
 		List<ProjetoIndicadorDto> projetoIndicadoresDto = form.indicadoresProjeto();
-		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projetoResult,
-				projetoIndicadoresDto);
+		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar( projetoResult, projetoIndicadoresDto );
 
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(),
-				form.rateio());
+		List<ProjetoIndicadorAvulsoDto> projetoIndicadoresAvuslsosDto = form.indicadoresAvulsosProjeto();
+		Set<ProjetoIndicadorAvulso> projetoIndicadoresAvulsoSet = projetoIndicadorAvulsoService.sincronizar( projetoResult, projetoIndicadoresAvuslsosDto );
+		
+		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
@@ -488,7 +506,8 @@ public class ProjetoService {
 				this.buscarParecer(projetoParecer, form.parecerProjetoUsuario().elegivel()), null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
-				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
+				this.buscarIndicadoresAvulsos(projetoIndicadoresAvulsoSet));
 
 	}
 

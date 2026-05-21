@@ -1,0 +1,51 @@
+package br.gov.es.siscap.models;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
+import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoDto;
+
+@Entity
+@Table(name = "projeto_indicador_avulso")
+@NoArgsConstructor
+@Getter
+@Setter
+@SQLDelete(sql = "UPDATE projeto_indicador_avulso SET apagado = true WHERE id=?")
+@SQLRestriction("apagado = false")
+public class ProjetoIndicadorAvulso extends ControleHistorico {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_projeto", nullable = false)
+    private Projeto projeto;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_indicador_avulso", nullable = false)
+    private IndicadorAvulso indicadorAvulso;
+
+    @OneToMany(mappedBy = "projetoIndicadorAvulso", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProjetoIndicadorAvulsoMeta> metas = new HashSet<>();
+
+    public ProjetoIndicadorAvulso(Projeto projeto, IndicadorAvulso indicadorAvulso,
+        ProjetoIndicadorAvulsoDto indicadorAvulsoDto) {
+        this.setProjeto(projeto);
+        this.setId(indicadorAvulsoDto.idIndicadorAvulso());
+        this.setIndicadorAvulso(indicadorAvulso);
+    }
+
+}

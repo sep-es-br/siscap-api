@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://10.243.135.48:5432/siscap
+    url: jdbc:postgresql://localhost:5432/siscap_3
     username: postgres
-    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
+    password: postgres
     hikari:
       maximum-pool-size: 1000
       minimum-idle: 5
@@ -30,10 +30,12 @@ spring:
             enable: false
 
   flyway:
-    url: jdbc:postgresql://10.243.135.48:5432/siscap
+    clean-disabled: false
+    url: jdbc:postgresql://localhost:5432/siscap_3
     user: postgres
-    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
+    password: postgres
     enabled: true
+    outOfOrder: true
 
   security:
     oauth2:
@@ -99,7 +101,10 @@ api:
     guidSUBEPP: 90948693-1692-49df-a5d1-7d1ce84f600b # SUBEPP
     guidSUBEO: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO
     lotacao:
-      simulada: 90948693-1692-49df-a5d1-7d1ce84f600b # SUBEPP
+      simulada: 
+    overrides:
+      lotacao-usuario: 
+        e0473535-05af-4659-bae6-bfa84fbf50a3: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO # RAQUEL
 
   programa:
     assinantes:
@@ -151,4 +156,9 @@ logging:
     name: api-error.log 
 
 listarpapeisprioritarios: false
+
+pentahoBI:
+  baseURL: https://bi.sep.es.gov.br/pentaho/plugin/cda/api/doQuery?
+  userId: anonimo.bi
+  password: Da$hb0ard
 

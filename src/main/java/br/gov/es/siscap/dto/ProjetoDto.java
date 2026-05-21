@@ -42,18 +42,33 @@ public record ProjetoDto(
 		Long lotacaoUsuario,
 		List<ProjetoParecerDto> pareceresProjeto,
 		String nomeProponente,
-                List<StatusProjetoDto> historico
-        ) {
+		List<StatusProjetoDto> historico,
+		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto ) {
 
-	public ProjetoDto(Projeto projeto, ValorDto valor, List<RateioDto> rateio, Long idResponsavelProponente,
+	public ProjetoDto(Projeto projeto,
+			ValorDto valor,
+			List<RateioDto> rateio,
+			Long idResponsavelProponente,
 			List<EquipeDto> equipeElaboracao,
-			String subResponsavelProponente, List<ProjetoIndicadorDto> indicadoresProjeto,
-			List<ProjetoAcaoDto> acoesProjeto, String subProponente,
-			String lotacaoProponenteResponsavel, String nomeProponenteResponsavel, Boolean podeEditar,
+			String subResponsavelProponente,
+			List<ProjetoIndicadorDto> indicadoresProjeto,
+			List<ProjetoAcaoDto> acoesProjeto,
+			String subProponente,
+			String lotacaoProponenteResponsavel, 
+			String nomeProponenteResponsavel, 
+			Boolean podeEditar,
 			Boolean podeSolicitarComplementacao,
-			Boolean podeResponderComplementacao, String idProcessoEdocs, String idDocumentoDicEdocs,
+			Boolean podeResponderComplementacao,
+			String idProcessoEdocs,
+			String idDocumentoDicEdocs,
 			List<ProjetoCamposComplementacaoDto> camposComplementar,
-			ProjetoParecerDto parecerProjeto, Long lotacaoUsuario, List<ProjetoParecerDto> pareceresProjeto, String nomeProponente, List<StatusProjetoDto> historico) {
+			ProjetoParecerDto parecerProjeto,
+			Long lotacaoUsuario,
+			List<ProjetoParecerDto> pareceresProjeto,
+			String nomeProponente,
+			List<StatusProjetoDto> historico,
+			List<ProjetoIndicadorAvulsoDto> projetoIndicadorAvulsos) {
+
 		this(projeto.getId(),
 				projeto.getSigla(),
 				projeto.getTitulo(),
@@ -85,8 +100,12 @@ public record ProjetoDto(
 				idProcessoEdocs,
 				idDocumentoDicEdocs,
 				camposComplementar,
-				parecerProjeto, lotacaoUsuario, pareceresProjeto, nomeProponente,
-                                historico);
+				parecerProjeto,
+				lotacaoUsuario,
+				pareceresProjeto,
+				nomeProponente,
+				historico,
+				projetoIndicadorAvulsos);
 
 	}
 
@@ -122,9 +141,13 @@ public record ProjetoDto(
 				null,
 				null,
 				null,
-				null, null, 
-				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(), "" ,
-                                Optional.ofNullable(projeto.getHistoricoStatus()).map(hl -> hl.stream().map(StatusProjetoDto::new).toList()).orElse(new ArrayList<>()));
+				null, 
+				null,
+				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(), 
+				"",
+				Optional.ofNullable(projeto.getHistoricoStatus()).map(hl -> hl.stream().map(StatusProjetoDto::new).toList()).orElse(new ArrayList<>()),
+				projeto.getProjetoIndicadorAvulsoSet().stream().map(ProjetoIndicadorAvulsoDto::new).toList()
+			);
 
 	}
 

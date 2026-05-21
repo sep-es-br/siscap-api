@@ -31,6 +31,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "DIC", description = "")
@@ -83,10 +84,12 @@ public class ProjetoController {
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 
 		return new ResponseEntity<>(service.cadastrar(form, rascunho, pessoa), HttpStatus.CREATED);
+
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id, @Valid @RequestBody ProjetoForm form,
+	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id,
+			@Valid @RequestBody ProjetoForm form,
 			@RequestParam(required = false, defaultValue = "false") boolean rascunho,
 			@RequestHeader("Authorization") String auth) {
 
@@ -95,7 +98,9 @@ public class ProjetoController {
 		String subNovo = this.tokenService.validarToken(token);
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
+
 		return ResponseEntity.ok(service.atualizar(id, form, rascunho, pessoa));
+
 	}
 
 	@DeleteMapping("/{id}")
