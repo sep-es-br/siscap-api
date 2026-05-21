@@ -28,7 +28,9 @@ public interface IndicadorFatoExternoRepository extends JpaRepository<IndicadorF
                 SELECT f
                 FROM IndicadorFatoExterno f
                 JOIN FETCH f.indicador i
+                JOIN f.gestao g
                 WHERE i.id IN :ids
+                AND g.ativa = true
         """)
         List<IndicadorFatoExterno> findByIndicadorIds(@Param("ids") List<Integer> ids);
 
