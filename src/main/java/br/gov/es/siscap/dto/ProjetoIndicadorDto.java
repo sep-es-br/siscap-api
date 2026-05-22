@@ -12,7 +12,8 @@ public record ProjetoIndicadorDto(
 	String descricaoMeta,
 	Long idStatus,
 	Integer idIndicadorExterno,
-	List<ProjetoIndicadorCatalogoMetaDto> metasIndicadorProjeto){
+	List<ProjetoIndicadorCatalogoMetaDto> metasIndicadorProjeto,
+	List<ProjetoIndicadorOdsDto> odsSelecionadas ){
 		
 	public ProjetoIndicadorDto(ProjetoIndicador projetoIndicador) {
 		this(
@@ -26,7 +27,12 @@ public record ProjetoIndicadorDto(
             ? projetoIndicador.getMetas().stream()
                 .map(ProjetoIndicadorCatalogoMetaDto::new)
                 .toList()
-            : List.of()
+            : List.of(),
+			projetoIndicador.getOdsSelecionadas() != null
+					? projetoIndicador.getOdsSelecionadas().stream()
+						.map(ProjetoIndicadorOdsDto::new)
+						.toList()
+					: List.of()
 		);
 	}
 
@@ -38,7 +44,12 @@ public record ProjetoIndicadorDto(
 			projetoIndicador.getDescricaoMeta(),
 			projetoIndicador.getTipoStatus().getId(),
 			projetoIndicador.getIndicadorExterno() != null ? projetoIndicador.getIndicadorExterno().getId()  : null,
-			metasIndicadorCatalogo
+			metasIndicadorCatalogo,
+			projetoIndicador.getOdsSelecionadas() != null
+					? projetoIndicador.getOdsSelecionadas().stream()
+						.map(ProjetoIndicadorOdsDto::new)
+						.toList()
+					: List.of()
 		);
 	}
 
