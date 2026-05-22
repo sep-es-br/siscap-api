@@ -54,6 +54,9 @@ public class ProjetoIndicador extends ControleHistorico {
 	@JoinColumn(name = "id_tipo_status")
 	private TipoStatus tipoStatus;
 
+	@OneToMany(mappedBy = "projetoIndicador")
+	private Set<ProjetoIndicadorOds> odsSelecionadas;
+
 	public ProjetoIndicador(Projeto projeto, ProjetoIndicadorDto indicador) {
 		this.setProjeto(projeto);
 		this.setId(indicador.idIndicador());
