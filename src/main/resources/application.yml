@@ -158,7 +158,22 @@ logging:
 listarpapeisprioritarios: false
 
 pentahoBI:
+  
   baseURL: https://bi.sep.es.gov.br/pentaho/plugin/cda/api/doQuery?
   userId: anonimo.bi
   password: Da$hb0ard
+  
+  siscap:
+    path: /public/dashboard/siscap
+    indicadores:
+      target: /indicadores_siscap.cda
+      dataAccessId: indicador_siscap
+    ods:
+      target: /ods_indicadores_siscap.cda
+      dataAccessId: ods_indicador_siscap
 
+openapi:
+  server:
+    url: https://hom.siscap.es.gov.br/siscap
+  external-docs:
+    url: https://hom.siscap.es.gov.br/siscap/swagger-ui/index.html

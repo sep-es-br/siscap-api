@@ -24,9 +24,10 @@ public class ApiUtils extends PentahoBIService {
 
         try {
 
+            LOGGER.info("EndpointUri: {}", buildEndpointUri(pmoPath, target, dataAccessId, params));
+
             String result = doRequest(buildEndpointUri(pmoPath, target, dataAccessId, params));
 
-            // Corrigir as entidades HTML
             result = StringEscapeUtils.unescapeHtml4(result);
 
             List<Map<String, JsonNode>> resultset = extractDataFromResponse(result);
@@ -46,7 +47,7 @@ public class ApiUtils extends PentahoBIService {
 
     @Override
     protected String buildEndpointUri(String target, String dataAccess, Map<String, Object> params) {
-        return super.buildEndpointUri(null,target, dataAccess, params);
+        return super.buildEndpointUri(null, target, dataAccess, params);
     }
 
 }

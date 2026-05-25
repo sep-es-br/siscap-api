@@ -54,30 +54,42 @@ public class ProjetoIndicador extends ControleHistorico {
 	@JoinColumn(name = "id_tipo_status")
 	private TipoStatus tipoStatus;
 
-	@OneToMany(
-        mappedBy = "projetoIndicador",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true )
-	private Set<ProjetoIndicadorOds> odsSelecionadas;
+	// @OneToMany(mappedBy = "projetoIndicador", cascade = CascadeType.ALL, orphanRemoval = true)
+	// private Set<ProjetoIndicadorOds> odsSelecionadas;
 
 	public ProjetoIndicador(Projeto projeto, ProjetoIndicadorDto indicador) {
+		
 		this.setProjeto(projeto);
 		this.setId(indicador.idIndicador());
 		this.setTipoIndicador(indicador.tipoIndicador());
 		this.setDescricaoIndicador(indicador.descricaoIndicador());
 		this.setDescricaoMeta(indicador.descricaoMeta());
 		this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
+
 		if (indicador.metasIndicadorProjeto() != null) {
 			indicador.metasIndicadorProjeto().forEach(metaDto -> {
 				ProjetoIndicadorExternoMeta meta = new ProjetoIndicadorExternoMeta(metaDto);
 				this.addMeta(meta);
 			});
 		}
+
+		// if (indicador.odsSelecionadas() != null) {
+		// 	indicador.odsSelecionadas().forEach(odsDto -> {
+		// 		ProjetoIndicadorOds ods = new ProjetoIndicadorOds(odsDto);
+		// 		this.addOdsSelecionada(ods);
+		// 	});
+		// }
+
 	}
 
 	public void addMeta(ProjetoIndicadorExternoMeta meta) {
 		meta.setProjetoIndicador(this);
 		this.metas.add(meta);
 	}
+
+	// public void addOdsSelecionada(ProjetoIndicadorOds ods) {
+	// 	ods.setProjetoIndicador(this);
+	// 	this.odsSelecionadas.add(ods);
+	// }
 
 }

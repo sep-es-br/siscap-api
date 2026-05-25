@@ -7,6 +7,7 @@ import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import br.gov.es.siscap.dto.ProjetoParecerDto;
 import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.dto.ValorDto;
+import br.gov.es.siscap.dto.ProjetoOdsDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.util.List;
@@ -85,7 +86,10 @@ public record ProjetoForm(
 			ProjetoParecerDto parecerProjetoUsuario,
 
 			@Valid
-			List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto
+			List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto,
+
+			@Valid
+			List<ProjetoOdsDto> odsProjeto
 
 ) {
 }

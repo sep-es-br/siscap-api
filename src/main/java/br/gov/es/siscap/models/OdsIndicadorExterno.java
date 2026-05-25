@@ -18,13 +18,13 @@ import org.hibernate.annotations.SQLRestriction;
 @SQLRestriction("apagado = FALSE")
 public class OdsIndicadorExterno extends ControleHistorico {
 
+    public OdsIndicadorExterno(Integer idOdsIndicadorExterno) {
+        this.id = idOdsIndicadorExterno;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ods_indicador_externo_id_gen")
-    @SequenceGenerator(
-            name = "ods_indicador_externo_id_gen",
-            sequenceName = "ods_indicador_externo_id_seq",
-            allocationSize = 1
-    )
+    @SequenceGenerator(name = "ods_indicador_externo_id_gen", sequenceName = "ods_indicador_externo_id_seq", allocationSize = 1)
     @Column(name = "id", nullable = false)
     private Integer id;
 

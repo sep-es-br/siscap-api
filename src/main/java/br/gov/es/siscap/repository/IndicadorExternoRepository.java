@@ -16,6 +16,8 @@ public interface IndicadorExternoRepository extends JpaRepository<IndicadorExter
                 JOIN f.indicador ie
                 JOIN f.gestao g
                 LEFT JOIN g.labels gl
+                LEFT JOIN FETCH ie.odsIndicadores oi
+                LEFT JOIN FETCH oi.odsExterno ods
                 WHERE ( (:idGestao IS NULL AND g.ativa = true) OR g.id = :idGestao)
                   AND (:desafios IS NULL OR f.desafio.id IN :desafios)
                   AND (:labels IS NULL OR gl.label.id IN :labels)

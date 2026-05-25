@@ -11,5 +11,6 @@ public record OpcoesIndicadoresDto(
     String medidoPor,
     List<MetasIndicadorExternoDto> metasIndicador,
     Integer maiorAnoInidicador,
-    BigDecimal maiorMetaIndicador
+    BigDecimal maiorMetaIndicador,
+    List<OdsIndicadorExternoDto> ods
 ) {}

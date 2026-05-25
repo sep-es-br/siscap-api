@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -30,5 +33,8 @@ public class IndicadorExterno extends ControleHistorico {
 
     @Column(name = "medido_por")
     private String medidoPor;
-    
+
+    @OneToMany(mappedBy = "indicadorExterno")
+    private Set<OdsIndicadorExterno> odsIndicadores = new HashSet<>();
+
 }

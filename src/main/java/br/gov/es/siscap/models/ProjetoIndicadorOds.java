@@ -9,6 +9,8 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import br.gov.es.siscap.dto.ProjetoIndicadorOdsDto;
+
 @Entity
 @Table(name = "projeto_indicador_ods")
 @NoArgsConstructor
@@ -17,6 +19,13 @@ import org.hibernate.annotations.SQLRestriction;
 @SQLDelete(sql = "update projeto_indicador_ods set apagado = true where id=?")
 @SQLRestriction("apagado = FALSE")
 public class ProjetoIndicadorOds extends ControleHistorico {
+
+	public ProjetoIndicadorOds(ProjetoIndicadorOdsDto odsDto) {
+		if (odsDto.idOdsIndicadorExterno() != null) {
+			this.setOdsIndicadorExterno(
+					new OdsIndicadorExterno(odsDto.idOdsIndicadorExterno()));
+		}
+	}
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "projeto_indicador_ods_id_gen")

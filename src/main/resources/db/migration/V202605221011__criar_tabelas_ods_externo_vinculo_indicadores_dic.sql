@@ -4,6 +4,7 @@ START WITH 1
 INCREMENT BY 1;
 
 CREATE TABLE ods_externo (
+
     id INTEGER NOT NULL DEFAULT nextval('ods_externo_id_seq'),
     ods_id INTEGER NOT NULL,
     ods_ordem INTEGER NOT NULL,
@@ -16,6 +17,7 @@ CREATE TABLE ods_externo (
 	
     CONSTRAINT pk_ods_externo PRIMARY KEY (id),
     CONSTRAINT uk_ods_externo_ods_id UNIQUE (ods_id)
+
 );
 
 CREATE SEQUENCE ods_indicador_externo_id_seq
@@ -23,6 +25,7 @@ START WITH 1
 INCREMENT BY 1;
 
 CREATE TABLE ods_indicador_externo (
+    
     id INTEGER NOT NULL DEFAULT nextval('ods_indicador_externo_id_seq'),
     id_indicador_externo INTEGER NOT NULL,
     id_ods_externo INTEGER NOT NULL,
