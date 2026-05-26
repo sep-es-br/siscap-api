@@ -43,9 +43,8 @@ public class ProjetoIndicador extends ControleHistorico {
 	@Column(name = "meta_indicador", nullable = false, length = 2000)
 	private String descricaoMeta;
 
-	@ManyToOne()
-	@JoinColumn(name = "id_indicador_externo")
-	private IndicadorExterno indicadorExterno;
+	@Column(name = "id_indicador_externo")
+	private Integer idIndicadorExterno;
 
 	@OneToMany(mappedBy = "projetoIndicador", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<ProjetoIndicadorExternoMeta> metas = new HashSet<>();
@@ -60,7 +59,10 @@ public class ProjetoIndicador extends ControleHistorico {
 	public ProjetoIndicador(Projeto projeto, ProjetoIndicadorDto indicador) {
 		
 		this.setProjeto(projeto);
-		this.setId(indicador.idIndicador());
+
+		// this.setId(indicador.idIndicador());
+		 this.setIdIndicadorExterno(indicador.idIndicadorExterno());
+		 
 		this.setTipoIndicador(indicador.tipoIndicador());
 		this.setDescricaoIndicador(indicador.descricaoIndicador());
 		this.setDescricaoMeta(indicador.descricaoMeta());

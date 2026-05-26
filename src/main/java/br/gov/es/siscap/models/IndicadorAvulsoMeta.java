@@ -9,7 +9,6 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import br.gov.es.siscap.dto.IndicadorAvulsoMetaDto;
-import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoMetaDto;
 
 @Entity
 @Table(name = "indicador_avulso_meta")

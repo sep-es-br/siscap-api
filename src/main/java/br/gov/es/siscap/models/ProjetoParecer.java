@@ -12,13 +12,9 @@ import br.gov.es.siscap.enums.StatusParecerEnum;
 import br.gov.es.siscap.enums.StatusProjetoEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 
 @Entity
