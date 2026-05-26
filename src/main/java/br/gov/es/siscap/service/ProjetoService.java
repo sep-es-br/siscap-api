@@ -22,6 +22,7 @@ import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
 import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
+import br.gov.es.siscap.models.ProjetoOds;
 import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.models.TipoMotivoArquivamento;
@@ -78,6 +79,7 @@ public class ProjetoService {
 	private final ProjetoParecerService projetoParecerService;
 	private final UsuarioService usuarioService;
 	private final ProjetoIndicadorAvulsoService projetoIndicadorAvulsoService;
+	private final ProjetoOdsService projetoOdsService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -434,6 +436,9 @@ public class ProjetoService {
 		
 		List<ProjetoIndicadorDto> projetoIndicadoresDto = form.indicadoresProjeto();
 		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar( projetoResult, projetoIndicadoresDto );
+
+		List<ProjetoOdsDto> projetoOdsDto = form.odsProjeto();
+		Set<ProjetoOds> projetoOdsSet = projetoOdsService.atualizar(projetoResult, projetoOdsDto);
 
 		List<ProjetoIndicadorAvulsoDto> projetoIndicadoresAvuslsosDto = form.indicadoresAvulsosProjeto();
 		Set<ProjetoIndicadorAvulso> projetoIndicadoresAvulsoSet = projetoIndicadorAvulsoService.sincronizar( projetoResult, projetoIndicadoresAvuslsosDto );
