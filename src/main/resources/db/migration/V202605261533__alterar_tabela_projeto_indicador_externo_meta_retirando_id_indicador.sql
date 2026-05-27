@@ -1,0 +1,2 @@
+ALTER TABLE projeto_indicador_externo_meta
+DROP COLUMN IF EXISTS id_indicador_externo;

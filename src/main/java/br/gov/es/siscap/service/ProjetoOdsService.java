@@ -1,19 +1,17 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.ProjetoIndicadorCatalogoMetaDto;
-import br.gov.es.siscap.dto.ProjetoIndicadorDto;
+import br.gov.es.siscap.dto.OdsPentahoBiDto;
 import br.gov.es.siscap.dto.ProjetoOdsDto;
-import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.models.Projeto;
-import br.gov.es.siscap.models.ProjetoIndicador;
-import br.gov.es.siscap.models.ProjetoIndicadorExternoMeta;
 import br.gov.es.siscap.models.ProjetoOds;
-import br.gov.es.siscap.models.TipoStatus;
-import br.gov.es.siscap.repository.ProjetoIndicadorRepository;
+import br.gov.es.siscap.repository.ProjetoOdsRepository;
+import br.gov.es.siscap.utils.pentaho.ApiUtils;
+import br.gov.es.siscap.utils.pentaho.PentahoBIService;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,65 +24,59 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class ProjetoOdsService {
 
+	@Value("${pentahoBI.baseURL}")
+	private String pentahoBaseUrl;
+
+	@Value("${pentahoBI.userId}")
+	private String pentahoUserId;
+
+	@Value("${pentahoBI.password}")
+	private String pentahoPassword;
+
+	@Value("${pentahoBI.siscap.path}")
+	private String siscapPath;
+
+	@Value("${pentahoBI.siscap.indicadores.dataAccessId}")
+	private String indicadoresDataAccessId;
+
+	@Value("${pentahoBI.siscap.indicadores.target}")
+	private String targetIndicadores;
+
+	@Value("${pentahoBI.siscap.ods.dataAccessId}")
+	private String odsDataAccessId;
+
+	@Value("${pentahoBI.siscap.ods.target}")
+	private String targetOds;
+
 	private final ProjetoOdsRepository projetoOdsRepository;
+	private final ApiUtils pentahoBIService;
+
 	private final Logger logger = LogManager.getLogger(ProjetoOdsService.class);
-	
+
 	public Set<ProjetoOds> buscarPorProjeto(Projeto projeto) {
 		logger.info("Buscando ods´s do Projeto com id: {}", projeto.getId());
 		return this.projetoOdsRepository.findAllByProjeto(projeto);
 	}
 
 	@Transactional
-	public Set<ProjetoIndicador> cadastrar(Projeto projeto, List<ProjetoIndicadorDto> projetoIndicadorDtoList) {
+	public Set<ProjetoOds> cadastrar(Projeto projeto, List<ProjetoOdsDto> projetoOdsDtoList) {
 
-		logger.info("Cadastrando indicadores do Projeto com id: {}", projeto.getId());
+		logger.info("Cadastrando ODS´s do Projeto com id: {}", projeto.getId());
 
-		Set<ProjetoIndicador> projetoIndicadorSet = new HashSet<>();
+		Set<ProjetoOds> projetoOdsSet = new HashSet<>();
 
-		logger.info("Lista de indicadores vindas do front : {}", projetoIndicadorDtoList);
+		logger.info("Lista de ODS vindas do front : {}", projetoOdsDtoList);
 
-		projetoIndicadorDtoList.forEach(indicadorDto -> {
-			ProjetoIndicador indicadorProjeto = new ProjetoIndicador(projeto, indicadorDto);
-			// if (indicadorDto.idIndicadorExterno() != null) {
-			// IndicadorExterno indicador = indicadorExternoRepository
-			// .findById(indicadorDto.idIndicadorExterno())
-			// .orElseThrow(() -> new RuntimeException("Indicador externo não encontrado"));
-			// indicadorProjeto.setIdIndicadorExterno(indicador.getId());
-			// }
-			projetoIndicadorSet.add(indicadorProjeto);
+		projetoOdsDtoList.forEach(odsDto -> {
+			ProjetoOds odsProjeto = new ProjetoOds(projeto, odsDto);
+			projetoOdsSet.add(odsProjeto);
 		});
 
-		List<ProjetoIndicador> projetoIndicadorList = projetoIndicadorRepository.saveAll(projetoIndicadorSet);
+		List<ProjetoOds> projetoOdsList = projetoOdsRepository.saveAll(projetoOdsSet);
 
-		// for (ProjetoIndicador projetoIndicador : projetoIndicadorList) {
+		logger.info("Ods do projeto cadastrados com sucesso");
 
-		// ProjetoIndicadorDto indicadorDto = projetoIndicadorDtoList.stream()
-		// .filter(dto -> Objects.equals(dto.idIndicadorExterno(),
-		// projetoIndicador.getIndicadorExterno() != null
-		// ? projetoIndicador.getIndicadorExterno().getId()
-		// : null))
-		// .findFirst()
-		// .orElseThrow(() -> new RuntimeException("DTO do indicador não encontrado"));
-
-		// // validarOdsSelecionadas(indicadorDto);
-
-		// // Set<ProjetoIndicadorOds> odsSelecionadas = indicadorDto.odsSelecionadas()
-		// // .stream()
-		// // .map( odsDto -> criarProjetoIndicadorOds(projetoIndicador, odsDto))
-		// // .collect(Collectors.toSet());
-
-		// // projetoIndicador.setOdsSelecionadas(odsSelecionadas);
-
-		// }
-
-		List<ProjetoIndicador> projetoIndicadorListAtualizada = projetoIndicadorRepository
-				.saveAll(projetoIndicadorList);
-
-		logger.info("Indicadores do projeto cadastrados com sucesso");
-
-		return new HashSet<>(projetoIndicadorListAtualizada);
-
-		// return new HashSet<>(projetoIndicadorList);
+		return new HashSet<>(projetoOdsList);
 
 	}
 
@@ -141,48 +133,41 @@ public class ProjetoOdsService {
 
 		Set<ProjetoOds> projetoOdsSet = this.buscarPorProjeto(projeto);
 
-		// Set<ProjetoIndicador> indicadoresProjetoAtualizarSet = this.atualizarIndicadoresProjeto(projeto,
-		// 		projetoIndicadorSet, projetoIndicadorDtoList);
+		Set<ProjetoOds> odsProjetoAtualizarSet = this.atualizarOdsProjeto(projeto,
+				projetoOdsSet, projetoOdsDtoList);
 
-		// indicadoresProjetoAtualizarSet.forEach(indicadorProjeto -> {
-		// 	ProjetoIndicadorDto indicadorDto = projetoIndicadorDtoList.stream()
-		// 			.filter(dto -> Objects.equals(dto.idIndicador(), indicadorProjeto.getId()))
-		// 			.findFirst()
-		// 			.orElse(null);
-		// 	if (indicadorDto != null) {
-		// 		sincronizarOdsSelecionadas(indicadorProjeto, indicadorDto);
-		// 	}
-		// });
+		odsProjetoAtualizarSet.forEach(indicadorProjeto -> {
+			ProjetoOdsDto odsDto = projetoOdsDtoList.stream()
+					.filter(dto -> Objects.equals(dto.idOdsProjeto(), indicadorProjeto.getId()))
+					.findFirst()
+					.orElse(null);
+			if (odsDto != null) {
+				sincronizarOdsSelecionadas(indicadorProjeto, odsDto);
+			}
+		});
 
-		// projetoIndicadorRepository.saveAllAndFlush(indicadoresProjetoAtualizarSet);
-		// Set<Integer> idsDto = projetoIndicadorDtoList.stream()
-		// 		.map(ProjetoIndicadorDto::idIndicador)
-		// 		.filter(Objects::nonNull)
-		// 		.collect(Collectors.toSet());
-		// Set<ProjetoIndicador> indicadoresParaRemover = projetoIndicadorSet.stream()
-		// 		.filter(indicador -> !idsDto.contains(indicador.getId()))
-		// 		.collect(Collectors.toSet());
-		// projetoIndicadorRepository.deleteAll(indicadoresParaRemover);
-		// logger.info("Indicadores do projeto alterados com sucesso");
+		projetoOdsRepository.saveAllAndFlush(odsProjetoAtualizarSet);
+
+		Set<Integer> idsDto = projetoOdsDtoList.stream()
+				.map(ProjetoOdsDto::idOdsProjeto)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toSet());
+
+		Set<ProjetoOds> odsParaRemover = projetoOdsSet.stream()
+				.filter(indicador -> !idsDto.contains(indicador.getId()))
+				.collect(Collectors.toSet());
+
+		projetoOdsRepository.deleteAll(odsParaRemover);
+
+		logger.info("ODS do projeto alteradas com sucesso");
 
 		return this.buscarPorProjeto(projeto);
 
 	}
 
 	private void sincronizarOdsSelecionadas(
-			ProjetoIndicador projetoIndicador,
-			ProjetoIndicadorDto indicadorDto) {
-
-		// if (indicadorDto.odsSelecionadas() == null ||
-		// indicadorDto.odsSelecionadas().isEmpty()) {
-		// throw new SiscapServiceException(Arrays.asList("É obrigatório selecionar pelo
-		// menos uma ODS para o indicador."));
-		// }
-
-		// if (projetoIndicador.getIndicadorExterno() == null) {
-		// throw new SiscapServiceException(Arrays.asList("Indicador externo é
-		// obrigatório para vincular ODS."));
-		// }
+			ProjetoOds projetoOds,
+			ProjetoOdsDto odsDto) {
 
 		// Set<Integer> idsOdsSelecionadasDto = indicadorDto.odsSelecionadas()
 		// .stream()
@@ -190,18 +175,11 @@ public class ProjetoOdsService {
 		// .filter(Objects::nonNull)
 		// .collect(Collectors.toSet());
 
-		// if (idsOdsSelecionadasDto.isEmpty()) {
-		// throw new SiscapServiceException(Arrays.asList("É obrigatório selecionar pelo
-		// menos uma ODS válida para o indicador."));
-		// }
-
 		// validarOdsPertencemAoIndicador(projetoIndicador, idsOdsSelecionadasDto);
 
-		// projetoIndicador.getOdsSelecionadas().removeIf(odsAtual ->
+		// projetoIndicador.getOdsSelecionadas().removeIf( odsAtual ->
 		// !idsOdsSelecionadasDto.contains(
-		// odsAtual.getOdsIndicadorExterno().getId()
-		// )
-		// );
+		// odsAtual.getOdsIndicadorExterno().getId()) );
 
 		// Set<Integer> idsOdsJaExistentes = projetoIndicador.getOdsSelecionadas()
 		// .stream()
@@ -233,8 +211,7 @@ public class ProjetoOdsService {
 	// .anyMatch(idOdsIndicadorExterno ->
 	// !odsIndicadorExternoRepository.existsByIdAndIndicadorExternoId(
 	// idOdsIndicadorExterno,
-	// idIndicadorExterno
-	// )
+	// idIndicadorExterno )
 	// );
 	// if (existeOdsInvalida) {
 	// throw new SiscapServiceException(Arrays.asList("Uma ou mais ODS selecionadas
@@ -245,95 +222,109 @@ public class ProjetoOdsService {
 	@Transactional
 	public void excluirPorProjeto(Projeto projeto) {
 
-		logger.info("Excluindo indicadores do Projeto com id: {}", projeto.getId());
+		logger.info("Excluindo ods´s do Projeto com id: {}", projeto.getId());
 
-		Set<ProjetoIndicador> projetoIndicadorSet = this.buscarPorProjeto(projeto);
+		Set<ProjetoOds> projetoOdsSet = this.buscarPorProjeto(projeto);
 
-		List<ProjetoIndicador> projetoIndicadorList = projetoIndicadorRepository.saveAllAndFlush(projetoIndicadorSet);
+		if (projetoOdsSet.isEmpty()) {
+			logger.info("Nenhum ODS encontrado para o projeto com id: {}", projeto.getId());
+			return;
+		}
 
-		projetoIndicadorRepository.deleteAll(projetoIndicadorList);
+		List<ProjetoOds> projetoOdsList = projetoOdsRepository.saveAllAndFlush(projetoOdsSet);
 
-		logger.info("Indicadores do projeto excluídos com sucesso");
+		projetoOdsRepository.deleteAll(projetoOdsList);
+
+		logger.info("Ods do projeto excluídos com sucesso");
 
 	}
 
 	@Transactional
 	public void excluirFisicamentePorProjeto(Projeto projeto) {
-		logger.info("Excluindo fisicamente indicadores do Projeto com id: {}", projeto.getId());
+		logger.info("Excluindo fisicamente ods´s do Projeto com id: {}", projeto.getId());
 
-		projetoIndicadorRepository.deleteFisicoPorProjeto(projeto.getId());
+		projetoOdsRepository.deleteFisicoPorProjeto(projeto.getId());
 
-		logger.info("Indicadores do projeto excluídos fisicamente com sucesso");
+		logger.info("Ods do projeto excluídos fisicamente com sucesso");
 	}
 
-	private Set<ProjetoIndicador> atualizarIndicadoresProjeto(
+	private Set<ProjetoOds> atualizarOdsProjeto(
 			Projeto projeto,
-			Set<ProjetoIndicador> indicadoresExistentes,
-			List<ProjetoIndicadorDto> dtoList) {
+			Set<ProjetoOds> odsExistentes,
+			List<ProjetoOdsDto> dtoList) {
 
-		Map<Integer, ProjetoIndicador> indicadoresExistentesMap = indicadoresExistentes.stream()
+		Map<Integer, ProjetoOds> odsExistentesMap = odsExistentes.stream()
 				.filter(ind -> ind.getId() != null)
-				.collect(Collectors.toMap(ProjetoIndicador::getId, Function.identity()));
+				.collect(Collectors.toMap(ProjetoOds::getId, Function.identity()));
 
 		return dtoList.stream()
 				.map(dto -> {
-
-					if (dto.idIndicadorExterno() == null) {
-						throw new IllegalArgumentException("Id do indicador externo não pode ser null");
+					if (dto.odsId() == null) {
+						throw new IllegalArgumentException("Id da Ods do BI não pode ser null");
 					}
-
-					ProjetoIndicador indicador;
-
-					if (dto.idIndicador() != null && indicadoresExistentesMap.containsKey(dto.idIndicador())) {
-						indicador = indicadoresExistentesMap.get(dto.idIndicador());
+					ProjetoOds ods;
+					if (dto.idOdsProjeto() != null && odsExistentesMap.containsKey(dto.idOdsProjeto())) {
+						ods = odsExistentesMap.get(dto.idOdsProjeto());
 					} else {
-						indicador = new ProjetoIndicador();
-						indicador.setProjeto(projeto);
-						indicador.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
+						ods = new ProjetoOds();
+						ods.setProjeto(projeto);
+						// ods.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
 					}
-
-					indicador.setTipoIndicador(dto.tipoIndicador());
-					indicador.setDescricaoIndicador(dto.descricaoIndicador());
-					indicador.setDescricaoMeta(dto.descricaoMeta());
-					indicador.setIdIndicadorExterno(dto.idIndicadorExterno());
-
-					if (dto.idStatus() != null) {
-						indicador.setTipoStatus(new TipoStatus(dto.idStatus()));
-					}
-
-					atualizarMetas(indicador, dto.metasIndicadorProjeto());
-
-					return indicador;
+					// ods.setTipoOds(dto.tipoOds());
+					// ods.setDescricaoOds(dto.descricaoOds());
+					// ods.setDescricaoMeta(dto.descricaoMeta());
+					// ods.setIdOdsIndicadorExterno(dto.idOdsIndicadorExterno());
+					return ods;
 				})
 				.collect(Collectors.toSet());
-				
+
 	}
 
-	private void atualizarMetas(ProjetoIndicador indicador, List<ProjetoIndicadorCatalogoMetaDto> metasDto) {
+	public List<ProjetoOdsDto> buscarDadosOdsBi(List<Integer> odsIds) {
 
-		Map<Integer, ProjetoIndicadorExternoMeta> existentesMap = indicador.getMetas().stream()
-				.filter(m -> m.getId() != null)
-				.collect(Collectors.toMap(ProjetoIndicadorExternoMeta::getId, Function.identity()));
+		List<OdsPentahoBiDto> odsBiList = this.listarOdsPorIds(odsIds);
 
-		Set<ProjetoIndicadorExternoMeta> novasMetas = metasDto.stream()
-				.map(dto -> {
-					ProjetoIndicadorExternoMeta meta;
+		// return odsBiList.stream()
+		// 		.filter(ods -> odsIds.contains(ods.odsId()))
+		// 		.map(ods -> new ProjetoOdsDto(
+		// 				ods.odsId(),
+		// 				ods.ordemOds(),
+		// 				ods.nomeOds(),
+		// 				ods.descricaoOds()))
+		// 		.toList();
 
-					if (dto.idFato() != null && existentesMap.containsKey(dto.idFato())) {
-						meta = existentesMap.get(dto.idFato());
-						meta.setValorMeta(dto.valorMeta());
-						meta.setAnoMeta(dto.anoMeta());
-					} else {
-						meta = new ProjetoIndicadorExternoMeta(dto);
-						meta.setProjetoIndicador(indicador);
-					}
+		return odsBiList.stream()
+        .filter(ods -> odsIds.contains(ods.odsId()))
+        .collect(Collectors.toMap(
+                OdsPentahoBiDto::odsId,
+                ods -> new ProjetoOdsDto(
+                        ods.odsId(),
+                        ods.ordemOds(),
+                        ods.nomeOds(),
+                        ods.descricaoOds()
+                ),
+                (existente, repetido) -> existente
+        ))
+        .values()
+        .stream()
+        .toList();
 
-					return meta;
-				})
-				.collect(Collectors.toSet());
+	}
 
-		indicador.getMetas().clear();
-		indicador.getMetas().addAll(novasMetas);
+	private List<OdsPentahoBiDto> listarOdsPorIds(List<Integer> odsIds) {
+
+		Map<String, Object> params = Map.of();
+		// "ids",
+		// odsIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
+
+		return pentahoBIService.consult(targetOds, odsDataAccessId, siscapPath, params,
+				rs -> new OdsPentahoBiDto(
+						rs.get("IndicadorId").asInt(),
+						rs.get("OdsId").asInt(),
+						rs.get("DescricaoOds").asText(),
+						rs.get("nomeOds").asText(),
+						rs.get("ordemOds").asInt()));
+
 	}
 
 }

@@ -40,9 +40,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -218,6 +221,8 @@ public class ProjetoService {
 				guidSUBEO,
 				guidSUBCAP);
 
+		Set<ProjetoOds> odsProjeto = projetoOdsService.buscarPorProjeto(projeto);
+
 		return new ProjetoDto(projeto, valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
@@ -238,11 +243,46 @@ public class ProjetoService {
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				Optional.ofNullable(projeto.getPessoa()).map(Pessoa::getNome).orElse(null),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
-				this.buscarIndicadoresAvulsos(indicadoresAvulsos) );
+				this.buscarIndicadoresAvulsos(indicadoresAvulsos),
+				this.buscarOdsProjeto(odsProjeto));
 
 	}
 
-	private List<ProjetoIndicadorAvulsoDto> buscarIndicadoresAvulsos(Set<ProjetoIndicadorAvulso> projetoIndicadorAvulsoSet) {
+	private List<ProjetoOdsDto> buscarOdsProjeto(Set<ProjetoOds> projetoOdsSet) {
+
+		if (projetoOdsSet == null || projetoOdsSet.isEmpty()) {
+			return List.of();
+		}
+
+		Map<Integer, Integer> projetoOdsIdPorOdsId = projetoOdsSet.stream()
+				.filter(po -> po.getIdOds() != null)
+				.collect(Collectors.toMap(
+						ProjetoOds::getIdOds,
+						ProjetoOds::getId,
+						(idExistente, idRepetido) -> idExistente));
+
+		List<Integer> odsIds = projetoOdsIdPorOdsId.keySet()
+				.stream()
+				.toList();
+
+		if (odsIds.isEmpty()) {
+			return List.of();
+		}
+
+		return projetoOdsService.buscarDadosOdsBi(odsIds)
+				.stream()
+				.map(ods -> new ProjetoOdsDto(
+						projetoOdsIdPorOdsId.get(ods.odsId()), // id da tabela projeto_ods
+						ods.odsId(),
+						ods.odsOrdem(),
+						ods.odsNome(),
+						ods.odsDescricao()))
+				.toList();
+				
+	}
+
+	private List<ProjetoIndicadorAvulsoDto> buscarIndicadoresAvulsos(
+			Set<ProjetoIndicadorAvulso> projetoIndicadorAvulsoSet) {
 		return projetoIndicadorAvulsoSet.stream()
 				.map(ProjetoIndicadorAvulsoDto::new)
 				.toList();
@@ -343,11 +383,12 @@ public class ProjetoService {
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		List<ProjetoIndicadorDto> indicadoresProjetoParaGravar = form.indicadoresProjeto();
-
 		projetoIndicadorService.cadastrar(projeto, indicadoresProjetoParaGravar);
 
-		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjetoParaGravar = form.indicadoresAvulsosProjeto();
+		List<ProjetoOdsDto> indicadoresOdsParaGravar = form.odsProjeto();
+		projetoOdsService.cadastrar(projeto, indicadoresOdsParaGravar);
 
+		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjetoParaGravar = form.indicadoresAvulsosProjeto();
 		projetoIndicadorAvulsoService.sincronizar(projeto, indicadoresAvulsosProjetoParaGravar);
 
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
@@ -392,8 +433,8 @@ public class ProjetoService {
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
-				indicadoresAvulsosProjetoParaGravar
-			);
+				indicadoresAvulsosProjetoParaGravar,
+				indicadoresOdsParaGravar);
 
 	}
 
@@ -433,17 +474,20 @@ public class ProjetoService {
 					String subResponsavelProponente = pessoaService.buscarSubPorId(p.getPessoa().getId());
 					p.getPessoa().setSub(subResponsavelProponente);
 				});
-		
+
 		List<ProjetoIndicadorDto> projetoIndicadoresDto = form.indicadoresProjeto();
-		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar( projetoResult, projetoIndicadoresDto );
+		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projetoResult,
+				projetoIndicadoresDto);
 
 		List<ProjetoOdsDto> projetoOdsDto = form.odsProjeto();
 		Set<ProjetoOds> projetoOdsSet = projetoOdsService.atualizar(projetoResult, projetoOdsDto);
 
 		List<ProjetoIndicadorAvulsoDto> projetoIndicadoresAvuslsosDto = form.indicadoresAvulsosProjeto();
-		Set<ProjetoIndicadorAvulso> projetoIndicadoresAvulsoSet = projetoIndicadorAvulsoService.sincronizar( projetoResult, projetoIndicadoresAvuslsosDto );
-		
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
+		Set<ProjetoIndicadorAvulso> projetoIndicadoresAvulsoSet = projetoIndicadorAvulsoService
+				.sincronizar(projetoResult, projetoIndicadoresAvuslsosDto);
+
+		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(),
+				form.rateio());
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
@@ -512,7 +556,8 @@ public class ProjetoService {
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
-				this.buscarIndicadoresAvulsos(projetoIndicadoresAvulsoSet));
+				this.buscarIndicadoresAvulsos(projetoIndicadoresAvulsoSet),
+				this.buscarOdsProjeto(projetoOdsSet));
 
 	}
 

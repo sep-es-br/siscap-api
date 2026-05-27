@@ -20,19 +20,19 @@ import br.gov.es.siscap.dto.ProjetoIndicadorCatalogoMetaDto;
 public class ProjetoIndicadorExternoMeta extends ControleHistorico {
 
 	public ProjetoIndicadorExternoMeta(ProjetoIndicadorCatalogoMetaDto dto) {
-		this.setIdFato(dto.idFato());
 		this.setAnoMeta(dto.anoMeta());
 		this.setValorMeta(dto.valorMeta());
 	}
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "projeto_indicador_externo_meta_id_seq")
-	@SequenceGenerator(name = "projeto_indicador_externo_meta_id_seq", sequenceName = "projeto_indicador_externo_meta_id_seq", allocationSize = 1)
+	@SequenceGenerator(
+		name = "projeto_indicador_externo_meta_id_seq",
+		sequenceName = "projeto_indicador_externo_meta_id_seq",
+		allocationSize = 1
+	)
 	@Column(name = "id", nullable = false)
 	private Integer id;
-
-	@Column(name = "id_fato", nullable = false)
-	private Integer idFato;
 
 	@Column(name = "ano_meta", nullable = false)
 	private Integer anoMeta;

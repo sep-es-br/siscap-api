@@ -26,7 +26,7 @@ public class ProjetoIndicadorService {
 
 	private final ProjetoIndicadorRepository projetoIndicadorRepository;
 	private final Logger logger = LogManager.getLogger(ProjetoIndicadorService.class);
-	
+
 	public Set<ProjetoIndicador> buscarPorProjeto(Projeto projeto) {
 		logger.info("Buscando indicadores do Projeto com id: {}", projeto.getId());
 		return this.projetoIndicadorRepository.findAllByProjeto(projeto);
@@ -43,37 +43,10 @@ public class ProjetoIndicadorService {
 
 		projetoIndicadorDtoList.forEach(indicadorDto -> {
 			ProjetoIndicador indicadorProjeto = new ProjetoIndicador(projeto, indicadorDto);
-			// if (indicadorDto.idIndicadorExterno() != null) {
-			// IndicadorExterno indicador = indicadorExternoRepository
-			// .findById(indicadorDto.idIndicadorExterno())
-			// .orElseThrow(() -> new RuntimeException("Indicador externo não encontrado"));
-			// indicadorProjeto.setIdIndicadorExterno(indicador.getId());
-			// }
 			projetoIndicadorSet.add(indicadorProjeto);
 		});
 
 		List<ProjetoIndicador> projetoIndicadorList = projetoIndicadorRepository.saveAll(projetoIndicadorSet);
-
-		// for (ProjetoIndicador projetoIndicador : projetoIndicadorList) {
-
-		// ProjetoIndicadorDto indicadorDto = projetoIndicadorDtoList.stream()
-		// .filter(dto -> Objects.equals(dto.idIndicadorExterno(),
-		// projetoIndicador.getIndicadorExterno() != null
-		// ? projetoIndicador.getIndicadorExterno().getId()
-		// : null))
-		// .findFirst()
-		// .orElseThrow(() -> new RuntimeException("DTO do indicador não encontrado"));
-
-		// // validarOdsSelecionadas(indicadorDto);
-
-		// // Set<ProjetoIndicadorOds> odsSelecionadas = indicadorDto.odsSelecionadas()
-		// // .stream()
-		// // .map( odsDto -> criarProjetoIndicadorOds(projetoIndicador, odsDto))
-		// // .collect(Collectors.toSet());
-
-		// // projetoIndicador.setOdsSelecionadas(odsSelecionadas);
-
-		// }
 
 		List<ProjetoIndicador> projetoIndicadorListAtualizada = projetoIndicadorRepository
 				.saveAll(projetoIndicadorList);
@@ -81,8 +54,6 @@ public class ProjetoIndicadorService {
 		logger.info("Indicadores do projeto cadastrados com sucesso");
 
 		return new HashSet<>(projetoIndicadorListAtualizada);
-
-		// return new HashSet<>(projetoIndicadorList);
 
 	}
 
@@ -329,7 +300,7 @@ public class ProjetoIndicadorService {
 					return indicador;
 				})
 				.collect(Collectors.toSet());
-				
+
 	}
 
 	private void atualizarMetas(ProjetoIndicador indicador, List<ProjetoIndicadorCatalogoMetaDto> metasDto) {
@@ -342,8 +313,8 @@ public class ProjetoIndicadorService {
 				.map(dto -> {
 					ProjetoIndicadorExternoMeta meta;
 
-					if (dto.idFato() != null && existentesMap.containsKey(dto.idFato())) {
-						meta = existentesMap.get(dto.idFato());
+					if (dto.id() != null && existentesMap.containsKey(dto.id())) {
+						meta = existentesMap.get(dto.id());
 						meta.setValorMeta(dto.valorMeta());
 						meta.setAnoMeta(dto.anoMeta());
 					} else {

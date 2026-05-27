@@ -3,13 +3,13 @@ package br.gov.es.siscap.dto;
 import br.gov.es.siscap.models.ProjetoIndicadorExternoMeta;
 
 public record ProjetoIndicadorCatalogoMetaDto(
-		Integer idFato,
+		Integer id,
 		Integer anoMeta,
 		String valorMeta) {
 
 	public ProjetoIndicadorCatalogoMetaDto(ProjetoIndicadorExternoMeta meta) {
     this(
-        meta.getIdFato(),
+		meta.getId(),
 		meta.getAnoMeta(),
         meta.getValorMeta()
     );

@@ -43,7 +43,9 @@ public record ProjetoDto(
 		List<ProjetoParecerDto> pareceresProjeto,
 		String nomeProponente,
 		List<StatusProjetoDto> historico,
-		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto ) {
+		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto,
+		List<ProjetoOdsDto> odsProjeto
+	) {
 
 	public ProjetoDto(Projeto projeto,
 			ValorDto valor,
@@ -67,7 +69,8 @@ public record ProjetoDto(
 			List<ProjetoParecerDto> pareceresProjeto,
 			String nomeProponente,
 			List<StatusProjetoDto> historico,
-			List<ProjetoIndicadorAvulsoDto> projetoIndicadorAvulsos) {
+			List<ProjetoIndicadorAvulsoDto> projetoIndicadorAvulsos,
+			List<ProjetoOdsDto> odsProjeto) {
 
 		this(projeto.getId(),
 				projeto.getSigla(),
@@ -105,7 +108,8 @@ public record ProjetoDto(
 				pareceresProjeto,
 				nomeProponente,
 				historico,
-				projetoIndicadorAvulsos);
+				projetoIndicadorAvulsos,
+				odsProjeto);
 
 	}
 
@@ -146,8 +150,8 @@ public record ProjetoDto(
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(), 
 				"",
 				Optional.ofNullable(projeto.getHistoricoStatus()).map(hl -> hl.stream().map(StatusProjetoDto::new).toList()).orElse(new ArrayList<>()),
-				projeto.getProjetoIndicadorAvulsoSet().stream().map(ProjetoIndicadorAvulsoDto::new).toList()
-			);
+				projeto.getProjetoIndicadorAvulsoSet().stream().map(ProjetoIndicadorAvulsoDto::new).toList(),
+				projeto.getOds().stream().map(ProjetoOdsDto::new).toList());
 
 	}
 
