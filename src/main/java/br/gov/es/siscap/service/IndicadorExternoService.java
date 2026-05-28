@@ -122,7 +122,12 @@ public class IndicadorExternoService {
 
 		List<IndicadorPentahoBiDto> listaIndicadoresBI = this.listarIndicadoresBI(filtro);
 
-		List<OdsPentahoBiDto> listaOdsBI = this.listarOdsBI();
+		String idsIndicadores = listaIndicadoresBI.stream()
+				.map(ind -> String.valueOf(ind.idIndicador()))
+				.distinct()
+				.collect(Collectors.joining(","));
+
+		List<OdsPentahoBiDto> listaOdsBI = this.listarOdsBI(idsIndicadores);
 
 		Map<Integer, List<OdsIndicadorExternoDto>> odsPorIndicador = listaOdsBI.stream()
 				.collect(Collectors.groupingBy(
@@ -263,10 +268,14 @@ public class IndicadorExternoService {
 				.collect(Collectors.joining(","));
 	}
 
-	public List<OdsPentahoBiDto> listarOdsBI() {
+	public List<OdsPentahoBiDto> listarOdsBI(String idsIndicadores) {
+
+		String parametroOds = idsIndicadores != null && !idsIndicadores.isBlank()
+				? idsIndicadores
+				: "-1";
 
 		Map<String, Object> params = Map.of(
-				"paramp_ods", "-1");
+				"paramp_ods", parametroOds);
 
 		return apiUtils.consult(targetOds, odsDataAccessId, siscapPath, params,
 				rs -> new OdsPentahoBiDto(
@@ -326,35 +335,37 @@ public class IndicadorExternoService {
 	}
 
 	// private boolean aplicarFiltroIndicador(
-	// 		IndicadorPentahoBiDto item,
-	// 		Long filtroGestao,
-	// 		FiltroIndicadorDto filtro) {
-	// 	if (item.idGestao() == null || !Objects.equals(item.idGestao().longValue(), filtroGestao)) {
-	// 		return false;
-	// 	}
-	// 	if (filtro == null) {
-	// 		return true;
-	// 	}
-	// 	if (filtro.desafios() != null && !filtro.desafios().isEmpty()) {
-	// 		return (item.idDesafio() == null || !filtro.desafios().contains(item.idDesafio().longValue()));
-	// 	}
-	// 	if (filtro.labels() != null && !filtro.labels().isEmpty()) {
-	// 		for (FiltroLabelDto label : filtro.labels()) {
-	// 			if (label.idLabel() == null
-	// 					|| label.idLabelValores() == null
-	// 					|| label.idLabelValores().isEmpty()) {
-	// 				continue;
-	// 			}
-	// 			boolean match = item.idOrganizador() != null
-	// 					// && item. idLabelValor() != null
-	// 					&& Objects.equals(item.idOrganizador().longValue(), label.idLabel());
-	// 			// && label.idLabelValores().contains(item.idLabelValor().longValue());
-	// 			if (!match) {
-	// 				return false;
-	// 			}
-	// 		}
-	// 	}
-	// 	return true;
+	// IndicadorPentahoBiDto item,
+	// Long filtroGestao,
+	// FiltroIndicadorDto filtro) {
+	// if (item.idGestao() == null || !Objects.equals(item.idGestao().longValue(),
+	// filtroGestao)) {
+	// return false;
+	// }
+	// if (filtro == null) {
+	// return true;
+	// }
+	// if (filtro.desafios() != null && !filtro.desafios().isEmpty()) {
+	// return (item.idDesafio() == null ||
+	// !filtro.desafios().contains(item.idDesafio().longValue()));
+	// }
+	// if (filtro.labels() != null && !filtro.labels().isEmpty()) {
+	// for (FiltroLabelDto label : filtro.labels()) {
+	// if (label.idLabel() == null
+	// || label.idLabelValores() == null
+	// || label.idLabelValores().isEmpty()) {
+	// continue;
+	// }
+	// boolean match = item.idOrganizador() != null
+	// // && item. idLabelValor() != null
+	// && Objects.equals(item.idOrganizador().longValue(), label.idLabel());
+	// // && label.idLabelValores().contains(item.idLabelValor().longValue());
+	// if (!match) {
+	// return false;
+	// }
+	// }
+	// }
+	// return true;
 	// }
 
 }
