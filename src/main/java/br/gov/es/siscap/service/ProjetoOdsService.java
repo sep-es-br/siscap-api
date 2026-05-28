@@ -2,11 +2,11 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.OdsPentahoBiDto;
 import br.gov.es.siscap.dto.ProjetoOdsDto;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoOds;
 import br.gov.es.siscap.repository.ProjetoOdsRepository;
 import br.gov.es.siscap.utils.pentaho.ApiUtils;
-import br.gov.es.siscap.utils.pentaho.PentahoBIService;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.logging.log4j.LogManager;
@@ -79,52 +79,6 @@ public class ProjetoOdsService {
 		return new HashSet<>(projetoOdsList);
 
 	}
-
-	// private void validarOdsSelecionadas(ProjetoIndicadorDto indicadorDto) {
-	// if (indicadorDto.odsSelecionadas() == null ||
-	// indicadorDto.odsSelecionadas().isEmpty()) {
-	// throw new SiscapServiceException(Arrays.asList("É obrigatório selecionar pelo
-	// menos uma ODS para o indicador."));
-	// }
-	// if (indicadorDto.idIndicadorExterno() == null) {
-	// throw new SiscapServiceException(Arrays.asList("Indicador externo é
-	// obrigatório para vincular ODS."));
-	// }
-	// if (!indicadorDto.odsSelecionadas().isEmpty()) {
-	// boolean existeOdsInvalida = indicadorDto.odsSelecionadas()
-	// .stream()
-	// .anyMatch(odsDto -> !odsIndicadorExternoRepository
-	// .existsByIdAndIndicadorExternoId(
-	// odsDto.idOdsIndicadorExterno(),
-	// indicadorDto.idIndicadorExterno()
-	// ));
-	// if (existeOdsInvalida) {
-	// throw new SiscapServiceException(
-	// Arrays.asList("Uma ou mais ODS selecionadas não pertencem ao indicador
-	// informado.")
-	// );
-	// }
-	// }
-	// }
-
-	// private ProjetoIndicadorOds criarProjetoIndicadorOds(
-	// ProjetoIndicador projetoIndicador,
-	// ProjetoIndicadorOdsDto odsDto
-	// ) {
-	// OdsIndicadorExterno odsIndicadorExterno = odsIndicadorExternoRepository
-	// .findById(odsDto.idOdsIndicadorExterno())
-	// .orElseThrow(() -> new SiscapServiceException(Arrays.asList("ODS vinculada ao
-	// indicador externo não encontrada.")));
-	// if (!odsIndicadorExterno.getIndicadorExterno().getId()
-	// .equals(projetoIndicador.getIndicadorExterno().getId())) {
-	// throw new SiscapServiceException(Arrays.asList("A ODS selecionada não
-	// pertence ao indicador informado."));
-	// }
-	// ProjetoIndicadorOds projetoIndicadorOds = new ProjetoIndicadorOds();
-	// projetoIndicadorOds.setProjetoIndicador(projetoIndicador);
-	// projetoIndicadorOds.setOdsIndicadorExterno(odsIndicadorExterno);
-	// return projetoIndicadorOds;
-	// }
 
 	@Transactional
 	public Set<ProjetoOds> atualizar(Projeto projeto, List<ProjetoOdsDto> projetoOdsDtoList) {
@@ -202,23 +156,6 @@ public class ProjetoOdsService {
 
 	}
 
-	// private void validarOdsPertencemAoIndicador(
-	// ProjetoIndicador projetoIndicador,
-	// Set<Integer> idsOdsIndicadorExterno
-	// ) {
-	// Integer idIndicadorExterno = projetoIndicador.getIndicadorExterno().getId();
-	// boolean existeOdsInvalida = idsOdsIndicadorExterno.stream()
-	// .anyMatch(idOdsIndicadorExterno ->
-	// !odsIndicadorExternoRepository.existsByIdAndIndicadorExternoId(
-	// idOdsIndicadorExterno,
-	// idIndicadorExterno )
-	// );
-	// if (existeOdsInvalida) {
-	// throw new SiscapServiceException(Arrays.asList("Uma ou mais ODS selecionadas
-	// não pertencem ao indicador informado."));
-	// }
-	// }
-
 	@Transactional
 	public void excluirPorProjeto(Projeto projeto) {
 
@@ -254,29 +191,51 @@ public class ProjetoOdsService {
 			List<ProjetoOdsDto> dtoList) {
 
 		Map<Integer, ProjetoOds> odsExistentesMap = odsExistentes.stream()
-				.filter(ind -> ind.getId() != null)
+				.filter(ods -> ods.getId() != null)
 				.collect(Collectors.toMap(ProjetoOds::getId, Function.identity()));
 
 		return dtoList.stream()
 				.map(dto -> {
+
 					if (dto.odsId() == null) {
-						throw new IllegalArgumentException("Id da Ods do BI não pode ser null");
+						throw new ValidacaoSiscapException(List.of("Id da ODS do BI não pode ser null."));
 					}
+
 					ProjetoOds ods;
+
 					if (dto.idOdsProjeto() != null && odsExistentesMap.containsKey(dto.idOdsProjeto())) {
 						ods = odsExistentesMap.get(dto.idOdsProjeto());
 					} else {
 						ods = new ProjetoOds();
 						ods.setProjeto(projeto);
-						// ods.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
 					}
-					// ods.setTipoOds(dto.tipoOds());
-					// ods.setDescricaoOds(dto.descricaoOds());
-					// ods.setDescricaoMeta(dto.descricaoMeta());
-					// ods.setIdOdsIndicadorExterno(dto.idOdsIndicadorExterno());
+
+					ods.setIdOds(dto.odsId());
+
 					return ods;
 				})
 				.collect(Collectors.toSet());
+
+		// Map<Integer, ProjetoOds> odsExistentesMap = odsExistentes.stream()
+		// .filter(ind -> ind.getId() != null)
+		// .collect(Collectors.toMap(ProjetoOds::getId, Function.identity()));
+
+		// return dtoList.stream()
+		// .map(dto -> {
+		// if (dto.odsId() == null) {
+		// throw new IllegalArgumentException("Id da Ods do BI não pode ser null");
+		// }
+		// ProjetoOds ods;
+		// if (dto.idOdsProjeto() != null &&
+		// odsExistentesMap.containsKey(dto.idOdsProjeto())) {
+		// ods = odsExistentesMap.get(dto.idOdsProjeto());
+		// } else {
+		// ods = new ProjetoOds();
+		// ods.setProjeto(projeto);
+		// }
+		// return ods;
+		// })
+		// .collect(Collectors.toSet());
 
 	}
 
@@ -284,38 +243,27 @@ public class ProjetoOdsService {
 
 		List<OdsPentahoBiDto> odsBiList = this.listarOdsPorIds(odsIds);
 
-		// return odsBiList.stream()
-		// 		.filter(ods -> odsIds.contains(ods.odsId()))
-		// 		.map(ods -> new ProjetoOdsDto(
-		// 				ods.odsId(),
-		// 				ods.ordemOds(),
-		// 				ods.nomeOds(),
-		// 				ods.descricaoOds()))
-		// 		.toList();
-
 		return odsBiList.stream()
-        .filter(ods -> odsIds.contains(ods.odsId()))
-        .collect(Collectors.toMap(
-                OdsPentahoBiDto::odsId,
-                ods -> new ProjetoOdsDto(
-                        ods.odsId(),
-                        ods.ordemOds(),
-                        ods.nomeOds(),
-                        ods.descricaoOds()
-                ),
-                (existente, repetido) -> existente
-        ))
-        .values()
-        .stream()
-        .toList();
+				.filter(ods -> odsIds.contains(ods.odsId()))
+				.collect(Collectors.toMap(
+						OdsPentahoBiDto::odsId,
+						ods -> new ProjetoOdsDto(
+								ods.odsId(),
+								ods.ordemOds(),
+								ods.nomeOds(),
+								ods.descricaoOds(),
+								obterCorOds(ods.ordemOds())),
+						(existente, repetido) -> existente))
+				.values()
+				.stream()
+				.toList();
 
 	}
 
 	private List<OdsPentahoBiDto> listarOdsPorIds(List<Integer> odsIds) {
 
-		Map<String, Object> params = Map.of();
-		// "ids",
-		// odsIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
+		Map<String, Object> params = Map.of(
+				"paramp_ods", "-1");
 
 		return pentahoBIService.consult(targetOds, odsDataAccessId, siscapPath, params,
 				rs -> new OdsPentahoBiDto(
@@ -323,8 +271,38 @@ public class ProjetoOdsService {
 						rs.get("OdsId").asInt(),
 						rs.get("DescricaoOds").asText(),
 						rs.get("nomeOds").asText(),
-						rs.get("ordemOds").asInt()));
+						rs.get("ordemOds").asInt(),
+						obterCorOds(rs.get("ordemOds").asInt())));
 
+	}
+
+	private String obterCorOds(Integer ordemOds) {
+
+		if (ordemOds == null) {
+			return null;
+		}
+
+		return switch (ordemOds) {
+			case 1 -> "#E5243B";
+			case 2 -> "#DDA63A";
+			case 3 -> "#4C9F38";
+			case 4 -> "#C5192D";
+			case 5 -> "#FF3A21";
+			case 6 -> "#26BDE2";
+			case 7 -> "#FCC30B";
+			case 8 -> "#A21942";
+			case 9 -> "#FD6925";
+			case 10 -> "#DD1367";
+			case 11 -> "#FD9D24";
+			case 12 -> "#BF8B2E";
+			case 13 -> "#3F7E44";
+			case 14 -> "#0A97D9";
+			case 15 -> "#56C02B";
+			case 16 -> "#00689D";
+			case 17 -> "#19486A";
+			case 18 -> "#7A3A1A";
+			default -> null;
+		};
 	}
 
 }

@@ -5,5 +5,6 @@ public record OdsPentahoBiDto(
         Integer odsId,
         String descricaoOds,
         String nomeOds,
-        Integer ordemOds) {
+        Integer ordemOds,
+        String corOds) {
 }

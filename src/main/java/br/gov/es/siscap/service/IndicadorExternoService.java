@@ -3,8 +3,8 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.IndicadorPentahoBiDto;
 import br.gov.es.siscap.dto.OdsPentahoBiDto;
 import br.gov.es.siscap.dto.indicadoresexternos.FiltroIndicadorDto;
+import br.gov.es.siscap.dto.indicadoresexternos.FiltroLabelDto;
 import br.gov.es.siscap.dto.indicadoresexternos.IndicadorDesafioExternoDTO;
-import br.gov.es.siscap.dto.indicadoresexternos.IndicadorFatoAgrupadoDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.LabelDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.LabelValorDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.MetasIndicadorExternoDto;
@@ -13,7 +13,6 @@ import br.gov.es.siscap.dto.indicadoresexternos.OpcoesGestaoIndicadorDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesIndicadoresDto;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.form.IndicadorAvulsoForm;
-import br.gov.es.siscap.models.IndicadorExterno;
 import br.gov.es.siscap.models.IndicadorGestaoExterno;
 import br.gov.es.siscap.models.IndicadorGestaoLabel;
 import br.gov.es.siscap.repository.IndicadorGestaoExternoRepository;
@@ -61,8 +60,6 @@ public class IndicadorExternoService {
 	private String targetOds;
 
 	private final IndicadorGestaoExternoRepository repository;
-	// private final IndicadorExternoRepository indicadorExternoRepository;
-	// private final FatoIndicadorService fatoIndicadorService;
 	private final ApiUtils apiUtils;
 
 	private final Logger logger = LogManager.getLogger(IndicadorExternoService.class);
@@ -140,6 +137,7 @@ public class IndicadorExternoService {
 								obterCorOds(ods.ordemOds())), Collectors.toList())));
 
 		return listaIndicadoresBI.stream()
+				.filter(item -> aplicarFiltroIndicador(item, filtroGestao, filtro))
 				.collect(Collectors.groupingBy(IndicadorPentahoBiDto::idIndicador))
 				.values()
 				.stream()
@@ -176,71 +174,7 @@ public class IndicadorExternoService {
 				})
 				.toList();
 
-		// return listaIndicadoresBI.stream()
-		// .collect(Collectors.toMap(
-		// IndicadorPentahoBiDto::idIndicador,
-		// Function.identity(),
-		// (existente, repetido) -> existente
-		// ))
-		// .values()
-		// .stream()
-		// // converte para DTO do frontend
-		// .map(indicador -> new OpcoesIndicadoresDto(
-		// indicador.idIndicador(),
-		// indicador.nomeIndicador(),
-		// indicador.unidadeMedida(), // unidadeMedida
-		// indicador.polaridade(), // polaridade
-		// indicador.medidoPor(), // medidoPor
-		// Collections.emptyList(), // metasIndicador
-		// indicador.maiorAnoIndicador(), // maiorAnoIndicador
-		// BigDecimal.valueOf(indicador.maiorMetaIndicador()), // maiorMetaIndicador
-		// Collections.emptyList() // ods
-		// )).toList();
-		// List<Long> labels = null;
-		// List<Long> valores = null;
-		// List<Long> desafios = null;
-		// if (filtro != null) {
-		// if (filtro.labels() != null && !filtro.labels().isEmpty()) {
-		// labels = filtro.labels().stream()
-		// .map(FiltroLabelDto::idLabel)
-		// .distinct()
-		// .toList();
-		// valores = filtro.labels().stream()
-		// .flatMap(label -> label.idLabelValores().stream())
-		// .distinct()
-		// .toList();
-		// }
-		// if (filtro.desafios() != null
-		// && !filtro.desafios().isEmpty()) {
-		// desafios = filtro.desafios();
-		// }
-		// }
-		// List<IndicadorExterno> indicadores =
-		// indicadorExternoRepository.buscarPorFiltros( filtroGestao, labels, desafios
-		// );
-		// Map<Integer, IndicadorFatoAgrupadoDTO> dadosPorIndicador =
-		// fatoIndicadorService.buscarDadosAgrupados(indicadores);
-		// return indicadores.stream()
-		// .map(ie -> toDto(ie, dadosPorIndicador.get(ie.getId())))
-		// .toList();
 	}
-
-	// private OpcoesIndicadoresDto toDto( IndicadorExterno ie, IndicadorFatoAgrupadoDTO dadosFato) {
-	// 	List<OdsIndicadorExternoDto> ods = ie.getOdsIndicadores()
-	// 			.stream()
-	// 			.map(OdsIndicadorExternoDto::new)
-	// 			.toList();
-	// 	return new OpcoesIndicadoresDto(
-	// 			ie.getId(),
-	// 			ie.getNome(),
-	// 			ie.getUnidadeMedida(),
-	// 			ie.getPolaridade(),
-	// 			ie.getMedidoPor(),
-	// 			dadosFato.metas(),
-	// 			dadosFato.maiorAno() != null ? dadosFato.maiorAno() : null,
-	// 			dadosFato.maiorMeta() != null ? dadosFato.maiorMeta() : null,
-	// 			ods);
-	// }
 
 	public List<OpcoesIndicadoresDto> cadastrarIndicadorAvulso(IndicadorAvulsoForm form) {
 
@@ -285,7 +219,8 @@ public class IndicadorExternoService {
 
 	public List<OdsPentahoBiDto> listarOdsBI() {
 
-		Map<String, Object> params = Map.of();
+		Map<String, Object> params = Map.of(
+				"paramp_ods", "-1");
 
 		return apiUtils.consult(targetOds, odsDataAccessId, siscapPath, params,
 				rs -> new OdsPentahoBiDto(
@@ -293,25 +228,10 @@ public class IndicadorExternoService {
 						rs.get("OdsId").asInt(),
 						rs.get("DescricaoOds").asText(),
 						rs.get("nomeOds").asText(),
-						rs.get("ordemOds").asInt()));
+						rs.get("ordemOds").asInt(),
+						obterCorOds(rs.get("ordemOds").asInt())));
 
 	}
-
-	// private HashMap<String, Object> params( BudgetExecutionRequestDTO request ) {
-	// String months = request.getMonth() != null
-	// ?
-	// request.getMonth().stream().map(String::valueOf).collect(Collectors.joining(","))
-	// : "";
-	// String sourceTypes = request.getSourceType() != null
-	// ?
-	// request.getSourceType().stream().map(String::valueOf).collect(Collectors.joining(","))
-	// : "";
-	// HashMap<String, Object> params = new HashMap<>();
-	// params.put("parampAno", request.getYear());
-	// params.put("parampMes", months);
-	// params.put("parampTipoFonte", sourceTypes);
-	// return params;
-	// }
 
 	private BigDecimal toBigDecimal(String valor) {
 
@@ -357,6 +277,46 @@ public class IndicadorExternoService {
 			case 18 -> "#7A3A1A";
 			default -> null;
 		};
+	}
+
+	private boolean aplicarFiltroIndicador(
+			IndicadorPentahoBiDto item,
+			Long filtroGestao,
+			FiltroIndicadorDto filtro) {
+
+		if (item.idGestao() == null || !Objects.equals(item.idGestao().longValue(), filtroGestao)) {
+			return false;
+		}
+
+		if (filtro == null) {
+			return true;
+		}
+
+		if (filtro.desafios() != null && !filtro.desafios().isEmpty()) {
+			return ( item.idDesafio() == null || !filtro.desafios().contains(item.idDesafio().longValue() ) );
+		}
+
+		if (filtro.labels() != null && !filtro.labels().isEmpty()) {
+			for (FiltroLabelDto label : filtro.labels()) {
+
+				if (label.idLabel() == null
+						|| label.idLabelValores() == null
+						|| label.idLabelValores().isEmpty()) {
+					continue;
+				}
+
+				boolean match = item.idOrganizador() != null
+						//&& item. idLabelValor() != null
+						&& Objects.equals(item.idOrganizador().longValue(), label.idLabel());
+						//&& label.idLabelValores().contains(item.idLabelValor().longValue());
+
+				if (!match) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 }

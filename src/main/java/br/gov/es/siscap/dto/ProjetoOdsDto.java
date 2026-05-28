@@ -7,7 +7,8 @@ public record ProjetoOdsDto(
         Integer odsId,
         Integer odsOrdem,
         String odsNome,
-        String odsDescricao) {
+        String odsDescricao,
+        String odsCor) {
 
     public ProjetoOdsDto(ProjetoOds entity) {
         this(
@@ -15,17 +16,19 @@ public record ProjetoOdsDto(
             entity.getIdOds(),
             null,
             "",
+            "",
             ""
         );
     }
 
-    public ProjetoOdsDto(Integer odsId, Integer odsOrdem, String nomeOds, String descricaoOds) {
+    public ProjetoOdsDto(Integer odsId, Integer odsOrdem, String nomeOds, String descricaoOds, String odsCor) {
         this(
             null,
             odsId,
             odsOrdem,
             nomeOds,
-            descricaoOds
+            descricaoOds,
+            odsCor
         );
     }
 }

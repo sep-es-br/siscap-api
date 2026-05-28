@@ -276,7 +276,8 @@ public class ProjetoService {
 						ods.odsId(),
 						ods.odsOrdem(),
 						ods.odsNome(),
-						ods.odsDescricao()))
+						ods.odsDescricao(),
+						ods.odsCor()))
 				.toList();
 				
 	}
