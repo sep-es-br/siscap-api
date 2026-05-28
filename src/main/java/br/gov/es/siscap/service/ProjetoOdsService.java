@@ -262,8 +262,16 @@ public class ProjetoOdsService {
 
 	private List<OdsPentahoBiDto> listarOdsPorIds(List<Integer> odsIds) {
 
+		String parametroOds = odsIds != null && !odsIds.isEmpty()
+				? odsIds.stream()
+						.map(String::valueOf)
+						.distinct()
+						.collect(Collectors.joining(","))
+				: "-1";
+
 		Map<String, Object> params = Map.of(
-				"paramp_ods", "-1");
+				"paramp_ods", parametroOds,
+				"paramp_indicador", "-1");
 
 		return pentahoBIService.consult(targetOds, odsDataAccessId, siscapPath, params,
 				rs -> new OdsPentahoBiDto(

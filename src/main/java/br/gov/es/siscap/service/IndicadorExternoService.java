@@ -270,12 +270,13 @@ public class IndicadorExternoService {
 
 	public List<OdsPentahoBiDto> listarOdsBI(String idsIndicadores) {
 
-		String parametroOds = idsIndicadores != null && !idsIndicadores.isBlank()
-				? idsIndicadores
+		String parametroIndicadores = idsIndicadores != null && !idsIndicadores.trim().isEmpty()
+				? idsIndicadores.trim()
 				: "-1";
 
 		Map<String, Object> params = Map.of(
-				"paramp_ods", parametroOds);
+				"paramp_ods", "-1",
+				"paramp_indicadores", parametroIndicadores);
 
 		return apiUtils.consult(targetOds, odsDataAccessId, siscapPath, params,
 				rs -> new OdsPentahoBiDto(
