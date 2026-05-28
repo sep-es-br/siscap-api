@@ -120,7 +120,7 @@ public class IndicadorExternoService {
 			throw new SiscapServiceException(Arrays.asList("Gestão é obrigatória"));
 		}
 
-		List<IndicadorPentahoBiDto> listaIndicadoresBI = this.listarIndicadoresBI();
+		List<IndicadorPentahoBiDto> listaIndicadoresBI = this.listarIndicadoresBI(filtro);
 
 		List<OdsPentahoBiDto> listaOdsBI = this.listarOdsBI();
 
@@ -137,7 +137,6 @@ public class IndicadorExternoService {
 								obterCorOds(ods.ordemOds())), Collectors.toList())));
 
 		return listaIndicadoresBI.stream()
-				.filter(item -> aplicarFiltroIndicador(item, filtroGestao, filtro))
 				.collect(Collectors.groupingBy(IndicadorPentahoBiDto::idIndicador))
 				.values()
 				.stream()
@@ -186,9 +185,25 @@ public class IndicadorExternoService {
 
 	}
 
-	public List<IndicadorPentahoBiDto> listarIndicadoresBI() {
+	public List<IndicadorPentahoBiDto> listarIndicadoresBI(FiltroIndicadorDto filtro) {
 
-		Map<String, Object> params = Map.of();
+		String desafios = "-1"; // todos
+		String organizadores = "-1"; // todos
+
+		if (filtro != null) {
+
+			if (filtro.desafios() != null && !filtro.desafios().isEmpty()) {
+				desafios = montarListaIds(filtro.desafios());
+			}
+
+			if (filtro.labels() != null && !filtro.labels().isEmpty()) {
+				organizadores = montarOrganizadores(filtro.labels());
+			}
+		}
+
+		Map<String, Object> params = Map.of(
+				"paramp_desafio", desafios,
+				"paramp_organizador", organizadores);
 
 		String pmoPath = siscapPath;
 		String target = targetIndicadores;
@@ -215,6 +230,37 @@ public class IndicadorExternoService {
 						rs.get("maiorAnoIndicador").asInt(),
 						rs.get("maiorMetaIndicador").asDouble()));
 
+	}
+
+	private String montarOrganizadores(List<FiltroLabelDto> labels) {
+
+		String organizadores = labels == null
+				? "-1"
+				: labels.stream()
+						.filter(label -> label.idLabelValores() != null)
+						.flatMap(label -> label.idLabelValores().stream())
+						.distinct()
+						.map(String::valueOf)
+						.collect(Collectors.joining(","));
+
+		if (organizadores.isBlank()) {
+			organizadores = "-1";
+		}
+
+		return organizadores;
+
+	}
+
+	private String montarListaIds(List<Long> ids) {
+
+		if (ids == null || ids.isEmpty()) {
+			return "-1";
+		}
+
+		return ids.stream()
+				.distinct()
+				.map(String::valueOf)
+				.collect(Collectors.joining(","));
 	}
 
 	public List<OdsPentahoBiDto> listarOdsBI() {
@@ -279,44 +325,36 @@ public class IndicadorExternoService {
 		};
 	}
 
-	private boolean aplicarFiltroIndicador(
-			IndicadorPentahoBiDto item,
-			Long filtroGestao,
-			FiltroIndicadorDto filtro) {
-
-		if (item.idGestao() == null || !Objects.equals(item.idGestao().longValue(), filtroGestao)) {
-			return false;
-		}
-
-		if (filtro == null) {
-			return true;
-		}
-
-		if (filtro.desafios() != null && !filtro.desafios().isEmpty()) {
-			return ( item.idDesafio() == null || !filtro.desafios().contains(item.idDesafio().longValue() ) );
-		}
-
-		if (filtro.labels() != null && !filtro.labels().isEmpty()) {
-			for (FiltroLabelDto label : filtro.labels()) {
-
-				if (label.idLabel() == null
-						|| label.idLabelValores() == null
-						|| label.idLabelValores().isEmpty()) {
-					continue;
-				}
-
-				boolean match = item.idOrganizador() != null
-						//&& item. idLabelValor() != null
-						&& Objects.equals(item.idOrganizador().longValue(), label.idLabel());
-						//&& label.idLabelValores().contains(item.idLabelValor().longValue());
-
-				if (!match) {
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
+	// private boolean aplicarFiltroIndicador(
+	// 		IndicadorPentahoBiDto item,
+	// 		Long filtroGestao,
+	// 		FiltroIndicadorDto filtro) {
+	// 	if (item.idGestao() == null || !Objects.equals(item.idGestao().longValue(), filtroGestao)) {
+	// 		return false;
+	// 	}
+	// 	if (filtro == null) {
+	// 		return true;
+	// 	}
+	// 	if (filtro.desafios() != null && !filtro.desafios().isEmpty()) {
+	// 		return (item.idDesafio() == null || !filtro.desafios().contains(item.idDesafio().longValue()));
+	// 	}
+	// 	if (filtro.labels() != null && !filtro.labels().isEmpty()) {
+	// 		for (FiltroLabelDto label : filtro.labels()) {
+	// 			if (label.idLabel() == null
+	// 					|| label.idLabelValores() == null
+	// 					|| label.idLabelValores().isEmpty()) {
+	// 				continue;
+	// 			}
+	// 			boolean match = item.idOrganizador() != null
+	// 					// && item. idLabelValor() != null
+	// 					&& Objects.equals(item.idOrganizador().longValue(), label.idLabel());
+	// 			// && label.idLabelValores().contains(item.idLabelValor().longValue());
+	// 			if (!match) {
+	// 				return false;
+	// 			}
+	// 		}
+	// 	}
+	// 	return true;
+	// }
 
 }
