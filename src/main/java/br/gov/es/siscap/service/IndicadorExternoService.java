@@ -71,13 +71,10 @@ public class IndicadorExternoService {
 
 		return gestoes.stream()
 				.map(gestao -> {
-
 					List<LabelDTO> labels = gestao.getLabels().stream()
 							.sorted(Comparator.comparing(IndicadorGestaoLabel::getOrdem))
 							.map(gl -> {
-
 								var label = gl.getLabel();
-
 								List<LabelValorDTO> valores = label.getValores() != null
 										? label.getValores().stream()
 												.map(v -> new LabelValorDTO(
@@ -86,7 +83,6 @@ public class IndicadorExternoService {
 												.distinct() // evita duplicidade por causa do join fetch
 												.toList()
 										: List.of();
-
 								return new LabelDTO(
 										label.getId(),
 										label.getNome(),
