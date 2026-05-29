@@ -22,7 +22,7 @@ import br.gov.es.siscap.utils.EnvioAvisoProgramaAutuadoEdocsEmailBuilder;
 import br.gov.es.siscap.utils.EnvioAvisoSubcapDicAutuadoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioAvisoSubcapProgramaAssinadoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioComplementoDicEmailBuilder;
-import br.gov.es.siscap.utils.EnvioDicElegivelEmailBuilder;
+import br.gov.es.siscap.utils.EnvioDicElegibilidadeEmailBuilder;
 import br.gov.es.siscap.utils.EnvioDicVinculadoProgramaEmailBuilder;
 import br.gov.es.siscap.utils.EnvioPedidoParecerOrcamentarioEstrategicoEmailBuilder;
 import br.gov.es.siscap.utils.EnvioRevisaoDicEmailBuilder;
@@ -86,10 +86,10 @@ public class EmailService {
 	private final EnvioAvisoParecerGeocSubcapRealizadoEmailBuilder builderEnvioEmailAvisoParecerGEOCRealizado;
 	private final EnvioAvisoPedidoAssinaturaProgramaEmailBuilder envioAvisoPedidoAssinaturaProgramaEmailBuilder;
 	private final EnvioAvisoProgramaAutuadoEdocsEmailBuilder envioAvisoProgramaAutuadoEmailBuilder;
-	private final EnvioDicElegivelEmailBuilder envioDicElegivelEmailBuilder;
+	private final EnvioDicElegibilidadeEmailBuilder envioDicElegibilidadeEmailBuilder;
 	private final EnvioDicVinculadoProgramaEmailBuilder envioDicVinculadoProgramaEmailBuilder;
 	private final EnvioAvisoSubcapProgramaAssinadoEmailBuilder envioAvisoSubcapProgramaAssinadoEmailBuilder;
-	
+
 	public boolean enviarEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto, List<String> emailsInteressadosList,
 			String nomeArquivo, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) throws MessagingException, UnsupportedEncodingException {
 
@@ -488,8 +488,8 @@ public class EmailService {
 
 	}
 
-	public boolean enviarEmailAvisoDicElegivel(List<String> emailsInteressadosList, String descricaoDic,
-			Long idProjeto, String tituloDIC) {
+	public boolean enviarEmailAvisoDicElegibilidade(List<String> emailsInteressadosList, String descricaoDic,
+			Long idProjeto, String tituloDIC, String statusDic) {
 
 		Set<String> emailsUnicos = new LinkedHashSet<>(emailsInteressadosList);
 
@@ -504,10 +504,11 @@ public class EmailService {
 				null,
 				null, null, null, null, "", "", "", null);
 
-		envioDicElegivelEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
-		envioDicElegivelEmailBuilder.setSiglaProjeto(descricaoDic);
+		envioDicElegibilidadeEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
+		envioDicElegibilidadeEmailBuilder.setSiglaProjeto(descricaoDic);
+		envioDicElegibilidadeEmailBuilder.setElegibilidade(statusDic);
 
-		return emailSender.enviarEmail(envioDicElegivelEmailBuilder,
+		return emailSender.enviarEmail(envioDicElegibilidadeEmailBuilder,
 				envioEmailDicDetalhesDto.emailsInteressadosList());
 
 	}

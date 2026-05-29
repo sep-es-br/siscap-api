@@ -523,7 +523,7 @@ public class IntegraccaoEdocsService {
 									ctx.getProjeto().id(),
 									subUsuarioLogado);
 
-							projetoService.enviarAvisoEquipeElaboracaoDicElegivel(ctx.getProjeto().id());
+							projetoService.enviarAvisoEquipeElaboracaoDicElegibilidade(ctx.getProjeto().id());
 
 							encerrarProcessoEdcosClient(ctx);
 

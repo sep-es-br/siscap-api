@@ -1442,7 +1442,7 @@ public class ProjetoService {
 		projeto.finalizarStatusAtual(pessoa);
 	}
 
-	public boolean enviarAvisoEquipeElaboracaoDicElegivel(Long idDic) {
+	public boolean enviarAvisoEquipeElaboracaoDicElegibilidade(Long idDic) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -1467,11 +1467,12 @@ public class ProjetoService {
 
 		String siglaDic = projeto.getSigla();
 		String tituloDic = projeto.getTitulo();
+		String statusDic = projeto.getStatusAtual().getStatus();
 
-		if (emailService.enviarEmailAvisoDicElegivel(emailsInteressadosList, siglaDic, idDic, tituloDic)) {
+		if (emailService.enviarEmailAvisoDicElegibilidade(emailsInteressadosList, siglaDic, idDic, tituloDic, statusDic)) {
 			logger.info("Email aviso DIC Elegível id {}", idDic);
 		} else {
-			erros.add("Erro ao enviar aviso DIC Elegível id " + idDic);
+			erros.add("Erro ao enviar aviso elegibilidade DIC id " + idDic);
 		}
 
 		if (!erros.isEmpty()) {

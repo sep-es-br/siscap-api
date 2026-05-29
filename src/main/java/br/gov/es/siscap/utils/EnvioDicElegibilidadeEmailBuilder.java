@@ -10,9 +10,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @Component
-public class EnvioDicElegivelEmailBuilder extends EmailBuilderBase {
+public class EnvioDicElegibilidadeEmailBuilder extends EmailBuilderBase {
 
 	String siglaProjeto;
+	String elegibilidade;
 
 	@Override
 	protected String montarCampoTratamento(EnvioEmailDetalhesDto dto) {
@@ -21,13 +22,13 @@ public class EnvioDicElegivelEmailBuilder extends EmailBuilderBase {
 
 	@Override
 	public String montarAssuntoEmail() {
-		return "DIC %s - ELEGÍVEL".formatted(this.getSiglaProjeto());
+		return "DIC %s - %s".formatted(this.getSiglaProjeto(), this.getElegibilidade().toUpperCase());
 	}
 
 	@Override
 	protected String montarCorpoPrincipal(EnvioEmailDetalhesDto dto) {
-		return "Informamos que o DIC [<strong>%s</strong>] está elegível para ser vinculado a um programa de captação."
-				.formatted(dto.tituloProjeto());
+		return "Informamos que o DIC [<strong>%s</strong>] está %s para ser vinculado a um programa de captação."
+				.formatted(dto.tituloProjeto(), this.getElegibilidade().toLowerCase());
 	}
 
 	@Override
