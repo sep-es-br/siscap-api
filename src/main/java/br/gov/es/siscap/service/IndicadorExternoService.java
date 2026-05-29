@@ -36,28 +36,28 @@ import org.springframework.beans.factory.annotation.Value;
 @Transactional(readOnly = true)
 public class IndicadorExternoService {
 
-	@Value("${pentahoBI.baseURL}")
+	@Value("${pentahoBI.baseURL:}")
 	private String pentahoBaseUrl;
 
-	@Value("${pentahoBI.userId}")
+	@Value("${pentahoBI.userId:}")
 	private String pentahoUserId;
 
-	@Value("${pentahoBI.password}")
+	@Value("${pentahoBI.password:}")
 	private String pentahoPassword;
 
-	@Value("${pentahoBI.siscap.path}")
+	@Value("${pentahoBI.siscap.path:}")
 	private String siscapPath;
 
-	@Value("${pentahoBI.siscap.indicadores.dataAccessId}")
+	@Value("${pentahoBI.siscap.indicadores.dataAccessId:}")
 	private String indicadoresDataAccessId;
 
-	@Value("${pentahoBI.siscap.indicadores.target}")
+	@Value("${pentahoBI.siscap.indicadores.target:}")
 	private String targetIndicadores;
 
-	@Value("${pentahoBI.siscap.ods.dataAccessId}")
+	@Value("${pentahoBI.siscap.ods.dataAccessId:}")
 	private String odsDataAccessId;
 
-	@Value("${pentahoBI.siscap.ods.target}")
+	@Value("${pentahoBI.siscap.ods.target:}")
 	private String targetOds;
 
 	private final IndicadorGestaoExternoRepository repository;

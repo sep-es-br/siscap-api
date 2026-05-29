@@ -28,13 +28,13 @@ public abstract class PentahoBIService {
     
     private static final String CHARSET = "UTF-8";
 
-    @Value("${pentahoBI.baseURL}")
+    @Value("${pentahoBI.baseURL:}")
     private String baseURL;
 
-    @Value("${pentahoBI.userId}")
+    @Value("${pentahoBI.userId:}")
     private String userId;
 
-    @Value("${pentahoBI.password}")
+    @Value("${pentahoBI.password:}")
     private String password;
 
 
