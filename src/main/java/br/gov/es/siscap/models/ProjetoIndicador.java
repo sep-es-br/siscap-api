@@ -53,9 +53,6 @@ public class ProjetoIndicador extends ControleHistorico {
 	@JoinColumn(name = "id_tipo_status")
 	private TipoStatus tipoStatus;
 
-	// @OneToMany(mappedBy = "projetoIndicador", cascade = CascadeType.ALL, orphanRemoval = true)
-	// private Set<ProjetoIndicadorOds> odsSelecionadas;
-
 	public ProjetoIndicador(Projeto projeto, ProjetoIndicadorDto indicador) {
 		
 		this.setProjeto(projeto);
@@ -75,23 +72,11 @@ public class ProjetoIndicador extends ControleHistorico {
 			});
 		}
 
-		// if (indicador.odsSelecionadas() != null) {
-		// 	indicador.odsSelecionadas().forEach(odsDto -> {
-		// 		ProjetoIndicadorOds ods = new ProjetoIndicadorOds(odsDto);
-		// 		this.addOdsSelecionada(ods);
-		// 	});
-		// }
-
 	}
 
 	public void addMeta(ProjetoIndicadorExternoMeta meta) {
 		meta.setProjetoIndicador(this);
 		this.metas.add(meta);
 	}
-
-	// public void addOdsSelecionada(ProjetoIndicadorOds ods) {
-	// 	ods.setProjetoIndicador(this);
-	// 	this.odsSelecionadas.add(ods);
-	// }
 
 }

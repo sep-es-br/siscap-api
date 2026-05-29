@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -149,6 +150,18 @@ public class IndicadorExternoService {
 
 					IndicadorPentahoBiDto primeiro = grupo.get(0);
 
+					// List<MetasIndicadorExternoDto> metas = grupo.stream()
+					// .filter(item -> item.anoMeta() != null || item.valorMeta() != null)
+					// .map(item -> new MetasIndicadorExternoDto(
+					// null,
+					// item.anoMeta(),
+					// item.valorMeta() != null
+					// ? toBigDecimal(item.valorMeta())
+					// : null))
+					// .toList();
+
+					Set<String> chavesMetas = new HashSet<>();
+
 					List<MetasIndicadorExternoDto> metas = grupo.stream()
 							.filter(item -> item.anoMeta() != null || item.valorMeta() != null)
 							.map(item -> new MetasIndicadorExternoDto(
@@ -157,6 +170,7 @@ public class IndicadorExternoService {
 									item.valorMeta() != null
 											? toBigDecimal(item.valorMeta())
 											: null))
+							.filter(meta -> chavesMetas.add(meta.anoMeta() + "|" + meta.valorMeta()))
 							.toList();
 
 					List<OdsIndicadorExternoDto> ods = odsPorIndicador.getOrDefault(

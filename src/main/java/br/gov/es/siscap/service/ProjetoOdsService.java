@@ -216,27 +216,6 @@ public class ProjetoOdsService {
 				})
 				.collect(Collectors.toSet());
 
-		// Map<Integer, ProjetoOds> odsExistentesMap = odsExistentes.stream()
-		// .filter(ind -> ind.getId() != null)
-		// .collect(Collectors.toMap(ProjetoOds::getId, Function.identity()));
-
-		// return dtoList.stream()
-		// .map(dto -> {
-		// if (dto.odsId() == null) {
-		// throw new IllegalArgumentException("Id da Ods do BI não pode ser null");
-		// }
-		// ProjetoOds ods;
-		// if (dto.idOdsProjeto() != null &&
-		// odsExistentesMap.containsKey(dto.idOdsProjeto())) {
-		// ods = odsExistentesMap.get(dto.idOdsProjeto());
-		// } else {
-		// ods = new ProjetoOds();
-		// ods.setProjeto(projeto);
-		// }
-		// return ods;
-		// })
-		// .collect(Collectors.toSet());
-
 	}
 
 	public List<ProjetoOdsDto> buscarDadosOdsBi(List<Integer> odsIds) {
@@ -271,7 +250,7 @@ public class ProjetoOdsService {
 
 		Map<String, Object> params = Map.of(
 				"paramp_ods", parametroOds,
-				"paramp_indicador", "-1");
+				"paramp_indicadores", "-1");
 
 		return pentahoBIService.consult(targetOds, odsDataAccessId, siscapPath, params,
 				rs -> new OdsPentahoBiDto(
