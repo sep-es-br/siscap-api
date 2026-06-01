@@ -1,7 +1,6 @@
 package br.gov.es.siscap.models;
 
 import br.gov.es.siscap.dto.IndicadorAvulsoDto;
-import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,6 +48,9 @@ public class IndicadorAvulso extends ControleHistorico {
 
     @Column(name = "medido_por", length = 2000)
     private String medidoPor;
+
+    @Column(name = "formula_calculo", length = 2000)
+    private String formulaCalculo;
 
     @OneToMany( mappedBy = "indicadorAvulso", cascade = CascadeType.ALL, orphanRemoval = true )
     private Set<IndicadorAvulsoMeta> metasIndicadorAvulso = new HashSet<>();

@@ -14,7 +14,7 @@ public record ProjetoIndicadorAvulsoDto(
 	@Valid
 	IndicadorAvulsoDto indicadorAvulso,
 	
-	@Valid	List<ProjetoIndicadorAvulsoMetaDto> metasProjeto) {
+	@Valid	List<ProjetoIndicadorAvulsoMetaDto> metasProjeto ) {
 
 	public ProjetoIndicadorAvulsoDto(ProjetoIndicadorAvulso projetoIndicadorAvulso) {
 		this(projetoIndicadorAvulso.getId(),

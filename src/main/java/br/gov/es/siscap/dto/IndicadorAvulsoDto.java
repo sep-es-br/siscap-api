@@ -21,7 +21,9 @@ public record IndicadorAvulsoDto(
 
         @Size(max = 255) String baseDeReferencia,
 
-        @Valid List<IndicadorAvulsoMetaDto> metasIndicadorAvulsoGeral
+        @Valid List<IndicadorAvulsoMetaDto> metasIndicadorAvulsoGeral,
+
+        @Size(max = 2000) String formulaCalculo
 
 ) {
 
@@ -33,7 +35,8 @@ public record IndicadorAvulsoDto(
                 indicadorAvulso.getFonteIndicador(),
                 indicadorAvulso.getMedidoPor(),
                 indicadorAvulso.getBaseDeReferencia(),
-                construirMetas(indicadorAvulso));
+                construirMetas(indicadorAvulso),
+                indicadorAvulso.getFormulaCalculo());
     }
 
     private static List<IndicadorAvulsoMetaDto> construirMetas(

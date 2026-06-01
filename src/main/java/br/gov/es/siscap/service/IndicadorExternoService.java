@@ -24,10 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 
 @Service
@@ -84,45 +81,7 @@ public class IndicadorExternoService {
 	private String targetOdsIndicadores;
 
 	private final ApiUtils apiUtils;
-
-	private final Logger logger = LogManager.getLogger(IndicadorExternoService.class);
-
-	// public List<OpcoesGestaoIndicadorDto> listarGestoesAtivasIndicadores() {
-	// List<GestaoPentahoBiDto> gestoes = this.listarGestoesAtivasBI();
-	// List<DesafiosPentahoBiDto> desafios = this.listarDesafiosGestaoBI();
-	// return gestoes.stream()
-	// .map(gestao -> {
-	// String modelNameGestao = gestao.modelNameGestao();
-	// List<LabelDTO> labels = modelNameGestao != null && !modelNameGestao.isBlank()
-	// ? IntStream.range(0, modelNameGestao.split(",").length)
-	// .mapToObj(i -> {
-	// String nomeLabel = modelNameGestao.split(",")[i].trim();
-	// if (nomeLabel.isBlank()) {
-	// return null;
-	// }
-	// return new LabelDTO(
-	// null,
-	// nomeLabel,
-	// i + 1,
-	// List.of());
-	// })
-	// .filter(Objects::nonNull)
-	// .toList()
-	// : List.of();
-	// List<IndicadorDesafioExternoDTO> desafiosDto = desafios.stream()
-	// .map(gd -> new IndicadorDesafioExternoDTO(gd.desafioId(),
-	// gd.desafio())).toList();
-	// return new OpcoesGestaoIndicadorDto(
-	// gestao.idGestao(),
-	// gestao.nomeGestao(),
-	// labels,
-	// desafiosDto,
-	// gestao.deAno() != null ? gestao.deAno() : 0,
-	// gestao.ateAno() != null ? gestao.ateAno() : 0);
-	// })
-	// .toList();
-	// }
-
+	
 	public List<OpcoesGestaoIndicadorDto> listarGestoesAtivasIndicadores() {
 
 		List<GestaoPentahoBiDto> gestoes = this.listarGestoesAtivasBI();
