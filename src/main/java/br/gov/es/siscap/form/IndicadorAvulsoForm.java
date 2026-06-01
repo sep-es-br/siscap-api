@@ -1,7 +1,5 @@
 package br.gov.es.siscap.form;
 
-import br.gov.es.siscap.dto.EquipeDto;
-import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import br.gov.es.siscap.dto.indicadoresexternos.MetasIndicadorExternoDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;

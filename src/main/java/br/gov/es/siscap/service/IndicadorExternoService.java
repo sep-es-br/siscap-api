@@ -195,9 +195,6 @@ public class IndicadorExternoService {
 
 		return apiUtils.consult( targetOdsIndicadores, odsIndicadoresDataAccessId, siscapPath, params, rs -> {
 
-			System.out.println("CHAVES ODS BI => " + rs.keySet());
-			System.out.println("LINHA ODS BI => " + rs);
-
 			return new OdsIndicadorExternoDto(
 					rs.get("IndicadorId").asInt(),
 					rs.get("OdsId").asInt(),
