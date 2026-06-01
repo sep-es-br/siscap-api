@@ -1,7 +1,7 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.OdsPentahoBiDto;
 import br.gov.es.siscap.dto.ProjetoOdsDto;
+import br.gov.es.siscap.dto.indicadoresexternos.OdsPentahoBiDto;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoOds;
@@ -254,7 +254,6 @@ public class ProjetoOdsService {
 
 		return pentahoBIService.consult(targetOds, odsDataAccessId, siscapPath, params,
 				rs -> new OdsPentahoBiDto(
-						rs.get("IndicadorId").asInt(),
 						rs.get("OdsId").asInt(),
 						rs.get("DescricaoOds").asText(),
 						rs.get("nomeOds").asText(),

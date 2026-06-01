@@ -1,6 +1,7 @@
 package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.indicadoresexternos.FiltroIndicadorDto;
+import br.gov.es.siscap.dto.indicadoresexternos.OdsPentahoBiDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesGestaoIndicadorDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesIndicadoresDto;
 import br.gov.es.siscap.service.IndicadorExternoService;
@@ -28,6 +29,11 @@ public class IndicadorCatalogoController {
 	public List<OpcoesIndicadoresDto> listarIndicadoresFiltro(@PathVariable @NotNull Long idGestao,
 		@RequestBody(required = false) FiltroIndicadorDto filtro) {
 		return service.listarIndicadoresFiltro(idGestao, filtro);
+	}
+
+	@GetMapping("/ods")
+	public List<OdsPentahoBiDto> listarOds() {
+		return service.listarOdsBI();
 	}
 
 }

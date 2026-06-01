@@ -1,7 +1,8 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.DesafiosPentahoBiDto;
+import br.gov.es.siscap.dto.GestaoPentahoBiDto;
 import br.gov.es.siscap.dto.IndicadorPentahoBiDto;
-import br.gov.es.siscap.dto.OdsPentahoBiDto;
 import br.gov.es.siscap.dto.indicadoresexternos.FiltroIndicadorDto;
 import br.gov.es.siscap.dto.indicadoresexternos.FiltroLabelDto;
 import br.gov.es.siscap.dto.indicadoresexternos.IndicadorDesafioExternoDTO;
@@ -9,13 +10,12 @@ import br.gov.es.siscap.dto.indicadoresexternos.LabelDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.LabelValorDTO;
 import br.gov.es.siscap.dto.indicadoresexternos.MetasIndicadorExternoDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OdsIndicadorExternoDto;
+import br.gov.es.siscap.dto.indicadoresexternos.OdsPentahoBiDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesGestaoIndicadorDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesIndicadoresDto;
+import br.gov.es.siscap.dto.indicadoresexternos.OrganizadorGestaoPentahoBiDto;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.form.IndicadorAvulsoForm;
-import br.gov.es.siscap.models.IndicadorGestaoExterno;
-import br.gov.es.siscap.models.IndicadorGestaoLabel;
-import br.gov.es.siscap.repository.IndicadorGestaoExternoRepository;
 import br.gov.es.siscap.utils.pentaho.ApiUtils;
 import lombok.RequiredArgsConstructor;
 
@@ -24,9 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.function.Function;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,53 +59,99 @@ public class IndicadorExternoService {
 	@Value("${pentahoBI.siscap.ods.target}")
 	private String targetOds;
 
-	private final IndicadorGestaoExternoRepository repository;
+	@Value("${pentahoBI.siscap.gestao.target}")
+	private String targetGestao;
+
+	@Value("${pentahoBI.siscap.gestao.dataAccessId}")
+	private String gestaoDataAccessId;
+
+	@Value("${pentahoBI.siscap.desafios.target}")
+	private String targetDesafios;
+
+	@Value("${pentahoBI.siscap.desafios.dataAccessId}")
+	private String desafiosDataAccessId;
+
+	@Value("${pentahoBI.siscap.organizacao.target}")
+	private String targetOrganizacao;
+
+	@Value("${pentahoBI.siscap.organizacao.dataAccessId}")
+	private String organizacaoDataAccessId;
+
+	@Value("${pentahoBI.siscap.odsporindicadores.dataAccessId}")
+	private String odsIndicadoresDataAccessId;
+
+	@Value("${pentahoBI.siscap.odsporindicadores.target}")
+	private String targetOdsIndicadores;
+
 	private final ApiUtils apiUtils;
 
 	private final Logger logger = LogManager.getLogger(IndicadorExternoService.class);
 
+	// public List<OpcoesGestaoIndicadorDto> listarGestoesAtivasIndicadores() {
+	// List<GestaoPentahoBiDto> gestoes = this.listarGestoesAtivasBI();
+	// List<DesafiosPentahoBiDto> desafios = this.listarDesafiosGestaoBI();
+	// return gestoes.stream()
+	// .map(gestao -> {
+	// String modelNameGestao = gestao.modelNameGestao();
+	// List<LabelDTO> labels = modelNameGestao != null && !modelNameGestao.isBlank()
+	// ? IntStream.range(0, modelNameGestao.split(",").length)
+	// .mapToObj(i -> {
+	// String nomeLabel = modelNameGestao.split(",")[i].trim();
+	// if (nomeLabel.isBlank()) {
+	// return null;
+	// }
+	// return new LabelDTO(
+	// null,
+	// nomeLabel,
+	// i + 1,
+	// List.of());
+	// })
+	// .filter(Objects::nonNull)
+	// .toList()
+	// : List.of();
+	// List<IndicadorDesafioExternoDTO> desafiosDto = desafios.stream()
+	// .map(gd -> new IndicadorDesafioExternoDTO(gd.desafioId(),
+	// gd.desafio())).toList();
+	// return new OpcoesGestaoIndicadorDto(
+	// gestao.idGestao(),
+	// gestao.nomeGestao(),
+	// labels,
+	// desafiosDto,
+	// gestao.deAno() != null ? gestao.deAno() : 0,
+	// gestao.ateAno() != null ? gestao.ateAno() : 0);
+	// })
+	// .toList();
+	// }
+
 	public List<OpcoesGestaoIndicadorDto> listarGestoesAtivasIndicadores() {
 
-		List<IndicadorGestaoExterno> gestoes = repository.findAllAtivasComLabels();
+		List<GestaoPentahoBiDto> gestoes = this.listarGestoesAtivasBI();
+		List<DesafiosPentahoBiDto> desafios = this.listarDesafiosGestaoBI();
 
 		return gestoes.stream()
 				.map(gestao -> {
-					List<LabelDTO> labels = gestao.getLabels().stream()
-							.sorted(Comparator.comparing(IndicadorGestaoLabel::getOrdem))
-							.map(gl -> {
-								var label = gl.getLabel();
-								List<LabelValorDTO> valores = label.getValores() != null
-										? label.getValores().stream()
-												.map(v -> new LabelValorDTO(
-														v.getId(),
-														v.getValor()))
-												.distinct() // evita duplicidade por causa do join fetch
-												.toList()
-										: List.of();
-								return new LabelDTO(
-										label.getId(),
-										label.getNome(),
-										gl.getOrdem(),
-										valores);
-							})
+
+					List<OrganizadorGestaoPentahoBiDto> organizadores = this
+							.listarOrganizadoresGestaoBI(gestao.idGestao());
+
+					List<LabelDTO> labels = montarLabelsGrupoSubgrupo(organizadores);
+
+					List<IndicadorDesafioExternoDTO> desafiosDto = desafios.stream()
+							.map(gd -> new IndicadorDesafioExternoDTO(
+									gd.desafioId(),
+									gd.desafio()))
+							.distinct()
 							.toList();
 
-					List<IndicadorDesafioExternoDTO> desafios = gestao.getDesafios()
-							.stream().map(gd -> {
-								return new IndicadorDesafioExternoDTO(gd.getId(), gd.getNome());
-							}).toList();
-
 					return new OpcoesGestaoIndicadorDto(
-							gestao.getId(),
-							gestao.getNome(),
+							gestao.idGestao(),
+							gestao.nomeGestao(),
 							labels,
-							desafios,
-							gestao.getDoAno() != null ? gestao.getDoAno() : 0,
-							gestao.getAteAno() != null ? gestao.getAteAno() : 0);
-
+							desafiosDto,
+							gestao.deAno() != null ? gestao.deAno() : 0,
+							gestao.ateAno() != null ? gestao.ateAno() : 0);
 				})
 				.toList();
-
 	}
 
 	public List<OpcoesIndicadoresDto> listarIndicadoresFiltro(
@@ -124,19 +169,18 @@ public class IndicadorExternoService {
 				.distinct()
 				.collect(Collectors.joining(","));
 
-		List<OdsPentahoBiDto> listaOdsBI = this.listarOdsBI(idsIndicadores);
+		List<OdsIndicadorExternoDto> listaOdsBI = this.listarOdsPorIndicadoresBI(idsIndicadores);
 
 		Map<Integer, List<OdsIndicadorExternoDto>> odsPorIndicador = listaOdsBI.stream()
 				.collect(Collectors.groupingBy(
-						OdsPentahoBiDto::indicadorId,
+						OdsIndicadorExternoDto::IndicadorId,
 						Collectors.mapping(ods -> new OdsIndicadorExternoDto(
-								null, // idOdsIndicadorExterno
-								null, // idOdsExterno
+								ods.IndicadorId(),
 								ods.odsId(),
-								ods.ordemOds(),
-								ods.nomeOds(),
-								ods.descricaoOds(),
-								obterCorOds(ods.ordemOds())), Collectors.toList())));
+								ods.odsOrdem(),
+								ods.odsNome(),
+								ods.odsDescricao(),
+								obterCorOds(ods.odsOrdem())), Collectors.toList())));
 
 		return listaIndicadoresBI.stream()
 				.collect(Collectors.groupingBy(IndicadorPentahoBiDto::idIndicador))
@@ -145,16 +189,6 @@ public class IndicadorExternoService {
 				.map(grupo -> {
 
 					IndicadorPentahoBiDto primeiro = grupo.get(0);
-
-					// List<MetasIndicadorExternoDto> metas = grupo.stream()
-					// .filter(item -> item.anoMeta() != null || item.valorMeta() != null)
-					// .map(item -> new MetasIndicadorExternoDto(
-					// null,
-					// item.anoMeta(),
-					// item.valorMeta() != null
-					// ? toBigDecimal(item.valorMeta())
-					// : null))
-					// .toList();
 
 					Set<String> chavesMetas = new HashSet<>();
 
@@ -190,6 +224,32 @@ public class IndicadorExternoService {
 
 	}
 
+	private List<OdsIndicadorExternoDto> listarOdsPorIndicadoresBI(String idsIndicadores) {
+
+		String parametroIndicadores = idsIndicadores != null && !idsIndicadores.trim().isEmpty()
+				? idsIndicadores.trim()
+				: "-1";
+
+		Map<String, Object> params = Map.of(
+				"paramp_ods", "-1",
+				"paramp_indicadores", parametroIndicadores);
+
+		return apiUtils.consult( targetOdsIndicadores, odsIndicadoresDataAccessId, siscapPath, params, rs -> {
+
+			System.out.println("CHAVES ODS BI => " + rs.keySet());
+			System.out.println("LINHA ODS BI => " + rs);
+
+			return new OdsIndicadorExternoDto(
+					rs.get("IndicadorId").asInt(),
+					rs.get("OdsId").asInt(),
+					rs.get("ordemOds").asInt(),
+					rs.get("nomeOds").asText(),
+					rs.get("DescricaoOds").asText(),
+					obterCorOds(rs.get("ordemOds").asInt()));
+		});
+
+	}
+
 	public List<OpcoesIndicadoresDto> cadastrarIndicadorAvulso(IndicadorAvulsoForm form) {
 
 		if (form == null) {
@@ -197,6 +257,48 @@ public class IndicadorExternoService {
 		}
 
 		return Collections.emptyList();
+
+	}
+
+	public List<GestaoPentahoBiDto> listarGestoesAtivasBI() {
+
+		String ativa = "1"; // gestoes ativas
+
+		Map<String, Object> params = Map.of(
+				"paramp_ativa", ativa);
+
+		String pmoPath = siscapPath;
+		String target = targetGestao;
+		String dataAccessId = gestaoDataAccessId;
+
+		return apiUtils.consult(target, dataAccessId, pmoPath, params,
+				rs -> new GestaoPentahoBiDto(
+						rs.get("idGestao").asInt(),
+						rs.get("ativa").asInt(),
+						rs.get("nomeGestao").asText(),
+						rs.get("descricaoGestao").asText(),
+						rs.get("deAno").asInt(),
+						rs.get("ateAno").asInt(),
+						rs.get("modelNameGestao").asText()));
+
+	}
+
+	public List<DesafiosPentahoBiDto> listarDesafiosGestaoBI() {
+
+		String desafios = "-1"; // todos
+
+		Map<String, Object> params = Map.of(
+				"paramp_desafio", desafios);
+
+		String pmoPath = siscapPath;
+		String target = targetDesafios;
+		String dataAccessId = desafiosDataAccessId;
+
+		return apiUtils.consult(target, dataAccessId, pmoPath, params,
+				rs -> new DesafiosPentahoBiDto(
+						rs.get("gestaoId").asInt(),
+						rs.get("desafioId").asInt(),
+						rs.get("desafio").asText()));
 
 	}
 
@@ -278,19 +380,12 @@ public class IndicadorExternoService {
 				.collect(Collectors.joining(","));
 	}
 
-	public List<OdsPentahoBiDto> listarOdsBI(String idsIndicadores) {
+	public List<OdsPentahoBiDto> listarOdsBI() {
 
-		String parametroIndicadores = idsIndicadores != null && !idsIndicadores.trim().isEmpty()
-				? idsIndicadores.trim()
-				: "-1";
-
-		Map<String, Object> params = Map.of(
-				"paramp_ods", "-1",
-				"paramp_indicadores", parametroIndicadores);
+		Map<String, Object> params = Map.of();
 
 		return apiUtils.consult(targetOds, odsDataAccessId, siscapPath, params,
 				rs -> new OdsPentahoBiDto(
-						rs.get("IndicadorId").asInt(),
 						rs.get("OdsId").asInt(),
 						rs.get("DescricaoOds").asText(),
 						rs.get("nomeOds").asText(),
@@ -345,38 +440,75 @@ public class IndicadorExternoService {
 		};
 	}
 
-	// private boolean aplicarFiltroIndicador(
-	// IndicadorPentahoBiDto item,
-	// Long filtroGestao,
-	// FiltroIndicadorDto filtro) {
-	// if (item.idGestao() == null || !Objects.equals(item.idGestao().longValue(),
-	// filtroGestao)) {
-	// return false;
-	// }
-	// if (filtro == null) {
-	// return true;
-	// }
-	// if (filtro.desafios() != null && !filtro.desafios().isEmpty()) {
-	// return (item.idDesafio() == null ||
-	// !filtro.desafios().contains(item.idDesafio().longValue()));
-	// }
-	// if (filtro.labels() != null && !filtro.labels().isEmpty()) {
-	// for (FiltroLabelDto label : filtro.labels()) {
-	// if (label.idLabel() == null
-	// || label.idLabelValores() == null
-	// || label.idLabelValores().isEmpty()) {
-	// continue;
-	// }
-	// boolean match = item.idOrganizador() != null
-	// // && item. idLabelValor() != null
-	// && Objects.equals(item.idOrganizador().longValue(), label.idLabel());
-	// // && label.idLabelValores().contains(item.idLabelValor().longValue());
-	// if (!match) {
-	// return false;
-	// }
-	// }
-	// }
-	// return true;
+	public List<LabelDTO> montarLabelsGrupoSubgrupo(List<OrganizadorGestaoPentahoBiDto> listaBi) {
+
+		Map<String, Map<Integer, LabelValorDTO>> labelsMap = new LinkedHashMap<>();
+
+		for (OrganizadorGestaoPentahoBiDto item : listaBi) {
+
+			adicionarValorLabel(
+					labelsMap,
+					item.labelGrupo(),
+					item.idGrupo(),
+					item.valorGrupo(), null);
+
+			adicionarValorLabel(
+					labelsMap,
+					item.labelSubGrupo(),
+					item.idSubGrupo(),
+					item.valorSubGrupo(),
+					item.idGrupo());
+		}
+
+		return labelsMap.entrySet().stream()
+				.map(entry -> new LabelDTO(
+						null,
+						entry.getKey(),
+						null,
+						new ArrayList<>(entry.getValue().values())))
+				.toList();
+	}
+
+	private void adicionarValorLabel(
+			Map<String, Map<Integer, LabelValorDTO>> labelsMap,
+			String nomeLabel,
+			Integer idValor,
+			String valorLabel,
+			Integer idPai) {
+
+		if (nomeLabel == null || idValor == null || valorLabel == null) {
+			return;
+		}
+
+		labelsMap
+				.computeIfAbsent(nomeLabel.trim(), key -> new LinkedHashMap<>())
+				.putIfAbsent(
+						idValor,
+						new LabelValorDTO(
+								idValor,
+								valorLabel.trim(),
+								idPai));
+	}
+
+	private List<OrganizadorGestaoPentahoBiDto> listarOrganizadoresGestaoBI(Integer idGestao) {
+
+		Map<String, Object> params = Map.of(
+				"paramp_idGestao", idGestao != null ? String.valueOf(idGestao) : "-1");
+
+		return apiUtils.consult(targetOrganizacao, organizacaoDataAccessId, siscapPath, params,
+				rs -> new OrganizadorGestaoPentahoBiDto(
+						rs.get("gestaoId").asInt(),
+						rs.get("idGrupo").asInt(),
+						rs.get("labelGrupo").asText(),
+						rs.get("descricaoGrupo").asText(),
+						rs.get("idSubGrupo").asInt(),
+						rs.get("labelSubGrupo").asText(),
+						rs.get("descricaoSubGrupo").asText()));
+
+	}
+
+	// public List<OdsPentahoBiDto> listarOds() {
+	// return null;
 	// }
 
 }
