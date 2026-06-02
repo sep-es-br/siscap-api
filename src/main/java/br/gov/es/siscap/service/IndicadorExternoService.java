@@ -272,6 +272,7 @@ public class IndicadorExternoService {
 			if (filtro.labels() != null && !filtro.labels().isEmpty()) {
 				organizadores = montarOrganizadores(filtro.labels());
 			}
+			
 		}
 
 		Map<String, Object> params = Map.of(

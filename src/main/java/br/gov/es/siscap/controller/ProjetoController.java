@@ -6,7 +6,6 @@ import br.gov.es.siscap.dto.edocswebapi.EtapasIntegracaoDto;
 import br.gov.es.siscap.dto.listagem.ProjetoListaDto;
 import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
-import br.gov.es.siscap.enums.StatusProjetoEnum;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.service.AsyncExecutorService;
@@ -15,7 +14,6 @@ import br.gov.es.siscap.service.PessoaService;
 import br.gov.es.siscap.service.ProjetoService;
 import br.gov.es.siscap.service.RelatoriosService;
 import br.gov.es.siscap.service.TokenService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -31,7 +29,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "DIC", description = "")
