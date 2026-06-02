@@ -91,13 +91,15 @@ public class ProjetoOdsService {
 				projetoOdsSet, projetoOdsDtoList);
 
 		odsProjetoAtualizarSet.forEach(indicadorProjeto -> {
+
 			ProjetoOdsDto odsDto = projetoOdsDtoList.stream()
-					.filter(dto -> Objects.equals(dto.idOdsProjeto(), indicadorProjeto.getId()))
+					.filter(dto -> Objects.equals( dto.idOdsProjeto(), indicadorProjeto.getId()))
 					.findFirst()
 					.orElse(null);
 			if (odsDto != null) {
 				sincronizarOdsSelecionadas(indicadorProjeto, odsDto);
 			}
+
 		});
 
 		projetoOdsRepository.saveAllAndFlush(odsProjetoAtualizarSet);
@@ -191,7 +193,7 @@ public class ProjetoOdsService {
 			List<ProjetoOdsDto> dtoList) {
 
 		Map<Integer, ProjetoOds> odsExistentesMap = odsExistentes.stream()
-				.filter(ods -> ods.getId() != null)
+				.filter( ods -> ods.getId() != null)
 				.collect(Collectors.toMap(ProjetoOds::getId, Function.identity()));
 
 		return dtoList.stream()
