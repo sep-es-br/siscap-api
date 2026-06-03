@@ -76,11 +76,11 @@ public class ProjetoIndicadorAvulsoService {
 				throw new SiscapServiceException(
 						Arrays.asList("Indicador avulso inválido."));
 
-			sincronizarMetasGlobaisIndicadorAvulso(
-					indicadorAvulso,
-					indicadorDto.indicadorAvulso() != null
-							? indicadorDto.indicadorAvulso().metasIndicadorAvulsoGeral()
-							: List.of());
+			// sincronizarMetasGlobaisIndicadorAvulso(
+			// 		indicadorAvulso,
+			// 		indicadorDto.indicadorAvulso() != null
+			// 				? indicadorDto.indicadorAvulso().metasIndicadorAvulsoGeral()
+			// 				: List.of());
 
 			ProjetoIndicadorAvulso projetoIndicadorAvulso = buscarOuCriarProjetoIndicadorAvulso(projeto,
 					indicadorAvulso, indicadorDto);
@@ -166,26 +166,21 @@ public class ProjetoIndicadorAvulsoService {
 
 	}
 
-	private void sincronizarMetasGlobaisIndicadorAvulso(
-			IndicadorAvulso indicadorAvulso,
-			List<IndicadorAvulsoMetaDto> metasDto) {
-
-		if (metasDto == null) {
-			metasDto = List.of();
-		}
-
-		indicadorAvulsoMetaRepository.deleteByIndicadorAvulsoId(indicadorAvulso.getId());
-
-		List<IndicadorAvulsoMeta> metas = metasDto.stream()
-				.map(metaDto -> new IndicadorAvulsoMeta(indicadorAvulso, metaDto))
-				.toList();
-
-		if (metas.isEmpty())
-			throw new SiscapServiceException(
-					Arrays.asList("É obrigatória informar metas para um indicador projeto estratégico."));
-
-		indicadorAvulsoMetaRepository.saveAll(metas);
-
-	}
+	// private void sincronizarMetasGlobaisIndicadorAvulso(
+	// 		IndicadorAvulso indicadorAvulso,
+	// 		List<IndicadorAvulsoMetaDto> metasDto) {
+	// 	// if (metasDto == null) {
+	// 	// 	metasDto = List.of();
+	// 	// }
+	// 	// indicadorAvulsoMetaRepository.deleteByIndicadorAvulsoId(indicadorAvulso.getId());
+	// 	// List<IndicadorAvulsoMeta> metas = metasDto.stream()
+	// 	// 		.map(metaDto -> new IndicadorAvulsoMeta(indicadorAvulso, metaDto))
+	// 	// 		.toList();
+	// 	// if (metas.isEmpty())
+	// 	// 	throw new SiscapServiceException(
+	// 	// 			Arrays.asList("É obrigatória informar metas para um indicador projeto estratégico."));
+	// 	// indicadorAvulsoMetaRepository.saveAll(metas);
+	// 	return;
+	// }
 
 }
