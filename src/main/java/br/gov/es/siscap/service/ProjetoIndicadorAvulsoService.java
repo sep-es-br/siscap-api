@@ -76,18 +76,12 @@ public class ProjetoIndicadorAvulsoService {
 				throw new SiscapServiceException(
 						Arrays.asList("Indicador avulso inválido."));
 
-			// sincronizarMetasGlobaisIndicadorAvulso(
-			// 		indicadorAvulso,
-			// 		indicadorDto.indicadorAvulso() != null
-			// 				? indicadorDto.indicadorAvulso().metasIndicadorAvulsoGeral()
-			// 				: List.of());
-
 			ProjetoIndicadorAvulso projetoIndicadorAvulso = buscarOuCriarProjetoIndicadorAvulso(projeto,
 					indicadorAvulso, indicadorDto);
 
 			sincronizarMetasProjetoIndicadorAvulso(
 					projetoIndicadorAvulso,
-					indicadorDto.metasProjeto());
+					indicadorDto.metasIndicadorProjeto());
 
 			projetoIndicadorAvulsoSet.add(projetoIndicadorAvulso);
 
@@ -160,7 +154,7 @@ public class ProjetoIndicadorAvulsoService {
 
 		if (metas.isEmpty())
 			throw new SiscapServiceException(
-					Arrays.asList("É obrigatória informar metas de indicadores de projetos estratégicos de um DIC."));
+					Arrays.asList("É obrigatória informar metas de indicadores de projetos de um DIC."));
 
 		projetoIndicadorAvulsoMetaRepository.saveAll(metas);
 
