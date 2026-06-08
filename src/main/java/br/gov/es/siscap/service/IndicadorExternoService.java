@@ -395,35 +395,39 @@ public class IndicadorExternoService {
 			case 18 -> "#7A3A1A";
 			default -> null;
 		};
+
 	}
 
 	public List<LabelDTO> montarLabelsGrupoSubgrupo(List<OrganizadorGestaoPentahoBiDto> listaBi) {
-
+		
 		Map<String, Map<Integer, LabelValorDTO>> labelsMap = new LinkedHashMap<>();
 
 		for (OrganizadorGestaoPentahoBiDto item : listaBi) {
 
 			adicionarValorLabel(
-					labelsMap,
-					item.labelGrupo(),
-					item.idGrupo(),
-					item.valorGrupo(), null);
+				labelsMap,
+				item.labelGrupo(),
+				item.idGrupo(),
+				item.valorGrupo(), 
+				null);
 
 			adicionarValorLabel(
-					labelsMap,
-					item.labelSubGrupo(),
-					item.idSubGrupo(),
-					item.valorSubGrupo(),
-					item.idGrupo());
+				labelsMap,
+				item.labelSubGrupo(),
+				item.idSubGrupo(),
+				item.valorSubGrupo(),
+				item.idGrupo());
+		
 		}
 
 		return labelsMap.entrySet().stream()
-				.map(entry -> new LabelDTO(
-						null,
-						entry.getKey(),
-						null,
-						new ArrayList<>(entry.getValue().values())))
-				.toList();
+			.map(entry -> new LabelDTO(
+					(Integer) entry.getKey().hashCode(),
+					entry.getKey(),
+					null,
+					new ArrayList<>(entry.getValue().values())))
+			.toList();
+		
 	}
 
 	private void adicionarValorLabel(
