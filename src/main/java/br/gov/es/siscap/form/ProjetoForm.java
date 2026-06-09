@@ -64,7 +64,6 @@ public record ProjetoForm(
 			@NotEmpty
 			List<EquipeDto> equipeElaboracao,
 
-			@NotEmpty
 			List<ProjetoIndicadorDto> indicadoresProjeto,
 			
 			@NotEmpty
