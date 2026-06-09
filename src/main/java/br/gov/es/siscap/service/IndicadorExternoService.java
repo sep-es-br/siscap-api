@@ -85,6 +85,7 @@ public class IndicadorExternoService {
 	public List<OpcoesGestaoIndicadorDto> listarGestoesAtivasIndicadores() {
 
 		List<GestaoPentahoBiDto> gestoes = this.listarGestoesAtivasBI();
+
 		List<DesafiosPentahoBiDto> desafios = this.listarDesafiosGestaoBI();
 
 		return gestoes.stream()
@@ -98,7 +99,9 @@ public class IndicadorExternoService {
 					List<IndicadorDesafioExternoDTO> desafiosDto = desafios.stream()
 							.map(gd -> new IndicadorDesafioExternoDTO(
 									gd.desafioId(),
-									gd.desafio()))
+									gd.desafio(),
+									gd.grupoId(),
+									gd.subgrupoId()))
 							.distinct()
 							.toList();
 
@@ -241,10 +244,11 @@ public class IndicadorExternoService {
 
 	public List<DesafiosPentahoBiDto> listarDesafiosGestaoBI() {
 
-		String desafios = "-1"; // todos
+		String ativa = "1"; // todos
 
 		Map<String, Object> params = Map.of(
-				"paramp_desafio", desafios);
+				"paramp_ativa", ativa ,
+				"paramp_idGestao", "-1");
 
 		String pmoPath = siscapPath;
 		String target = targetDesafios;
@@ -254,7 +258,10 @@ public class IndicadorExternoService {
 				rs -> new DesafiosPentahoBiDto(
 						rs.get("gestaoId").asInt(),
 						rs.get("desafioId").asInt(),
-						rs.get("desafio").asText()));
+						rs.get("desafio").asText(),
+						rs.get("grupoId").asInt(),
+						rs.get("subGrupoId").asInt())
+					);
 
 	}
 
