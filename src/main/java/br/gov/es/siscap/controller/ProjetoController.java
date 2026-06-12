@@ -182,14 +182,17 @@ public class ProjetoController {
 
 	@GetMapping("/dic/{idProjeto}")
 	public ResponseEntity<Resource> gerarDIC(@PathVariable Integer idProjeto) {
-		Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto,
-				ExibirMarcaDaguaProgramaEnum.EXIBIR);
+
+		Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto, ExibirMarcaDaguaProgramaEnum.EXIBIR,
+				service.buscarPorId(idProjeto.longValue()));
 		String nomeArquivo = service.gerarNomeArquivo(idProjeto);
 		String contentType = "application/pdf";
+
 		return ResponseEntity.ok()
 				.contentType(MediaType.parseMediaType(contentType))
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + ".pdf\"")
 				.body(resource);
+
 	}
 
 	@PutMapping("/dic/edocs/autuar/{idProjeto}")

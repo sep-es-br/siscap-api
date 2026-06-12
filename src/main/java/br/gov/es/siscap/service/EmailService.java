@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.CartaConsultaDetalhesDto;
 import br.gov.es.siscap.dto.EnvioEmailDetalhesDto;
 import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
+import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.ProspeccaoDetalhesDto;
 import br.gov.es.siscap.dto.acessocidadaoapi.AgentePublicoACDto;
 import br.gov.es.siscap.dto.opcoes.ObjetoOpcoesDto;
@@ -91,7 +92,8 @@ public class EmailService {
 	private final EnvioAvisoSubcapProgramaAssinadoEmailBuilder envioAvisoSubcapProgramaAssinadoEmailBuilder;
 
 	public boolean enviarEmail(ProspeccaoDetalhesDto prospeccaoDetalhesDto, List<String> emailsInteressadosList,
-			String nomeArquivo, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) throws MessagingException, UnsupportedEncodingException {
+			String nomeArquivo, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua, ProjetoDto projetoDto)
+			throws MessagingException, UnsupportedEncodingException {
 
 		List<Boolean> confirmacaoEnvioEmailList = new ArrayList<>();
 
@@ -108,7 +110,7 @@ public class EmailService {
 		helper.setSubject(assuntoEmail != null ? assuntoEmail : "Assunto nao definido");
 		helper.setText(corpoEmail != null ? corpoEmail : "Corpo do email nao definido", true);
 
-		this.anexarRelatorios(helper, prospeccaoDetalhesDto.cartaConsultaDetalhes(), nomeArquivo, exibirMarcaDagua);
+		this.anexarRelatorios(helper, prospeccaoDetalhesDto.cartaConsultaDetalhes(), nomeArquivo, exibirMarcaDagua, projetoDto);
 
 		for (String emailInteressado : emailsInteressadosList) {
 			helper.setTo(emailInteressado != null ? emailInteressado : "");
@@ -125,26 +127,27 @@ public class EmailService {
 	}
 
 	private void anexarRelatorios(MimeMessageHelper helper, CartaConsultaDetalhesDto cartaConsultaDetalhesDto,
-			String nomeArquivo, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) throws MessagingException {
+			String nomeArquivo, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua, ProjetoDto projetoDto) throws MessagingException {
 
 		ObjetoOpcoesDto cartaConsultaObjeto = cartaConsultaDetalhesDto.objeto();
 
 		if (cartaConsultaObjeto.tipo().equals("Projeto")) {
-			this.prepararRecursoRelatorio(helper, cartaConsultaObjeto.id().intValue(), nomeArquivo, exibirMarcaDagua);
+			this.prepararRecursoRelatorio(helper, cartaConsultaObjeto.id().intValue(), nomeArquivo, exibirMarcaDagua, projetoDto);
 		}
 
 		List<OpcoesDto> projetosPropostosList = cartaConsultaDetalhesDto.projetosPropostos();
 
 		if (!projetosPropostosList.isEmpty()) {
 			for (OpcoesDto projetoProposto : projetosPropostosList) {
-				this.prepararRecursoRelatorio(helper, projetoProposto.id().intValue(), nomeArquivo, exibirMarcaDagua);
+				this.prepararRecursoRelatorio(helper, projetoProposto.id().intValue(), nomeArquivo, exibirMarcaDagua, projetoDto);
 			}
 		}
 	}
 
-	private void prepararRecursoRelatorio(MimeMessageHelper helper, int idProjeto, String nomeArquivo,ExibirMarcaDaguaProgramaEnum exibirMarcaDagua)
+	private void prepararRecursoRelatorio( MimeMessageHelper helper, int idProjeto, String nomeArquivo,
+			ExibirMarcaDaguaProgramaEnum exibirMarcaDagua, ProjetoDto projetoDto )
 			throws MessagingException {
-		Resource relatorioDIC = this.relatoriosService.gerarArquivo("DIC", idProjeto, exibirMarcaDagua);
+		Resource relatorioDIC = this.relatoriosService.gerarArquivo( "DIC", idProjeto, exibirMarcaDagua, projetoDto );
 		helper.addAttachment(nomeArquivo, relatorioDIC);
 	}
 
@@ -438,7 +441,10 @@ public class EmailService {
 					.findFirst();
 
 			String nomeDestinatario = sub
-                                        .map(s -> s.contains("@") ? this.pessoaPessoaService.buscarProEmail(s).getSub() : s) // fix: resolver essa gambiarra
+					.map(s -> s.contains("@") ? this.pessoaPessoaService.buscarProEmail(s).getSub() : s) // fix:
+																											// resolver
+																											// essa
+																											// gambiarra
 					.flatMap(s -> Optional.ofNullable(pessoaPessoaService.buscarPorSub(s)))
 					.map(Pessoa::getNome)
 					.filter(nome -> !nome.isBlank())
@@ -464,7 +470,7 @@ public class EmailService {
 
 	public boolean enviarEmailAvisoProgramaAssinadoSubcap(List<String> emailsInteressadosList, Programa programa) {
 
-		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto( null,
+		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(null,
 				null,
 				null,
 				null,
@@ -473,11 +479,11 @@ public class EmailService {
 				null,
 				null,
 				null,
-				null, 
-				null, 
-				null, 
-				programa.getId(), 
-				programa.getTitulo(), 
+				null,
+				null,
+				null,
+				programa.getId(),
+				programa.getTitulo(),
 				programa.getSigla(), "", null);
 
 		envioAvisoSubcapProgramaAssinadoEmailBuilder.setDtoMontagemEmailDic(envioEmailDicDetalhesDto);
