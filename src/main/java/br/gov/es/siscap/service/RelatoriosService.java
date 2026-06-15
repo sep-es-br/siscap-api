@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.dto.ProjetoOdsRelatorioDto;
 import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.repository.ProjetoRepository;
@@ -50,13 +51,17 @@ public class RelatoriosService {
 	private final Logger logger = LogManager.getLogger(RelatoriosService.class);
 
 	// public RelatoriosService(@Value("${raiz.relatorios}") String raizRelatorios,
-	// 		@Autowired DataSource dataSource) {
-	// 	this.raizRelatorios = raizRelatorios;
-	// 	this.dataSource = dataSource;
+	// @Autowired DataSource dataSource) {
+	// this.raizRelatorios = raizRelatorios;
+	// this.dataSource = dataSource;
 	// }
 
-	public Resource gerarArquivo(String nomeArquivo, Integer idProjeto, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua, ProjetoDto projetoDto) {
-		JasperPrint jasperPrint = preencherArquivo(recuperarArquivo(nomeArquivo), idProjeto, exibirMarcaDagua, projetoDto);
+	public Resource gerarArquivo(String nomeArquivo, Integer idProjeto, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua,
+			ProjetoDto projetoDto) {
+
+		JasperPrint jasperPrint = preencherArquivo(recuperarArquivo(nomeArquivo), idProjeto, exibirMarcaDagua,
+				projetoDto);
+
 		return exportarRelatorio(jasperPrint);
 	}
 
@@ -88,17 +93,29 @@ public class RelatoriosService {
 					.orElse("N");
 
 			HashMap<String, Object> map = new HashMap<>();
-			
+
+			List<ProjetoOdsRelatorioDto> lista = projetoDto.odsProjeto()
+					.stream()
+					.map(o -> new ProjetoOdsRelatorioDto(
+							o.idOdsProjeto(),
+							o.odsId(),
+							o.odsOrdem(),
+							o.odsNome(),
+							o.odsDescricao(),
+							o.odsCor()))
+					.toList();
+
 			map.put("idProjeto", idProjeto);
 			map.put("pathRelatorios", raizRelatorios);
 			map.put("exibirMarcaDagua", marca);
-			map.put("odsProjetoDataSource", new JRBeanCollectionDataSource( projetoDto.odsProjeto() ) );
+			map.put("odsProjetoDataSource", new JRBeanCollectionDataSource(lista));
+			
 			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
 
-			return JasperFillManager.fillReport( relatorio, map, dataSource.getConnection() );
+			return JasperFillManager.fillReport(relatorio, map, dataSource.getConnection());
 
 		} catch (JRException | SQLException e) {
-			logger.info("Erro ao preencher o relatório.");
+			logger.error("Erro ao preencher o relatório.", e);
 			throw new SiscapServiceException(List.of("Erro ao preencher o relatório. Contate o suporte."));
 		}
 

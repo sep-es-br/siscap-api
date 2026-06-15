@@ -185,6 +185,7 @@ public class ProjetoController {
 
 		Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto, ExibirMarcaDaguaProgramaEnum.EXIBIR,
 				service.buscarPorId(idProjeto.longValue()));
+				
 		String nomeArquivo = service.gerarNomeArquivo(idProjeto);
 		String contentType = "application/pdf";
 

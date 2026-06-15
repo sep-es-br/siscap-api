@@ -13,6 +13,7 @@ public record ProjetoIndicadorDto(
     Integer idIndicadorExterno,
     List<ProjetoIndicadorCatalogoMetaDto> metasIndicadorProjeto
 ) {
+    
     public ProjetoIndicadorDto(ProjetoIndicador projetoIndicador) {
         this(
             projetoIndicador.getId(),

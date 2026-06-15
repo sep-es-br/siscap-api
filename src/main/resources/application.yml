@@ -25,7 +25,7 @@ spring:
     properties:
       mail:
         smtp:
-          auth: false
+          auth: true
           starttls:
             enable: false
 
@@ -101,7 +101,7 @@ api:
     guidSUBEPP: 90948693-1692-49df-a5d1-7d1ce84f600b # SUBEPP
     guidSUBEO: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO
     lotacao:
-      simulada: 
+      simulada: 90948693-1692-49df-a5d1-7d1ce84f600b # SUBEPP
     overrides:
       lotacao-usuario: 
         e0473535-05af-4659-bae6-bfa84fbf50a3: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO # RAQUEL
@@ -169,6 +169,18 @@ pentahoBI:
       target: /indicadores_siscap.cda
       dataAccessId: indicador_siscap
     ods:
+      target: /ods_siscap.cda
+      dataAccessId: ods_siscap
+    gestao:
+      target: /gestao_siscap.cda
+      dataAccessId: gestao_siscap
+    desafios:
+      target: /desafios_siscap.cda
+      dataAccessId: desafios_siscap
+    organizacao:
+      target: /organizador_siscap.cda
+      dataAccessId: organizador_siscap
+    odsporindicadores:
       target: /ods_indicadores_siscap.cda
       dataAccessId: ods_indicador_siscap
 
