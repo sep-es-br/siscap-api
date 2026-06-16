@@ -1,7 +1,7 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
 <jasperReport name="indicadores" language="java" columnCount="1" pageWidth="536" pageHeight="842" orientation="Landscape" columnWidth="536" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="8baf0ff5-1924-4eb3-b5af-c470ff35e5dd">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="pg_siscap_dev"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="IndicadoresJSON"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -15,70 +15,54 @@
 		<field name="anoMeta" class="java.lang.Integer"/>
 		<field name="valorMeta" class="java.lang.String"/>
 	</dataset>
-	<parameter name="idProjeto" class="java.lang.Integer"/>
-	<parameter name="indicadoresProjeto" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
-	<field name="descricaoindicador" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.name" value="descricaoindicador"/>
-		<property name="com.jaspersoft.studio.field.label" value="descricaoindicador"/>
-		<property name="com.jaspersoft.studio.field.tree.path" value="projeto_indicador"/>
-	</field>
-	<field name="metaindicador" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.name" value="metaindicador"/>
-		<property name="com.jaspersoft.studio.field.label" value="metaindicador"/>
-		<property name="com.jaspersoft.studio.field.tree.path" value="projeto_indicador"/>
-	</field>
-	<field name="tipoindicador" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.name" value="tipoindicador"/>
-		<property name="com.jaspersoft.studio.field.label" value="tipoindicador"/>
-		<property name="com.jaspersoft.studio.field.tree.path" value="projeto_indicador"/>
-	</field>
+	<parameter name="indicadoresProjetoDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
 	<field name="nomeIndicador" class="java.lang.String"/>
 	<field name="unidadeMedida" class="java.lang.String"/>
 	<field name="fonteIndicador" class="java.lang.String"/>
 	<field name="medidoPor" class="java.lang.String"/>
 	<field name="baseDeReferencia" class="java.lang.String"/>
 	<field name="formulaCalculo" class="java.lang.String"/>
-	<field name="metasIndicador" class="java.util.List"/>
+	<field name="metasIndicador" class="java.util.Collection"/>
 	<background splitType="Stretch"/>
 	<detail>
 		<band height="160" splitType="Stretch">
-			<element kind="textField" uuid="9ec8789a-faf4-47ab-9e38-fd4d5dd7d9e1" x="0" y="0" width="536" height="18" forecolor="#0A588F" textAdjust="StretchHeight" vTextAlign="Middle">
+			<element kind="textField" uuid="9ec8789a-faf4-47ab-9e38-fd4d5dd7d9e1" x="2" y="0" width="528" height="18" forecolor="#0A588F" textAdjust="StretchHeight" vTextAlign="Middle">
 				<expression><![CDATA[$F{nomeIndicador}]]></expression>
 			</element>
-			<element kind="staticText" uuid="af523f30-fde5-495b-8e92-f9f22f4a4621" x="0" y="24" width="90" height="14">
+			<element kind="staticText" uuid="af523f30-fde5-495b-8e92-f9f22f4a4621" x="3" y="24" width="90" height="14" forecolor="#000000">
 				<text><![CDATA[Unidade:]]></text>
 			</element>
-			<element kind="textField" uuid="e16848ea-89e7-4c5f-ae9f-9f0a542a6544" x="95" y="24" width="441" height="14" textAdjust="StretchHeight">
+			<element kind="textField" uuid="e16848ea-89e7-4c5f-ae9f-9f0a542a6544" x="98" y="24" width="432" height="14" textAdjust="StretchHeight">
 				<expression><![CDATA[$F{unidadeMedida}]]></expression>
 			</element>
-			<element kind="staticText" uuid="ae15aeaa-8682-493d-a3d5-fb54af918460" x="0" y="42" width="90" height="14">
+			<element kind="staticText" uuid="ae15aeaa-8682-493d-a3d5-fb54af918460" x="3" y="42" width="90" height="14">
 				<text><![CDATA[Fonte:]]></text>
 			</element>
-			<element kind="textField" uuid="f625a5aa-0d51-4ecf-8785-b5b5565f10a6" x="95" y="42" width="441" height="14" textAdjust="StretchHeight">
+			<element kind="textField" uuid="f625a5aa-0d51-4ecf-8785-b5b5565f10a6" x="98" y="42" width="432" height="14" textAdjust="StretchHeight">
 				<expression><![CDATA[$F{fonteIndicador}]]></expression>
 			</element>
-			<element kind="staticText" uuid="90e5c38d-9cc0-4eb9-b847-65b64eae21b4" x="0" y="60" width="90" height="14">
+			<element kind="staticText" uuid="90e5c38d-9cc0-4eb9-b847-65b64eae21b4" x="3" y="60" width="90" height="14">
 				<text><![CDATA[Medido por:]]></text>
 			</element>
-			<element kind="textField" uuid="a4b0f440-5a5f-4895-9775-32e34092e807" x="95" y="60" width="441" height="14" textAdjust="StretchHeight">
+			<element kind="textField" uuid="a4b0f440-5a5f-4895-9775-32e34092e807" x="98" y="60" width="432" height="14" textAdjust="StretchHeight">
 				<expression><![CDATA[$F{medidoPor}]]></expression>
 			</element>
-			<element kind="staticText" uuid="8ff15913-5f69-438b-a57e-f7f061f8c2ad" x="0" y="78" width="90" height="14">
+			<element kind="staticText" uuid="8ff15913-5f69-438b-a57e-f7f061f8c2ad" x="3" y="78" width="90" height="14">
 				<text><![CDATA[Base ref.:]]></text>
 			</element>
-			<element kind="textField" uuid="5ac98b36-b5db-4861-a4e6-a736da73fa57" x="95" y="78" width="441" height="14" textAdjust="StretchHeight">
+			<element kind="textField" uuid="5ac98b36-b5db-4861-a4e6-a736da73fa57" x="98" y="78" width="432" height="14" textAdjust="StretchHeight">
 				<expression><![CDATA[$F{baseDeReferencia}]]></expression>
 			</element>
-			<element kind="staticText" uuid="ab0ef5bb-1ee1-4af1-9054-2a4a3c11d991" x="0" y="96" width="90" height="14">
+			<element kind="staticText" uuid="ab0ef5bb-1ee1-4af1-9054-2a4a3c11d991" x="3" y="96" width="90" height="14">
 				<text><![CDATA[Fórmula:]]></text>
 			</element>
-			<element kind="textField" uuid="ffe440da-77e0-4937-b1c5-61511ca4bb41" x="95" y="96" width="441" height="20" textAdjust="StretchHeight">
+			<element kind="textField" uuid="ffe440da-77e0-4937-b1c5-61511ca4bb41" x="98" y="96" width="432" height="20" textAdjust="StretchHeight">
 				<expression><![CDATA[$F{formulaCalculo}]]></expression>
 			</element>
-			<element kind="staticText" uuid="c0129501-dbed-4bee-a23b-f96550e88775" x="0" y="122" width="536" height="14" forecolor="#0A588F">
+			<element kind="staticText" uuid="c0129501-dbed-4bee-a23b-f96550e88775" x="2" y="122" width="528" height="14" forecolor="#0A588F">
 				<text><![CDATA[Metas]]></text>
 			</element>
-			<element kind="component" uuid="c8e4f6e4-d768-4ff2-b5b1-27b395f18813" x="0" y="138" width="536" height="14">
+			<element kind="component" uuid="c8e4f6e4-d768-4ff2-b5b1-27b395f18813" x="2" y="138" width="536" height="14">
 				<component kind="list" printOrder="Vertical">
 					<datasetRun uuid="a5e45bc9-ae61-4483-8d23-f63bf39d3953" subDataset="metasIndicadorDataset">
 						<dataSourceExpression><![CDATA[
@@ -99,6 +83,7 @@
 					</contents>
 				</component>
 			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
 	</detail>
 </jasperReport>
