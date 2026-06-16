@@ -11,15 +11,12 @@
 	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<dataset name="metasIndicadorDataset" uuid="d2fd1ed6-24d5-47a7-a187-6c93b9178d01">
+		<field name="anoMeta" class="java.lang.Integer"/>
+		<field name="valorMeta" class="java.lang.String"/>
+	</dataset>
 	<parameter name="idProjeto" class="java.lang.Integer"/>
-	<query language="SQL"><![CDATA[select distinct
-pi.descricao_indicador as descricaoIndicador,
-pi.meta_indicador as metaIndicador,
-pi.tipo_indicador as tipoIndicador
-from projeto proj
-right join projeto_indicador pi on pi.id_projeto = proj.id
-where pi.apagado = false and 
-proj.id_tipo_status = 1 and proj.id = $P{idProjeto} ]]></query>
+	<parameter name="indicadoresProjeto" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
 	<field name="descricaoindicador" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.name" value="descricaoindicador"/>
 		<property name="com.jaspersoft.studio.field.label" value="descricaoindicador"/>
@@ -35,28 +32,73 @@ proj.id_tipo_status = 1 and proj.id = $P{idProjeto} ]]></query>
 		<property name="com.jaspersoft.studio.field.label" value="tipoindicador"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="projeto_indicador"/>
 	</field>
+	<field name="nomeIndicador" class="java.lang.String"/>
+	<field name="unidadeMedida" class="java.lang.String"/>
+	<field name="fonteIndicador" class="java.lang.String"/>
+	<field name="medidoPor" class="java.lang.String"/>
+	<field name="baseDeReferencia" class="java.lang.String"/>
+	<field name="formulaCalculo" class="java.lang.String"/>
+	<field name="metasIndicador" class="java.util.List"/>
 	<background splitType="Stretch"/>
 	<detail>
-		<band height="16" splitType="Stretch">
-			<element kind="textField" uuid="ed7698d5-aac8-47c7-82a3-be3849c18c24" x="1" y="1" width="170" height="15" forecolor="#0A588F" textAdjust="StretchHeight" vTextAlign="Middle">
-				<expression><![CDATA[$F{tipoindicador}]]></expression>
-				<property name="com.jaspersoft.studio.unit.height" value="px"/>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+		<band height="160" splitType="Stretch">
+			<element kind="textField" uuid="9ec8789a-faf4-47ab-9e38-fd4d5dd7d9e1" x="0" y="0" width="536" height="18" forecolor="#0A588F" textAdjust="StretchHeight" vTextAlign="Middle">
+				<expression><![CDATA[$F{nomeIndicador}]]></expression>
 			</element>
-			<element kind="textField" uuid="edcc9754-feaf-40d2-ad48-a504973c7d50" x="180" y="1" width="180" height="15" forecolor="#0A588F" textAdjust="StretchHeight" vTextAlign="Middle">
-				<expression><![CDATA[$F{descricaoindicador}]]></expression>
-				<property name="com.jaspersoft.studio.unit.height" value="px"/>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			<element kind="staticText" uuid="af523f30-fde5-495b-8e92-f9f22f4a4621" x="0" y="24" width="90" height="14">
+				<text><![CDATA[Unidade:]]></text>
 			</element>
-			<element kind="textField" uuid="c137e521-f2b4-4799-a077-d36cb66b272e" x="370" y="1" width="164" height="15" forecolor="#0A588F" textAdjust="StretchHeight" vTextAlign="Middle">
-				<expression><![CDATA[$F{metaindicador}]]></expression>
-				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-				<property name="com.jaspersoft.studio.unit.x" value="px"/>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<element kind="textField" uuid="e16848ea-89e7-4c5f-ae9f-9f0a542a6544" x="95" y="24" width="441" height="14" textAdjust="StretchHeight">
+				<expression><![CDATA[$F{unidadeMedida}]]></expression>
 			</element>
-			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<element kind="staticText" uuid="ae15aeaa-8682-493d-a3d5-fb54af918460" x="0" y="42" width="90" height="14">
+				<text><![CDATA[Fonte:]]></text>
+			</element>
+			<element kind="textField" uuid="f625a5aa-0d51-4ecf-8785-b5b5565f10a6" x="95" y="42" width="441" height="14" textAdjust="StretchHeight">
+				<expression><![CDATA[$F{fonteIndicador}]]></expression>
+			</element>
+			<element kind="staticText" uuid="90e5c38d-9cc0-4eb9-b847-65b64eae21b4" x="0" y="60" width="90" height="14">
+				<text><![CDATA[Medido por:]]></text>
+			</element>
+			<element kind="textField" uuid="a4b0f440-5a5f-4895-9775-32e34092e807" x="95" y="60" width="441" height="14" textAdjust="StretchHeight">
+				<expression><![CDATA[$F{medidoPor}]]></expression>
+			</element>
+			<element kind="staticText" uuid="8ff15913-5f69-438b-a57e-f7f061f8c2ad" x="0" y="78" width="90" height="14">
+				<text><![CDATA[Base ref.:]]></text>
+			</element>
+			<element kind="textField" uuid="5ac98b36-b5db-4861-a4e6-a736da73fa57" x="95" y="78" width="441" height="14" textAdjust="StretchHeight">
+				<expression><![CDATA[$F{baseDeReferencia}]]></expression>
+			</element>
+			<element kind="staticText" uuid="ab0ef5bb-1ee1-4af1-9054-2a4a3c11d991" x="0" y="96" width="90" height="14">
+				<text><![CDATA[Fórmula:]]></text>
+			</element>
+			<element kind="textField" uuid="ffe440da-77e0-4937-b1c5-61511ca4bb41" x="95" y="96" width="441" height="20" textAdjust="StretchHeight">
+				<expression><![CDATA[$F{formulaCalculo}]]></expression>
+			</element>
+			<element kind="staticText" uuid="c0129501-dbed-4bee-a23b-f96550e88775" x="0" y="122" width="536" height="14" forecolor="#0A588F">
+				<text><![CDATA[Metas]]></text>
+			</element>
+			<element kind="component" uuid="c8e4f6e4-d768-4ff2-b5b1-27b395f18813" x="0" y="138" width="536" height="14">
+				<component kind="list" printOrder="Vertical">
+					<datasetRun uuid="a5e45bc9-ae61-4483-8d23-f63bf39d3953" subDataset="metasIndicadorDataset">
+						<dataSourceExpression><![CDATA[
+							new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource(
+								$F{metasIndicador} == null
+									? java.util.Collections.emptyList()
+									: $F{metasIndicador}
+							)
+						]]></dataSourceExpression>
+					</datasetRun>
+					<contents height="14" width="536">
+						<element kind="textField" uuid="63cf8681-0715-4141-8dee-651023d22bda" x="0" y="0" width="80" height="14">
+							<expression><![CDATA[$F{anoMeta} == null ? "" : String.valueOf($F{anoMeta})]]></expression>
+						</element>
+						<element kind="textField" uuid="68dcc8e4-029a-46c7-8f09-1ee6f15cb20f" x="90" y="0" width="446" height="14">
+							<expression><![CDATA[$F{valorMeta}]]></expression>
+						</element>
+					</contents>
+				</component>
+			</element>
 		</band>
 	</detail>
 </jasperReport>

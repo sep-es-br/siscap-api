@@ -5,6 +5,7 @@ import java.util.List;
 public record FiltroIndicadorDto(
     Long idGestao,
     List<FiltroLabelDto> labels,
-    List<Long> desafios
+    List<Long> desafios,
+    List<Integer> indicadores
 ) {
 }

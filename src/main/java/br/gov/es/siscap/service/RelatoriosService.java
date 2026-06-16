@@ -1,7 +1,13 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.IndicadorMetaRelatorioDto;
+import br.gov.es.siscap.dto.IndicadorPentahoBiDto;
 import br.gov.es.siscap.dto.ProjetoDto;
+import br.gov.es.siscap.dto.ProjetoIndicadorDto;
+import br.gov.es.siscap.dto.ProjetoIndicadoresRelatorio;
 import br.gov.es.siscap.dto.ProjetoOdsRelatorioDto;
+import br.gov.es.siscap.dto.indicadoresexternos.FiltroIndicadorDto;
+import br.gov.es.siscap.dto.indicadoresexternos.OpcoesIndicadoresDto;
 import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.repository.ProjetoRepository;
@@ -11,10 +17,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import javax.sql.DataSource;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
@@ -47,6 +59,8 @@ public class RelatoriosService {
 	private String raizRelatorios;
 
 	private final DataSource dataSource;
+
+	private final IndicadorExternoService indicadorBIService;
 
 	private final Logger logger = LogManager.getLogger(RelatoriosService.class);
 
@@ -105,11 +119,118 @@ public class RelatoriosService {
 							o.odsCor()))
 					.toList();
 
+			List<Integer> idsIndicadoresBI = projetoDto.indicadoresProjeto()
+					.stream()
+					.map(ProjetoIndicadorDto::idIndicadorExterno)
+					.distinct()
+					.toList();
+
+			FiltroIndicadorDto filtroIdIndicadores = new FiltroIndicadorDto(
+					null,
+					List.of(),
+					List.of(),
+					idsIndicadoresBI);
+
+			// Map<Integer, IndicadorPentahoBiDto> indicadoresBIMap = indicadorBIService
+			// .listarIndicadoresBI(filtroIdIndicadores)
+			// .stream()
+			// .collect(Collectors.toMap(
+			// IndicadorPentahoBiDto::idIndicador,
+			// Function.identity()));
+
+			Map<Integer, List<IndicadorPentahoBiDto>> indicadoresBIMap = indicadorBIService
+					.listarIndicadoresBI(filtroIdIndicadores)
+					.stream()
+					.collect(Collectors.groupingBy(IndicadorPentahoBiDto::idIndicador));
+
+			// List<ProjetoIndicadoresRelatorio> listaIndicadoresBI =
+			// projetoDto.indicadoresProjeto()
+			// .stream()
+			// .map(indicador -> {
+
+			// IndicadorPentahoBiDto indicadorBI =
+			// indicadoresBIMap.get(indicador.idIndicadorExterno());
+
+			// if (indicadorBI == null) {
+			// return null;
+			// }
+
+			// return new ProjetoIndicadoresRelatorio(
+			// indicadorBI.nomeIndicador(),
+			// indicadorBI.unidadeMedida(),
+			// null, // fonteIndicador - se BI não tiver
+			// indicadorBI.medidoPor(),
+			// null, // baseDeReferencia - se BI não tiver
+			// null, // formulaCalculo - se BI não tiver
+			// indicador.metasIndicadorProjeto()
+			// .stream()
+			// .map(meta -> new IndicadorMetaRelatorioDto(
+			// meta.anoMeta(),
+			// meta.valorMeta()))
+			// .toList());
+			// })
+			// .filter(Objects::nonNull)
+			// .toList();
+
+			List<ProjetoIndicadoresRelatorio> listaIndicadoresBI = projetoDto.indicadoresProjeto()
+					.stream()
+					.map(indicador -> {
+
+						List<IndicadorPentahoBiDto> linhasIndicador = indicadoresBIMap
+								.get(indicador.idIndicadorExterno());
+
+						if (linhasIndicador == null || linhasIndicador.isEmpty()) {
+							return null;
+						}
+
+						IndicadorPentahoBiDto indicadorBI = linhasIndicador.get(0);
+
+						return new ProjetoIndicadoresRelatorio(
+								indicadorBI.nomeIndicador(),
+								indicadorBI.unidadeMedida(),
+								null,
+								indicadorBI.medidoPor(),
+								null,
+								null,
+
+								// metas vindas do BI
+								linhasIndicador.stream()
+										.map(meta -> new IndicadorMetaRelatorioDto(
+												meta.anoMeta(),
+												meta.valorMeta()))
+										.toList());
+					})
+					.filter(Objects::nonNull)
+					.toList();
+
+			List<ProjetoIndicadoresRelatorio> listaIndicadoresAvulsosProjeto = projetoDto.indicadoresAvulsosProjeto()
+					.stream()
+					.map(indicador -> new ProjetoIndicadoresRelatorio(
+							indicador.indicadorAvulso().nomeIndicador(),
+							indicador.indicadorAvulso().unidadeMedida(),
+							indicador.indicadorAvulso().fonteIndicador(),
+							indicador.indicadorAvulso().medidoPor(),
+							indicador.indicadorAvulso().baseDeReferencia(),
+							indicador.indicadorAvulso().formulaCalculo(),
+							indicador.metasIndicadorProjeto()
+									.stream()
+									.map(meta -> new IndicadorMetaRelatorioDto(
+											meta.anoMeta(),
+											meta.valorMeta()))
+									.toList()))
+					.toList();
+
+			List<ProjetoIndicadoresRelatorio> listaIndicadoresProjetoFinal = new ArrayList<>();
+
+			listaIndicadoresProjetoFinal.addAll(listaIndicadoresAvulsosProjeto);
+			listaIndicadoresProjetoFinal.addAll(listaIndicadoresBI);
+
 			map.put("idProjeto", idProjeto);
 			map.put("pathRelatorios", raizRelatorios);
 			map.put("exibirMarcaDagua", marca);
 			map.put("odsProjetoDataSource", new JRBeanCollectionDataSource(lista));
-			
+			map.put("indicadoresProjeto", new JRBeanCollectionDataSource(listaIndicadoresProjetoFinal));
+
 			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
 
 			return JasperFillManager.fillReport(relatorio, map, dataSource.getConnection());

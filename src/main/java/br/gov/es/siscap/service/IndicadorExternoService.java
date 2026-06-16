@@ -81,7 +81,7 @@ public class IndicadorExternoService {
 	private String targetOdsIndicadores;
 
 	private final ApiUtils apiUtils;
-	
+
 	public List<OpcoesGestaoIndicadorDto> listarGestoesAtivasIndicadores() {
 
 		List<GestaoPentahoBiDto> gestoes = this.listarGestoesAtivasBI();
@@ -196,7 +196,7 @@ public class IndicadorExternoService {
 				"paramp_ods", "-1",
 				"paramp_indicadores", parametroIndicadores);
 
-		return apiUtils.consult( targetOdsIndicadores, odsIndicadoresDataAccessId, siscapPath, params, rs -> {
+		return apiUtils.consult(targetOdsIndicadores, odsIndicadoresDataAccessId, siscapPath, params, rs -> {
 
 			return new OdsIndicadorExternoDto(
 					rs.get("IndicadorId").asInt(),
@@ -247,7 +247,7 @@ public class IndicadorExternoService {
 		String ativa = "1"; // todos
 
 		Map<String, Object> params = Map.of(
-				"paramp_ativa", ativa ,
+				"paramp_ativa", ativa,
 				"paramp_idGestao", "-1");
 
 		String pmoPath = siscapPath;
@@ -260,8 +260,7 @@ public class IndicadorExternoService {
 						rs.get("desafioId").asInt(),
 						rs.get("desafio").asText(),
 						rs.get("grupoId").asInt(),
-						rs.get("subGrupoId").asInt())
-					);
+						rs.get("subGrupoId").asInt()));
 
 	}
 
@@ -269,6 +268,7 @@ public class IndicadorExternoService {
 
 		String desafios = "-1"; // todos
 		String organizadores = "-1"; // todos
+		String indicadores = "-1"; // todos
 
 		if (filtro != null) {
 
@@ -279,12 +279,17 @@ public class IndicadorExternoService {
 			if (filtro.labels() != null && !filtro.labels().isEmpty()) {
 				organizadores = montarOrganizadores(filtro.labels());
 			}
-			
+
+			if (filtro.indicadores() != null && !filtro.indicadores().isEmpty()) {
+				indicadores = montarIndicadores(filtro.indicadores());
+			}
+
 		}
 
 		Map<String, Object> params = Map.of(
 				"paramp_desafio", desafios,
-				"paramp_organizador", organizadores);
+				"paramp_organizador", organizadores,
+				"paramp_indicador", indicadores);
 
 		String pmoPath = siscapPath;
 		String target = targetIndicadores;
@@ -310,6 +315,19 @@ public class IndicadorExternoService {
 						rs.get("valorMeta").asText(),
 						rs.get("maiorAnoIndicador").asInt(),
 						rs.get("maiorMetaIndicador").asDouble()));
+
+	}
+
+	private String montarIndicadores(List<Integer> idIndicadores) {
+
+		if (idIndicadores == null || idIndicadores.isEmpty()) {
+			return "-1";
+		}
+
+		return idIndicadores.stream()
+				.distinct()
+				.map(String::valueOf)
+				.collect(Collectors.joining(","));
 
 	}
 
@@ -406,35 +424,35 @@ public class IndicadorExternoService {
 	}
 
 	public List<LabelDTO> montarLabelsGrupoSubgrupo(List<OrganizadorGestaoPentahoBiDto> listaBi) {
-		
+
 		Map<String, Map<Integer, LabelValorDTO>> labelsMap = new LinkedHashMap<>();
 
 		for (OrganizadorGestaoPentahoBiDto item : listaBi) {
 
 			adicionarValorLabel(
-				labelsMap,
-				item.labelGrupo(),
-				item.idGrupo(),
-				item.valorGrupo(), 
-				null);
+					labelsMap,
+					item.labelGrupo(),
+					item.idGrupo(),
+					item.valorGrupo(),
+					null);
 
 			adicionarValorLabel(
-				labelsMap,
-				item.labelSubGrupo(),
-				item.idSubGrupo(),
-				item.valorSubGrupo(),
-				item.idGrupo());
-		
+					labelsMap,
+					item.labelSubGrupo(),
+					item.idSubGrupo(),
+					item.valorSubGrupo(),
+					item.idGrupo());
+
 		}
 
 		return labelsMap.entrySet().stream()
-			.map(entry -> new LabelDTO(
-					(Integer) entry.getKey().hashCode(),
-					entry.getKey(),
-					null,
-					new ArrayList<>(entry.getValue().values())))
-			.toList();
-		
+				.map(entry -> new LabelDTO(
+						entry.getKey().hashCode(),
+						entry.getKey(),
+						null,
+						new ArrayList<>(entry.getValue().values())))
+				.toList();
+
 	}
 
 	private void adicionarValorLabel(
@@ -475,8 +493,33 @@ public class IndicadorExternoService {
 
 	}
 
-	// public List<OdsPentahoBiDto> listarOds() {
-	// return null;
+	// public List<IndicadorPentahoBiDto> listarIndicadoresBIPorId(List<Integer>
+	// idsIndicadoresBI) {
+	// Map<String, Object> params = Map.of(
+	// "paramp_idindicadores", idsIndicadoresBI);
+	// String pmoPath = siscapPath;
+	// String target = targetIndicadores;
+	// String dataAccessId = indicadoresDataAccessId;
+	// return apiUtils.consult(target, dataAccessId, pmoPath, params,
+	// rs -> new IndicadorPentahoBiDto(
+	// rs.get("ativa").asInt(),
+	// rs.get("idGestao").asInt(),
+	// rs.get("nomeGestao").asText(),
+	// rs.get("modelNameGestao").asText(),
+	// rs.get("idDesafio").asInt(),
+	// rs.get("nomeDesafio").asText(),
+	// rs.get("idOrganizador").asInt(),
+	// rs.get("nomeOrganizador").asText(),
+	// rs.get("modelNameOrganizador").asText(),
+	// rs.get("idIndicador").asInt(),
+	// rs.get("nomeIndicador").asText(),
+	// rs.get("unidadeMedida").asText(),
+	// rs.get("polaridade").asText(),
+	// rs.get("medidoPor").asText(),
+	// rs.get("anoMeta").asInt(),
+	// rs.get("valorMeta").asText(),
+	// rs.get("maiorAnoIndicador").asInt(),
+	// rs.get("maiorMetaIndicador").asDouble()));
 	// }
 
 }
