@@ -21,6 +21,10 @@ public class ProjetoIndicadoresRelatorio {
 
     String formulaCalculo;
 
+    String metasFormatadas;
+
+    Boolean indicadorDeProjeto;
+
     List<IndicadorMetaRelatorioDto> metasIndicador;
 
 }

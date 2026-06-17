@@ -7,6 +7,7 @@ import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoMetaDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorCatalogoMetaDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import br.gov.es.siscap.dto.ProjetoIndicadoresRelatorio;
+import br.gov.es.siscap.dto.ProjetoOdsDto;
 import br.gov.es.siscap.dto.ProjetoOdsRelatorioDto;
 import br.gov.es.siscap.dto.indicadoresexternos.FiltroIndicadorDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesIndicadoresDto;
@@ -66,7 +67,7 @@ public class RelatoriosService {
 	private final IndicadorExternoService indicadorBIService;
 
 	private final Logger logger = LogManager.getLogger(RelatoriosService.class);
-	
+
 	public Resource gerarArquivo(String nomeArquivo, Integer idProjeto, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua,
 			ProjetoDto projetoDto) {
 
@@ -93,10 +94,10 @@ public class RelatoriosService {
 		}
 	}
 
-	private JasperPrint preencherArquivo(InputStream relatorio, 
-		Integer idProjeto,
-		ExibirMarcaDaguaProgramaEnum exibirMarcaDagua, 
-		ProjetoDto projetoDto) {
+	private JasperPrint preencherArquivo(InputStream relatorio,
+			Integer idProjeto,
+			ExibirMarcaDaguaProgramaEnum exibirMarcaDagua,
+			ProjetoDto projetoDto) {
 
 		try {
 
@@ -107,8 +108,9 @@ public class RelatoriosService {
 
 			HashMap<String, Object> map = new HashMap<>();
 
-			List<ProjetoOdsRelatorioDto> lista = projetoDto.odsProjeto()
+			List<ProjetoOdsRelatorioDto> listaOdsProjeto = projetoDto.odsProjeto()
 					.stream()
+					.sorted(Comparator.comparing(ProjetoOdsDto::odsOrdem))
 					.map(o -> new ProjetoOdsRelatorioDto(
 							o.idOdsProjeto(),
 							o.odsId(),
@@ -148,23 +150,31 @@ public class RelatoriosService {
 
 						IndicadorPentahoBiDto indicadorBI = linhasIndicador.get(0);
 
-						List<IndicadorMetaRelatorioDto> teste = indicador.metasIndicadorProjeto()
-							.stream()
-							.sorted(Comparator.comparing(ProjetoIndicadorCatalogoMetaDto::anoMeta))
-							.map(meta -> new IndicadorMetaRelatorioDto(
-									meta.anoMeta(),
-									meta.valorMeta()))
-							.toList();
+						List<IndicadorMetaRelatorioDto> listaMetasIndicador = indicador.metasIndicadorProjeto()
+								.stream()
+								.sorted(Comparator.comparing(ProjetoIndicadorCatalogoMetaDto::anoMeta))
+								.map(meta -> new IndicadorMetaRelatorioDto(
+										meta.anoMeta(),
+										meta.valorMeta()))
+								.toList();
+
+						String metasFormatadas = indicador.metasIndicadorProjeto()
+								.stream()
+								.sorted(Comparator.comparing(ProjetoIndicadorCatalogoMetaDto::anoMeta))
+								.map(meta -> meta.anoMeta() + " (" + meta.valorMeta() + ")")
+								.collect(Collectors.joining(" • "));
 
 						return new ProjetoIndicadoresRelatorio(
 								indicadorBI.nomeIndicador(),
 								indicadorBI.unidadeMedida(),
-								null,// fonteindicador null,
+								null, // fonteindicador null,
 								indicadorBI.medidoPor(),
-								"", //basedereferencia null,
+								"", // basedereferencia null,
 								null,
-								teste);
-										
+								metasFormatadas,
+								false,
+								listaMetasIndicador);
+
 					})
 					.filter(Objects::nonNull)
 					.toList();
@@ -178,6 +188,11 @@ public class RelatoriosService {
 							indicador.indicadorAvulso().medidoPor(),
 							indicador.indicadorAvulso().baseDeReferencia(),
 							indicador.indicadorAvulso().formulaCalculo(),
+							indicador.metasIndicadorProjeto().stream()
+									.sorted(Comparator.comparing(ProjetoIndicadorAvulsoMetaDto::anoMeta))
+									.map(meta -> meta.anoMeta() + " (" + meta.valorMeta() + ")")
+									.collect(Collectors.joining(" • ")),
+							true,
 							indicador.metasIndicadorProjeto().stream()
 									.sorted(Comparator.comparing(ProjetoIndicadorAvulsoMetaDto::anoMeta))
 									.map(meta -> new IndicadorMetaRelatorioDto(
@@ -194,7 +209,7 @@ public class RelatoriosService {
 			map.put("idProjeto", idProjeto);
 			map.put("pathRelatorios", raizRelatorios);
 			map.put("exibirMarcaDagua", marca);
-			map.put("odsProjetoDataSource", new JRBeanCollectionDataSource(lista));
+			map.put("odsProjetoDataSource", new JRBeanCollectionDataSource(listaOdsProjeto));
 			map.put("indicadoresDataSource", new JRBeanCollectionDataSource(listaIndicadoresProjetoFinal));
 
 			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));

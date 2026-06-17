@@ -17,15 +17,11 @@
 	<background splitType="Stretch"/>
 	<detail>
 		<band height="17" splitType="Stretch">
-			<element kind="textField" uuid="edcc9754-feaf-40d2-ad48-a504973c7d50" x="30" y="1" width="468" height="15" forecolor="#0A588F" textAdjust="StretchHeight" vTextAlign="Middle">
-				<expression><![CDATA[$F{odsNome}]]></expression>
-				<property name="com.jaspersoft.studio.unit.height" value="px"/>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			<element kind="textField" uuid="264d2064-daf2-4799-9de6-5d0022006a50" x="1" y="1" width="25" height="16" forecolor="#0A588F" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[String.format("[%02d]", $F{odsOrdem})]]></expression>
 			</element>
-			<element kind="textField" uuid="264d2064-daf2-4799-9de6-5d0022006a50" x="0" y="1" width="30" height="15" forecolor="#0A588F" hTextAlign="Center">
-				<expression><![CDATA[$F{odsOrdem}]]></expression>
-				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<element kind="textField" uuid="edcc9754-feaf-40d2-ad48-a504973c7d50" x="30" y="1" width="500" height="16" forecolor="#0A588F" textAdjust="StretchHeight" vTextAlign="Middle">
+				<expression><![CDATA[$F{odsNome}]]></expression>
 			</element>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
