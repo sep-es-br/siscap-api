@@ -31,8 +31,6 @@ public class ProjetoIndicadorAvulsoService {
 	private final ProjetoIndicadorAvulsoRepository projetoIndicadorAvulsoRepository;
 	private final IndicadorAvulsoRepository indicadorAvulsoRepository;
 	private final ProjetoIndicadorAvulsoMetaRepository projetoIndicadorAvulsoMetaRepository;
-	private final IndicadorAvulsoMetaRepository indicadorAvulsoMetaRepository;
-
 	private final Logger logger = LogManager.getLogger(ProjetoIndicadorAvulsoService.class);
 
 	public Set<ProjetoIndicadorAvulso> buscarPorProjeto(Projeto projeto) {
@@ -45,7 +43,6 @@ public class ProjetoIndicadorAvulsoService {
 			List<ProjetoIndicadorAvulsoDto> projetoIndicadorAvulsoDtoList) {
 
 		logger.info("Sincronizando indicadores avulsos do Projeto com id: {}", projeto.getId());
-		logger.info("Lista de indicadores avulsos vindos do front: {}", projetoIndicadorAvulsoDtoList);
 
 		removerIndicadoresNaoEnviados(projeto, projetoIndicadorAvulsoDtoList);
 

@@ -64,7 +64,8 @@ public class IndicadorAvulso extends ControleHistorico {
         this.nomeIndicador = indicador.nomeIndicador();
         this.unidadeMedida = indicador.unidadeMedida();
         this.medidoPor = indicador.medidoPor();
-
+        this.formulaCalculo = indicador.formulaCalculo();
+        
         if (indicador.metasIndicadorAvulsoGeral() != null) {
             indicador.metasIndicadorAvulsoGeral().forEach( metaDto -> {
                 IndicadorAvulsoMeta meta = new IndicadorAvulsoMeta(this, metaDto);
