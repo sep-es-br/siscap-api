@@ -24,7 +24,7 @@ public class ApiUtils extends PentahoBIService {
 
         try {
 
-            LOGGER.info("EndpointUri: {}", buildEndpointUri(pmoPath, target, dataAccessId, params));
+            // LOGGER.info("EndpointUri: {}", buildEndpointUri(pmoPath, target, dataAccessId, params));
 
             String result = doRequest(buildEndpointUri(pmoPath, target, dataAccessId, params));
 
