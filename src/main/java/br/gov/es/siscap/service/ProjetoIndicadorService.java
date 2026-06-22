@@ -7,6 +7,7 @@ import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoIndicador;
 import br.gov.es.siscap.models.ProjetoIndicadorExternoMeta;
 import br.gov.es.siscap.models.TipoStatus;
+import br.gov.es.siscap.repository.ProjetoIndicadorMetaRepository;
 import br.gov.es.siscap.repository.ProjetoIndicadorRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class ProjetoIndicadorService {
 
 	private final ProjetoIndicadorRepository projetoIndicadorRepository;
+	private final ProjetoIndicadorMetaRepository projetoIndicadorExternoMeta;
 	private final Logger logger = LogManager.getLogger(ProjetoIndicadorService.class);
 
 	public Set<ProjetoIndicador> buscarPorProjeto(Projeto projeto) {
@@ -56,73 +58,9 @@ public class ProjetoIndicadorService {
 		return new HashSet<>(projetoIndicadorListAtualizada);
 
 	}
-
-	// private void validarOdsSelecionadas(ProjetoIndicadorDto indicadorDto) {
-	// if (indicadorDto.odsSelecionadas() == null ||
-	// indicadorDto.odsSelecionadas().isEmpty()) {
-	// throw new SiscapServiceException(Arrays.asList("É obrigatório selecionar pelo
-	// menos uma ODS para o indicador."));
-	// }
-	// if (indicadorDto.idIndicadorExterno() == null) {
-	// throw new SiscapServiceException(Arrays.asList("Indicador externo é
-	// obrigatório para vincular ODS."));
-	// }
-	// if (!indicadorDto.odsSelecionadas().isEmpty()) {
-	// boolean existeOdsInvalida = indicadorDto.odsSelecionadas()
-	// .stream()
-	// .anyMatch(odsDto -> !odsIndicadorExternoRepository
-	// .existsByIdAndIndicadorExternoId(
-	// odsDto.idOdsIndicadorExterno(),
-	// indicadorDto.idIndicadorExterno()
-	// ));
-	// if (existeOdsInvalida) {
-	// throw new SiscapServiceException(
-	// Arrays.asList("Uma ou mais ODS selecionadas não pertencem ao indicador
-	// informado.")
-	// );
-	// }
-	// }
-	// }
-
-	// private ProjetoIndicadorOds criarProjetoIndicadorOds(
-	// ProjetoIndicador projetoIndicador,
-	// ProjetoIndicadorOdsDto odsDto
-	// ) {
-	// OdsIndicadorExterno odsIndicadorExterno = odsIndicadorExternoRepository
-	// .findById(odsDto.idOdsIndicadorExterno())
-	// .orElseThrow(() -> new SiscapServiceException(Arrays.asList("ODS vinculada ao
-	// indicador externo não encontrada.")));
-	// if (!odsIndicadorExterno.getIndicadorExterno().getId()
-	// .equals(projetoIndicador.getIndicadorExterno().getId())) {
-	// throw new SiscapServiceException(Arrays.asList("A ODS selecionada não
-	// pertence ao indicador informado."));
-	// }
-	// ProjetoIndicadorOds projetoIndicadorOds = new ProjetoIndicadorOds();
-	// projetoIndicadorOds.setProjetoIndicador(projetoIndicador);
-	// projetoIndicadorOds.setOdsIndicadorExterno(odsIndicadorExterno);
-	// return projetoIndicadorOds;
-	// }
-
+	
 	@Transactional
 	public Set<ProjetoIndicador> atualizar(Projeto projeto, List<ProjetoIndicadorDto> projetoIndicadorDtoList) {
-
-		// logger.info("Alterando dados de indicadores do Projeto com id: {}",
-		// projeto.getId());
-		// Set<ProjetoIndicador> projetoIndicadorSet = this.buscarPorProjeto(projeto);
-		// Set<ProjetoIndicador> indicadoresProjetoAtualizarSet =
-		// this.atualizarIndicadoresProjeto( projeto, projetoIndicadorSet,
-		// projetoIndicadorDtoList );
-		// projetoIndicadorRepository.saveAllAndFlush(indicadoresProjetoAtualizarSet);
-		// Set<Integer> idsDto = projetoIndicadorDtoList.stream()
-		// .map(ProjetoIndicadorDto::idIndicador)
-		// .filter(Objects::nonNull)
-		// .collect(Collectors.toSet());
-		// Set<ProjetoIndicador> indicadoresParaRemover = projetoIndicadorSet.stream()
-		// .filter(indicador -> !idsDto.contains(indicador.getId()))
-		// .collect(Collectors.toSet());
-		// projetoIndicadorRepository.deleteAll(indicadoresParaRemover);
-		// logger.info("Indicadores do projeto alterados com sucesso");
-		// return this.buscarPorProjeto(projeto);
 
 		logger.info("Alterando dados de indicadores do Projeto com id: {}", projeto.getId());
 
@@ -131,18 +69,15 @@ public class ProjetoIndicadorService {
 		Set<ProjetoIndicador> indicadoresProjetoAtualizarSet = this.atualizarIndicadoresProjeto(projeto,
 				projetoIndicadorSet, projetoIndicadorDtoList);
 
-		indicadoresProjetoAtualizarSet.forEach(indicadorProjeto -> {
-
-			ProjetoIndicadorDto indicadorDto = projetoIndicadorDtoList.stream()
-					.filter(dto -> Objects.equals(dto.idIndicador(), indicadorProjeto.getId()))
-					.findFirst()
-					.orElse(null);
-
-			if (indicadorDto != null) {
-				sincronizarOdsSelecionadas(indicadorProjeto, indicadorDto);
-			}
-
-		});
+		// indicadoresProjetoAtualizarSet.forEach(indicadorProjeto -> {
+		// 	ProjetoIndicadorDto indicadorDto = projetoIndicadorDtoList.stream()
+		// 			.filter(dto -> Objects.equals(dto.idIndicador(), indicadorProjeto.getId()))
+		// 			.findFirst()
+		// 			.orElse(null);
+		// 	if (indicadorDto != null) {
+		// 		sincronizarOdsSelecionadas(indicadorProjeto, indicadorDto);
+		// 	}
+		// });
 
 		projetoIndicadorRepository.saveAllAndFlush(indicadoresProjetoAtualizarSet);
 
@@ -163,79 +98,6 @@ public class ProjetoIndicadorService {
 
 	}
 
-	private void sincronizarOdsSelecionadas(
-			ProjetoIndicador projetoIndicador,
-			ProjetoIndicadorDto indicadorDto) {
-
-		// if (indicadorDto.odsSelecionadas() == null ||
-		// indicadorDto.odsSelecionadas().isEmpty()) {
-		// throw new SiscapServiceException(Arrays.asList("É obrigatório selecionar pelo
-		// menos uma ODS para o indicador."));
-		// }
-
-		// if (projetoIndicador.getIndicadorExterno() == null) {
-		// throw new SiscapServiceException(Arrays.asList("Indicador externo é
-		// obrigatório para vincular ODS."));
-		// }
-
-		// Set<Integer> idsOdsSelecionadasDto = indicadorDto.odsSelecionadas()
-		// .stream()
-		// .map(ProjetoIndicadorOdsDto::idOdsIndicadorExterno)
-		// .filter(Objects::nonNull)
-		// .collect(Collectors.toSet());
-
-		// if (idsOdsSelecionadasDto.isEmpty()) {
-		// throw new SiscapServiceException(Arrays.asList("É obrigatório selecionar pelo
-		// menos uma ODS válida para o indicador."));
-		// }
-
-		// validarOdsPertencemAoIndicador(projetoIndicador, idsOdsSelecionadasDto);
-
-		// projetoIndicador.getOdsSelecionadas().removeIf(odsAtual ->
-		// !idsOdsSelecionadasDto.contains(
-		// odsAtual.getOdsIndicadorExterno().getId()
-		// )
-		// );
-
-		// Set<Integer> idsOdsJaExistentes = projetoIndicador.getOdsSelecionadas()
-		// .stream()
-		// .map(odsAtual -> odsAtual.getOdsIndicadorExterno().getId())
-		// .collect(Collectors.toSet());
-
-		// idsOdsSelecionadasDto.stream()
-		// .filter(idOdsIndicadorExterno ->
-		// !idsOdsJaExistentes.contains(idOdsIndicadorExterno))
-		// .forEach(idOdsIndicadorExterno -> {
-		// OdsIndicadorExterno odsIndicadorExterno = odsIndicadorExternoRepository
-		// .findById(idOdsIndicadorExterno)
-		// .orElseThrow(() -> new SiscapServiceException(Arrays.asList("ODS vinculada ao
-		// indicador não encontrada.")));
-		// ProjetoIndicadorOds novaOds = new ProjetoIndicadorOds();
-		// novaOds.setProjetoIndicador(projetoIndicador);
-		// novaOds.setOdsIndicadorExterno(odsIndicadorExterno);
-		// projetoIndicador.getOdsSelecionadas().add(novaOds);
-		// });
-
-	}
-
-	// private void validarOdsPertencemAoIndicador(
-	// ProjetoIndicador projetoIndicador,
-	// Set<Integer> idsOdsIndicadorExterno
-	// ) {
-	// Integer idIndicadorExterno = projetoIndicador.getIndicadorExterno().getId();
-	// boolean existeOdsInvalida = idsOdsIndicadorExterno.stream()
-	// .anyMatch(idOdsIndicadorExterno ->
-	// !odsIndicadorExternoRepository.existsByIdAndIndicadorExternoId(
-	// idOdsIndicadorExterno,
-	// idIndicadorExterno
-	// )
-	// );
-	// if (existeOdsInvalida) {
-	// throw new SiscapServiceException(Arrays.asList("Uma ou mais ODS selecionadas
-	// não pertencem ao indicador informado."));
-	// }
-	// }
-
 	@Transactional
 	public void excluirPorProjeto(Projeto projeto) {
 
@@ -253,11 +115,15 @@ public class ProjetoIndicadorService {
 
 	@Transactional
 	public void excluirFisicamentePorProjeto(Projeto projeto) {
+
 		logger.info("Excluindo fisicamente indicadores do Projeto com id: {}", projeto.getId());
+
+		projetoIndicadorExternoMeta.deleteFisicoPorProjeto(projeto.getId());
 
 		projetoIndicadorRepository.deleteFisicoPorProjeto(projeto.getId());
 
 		logger.info("Indicadores do projeto excluídos fisicamente com sucesso");
+
 	}
 
 	private Set<ProjetoIndicador> atualizarIndicadoresProjeto(
