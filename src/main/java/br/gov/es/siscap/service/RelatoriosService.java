@@ -163,13 +163,15 @@ public class RelatoriosService {
 								.sorted(Comparator.comparing(ProjetoIndicadorCatalogoMetaDto::anoMeta))
 								.map(meta -> meta.anoMeta() + " (" + meta.valorMeta() + ")")
 								.collect(Collectors.joining(" • "));
-
+						
+						String baseReferencia = String.format("%s (%s)", indicadorBI.maiorAnoIndicador(), indicadorBI.maiorMetaIndicador());
+						
 						return new ProjetoIndicadoresRelatorio(
 								indicadorBI.nomeIndicador(),
 								indicadorBI.unidadeMedida(),
-								null, // fonteindicador null,
+								null,
 								indicadorBI.medidoPor(),
-								"", // basedereferencia null,
+								baseReferencia,
 								null,
 								metasFormatadas,
 								false,

@@ -630,7 +630,13 @@ public class ProjetoService {
 
 		projetoIndicadorService.excluirFisicamentePorProjeto(projeto);
 
+		projetoIndicadorAvulsoService.excluirFisicamentePorProjeto(projeto);
+
 		projetoAcaoService.excluirFisicamentePorProjeto(projeto);
+
+		projetoAcaoService.excluirFisicamentePorProjeto(projeto);
+
+		projetoOdsService.excluirFisicamentePorProjeto(projeto);
 
 		projetoParecerService.excluirFisicamentePorProjeto(projeto);
 

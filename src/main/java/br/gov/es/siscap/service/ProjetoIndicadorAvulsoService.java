@@ -157,21 +157,17 @@ public class ProjetoIndicadorAvulsoService {
 
 	}
 
-	// private void sincronizarMetasGlobaisIndicadorAvulso(
-	// 		IndicadorAvulso indicadorAvulso,
-	// 		List<IndicadorAvulsoMetaDto> metasDto) {
-	// 	// if (metasDto == null) {
-	// 	// 	metasDto = List.of();
-	// 	// }
-	// 	// indicadorAvulsoMetaRepository.deleteByIndicadorAvulsoId(indicadorAvulso.getId());
-	// 	// List<IndicadorAvulsoMeta> metas = metasDto.stream()
-	// 	// 		.map(metaDto -> new IndicadorAvulsoMeta(indicadorAvulso, metaDto))
-	// 	// 		.toList();
-	// 	// if (metas.isEmpty())
-	// 	// 	throw new SiscapServiceException(
-	// 	// 			Arrays.asList("É obrigatória informar metas para um indicador projeto estratégico."));
-	// 	// indicadorAvulsoMetaRepository.saveAll(metas);
-	// 	return;
-	// }
+	@Transactional
+	public void excluirFisicamentePorProjeto(Projeto projeto) {
+		
+		logger.info("Excluindo fisicamente indicadores avulsos do Projeto com id: {}", projeto.getId());
+
+		projetoIndicadorAvulsoMetaRepository.deleteFisicoPorProjeto(projeto.getId());
+
+		projetoIndicadorAvulsoRepository.deleteFisicoPorProjeto(projeto.getId());
+		
+		logger.info("Indicadores avulsos do projeto excluídos fisicamente com sucesso");
+
+	}
 
 }
