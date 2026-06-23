@@ -29,7 +29,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "DIC", description = "")
 @RestController
@@ -84,9 +86,11 @@ public class ProjetoController {
 
 	}
 
-	@PutMapping("/{id}")
-	public ResponseEntity<ProjetoDto> atualizar(@PathVariable @NotNull Long id,
-			@Valid @RequestBody ProjetoForm form,
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ProjetoDto> atualizar(
+			@PathVariable Long id,
+			@RequestPart("projeto") ProjetoForm form,
+			@RequestPart(value = "arquivoParecerAnexo", required = false) MultipartFile arquivoParecerAnexo,
 			@RequestParam(required = false, defaultValue = "false") boolean rascunho,
 			@RequestHeader("Authorization") String auth) {
 
@@ -185,7 +189,7 @@ public class ProjetoController {
 
 		Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto, ExibirMarcaDaguaProgramaEnum.EXIBIR,
 				service.buscarPorId(idProjeto.longValue()));
-				
+
 		String nomeArquivo = service.gerarNomeArquivo(idProjeto);
 		String contentType = "application/pdf";
 
