@@ -100,7 +100,7 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 
-		return ResponseEntity.ok(service.atualizar(id, form, rascunho, pessoa));
+		return ResponseEntity.ok( service.atualizar(id, form, rascunho, pessoa, arquivoParecerAnexo) );
 
 	}
 
@@ -210,8 +210,11 @@ public class ProjetoController {
 		String subNovo = this.tokenService.validarToken(token);
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
-		service.atualizar(idProjeto, form, false, pessoa);
+
+		service.atualizar(idProjeto, form, false, pessoa, null);
+
 		asyncExecutorService.executarAutuacaoEdocs(idProjeto, pessoa, ExibirMarcaDaguaProgramaEnum.NAOEXIBIR, subNovo);
+
 		return ResponseEntity.accepted().build();
 	}
 
@@ -225,9 +228,12 @@ public class ProjetoController {
 		String subNovo = this.tokenService.validarToken(token);
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
-		ProjetoDto projetoDto = service.atualizar(idProjeto, form, false, pessoa);
+
+		ProjetoDto projetoDto = service.atualizar(idProjeto, form, false, pessoa, null);
+
 		asyncExecutorService.assinarCapturaParecerDIC(idProjeto, projetoDto.parecerProjetoUsuario().id(),
 				projetoDto.parecerProjetoUsuario().elegivel());
+
 		return ResponseEntity.accepted().build();
 	}
 
@@ -247,8 +253,11 @@ public class ProjetoController {
 		String subNovo = this.tokenService.validarToken(token);
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
-		service.atualizar(idProjeto, form, false, pessoa);
+
+		service.atualizar(idProjeto, form, false, pessoa, null);
+
 		asyncExecutorService.executarReentranhamentoDicEdocs(idProjeto, pessoa, ExibirMarcaDaguaProgramaEnum.NAOEXIBIR);
+
 		return ResponseEntity.accepted().build();
 	}
 

@@ -15,8 +15,14 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,10 +42,13 @@ public class ProjetoParecerService {
 	private String guidSUBCAP;
 
 	@Value("${email.destinatario-subcap}")
-	private String DESTINO_AVISO_PARECER_CAPTURA;
+	private String destinoAvisoParecerCaptura;
 
 	@Value("${frontend.host}")
 	private String frontEndHost;
+
+	@Value("${api.parecer.anexos_pdf}")
+	private String uploadPathStr;
 
 	private final ProjetoParecerRepository projetoParecerRepository;
 	private final AutenticacaoService autenticacaoService;
@@ -66,7 +75,8 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public ProjetoParecer cadastrar(Projeto projeto, ProjetoParecerDto projetoParecerUsuarioDto) {
+	public ProjetoParecer cadastrar(Projeto projeto, ProjetoParecerDto projetoParecerUsuarioDto,
+			MultipartFile arquivoParecerAnexo) {
 
 		logger.info("Cadastrando pareceres DIC com id: {}", projeto.getId());
 
@@ -113,9 +123,10 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public ProjetoParecer atualizar(Projeto projeto, ProjetoParecerDto projetoParecerDto) {
+	public ProjetoParecer atualizar(Projeto projeto, ProjetoParecerDto projetoParecerDto,
+			MultipartFile arquivoParecerAnexo) {
 
-		if (projetoParecerDto.guidDocumentoEdocs() != null && projetoParecerDto.guidDocumentoEdocs().length() > 0) {
+		if (projetoParecerDto.guidDocumentoEdocs() != null && !projetoParecerDto.guidDocumentoEdocs().isEmpty()) {
 			throw new ValidacaoSiscapException(
 					List.of("O parecer já foi enviado e não pode mais ser alterado ou reenviado."));
 		}
@@ -145,20 +156,39 @@ public class ProjetoParecerService {
 			}
 		}
 
-		if (projetoParecerDto.textoParecer() == null
-				|| projetoParecerDto.textoParecer().isEmpty()) {
+		boolean semTexto = projetoParecerDto.textoParecer() == null
+				|| projetoParecerDto.textoParecer().trim().isEmpty();
+
+		boolean semArquivo = arquivoParecerAnexo == null
+				|| arquivoParecerAnexo.isEmpty();
+
+		if (semTexto && semArquivo) {
 			throw new ValidacaoSiscapException(
-					List.of("Texto do parecer não informado."));
+					List.of("Informe o texto do parecer ou anexe um arquivo PDF."));
 		}
 
-		Set<ProjetoParecer> ProjetoParecerSet = this.buscarPorProjeto(projeto);
+		try {
+			if (!semArquivo && !this.isPdf(arquivoParecerAnexo)) {
+				throw new ValidacaoSiscapException(
+						List.of("O arquivo anexado deve estar no formato PDF."));
+			}
+		} catch (IOException e) {
+			logger.error(e);
+		}
 
-		Set<ProjetoParecer> pareceresProjetoAtualizarSet = this.atualizarPareceresProjeto(projeto, ProjetoParecerSet,
-				projetoParecerDto);
+		Set<ProjetoParecer> projetoParecerSet = this.buscarPorProjeto(projeto);
+
+		Set<ProjetoParecer> pareceresProjetoAtualizarSet = this.atualizarPareceresProjeto(projeto, projetoParecerSet,
+				projetoParecerDto, arquivoParecerAnexo);
+
+		if (pareceresProjetoAtualizarSet.isEmpty()) {
+			throw new ValidacaoSiscapException(
+					List.of("Não foi possível processar os pareceres do projeto."));
+		}
 
 		projetoParecerRepository.saveAllAndFlush(pareceresProjetoAtualizarSet);
 
-		logger.info("Ações do projeto alterada com sucesso");
+		logger.info("Pareceres do projeto alterada com sucesso");
 
 		return this.buscarPorProjeto(projeto)
 				.stream()
@@ -166,6 +196,25 @@ public class ProjetoParecerService {
 						.equals(projetoParecerDto.guidUnidadeOrganizacao()))
 				.findFirst()
 				.orElse(null);
+
+	}
+
+	private boolean isPdf(MultipartFile arquivo) throws IOException {
+
+		try (InputStream is = arquivo.getInputStream()) {
+
+			byte[] header = new byte[5];
+
+			if (is.read(header) < 5) {
+				return false;
+			}
+
+			return header[0] == '%'
+					&& header[1] == 'P'
+					&& header[2] == 'D'
+					&& header[3] == 'F'
+					&& header[4] == '-';
+		}
 
 	}
 
@@ -232,7 +281,8 @@ public class ProjetoParecerService {
 	}
 
 	private Set<ProjetoParecer> atualizarPareceresProjeto(Projeto projeto,
-			Set<ProjetoParecer> pareceresProjetoExistentes, ProjetoParecerDto parecerDto) {
+			Set<ProjetoParecer> pareceresProjetoExistentes, ProjetoParecerDto parecerDto,
+			MultipartFile arquivoParecerAnexo) {
 
 		Set<ProjetoParecer> pareceresAlterarSet = new HashSet<>();
 		Set<ProjetoParecer> pareceresAdicionarSet = new HashSet<>();
@@ -243,7 +293,12 @@ public class ProjetoParecerService {
 				.findFirst()
 				.ifPresentOrElse(
 						(projetoParecer) -> {
-							projetoParecer.atualizarParecer(parecerDto, projeto);
+							try {
+								projetoParecer.atualizarParecer(parecerDto, projeto, arquivoParecerAnexo,
+										uploadPathStr);
+							} catch (Exception e) {
+								logger.error(e.getMessage());
+							}
 							pareceresAlterarSet.add(projetoParecer);
 						},
 						() -> {
@@ -260,7 +315,8 @@ public class ProjetoParecerService {
 	}
 
 	@Transactional
-	public void atualizarIdArquivoCapturado(String guidArquivoCapturado, Long idParecer, String subUsuarioLogado, String codigoRegistroEdocs) {
+	public void atualizarIdArquivoCapturado(String guidArquivoCapturado, Long idParecer, String subUsuarioLogado,
+			String codigoRegistroEdocs) {
 
 		ProjetoParecer projetoParecer = this.buscar(idParecer);
 
@@ -269,7 +325,7 @@ public class ProjetoParecerService {
 		projetoParecer.setDataEnvio(LocalDateTime.now());
 		projetoParecer.setSubUsuarioEnviou(subUsuarioLogado);
 		projetoParecer.setRegistroArquivoEdocs(codigoRegistroEdocs);
-		
+
 		projetoParecerRepository.save(projetoParecer);
 
 	}
@@ -292,7 +348,7 @@ public class ProjetoParecerService {
 
 		boolean confirmacaoEnvioEmail = false;
 		List<String> emailsInteressadosList = new ArrayList<>();
-		emailsInteressadosList.add(DESTINO_AVISO_PARECER_CAPTURA);
+		emailsInteressadosList.add(destinoAvisoParecerCaptura);
 
 		try {
 
@@ -301,14 +357,14 @@ public class ProjetoParecerService {
 
 			if (confirmacaoEnvioEmail) {
 				logger.info(
-						"Email aviso captura pareceres do projeto enviado com sucesso para o projeto id {}", idProjeto );
+						"Email aviso captura pareceres do projeto enviado com sucesso para o projeto id {}", idProjeto);
 			} else {
 				erros.add("Erro ao enviar aviso captura pareceres do projeto id " + idProjeto);
 			}
 
 		} catch (UnsupportedEncodingException | MessagingException e) {
 			logger.error(e.getMessage());
-		} 
+		}
 
 		if (!erros.isEmpty()) {
 			erros.forEach(logger::error);

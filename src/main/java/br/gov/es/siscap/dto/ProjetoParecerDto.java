@@ -4,17 +4,19 @@ import br.gov.es.siscap.models.ProjetoParecer;
 import java.time.LocalDateTime;
 
 public record ProjetoParecerDto(
-		Long id,
-		Long idProjeto,
-		String guidUnidadeOrganizacao,
-		String textoParecer,
-		Long statusParecer,
-		LocalDateTime dataEnvio,
-		String guidDocumentoEdocs,
-		String usuarioFezEnvioParecer,
-		Long parecerLotacao,
-		String registroArquivoEdocs,
-		Boolean elegivel) {
+	Long id,
+	Long idProjeto,
+	String guidUnidadeOrganizacao,
+	String textoParecer,
+	Long statusParecer,
+	LocalDateTime dataEnvio,
+	String guidDocumentoEdocs,
+	String usuarioFezEnvioParecer,
+	Long parecerLotacao,
+	String registroArquivoEdocs,
+	Boolean elegivel,
+	String nomeArquivo,
+	String nomeOriginalArquivo ) {
 
 	public ProjetoParecerDto(ProjetoParecer projetoParecer, String usuarioFezEnvioParecer) {
 
@@ -29,7 +31,10 @@ public record ProjetoParecerDto(
 				usuarioFezEnvioParecer,
 				projetoParecer.getLotacaoParecer().getValue(),
 				projetoParecer.getRegistroArquivoEdocs(),
-				projetoParecer.getResultado());
+				projetoParecer.getResultado(),
+				projetoParecer.getNomeArquivo(),
+				projetoParecer.getNomeOriginalArquivo()
+				);
 	}
 
 	public ProjetoParecerDto(ProjetoParecer projetoParecer, String usuarioFezEnvioParecer, Boolean elegivel) {
@@ -45,7 +50,9 @@ public record ProjetoParecerDto(
 				usuarioFezEnvioParecer,
 				projetoParecer.getLotacaoParecer().getValue(),
 				projetoParecer.getRegistroArquivoEdocs(),
-				elegivel);
+				elegivel,
+				projetoParecer.getNomeArquivo(),
+				projetoParecer.getNomeOriginalArquivo());
 	}
 
 	public ProjetoParecerDto(ProjetoParecer projetoParecer) {
@@ -60,7 +67,9 @@ public record ProjetoParecerDto(
 				projetoParecer.getSubUsuarioEnviou(),
 				projetoParecer.getLotacaoParecer().getValue(),
 				projetoParecer.getRegistroArquivoEdocs(),
-				projetoParecer.getResultado());
+				projetoParecer.getResultado(),
+				projetoParecer.getNomeArquivo(),
+				projetoParecer.getNomeOriginalArquivo());
 	}
 
 }
