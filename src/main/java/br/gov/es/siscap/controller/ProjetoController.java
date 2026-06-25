@@ -176,7 +176,9 @@ public class ProjetoController {
 		String subNovo = this.tokenService.validarToken(token);
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
+		
 		asyncExecutorService.despacharProcessoOrgaoOrigemEdocs(id, complementos, pessoa);
+
 		return ResponseEntity.ok().body("Aviso de complementação enviada com sucesso!");
 	}
 
@@ -185,7 +187,7 @@ public class ProjetoController {
 
 		Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto, ExibirMarcaDaguaProgramaEnum.EXIBIR,
 				service.buscarPorId(idProjeto.longValue()));
-				
+
 		String nomeArquivo = service.gerarNomeArquivo(idProjeto);
 		String contentType = "application/pdf";
 
@@ -243,9 +245,13 @@ public class ProjetoController {
 		String subNovo = this.tokenService.validarToken(token);
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
+
 		service.atualizar(idProjeto, form, false, pessoa);
+
 		asyncExecutorService.executarReentranhamentoDicEdocs(idProjeto, pessoa, ExibirMarcaDaguaProgramaEnum.NAOEXIBIR);
+
 		return ResponseEntity.accepted().build();
+
 	}
 
 	@PutMapping("/dic/edocs/entranharpareceres/{idProjeto}")

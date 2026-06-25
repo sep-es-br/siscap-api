@@ -817,7 +817,9 @@ public class ProjetoService {
 			}
 
 		}
+
 		projeto.alterarStatus(StatusProjetoEnum.COMPLEMETACAO.getValue(), pessoa);
+
 		this.inserirComplementacoesSeremRealizadasDIC(projeto, complementos);
 
 		if (!erros.isEmpty()) {
@@ -826,7 +828,7 @@ public class ProjetoService {
 		}
 
 		return true;
-
+		
 	}
 
 	public void enviarEmailGerenciaSubcap(Long idDIC) {
