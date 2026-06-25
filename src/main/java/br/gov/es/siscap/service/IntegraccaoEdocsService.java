@@ -203,12 +203,23 @@ public class IntegraccaoEdocsService {
 		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 
 		this.despacharProcessoEdcosDicComplementarReativo(projetoDto)
-				.doOnSuccess(
-						retorno -> projetoService.enviarAvisoSolicitarComplementacaoProjeto(idProjeto, complementos,
-								pessoa))
+				.flatMap(retorno -> {
+
+					if (retorno.isEmpty()) {
+						return Mono.error(new ValidacaoSiscapException(List.of(
+								"Integração com E-Docs não finalizada para o projeto id " + idProjeto)));
+					}
+
+					return Mono.fromCallable(() -> projetoService.enviarAvisoSolicitarComplementacaoProjeto(
+							idProjeto,
+							complementos,
+							pessoa));
+
+				})
 				.subscribe(
-						mensagem -> logger.info("SUCESSO: {}", mensagem),
-						erro -> logger.info("ERRO: {}", erro));
+						sucesso -> logger.info("SUCESSO: {}", sucesso),
+						erro -> logger.error("ERRO ao solicitar complementação do projeto {}: {}", idProjeto,
+								erro.getMessage()));
 
 	}
 
@@ -217,7 +228,7 @@ public class IntegraccaoEdocsService {
 		this.encerrarProcessoEdcosReativo(projetoDto)
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
-						erro -> logger.info("ERRO: {}", erro));
+						erro -> logger.info("ERRO: {}", erro.getMessage()));
 	}
 
 	public void reentranharDespacharDicProccessoComplementacaoSUBCAP(Resource arquivoDic, String nomeArquivo,
@@ -255,7 +266,7 @@ public class IntegraccaoEdocsService {
 		this.despacharProcessoEdcosDicComplementarReativo(projetoDtoIntegrando)
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
-						erro -> logger.info("ERRO: {}", erro));
+						erro -> logger.info("ERRO: {}", erro.getMessage()));
 
 	}
 
@@ -263,36 +274,46 @@ public class IntegraccaoEdocsService {
 
 		var chave = new ChaveEtapasIntegracao(projetoDto.id(), ContextoIntegracaoEdocsEnum.DIC);
 
-		this.adicionarEtapa(chave,
-				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, false,
+		this.adicionarEtapa(
+				chave,
+				new EtapasIntegracaoDto(
+						projetoDto.id(),
+						EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
+						true,
+						false,
 						false));
 
 		return buscarTokenReativo()
 				.onErrorResume(tratarErroToken(chave, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO))
 				.switchIfEmpty(Mono.error(new RuntimeException("Token não encontrado ao buscarTokenReativo()")))
 				.map(token -> {
-					try {
-						if (!this.validarMovimentacaoProcessoEdcos(token, projetoDto.idProcessoEdocs())) {
-							String msgAlerta = "Não é possível despachar o processo pois o mesmo está em um local de custódia que impede essa movimentação no E-Docs por você.";
-							this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
-									msgAlerta);
-							throw new ValidacaoSiscapException(List.of(msgAlerta));
-						}
-						return new FluxoContextoIntegracaoDto(projetoDto, token, chave);
-					} catch (Exception e) {
+
+					if (!this.validarMovimentacaoProcessoEdcos(token, projetoDto.idProcessoEdocs())) {
+						
+						String msgAlerta = "Não é possível despachar o processo pois o mesmo está em um local de custódia que impede essa movimentação no E-Docs por você.";
+
 						this.registrarFalhaEtapa(
 								chave,
-								EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
-						return null;
+								EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
+								msgAlerta);
+
+						throw new ValidacaoSiscapException(List.of(msgAlerta));
 					}
+
+					return new FluxoContextoIntegracaoDto(projetoDto, token, chave);
+
 				})
 				.flatMap(this::despacharProcessoDICOrgaoOrigem)
 				.flatMap(this::consultarSituacaoDespachar)
-				.doOnSuccess(retornoSituacaoDespacho -> this.atualizarEtapa(chave,
-						EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true))
-				.doOnError(e -> {
-					logger.error("Falha ao executar chamada ao endpoint para despachar o processo via E-Docs.", e);
-					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+				.flatMap(ctx -> {
+
+					this.atualizarEtapa(
+							chave,
+							EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO,
+							true,
+							true);
+
+					return Mono.just(ctx);
 				})
 				.thenReturn("Despachar processo de DIC para orgão de origem finalizado com sucesso.");
 
@@ -1514,7 +1535,7 @@ public class IntegraccaoEdocsService {
 					projetoService.enviarEmailSubSecretariaSubcap(projetoDto.id());
 					return "Entranhamento do parecer referente ao DIC concluído com sucesso.";
 				})
-					.subscribeOn(Schedulers.boundedElastic()));
+						.subscribeOn(Schedulers.boundedElastic()));
 
 	}
 

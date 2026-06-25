@@ -180,6 +180,7 @@ public class ProjetoController {
 		asyncExecutorService.despacharProcessoOrgaoOrigemEdocs(id, complementos, pessoa);
 
 		return ResponseEntity.ok().body("Aviso de complementação enviada com sucesso!");
+		
 	}
 
 	@GetMapping("/dic/{idProjeto}")

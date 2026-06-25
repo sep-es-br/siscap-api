@@ -36,12 +36,12 @@ public class AsyncExecutorService {
         Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue(), exibirMarcaDagua, service.buscarPorId(idProjeto));
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
         integracaoEdocsService.reentranharDespacharDicProccessoComplementacaoSUBCAP(resource, nomeArquivo,
-                idProjeto.longValue(), pessoa);
+                idProjeto, pessoa);
     }
 
     @Async
     public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos, Pessoa pessoa) {
-        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto.longValue(), complementos, pessoa);
+        integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto, complementos, pessoa);
     }
 
     @Async
