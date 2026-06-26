@@ -17,12 +17,17 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
+
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -435,6 +440,75 @@ public class ProjetoParecerService {
 					List.of("Erro ao localizar o arquivo do parecer."));
 		}
 
+	}
+
+	@Transactional
+	public void removerAnexoParecer(Long idParecer) {
+
+		if (idParecer == null) {
+			throw new ValidacaoSiscapException(
+					List.of("Id do parecer não informado."));
+		}
+
+		ProjetoParecer parecer = projetoParecerRepository.findById(idParecer)
+				.orElseThrow(() -> new ValidacaoSiscapException(
+						List.of("Parecer não encontrado.")));
+
+		String nomeArquivoSalvo = parecer.getNomeArquivo();
+
+		if (nomeArquivoSalvo == null || nomeArquivoSalvo.isBlank()) {
+			throw new ValidacaoSiscapException(
+					List.of("Parecer não possui arquivo anexado."));
+		}
+
+		Path diretorioBase = Paths.get(uploadPathStr)
+				.toAbsolutePath()
+				.normalize();
+
+		Path caminhoArquivo = diretorioBase
+				.resolve(nomeArquivoSalvo)
+				.normalize();
+
+		if (!caminhoArquivo.startsWith(diretorioBase)) {
+			throw new ValidacaoSiscapException(
+					List.of("Caminho do arquivo inválido."));
+		}
+
+		parecer.setNomeArquivo(null);
+		parecer.setTextoParecer(null);
+		parecer.setNomeOriginalArquivo(null);
+
+		projetoParecerRepository.save(parecer);
+
+		TransactionSynchronizationManager.registerSynchronization(
+				new TransactionSynchronization() {
+					@Override
+					public void afterCommit() {
+						excluirArquivoFisico(nomeArquivoSalvo);
+					}
+				});
+
+	}
+
+	private void excluirArquivoFisico(String nomeArquivo) {
+
+		Path diretorio = Paths.get(uploadPathStr).toAbsolutePath().normalize();
+		Path arquivo = diretorio.resolve(nomeArquivo).normalize();
+
+		if (!arquivo.startsWith(diretorio)) {
+			logger.warn("Tentativa de exclusão fora do diretório permitido: {}", arquivo);
+			return;
+		}
+
+		try {
+			boolean excluido = Files.deleteIfExists(arquivo);
+
+			if (!excluido) {
+				logger.warn("Arquivo do parecer não encontrado para exclusão: {}", arquivo);
+			}
+		} catch (IOException e) {
+			logger.error("Erro ao excluir arquivo físico do parecer: {}", arquivo, e);
+		}
 	}
 
 }

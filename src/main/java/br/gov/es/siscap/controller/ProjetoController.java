@@ -299,9 +299,8 @@ public class ProjetoController {
 
 	@DeleteMapping("/dic/parecer/{idParecer}/arquivo")
 	public ResponseEntity<Void> removerAnexoParecer(
-			@PathVariable Long idParecer,
-			@RequestHeader("Authorization") String auth) {
-		// parecerService.removerAnexoParecer(idProjeto, auth);
+		@PathVariable Long idParecer) {
+		parecerService.removerAnexoParecer(idParecer);
 		return ResponseEntity.noContent().build();
 	}
 
