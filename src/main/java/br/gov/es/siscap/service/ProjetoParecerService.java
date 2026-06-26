@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
+import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -55,7 +57,7 @@ public class ProjetoParecerService {
 	private final UsuarioService usuarioService;
 	private final EmailService emailService;
 
-	private final Logger logger = LogManager.getLogger(ProjetoParecer.class);
+	private final Logger logger = LogManager.getLogger(ProjetoParecerService.class);
 
 	public Set<ProjetoParecer> buscarPorProjeto(Projeto projeto) {
 		logger.info("Buscando pareceres vinculados ao DIC com id: {}", projeto.getId());
@@ -218,7 +220,7 @@ public class ProjetoParecerService {
 
 	}
 
-	private ProjetoParecer buscar(Long id) {
+	public ProjetoParecer buscar(Long id) {
 		return projetoParecerRepository.findById(id).orElseThrow(() -> new ProjetoNaoEncontradoException(id));
 	}
 
@@ -383,6 +385,55 @@ public class ProjetoParecerService {
 				.anyMatch(p -> p.getGuidDocumentoEdocs() != null
 						&& p.getStatusParecer() == StatusParecerEnum.ENVIADO.getValue()
 						&& p.getGuidUnidadeOrganizacao().equals(guidSUBCAP));
+
+	}
+
+	public Resource buscarArquivo(Long idParecer) {
+
+		if (idParecer == null) {
+			throw new ValidacaoSiscapException(
+					List.of("Id do parecer não informado."));
+		}
+
+		ProjetoParecer parecer = projetoParecerRepository.findById(idParecer)
+				.orElseThrow(() -> new ValidacaoSiscapException(
+						List.of("Parecer não encontrado.")));
+
+		String nomeArquivoSalvo = parecer.getNomeArquivo();
+
+		if (nomeArquivoSalvo == null || nomeArquivoSalvo.isBlank()) {
+			throw new ValidacaoSiscapException(
+					List.of("Parecer não possui arquivo anexado."));
+		}
+
+		try {
+
+			Path diretorioBase = Paths.get(uploadPathStr)
+					.toAbsolutePath()
+					.normalize();
+
+			Path caminhoArquivo = diretorioBase
+					.resolve(nomeArquivoSalvo)
+					.normalize();
+
+			if (!caminhoArquivo.startsWith(diretorioBase)) {
+				throw new ValidacaoSiscapException(
+						List.of("Caminho do arquivo inválido."));
+			}
+
+			Resource resource = new UrlResource(caminhoArquivo.toUri());
+
+			if (!resource.exists() || !resource.isReadable()) {
+				throw new ValidacaoSiscapException(
+						List.of("Arquivo do parecer não encontrado no servidor."));
+			}
+
+			return resource;
+
+		} catch (MalformedURLException e) {
+			throw new ValidacaoSiscapException(
+					List.of("Erro ao localizar o arquivo do parecer."));
+		}
 
 	}
 

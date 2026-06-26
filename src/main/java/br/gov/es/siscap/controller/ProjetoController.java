@@ -8,9 +8,11 @@ import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.models.Pessoa;
+import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.service.AsyncExecutorService;
 import br.gov.es.siscap.service.IntegraccaoEdocsService;
 import br.gov.es.siscap.service.PessoaService;
+import br.gov.es.siscap.service.ProjetoParecerService;
 import br.gov.es.siscap.service.ProjetoService;
 import br.gov.es.siscap.service.RelatoriosService;
 import br.gov.es.siscap.service.TokenService;
@@ -43,6 +45,7 @@ public class ProjetoController {
 	private final RelatoriosService relatoriosService;
 	private final AsyncExecutorService asyncExecutorService;
 	private final IntegraccaoEdocsService integracaoEdocsService;
+	private final ProjetoParecerService parecerService;
 
 	private final TokenService tokenService;
 	private final PessoaService pessoaSrv;
@@ -100,7 +103,7 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 
-		return ResponseEntity.ok( service.atualizar(id, form, rascunho, pessoa, arquivoParecerAnexo) );
+		return ResponseEntity.ok(service.atualizar(id, form, rascunho, pessoa, arquivoParecerAnexo));
 
 	}
 
@@ -124,7 +127,9 @@ public class ProjetoController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("Falha ao excluir o projeto.");
 		}
+
 		return ResponseEntity.ok().body("Projeto excluído com sucesso!");
+
 	}
 
 	@PutMapping("/{id}/status")
@@ -272,6 +277,31 @@ public class ProjetoController {
 	public ResponseEntity<Void> reenviarEmailPedidoParecer(
 			@PathVariable Long id) {
 		service.reenviarEmailPedidoParecer(id);
+		return ResponseEntity.noContent().build();
+	}
+
+	@GetMapping("/dic/parecer/{idParecer}/arquivo")
+	public ResponseEntity<Resource> baixarArquivoParecerDIC(@PathVariable Long idParecer) {
+
+		Resource resource = parecerService.buscarArquivo(idParecer);
+
+		ProjetoParecer parecer = parecerService.buscar(idParecer);
+
+		String nomeArquivo = parecer.getNomeOriginalArquivo();
+		String contentType = "application/pdf";
+
+		return ResponseEntity.ok()
+				.contentType(MediaType.parseMediaType(contentType))
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + "\"")
+				.body(resource);
+
+	}
+
+	@DeleteMapping("/dic/parecer/{idParecer}/arquivo")
+	public ResponseEntity<Void> removerAnexoParecer(
+			@PathVariable Long idParecer,
+			@RequestHeader("Authorization") String auth) {
+		// parecerService.removerAnexoParecer(idProjeto, auth);
 		return ResponseEntity.noContent().build();
 	}
 
