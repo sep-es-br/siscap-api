@@ -31,7 +31,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -224,8 +223,10 @@ public class ProjetoController {
 	}
 
 	@PutMapping("/dic/edocs/capturarparecer/{idProjeto}")
-	public ResponseEntity<Resource> assinarCapturaParecerDIC(@PathVariable Long idProjeto,
-			@Valid @RequestBody ProjetoForm form,
+	public ResponseEntity<Resource> assinarCapturaParecerDIC(
+			@PathVariable Long idProjeto,
+			@RequestPart("projeto") ProjetoForm form,
+			@RequestPart(value = "arquivoParecerAnexo", required = false) MultipartFile arquivoParecerAnexo,
 			@RequestHeader("Authorization") String auth) {
 
 		String token = auth.replace("Bearer ", "");
@@ -234,10 +235,10 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 
-		ProjetoDto projetoDto = service.atualizar(idProjeto, form, false, pessoa, null);
+		ProjetoDto projetoDto = service.atualizar( idProjeto, form, false, pessoa, arquivoParecerAnexo );
 
-		asyncExecutorService.assinarCapturaParecerDIC(idProjeto, projetoDto.parecerProjetoUsuario().id(),
-				projetoDto.parecerProjetoUsuario().elegivel());
+		asyncExecutorService.assinarCapturaParecerDIC( idProjeto, projetoDto.parecerProjetoUsuario().id(),
+			projetoDto.parecerProjetoUsuario().elegivel());
 
 		return ResponseEntity.accepted().build();
 	}

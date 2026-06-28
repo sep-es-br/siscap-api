@@ -166,8 +166,8 @@ public class ProjetoParecerService {
 		boolean semTexto = projetoParecerDto.textoParecer() == null
 				|| projetoParecerDto.textoParecer().trim().isEmpty();
 
-		boolean semArquivo = arquivoParecerAnexo == null
-				|| arquivoParecerAnexo.isEmpty();
+		boolean semArquivo = projetoParecerDto.nomeArquivo() == null
+				|| projetoParecerDto.nomeArquivo().isEmpty();
 
 		if (semTexto && semArquivo) {
 			throw new ValidacaoSiscapException(
@@ -175,7 +175,7 @@ public class ProjetoParecerService {
 		}
 
 		try {
-			if (!semArquivo && !this.isPdf(arquivoParecerAnexo)) {
+			if (!semArquivo && arquivoParecerAnexo != null && !isPdf(arquivoParecerAnexo)) {
 				throw new ValidacaoSiscapException(
 						List.of("O arquivo anexado deve estar no formato PDF."));
 			}
