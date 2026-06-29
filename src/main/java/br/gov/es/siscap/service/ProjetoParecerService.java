@@ -21,8 +21,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -92,8 +90,40 @@ public class ProjetoParecerService {
 		String subUsuario = autenticacaoService.getUsuarioLogado();
 		String guidOrgaoLotacaoUsuario = usuarioService.lotacaoGuidUsuario(subUsuario);
 
-		ProjetoParecer projetoParecer = new ProjetoParecer(projeto, guidOrgaoLotacaoUsuario,
-				projetoParecerUsuarioDto.textoParecer(), StatusParecerEnum.PENDENTE);
+		ProjetoParecer projetoParecer = new ProjetoParecer(projeto,
+				guidOrgaoLotacaoUsuario,
+				projetoParecerUsuarioDto.textoParecer(),
+				StatusParecerEnum.PENDENTE,
+				projetoParecerUsuarioDto.nomeArquivo(),
+				projetoParecerUsuarioDto.nomeOriginalArquivo());
+
+		boolean semTexto = projetoParecerUsuarioDto.textoParecer() == null
+				|| projetoParecerUsuarioDto.textoParecer().trim().isEmpty();
+
+		boolean semArquivo = projetoParecerUsuarioDto.nomeArquivo() == null
+				|| projetoParecerUsuarioDto.nomeArquivo().isEmpty();
+
+		if (semTexto && semArquivo) {
+			throw new ValidacaoSiscapException(
+					List.of("Informe o texto do parecer ou anexe um arquivo PDF."));
+		}
+
+		try {
+			if (!semArquivo && arquivoParecerAnexo != null && !isPdf(arquivoParecerAnexo)) {
+				throw new ValidacaoSiscapException(
+						List.of("O arquivo anexado deve estar no formato PDF."));
+			}
+		} catch (IOException e) {
+			logger.error(e);
+		}
+
+		if (!semArquivo) {
+			try {
+				projetoParecer.handleFileUpload(arquivoParecerAnexo, projetoParecer, uploadPathStr);
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+			}
+		}
 
 		projetoParecerSet.add(projetoParecer);
 
@@ -311,8 +341,12 @@ public class ProjetoParecerService {
 						() -> {
 							String subUsuario = autenticacaoService.getUsuarioLogado();
 							String guidOrgaoLotacaoUsuario = usuarioService.lotacaoGuidUsuario(subUsuario);
-							pareceresAdicionarSet.add(new ProjetoParecer(projeto, guidOrgaoLotacaoUsuario,
-									parecerDto.textoParecer(), StatusParecerEnum.PENDENTE));
+							pareceresAdicionarSet.add(new ProjetoParecer(projeto,
+									guidOrgaoLotacaoUsuario,
+									parecerDto.textoParecer(),
+									StatusParecerEnum.PENDENTE,
+									parecerDto.nomeArquivo(),
+									parecerDto.nomeOriginalArquivo()));
 						});
 
 		pareceresAdicionarSet.addAll(pareceresAlterarSet);

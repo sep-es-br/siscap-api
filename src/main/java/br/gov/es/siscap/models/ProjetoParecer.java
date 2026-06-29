@@ -84,11 +84,13 @@ public class ProjetoParecer extends ControleHistorico {
 	}
 
 	public ProjetoParecer(Projeto projeto, String guidUnidadeOrganizacao, String textoParecer,
-			StatusParecerEnum statusParecer) {
+			StatusParecerEnum statusParecer, String nomeArquivo, String nomeOriginalArquivo) {
 		this.setProjeto(projeto);
 		this.setGuidUnidadeOrganizacao(guidUnidadeOrganizacao);
 		this.setTextoParecer(textoParecer);
 		this.setStatusParecer(statusParecer.getValue());
+		this.setNomeArquivo(nomeArquivo);
+		this.setNomeOriginalArquivo(nomeOriginalArquivo);
 	}
 
 	public boolean compararIdParecerComParecerDto(ProjetoParecerDto parecerDto) {
@@ -123,7 +125,7 @@ public class ProjetoParecer extends ControleHistorico {
 		return result;
 	}
 
-	private void handleFileUpload(MultipartFile file, ProjetoParecer projetoParecer, String uploadPathStr) throws Exception {
+	public void handleFileUpload(MultipartFile file, ProjetoParecer projetoParecer, String uploadPathStr) throws Exception {
 
 		if (file == null || file.isEmpty())
 			return;
