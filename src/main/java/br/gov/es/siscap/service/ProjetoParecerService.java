@@ -69,11 +69,16 @@ public class ProjetoParecerService {
 	public ProjetoParecer cadastrar(Projeto projeto, ProjetoParecerDto projetoParecerUsuarioDto) {
 
 		logger.info("Cadastrando pareceres DIC com id: {}", projeto.getId());
-
+		
 		Set<ProjetoParecer> projetoParecerSet = new HashSet<>();
 
 		String subUsuario = autenticacaoService.getUsuarioLogado();
 		String guidOrgaoLotacaoUsuario = usuarioService.lotacaoGuidUsuario(subUsuario);
+
+		if( projetoParecerRepository.existsByProjetoIdAndGuidUnidadeOrganizacao(projeto.getId(), guidOrgaoLotacaoUsuario) ) {
+			throw new ValidacaoSiscapException(
+				List.of(String.format("Ja existe parecer do projeto para o orgao sub : %.",guidOrgaoLotacaoUsuario)));
+		}
 
 		ProjetoParecer projetoParecer = new ProjetoParecer(projeto, guidOrgaoLotacaoUsuario,
 				projetoParecerUsuarioDto.textoParecer(), StatusParecerEnum.PENDENTE);
