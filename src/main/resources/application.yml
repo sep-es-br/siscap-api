@@ -106,7 +106,11 @@ api:
     guidSUBEO: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO
     lotacao:
       simulada: 515685f7-2aeb-4cc4-a311-8b793297f8fb # (SUBCAP)
-    anexos_pdf: c:/siscap/api/parecer/anexos
+    
+    overrides:
+      lotacao-usuario: 
+        e0473535-05af-4659-bae6-bfa84fbf50a3: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO # RAQUEL
+    anexos_pdf: C:/siscap/api/arquivos/pareceres/anexos
 
   programa:
     assinantes:
