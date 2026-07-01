@@ -24,4 +24,6 @@ public interface ProjetoParecerRepository extends JpaRepository<ProjetoParecer, 
 
     boolean existsByProjetoIdAndGuidUnidadeOrganizacao(Long projetoId, String guidUnidadeOrganizacao);
 
+    ProjetoParecer findByProjetoIdAndGuidUnidadeOrganizacao(long id, String guidOrgaoLotacaoUsuario);
+
 }
