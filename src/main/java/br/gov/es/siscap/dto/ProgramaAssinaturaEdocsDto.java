@@ -37,4 +37,17 @@ public record ProgramaAssinaturaEdocsDto(
 				textoRecusaAssinante);
 	}
 
+	public ProgramaAssinaturaEdocsDto( String nomeAssinante, String papelAssinante,
+			String textoRecusaAssinante) {
+		this(
+				null,
+				null,
+				null,
+				null,
+				null,
+				nomeAssinante,
+				papelAssinante,
+				textoRecusaAssinante);
+	}
+
 }
