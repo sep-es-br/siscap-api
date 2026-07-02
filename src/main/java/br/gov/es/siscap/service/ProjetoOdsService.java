@@ -90,16 +90,6 @@ public class ProjetoOdsService {
 		Set<ProjetoOds> odsProjetoAtualizarSet = this.atualizarOdsProjeto(projeto,
 				projetoOdsSet, projetoOdsDtoList);
 
-		// odsProjetoAtualizarSet.forEach(indicadorProjeto -> {
-		// 	// ProjetoOdsDto odsDto = projetoOdsDtoList.stream()
-		// 	// 		.filter(dto -> Objects.equals( dto.idOdsProjeto(), indicadorProjeto.getId()))
-		// 	// 		.findFirst()
-		// 	// 		.orElse(null);
-		// 	// if (odsDto != null) {
-		// 	// 	sincronizarOdsSelecionadas(indicadorProjeto, odsDto);
-		// 	// }
-		// });
-
 		projetoOdsRepository.saveAllAndFlush(odsProjetoAtualizarSet);
 
 		Set<Integer> idsDto = projetoOdsDtoList.stream()
@@ -118,43 +108,6 @@ public class ProjetoOdsService {
 		return this.buscarPorProjeto(projeto);
 
 	}
-
-	// private void sincronizarOdsSelecionadas(
-	// 		ProjetoOds projetoOds,
-	// 		ProjetoOdsDto odsDto) {
-
-	// 	// Set<Integer> idsOdsSelecionadasDto = indicadorDto.odsSelecionadas()
-	// 	// .stream()
-	// 	// .map(ProjetoIndicadorOdsDto::idOdsIndicadorExterno)
-	// 	// .filter(Objects::nonNull)
-	// 	// .collect(Collectors.toSet());
-
-	// 	// validarOdsPertencemAoIndicador(projetoIndicador, idsOdsSelecionadasDto);
-
-	// 	// projetoIndicador.getOdsSelecionadas().removeIf( odsAtual ->
-	// 	// !idsOdsSelecionadasDto.contains(
-	// 	// odsAtual.getOdsIndicadorExterno().getId()) );
-
-	// 	// Set<Integer> idsOdsJaExistentes = projetoIndicador.getOdsSelecionadas()
-	// 	// .stream()
-	// 	// .map(odsAtual -> odsAtual.getOdsIndicadorExterno().getId())
-	// 	// .collect(Collectors.toSet());
-
-	// 	// idsOdsSelecionadasDto.stream()
-	// 	// .filter(idOdsIndicadorExterno ->
-	// 	// !idsOdsJaExistentes.contains(idOdsIndicadorExterno))
-	// 	// .forEach(idOdsIndicadorExterno -> {
-	// 	// OdsIndicadorExterno odsIndicadorExterno = odsIndicadorExternoRepository
-	// 	// .findById(idOdsIndicadorExterno)
-	// 	// .orElseThrow(() -> new SiscapServiceException(Arrays.asList("ODS vinculada ao
-	// 	// indicador não encontrada.")));
-	// 	// ProjetoIndicadorOds novaOds = new ProjetoIndicadorOds();
-	// 	// novaOds.setProjetoIndicador(projetoIndicador);
-	// 	// novaOds.setOdsIndicadorExterno(odsIndicadorExterno);
-	// 	// projetoIndicador.getOdsSelecionadas().add(novaOds);
-	// 	// });
-
-	// }
 
 	@Transactional
 	public void excluirPorProjeto(Projeto projeto) {
