@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.listagem.OrganizacaoListaDto;
 import br.gov.es.siscap.form.OrganizacaoForm;
 import br.gov.es.siscap.service.OrganizacaoService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 
+@Tag(name = "Organizações", description = "")
 @RestController
 @RequestMapping("/organizacoes")
 @RequiredArgsConstructor

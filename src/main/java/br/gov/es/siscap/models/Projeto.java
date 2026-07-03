@@ -90,22 +90,22 @@ public class Projeto extends ControleHistorico {
 	private Set<LocalidadeQuantia> localidadeQuantiaSet;
 
 	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
-        @SQLRestriction("""
-                            apagado_em IS NULL AND
-                            NOT EXISTS (
-                                SELECT 1
-                                FROM programa_status ps
-                                WHERE ps.id_programa = id_programa
-                                  AND ps.status = 5
-                                  AND ps.inicio_em = (
-                                      SELECT MAX(ps2.inicio_em)
-                                      FROM programa_status ps2
-                                      WHERE ps2.id_programa = ps.id_programa
-                                  )
-                            )
-                        """)
-        @Getter(AccessLevel.NONE)
-        @Setter(AccessLevel.NONE)
+	@SQLRestriction("""
+			    apagado_em IS NULL AND
+			    NOT EXISTS (
+			        SELECT 1
+			        FROM programa_status ps
+			        WHERE ps.id_programa = id_programa
+			          AND ps.status = 5
+			          AND ps.inicio_em = (
+			              SELECT MAX(ps2.inicio_em)
+			              FROM programa_status ps2
+			              WHERE ps2.id_programa = ps.id_programa
+			          )
+			    )
+			""")
+	@Getter(AccessLevel.NONE)
+	@Setter(AccessLevel.NONE)
 	private Set<ProjetoPrograma> programaHistorico;
 
 	@ManyToOne
@@ -163,6 +163,17 @@ public class Projeto extends ControleHistorico {
 	@JoinColumn(name = "id_pessoa_redator")
 	private Pessoa pessoa;
 
+	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<ProjetoIndicadorAvulso> projetoIndicadorAvulsoSet;
+
+	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<ProjetoOds> ods = new HashSet<>();
+
+	public void addOds(ProjetoOds ods) {
+		ods.setProjeto(this);
+		this.ods.add(ods);
+	}
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
@@ -197,8 +208,9 @@ public class Projeto extends ControleHistorico {
 	}
 
 	public boolean isStatusElegivel() {
-            if(this.getStatusAtual() == null) return false;
-            return Objects.equals( this.getStatusAtual().getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
+		if (this.getStatusAtual() == null)
+			return false;
+		return Objects.equals(this.getStatusAtual().getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
 	}
 
 	public boolean isElegivelParaVinculo() {
@@ -233,10 +245,10 @@ public class Projeto extends ControleHistorico {
 	}
 
 	public void alterarStatus(String novoStatus, Pessoa pessoa) {
-            
-                if(this.getStatusAtual() != null && this.getStatusAtual().getStatus().equals(novoStatus))
-                    return;
-            
+
+		if (this.getStatusAtual() != null && this.getStatusAtual().getStatus().equals(novoStatus))
+			return;
+
 		this.finalizarStatusAtual(pessoa);
 
 		// Cria novo status
@@ -249,51 +261,54 @@ public class Projeto extends ControleHistorico {
 
 		this.getHistoricoStatus().add(novoStatusProjeto);
 
-        }
-        
-        public StatusProjeto finalizarStatusAtual(Pessoa pessoa) {
-            if(this.getStatusAtual() == null) return null;
-            
-            return this.getStatusAtual().finalizar(pessoa);
-        }
-        
-        public StatusProjeto getStatusAtual() {
-            if(historicoStatus == null) return null;
-            return historicoStatus.stream()
-                    .sorted(Comparator.comparing(StatusProjeto::getInicioEm).reversed())
-                    .findFirst().orElse(null);
-        }
-        
-        public Programa getPrograma() {
-            return Optional.ofNullable(this.getHistoricoAtivo()).map(ProjetoPrograma::getPrograma).orElse(null);
-        }
-        
-        public void removerPrograma() {
-            ProjetoPrograma historicoAtivo = this.getHistoricoAtivo();
-            if(historicoAtivo == null) return;
-            
-            historicoAtivo.setApagadoEm(LocalDateTime.now());
-            
-        }
-        
-        public void setPrograma(Programa programa) {
-            
-            Assert.isNull(this.getHistoricoAtivo(), "Favor remover o programa antes de incluir outro");
-            
-            ProjetoPrograma novo = new ProjetoPrograma(this, programa);
-            if(this.programaHistorico == null){
-                this.programaHistorico = new HashSet<>();
-            } 
-                
-            this.programaHistorico.add(novo);
-        }
-        
-        private ProjetoPrograma getHistoricoAtivo() {
-            return programaHistorico.stream()
-                .filter(pp -> pp.getApagadoEm() == null)
-                .filter(pp -> !pp.getPrograma().isRecusado()) // ou equivalente
-                .findFirst()
-                .orElse(null);
-        }
+	}
+
+	public StatusProjeto finalizarStatusAtual(Pessoa pessoa) {
+		if (this.getStatusAtual() == null)
+			return null;
+
+		return this.getStatusAtual().finalizar(pessoa);
+	}
+
+	public StatusProjeto getStatusAtual() {
+		if (historicoStatus == null)
+			return null;
+		return historicoStatus.stream()
+				.sorted(Comparator.comparing(StatusProjeto::getInicioEm).reversed())
+				.findFirst().orElse(null);
+	}
+
+	public Programa getPrograma() {
+		return Optional.ofNullable(this.getHistoricoAtivo()).map(ProjetoPrograma::getPrograma).orElse(null);
+	}
+
+	public void removerPrograma() {
+		ProjetoPrograma historicoAtivo = this.getHistoricoAtivo();
+		if (historicoAtivo == null)
+			return;
+
+		historicoAtivo.setApagadoEm(LocalDateTime.now());
+
+	}
+
+	public void setPrograma(Programa programa) {
+
+		Assert.isNull(this.getHistoricoAtivo(), "Favor remover o programa antes de incluir outro");
+
+		ProjetoPrograma novo = new ProjetoPrograma(this, programa);
+		if (this.programaHistorico == null) {
+			this.programaHistorico = new HashSet<>();
+		}
+
+		this.programaHistorico.add(novo);
+	}
+
+	private ProjetoPrograma getHistoricoAtivo() {
+		return programaHistorico.stream()
+				.filter(pp -> pp.getApagadoEm() == null)
+				.filter(pp -> !pp.getPrograma().isRecusado()) // ou equivalente
+				.findFirst()
+				.orElse(null);
+	}
 
 }

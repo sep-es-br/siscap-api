@@ -2,6 +2,7 @@ package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.service.EstadoService;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Hidden
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/estados")

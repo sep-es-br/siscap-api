@@ -1,0 +1,2 @@
+ALTER TABLE indicador_avulso
+ADD COLUMN IF NOT EXISTS formula_calculo VARCHAR(2000) DEFAULT '';

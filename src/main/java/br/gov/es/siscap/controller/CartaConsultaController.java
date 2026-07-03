@@ -6,6 +6,7 @@ import br.gov.es.siscap.dto.listagem.CartaConsultaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.form.CartaConsultaForm;
 import br.gov.es.siscap.service.CartaConsultaService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Carta Consulta", description = "")
 @RestController
 @RequestMapping("/cartas-consulta")
 @RequiredArgsConstructor

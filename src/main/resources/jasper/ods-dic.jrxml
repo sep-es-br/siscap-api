@@ -1,0 +1,32 @@
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<jasperReport name="ods-dic" language="java" columnCount="1" pageWidth="536" pageHeight="842" orientation="Landscape" columnWidth="536" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="8baf0ff5-1924-4eb3-b5af-c470ff35e5dd">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="pg_siscap_dev"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="odsProjetoDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="odsNome" class="java.lang.String"/>
+	<field name="odsOrdem" class="java.lang.Integer"/>
+	<field name="odsCor" class="java.lang.String"/>
+	<background splitType="Stretch"/>
+	<detail>
+		<band height="17" splitType="Stretch">
+			<element kind="textField" uuid="264d2064-daf2-4799-9de6-5d0022006a50" x="1" y="1" width="25" height="16" forecolor="#0A588F" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[String.format("[%02d]", $F{odsOrdem})]]></expression>
+				<propertyExpression name="net.sf.jasperreports.style.forecolor"><![CDATA[$F{odsCor} == null || $F{odsCor}.trim().isEmpty() ? "#000000" : $F{odsCor}
+			    ]]></propertyExpression>
+			</element>
+			<element kind="textField" uuid="edcc9754-feaf-40d2-ad48-a504973c7d50" x="30" y="1" width="500" height="16" forecolor="#0A588F" textAdjust="StretchHeight" vTextAlign="Middle">
+				<expression><![CDATA[$F{odsNome}]]></expression>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</detail>
+</jasperReport>

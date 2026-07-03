@@ -21,6 +21,8 @@ import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
+import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
+import br.gov.es.siscap.models.ProjetoOds;
 import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.models.ProjetoPessoa;
 import br.gov.es.siscap.models.TipoMotivoArquivamento;
@@ -38,9 +40,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -76,6 +81,8 @@ public class ProjetoService {
 	private final ProjetoComplementosService projetoComplementosService;
 	private final ProjetoParecerService projetoParecerService;
 	private final UsuarioService usuarioService;
+	private final ProjetoIndicadorAvulsoService projetoIndicadorAvulsoService;
+	private final ProjetoOdsService projetoOdsService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -126,7 +133,7 @@ public class ProjetoService {
 				|| lotacaoUsuario == LotacaoUsuarioEnum.SUBEO;
 
 		Specification<Projeto> filtroProjetosOrganizacao = Specification.where(
-				idOrganizacao == null || idOrganizacao == 0 
+				idOrganizacao == null || idOrganizacao == 0
 						? null
 						: ProjetoSpecification.filtroIdOrganizacao(idOrganizacao))
 				.and(especificacaoSiglaTitulo)
@@ -143,11 +150,11 @@ public class ProjetoService {
 			filtroPesquisa = filtroProjetosOrganizacao;
 		}
 
-		return repository.findAll( filtroPesquisa, pageable )
+		return repository.findAll(filtroPesquisa, pageable)
 				.map(projeto -> {
 					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
-					return new ProjetoListaDto( projeto, valorDto.quantia(), lotacaoUsuario.getValue() );
+					return new ProjetoListaDto(projeto, valorDto.quantia(), lotacaoUsuario.getValue());
 				});
 
 	}
@@ -187,6 +194,8 @@ public class ProjetoService {
 
 		Set<ProjetoIndicador> indicadores = projetoIndicadorService.buscarPorProjeto(projeto);
 
+		Set<ProjetoIndicadorAvulso> indicadoresAvulsos = projetoIndicadorAvulsoService.buscarPorProjeto(projeto);
+
 		Set<ProjetoAcao> acoes = projetoAcaoService.buscarPorProjeto(projeto);
 
 		String subUsuario = autenticacaoService.getUsuarioLogado();
@@ -212,6 +221,8 @@ public class ProjetoService {
 				guidSUBEO,
 				guidSUBCAP);
 
+		Set<ProjetoOds> odsProjeto = projetoOdsService.buscarPorProjeto(projeto);
+
 		return new ProjetoDto(projeto, valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
@@ -231,8 +242,51 @@ public class ProjetoService {
 				lotacaoUsuario.getValue(),
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				Optional.ofNullable(projeto.getPessoa()).map(Pessoa::getNome).orElse(null),
-				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
+				this.buscarIndicadoresAvulsos(indicadoresAvulsos),
+				this.buscarOdsProjeto(odsProjeto));
 
+	}
+
+	private List<ProjetoOdsDto> buscarOdsProjeto(Set<ProjetoOds> projetoOdsSet) {
+
+		if (projetoOdsSet == null || projetoOdsSet.isEmpty()) {
+			return List.of();
+		}
+
+		Map<Integer, Integer> projetoOdsIdPorOdsId = projetoOdsSet.stream()
+				.filter(po -> po.getIdOds() != null)
+				.collect(Collectors.toMap(
+						ProjetoOds::getIdOds,
+						ProjetoOds::getId,
+						(idExistente, idRepetido) -> idExistente));
+
+		List<Integer> odsIds = projetoOdsIdPorOdsId.keySet()
+				.stream()
+				.toList();
+
+		if (odsIds.isEmpty()) {
+			return List.of();
+		}
+
+		return projetoOdsService.buscarDadosOdsBi(odsIds)
+				.stream()
+				.map(ods -> new ProjetoOdsDto(
+						projetoOdsIdPorOdsId.get(ods.odsId()), // id da tabela projeto_ods
+						ods.odsId(),
+						ods.odsOrdem(),
+						ods.odsNome(),
+						ods.odsDescricao(),
+						ods.odsCor()))
+				.toList();
+				
+	}
+
+	private List<ProjetoIndicadorAvulsoDto> buscarIndicadoresAvulsos(
+			Set<ProjetoIndicadorAvulso> projetoIndicadorAvulsoSet) {
+		return projetoIndicadorAvulsoSet.stream()
+				.map(ProjetoIndicadorAvulsoDto::new)
+				.toList();
 	}
 
 	private List<ProjetoIndicadorDto> buscarIndicadores(Set<ProjetoIndicador> projetoIndicadorSet) {
@@ -330,8 +384,13 @@ public class ProjetoService {
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		List<ProjetoIndicadorDto> indicadoresProjetoParaGravar = form.indicadoresProjeto();
-
 		projetoIndicadorService.cadastrar(projeto, indicadoresProjetoParaGravar);
+
+		List<ProjetoOdsDto> indicadoresOdsParaGravar = form.odsProjeto();
+		projetoOdsService.cadastrar(projeto, indicadoresOdsParaGravar);
+
+		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjetoParaGravar = form.indicadoresAvulsosProjeto();
+		projetoIndicadorAvulsoService.sincronizar(projeto, indicadoresAvulsosProjetoParaGravar);
 
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
 
@@ -374,7 +433,9 @@ public class ProjetoService {
 				false, null, null, null, null, null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
-				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
+				indicadoresAvulsosProjetoParaGravar,
+				indicadoresOdsParaGravar);
 
 	}
 
@@ -418,6 +479,13 @@ public class ProjetoService {
 		List<ProjetoIndicadorDto> projetoIndicadoresDto = form.indicadoresProjeto();
 		Set<ProjetoIndicador> projetoIndicadoresSet = projetoIndicadorService.atualizar(projetoResult,
 				projetoIndicadoresDto);
+
+		List<ProjetoOdsDto> projetoOdsDto = form.odsProjeto();
+		Set<ProjetoOds> projetoOdsSet = projetoOdsService.atualizar(projetoResult, projetoOdsDto);
+
+		List<ProjetoIndicadorAvulsoDto> projetoIndicadoresAvuslsosDto = form.indicadoresAvulsosProjeto();
+		Set<ProjetoIndicadorAvulso> projetoIndicadoresAvulsoSet = projetoIndicadorAvulsoService
+				.sincronizar(projetoResult, projetoIndicadoresAvuslsosDto);
 
 		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(),
 				form.rateio());
@@ -488,7 +556,9 @@ public class ProjetoService {
 				this.buscarParecer(projetoParecer, form.parecerProjetoUsuario().elegivel()), null,
 				projeto.getProjetoParecerSet().stream().map(ProjetoParecerDto::new).toList(),
 				this.buscarNomeProponente(projetoPessoaSet),
-				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList());
+				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
+				this.buscarIndicadoresAvulsos(projetoIndicadoresAvulsoSet),
+				this.buscarOdsProjeto(projetoOdsSet));
 
 	}
 
@@ -560,7 +630,13 @@ public class ProjetoService {
 
 		projetoIndicadorService.excluirFisicamentePorProjeto(projeto);
 
+		projetoIndicadorAvulsoService.excluirFisicamentePorProjeto(projeto);
+
 		projetoAcaoService.excluirFisicamentePorProjeto(projeto);
+
+		projetoAcaoService.excluirFisicamentePorProjeto(projeto);
+
+		projetoOdsService.excluirFisicamentePorProjeto(projeto);
 
 		projetoParecerService.excluirFisicamentePorProjeto(projeto);
 
@@ -741,7 +817,9 @@ public class ProjetoService {
 			}
 
 		}
+
 		projeto.alterarStatus(StatusProjetoEnum.COMPLEMETACAO.getValue(), pessoa);
+
 		this.inserirComplementacoesSeremRealizadasDIC(projeto, complementos);
 
 		if (!erros.isEmpty()) {
@@ -750,7 +828,7 @@ public class ProjetoService {
 		}
 
 		return true;
-
+		
 	}
 
 	public void enviarEmailGerenciaSubcap(Long idDIC) {
@@ -1251,8 +1329,12 @@ public class ProjetoService {
 			OrganizacaoDto organizacaoDto = organizacaoService.buscarPorId(idOrganizacaoProjeto);
 			nomeOrganizacaoProjeto = String.format("%s - %s", organizacaoDto.abreviatura(), organizacaoDto.nome());
 		} catch (IOException e) {
-			logger.error(e.getMessage());
-			throw new RuntimeException("Erro ao buscar dados organizacao projeto.");
+			logger.error(
+					"Erro ao buscar dados organizacao projeto id {}..",
+					idProjeto,
+					e);
+			throw new ValidacaoSiscapException(List.of(
+					"Erro ao buscar dados organizacao projeto."));
 		}
 
 		EnvioEmailDetalhesDto envioEmailDicDetalhesDto = new EnvioEmailDetalhesDto(idProjeto,
@@ -1368,7 +1450,7 @@ public class ProjetoService {
 		projeto.finalizarStatusAtual(pessoa);
 	}
 
-	public boolean enviarAvisoEquipeElaboracaoDicElegivel(Long idDic) {
+	public boolean enviarAvisoEquipeElaboracaoDicElegibilidade(Long idDic) {
 
 		List<String> erros = new ArrayList<>();
 
@@ -1393,11 +1475,12 @@ public class ProjetoService {
 
 		String siglaDic = projeto.getSigla();
 		String tituloDic = projeto.getTitulo();
+		String statusDic = projeto.getStatusAtual().getStatus();
 
-		if (emailService.enviarEmailAvisoDicElegivel(emailsInteressadosList, siglaDic, idDic, tituloDic)) {
+		if (emailService.enviarEmailAvisoDicElegibilidade(emailsInteressadosList, siglaDic, idDic, tituloDic, statusDic)) {
 			logger.info("Email aviso DIC Elegível id {}", idDic);
 		} else {
-			erros.add("Erro ao enviar aviso DIC Elegível id " + idDic);
+			erros.add("Erro ao enviar aviso elegibilidade DIC id " + idDic);
 		}
 
 		if (!erros.isEmpty()) {
@@ -1448,6 +1531,38 @@ public class ProjetoService {
 
 		return true;
 
+	}
+
+	public void reenviarEmailPedidoParecer(Long idProjeto) {
+		logger.info("Reenviando e-mail de solicitação de parecer estratégico e orçamentário para o DIC id {}.",
+				idProjeto);
+
+		Projeto projeto = this.buscar(idProjeto);
+
+		if (!projeto.getStatusAtual().getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())) {
+			throw new ValidacaoSiscapException(List.of(
+					"Só é possível reenviar o pedido de parecer para projetos em Parecer SEP."));
+		}
+
+		Set<ProjetoPessoa> pessoasDoProjeto = projeto.getProjetoPessoaSet();
+
+		String subResponsavelProponente = this.buscarSubResponsavelProponente(pessoasDoProjeto);
+		String nomeProponente = projeto.getPessoa().getNome();
+
+		try {
+			this.enviarEmailPareceresEstrategicoOrcamentario(
+					idProjeto,
+					subResponsavelProponente,
+					nomeProponente);
+		} catch (UnsupportedEncodingException | MessagingException e) {
+			logger.error(
+					"Erro ao reenviar e-mail de solicitação de parecer estratégico e orçamentário para o DIC id {}.",
+					idProjeto,
+					e);
+
+			throw new ValidacaoSiscapException(List.of(
+					"Erro ao reenviar e-mail de solicitação de parecer estratégico e orçamentário."));
+		}
 	}
 
 }

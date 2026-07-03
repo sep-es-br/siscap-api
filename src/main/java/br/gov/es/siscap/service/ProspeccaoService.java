@@ -114,19 +114,21 @@ public class ProspeccaoService {
 	}
 
 	@Transactional
-	public void enviarEmailProspeccao(Long id, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) throws MessagingException, UnsupportedEncodingException {
+	public void enviarEmailProspeccao( Long id, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) throws MessagingException, UnsupportedEncodingException {
+		
 		ProspeccaoDetalhesDto prospeccaoDetalhesDto = this.buscarDetalhesPorId(id);
 
 		List<String> emailsInteressadosList = prospeccaoInteressadoService.buscarEmailsInteressadosPorPropeccao(this.buscar(id));
 
 		String nomeArquivo = this.projetoService.gerarNomeArquivo(id.intValue()) + ".pdf";
 
-		boolean confirmacaoEnvioEmail = emailService.enviarEmail(prospeccaoDetalhesDto, emailsInteressadosList, nomeArquivo,exibirMarcaDagua);
+		boolean confirmacaoEnvioEmail = emailService.enviarEmail( prospeccaoDetalhesDto, emailsInteressadosList, nomeArquivo, exibirMarcaDagua, null );
 
 		if (confirmacaoEnvioEmail) {
 			this.alterarDadosProspeccaoEnvioEmail(id);
 			logger.info("Email enviado com sucesso");
 		}
+
 	}
 
 	private Prospeccao buscar(Long id) {

@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
@@ -11,6 +11,8 @@
 	<parameter name="exibirMarcaDagua" class="java.lang.String">
 		<defaultValueExpression><![CDATA["N"]]></defaultValueExpression>
 	</parameter>
+	<parameter name="odsProjetoDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<parameter name="indicadoresDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
 	<query language="sql"><![CDATA[select
 	proj.id as id_projeto,
 	proj.criado_em as data_criacao_projeto,
@@ -254,36 +256,33 @@ group by
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
 		</band>
-		<band height="80" splitType="Stretch">
+		<band height="156" splitType="Stretch">
 			<element kind="staticText" uuid="59dcd36d-3f62-4a6a-880e-ba979b86ed65" x="1" y="1" width="270" height="20" forecolor="#000000" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Indicadores]]></text>
 			</element>
 			<element kind="line" uuid="9899737b-9db3-4791-b032-ec43f44c7b25" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
-			<element kind="subreport" uuid="dd3620bd-97ca-4c6c-9c3f-8f4fd9d44e1e" stretchType="ElementGroupHeight" x="-2" y="44" width="536" height="20">
-				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+			<element kind="subreport" uuid="dd3620bd-97ca-4c6c-9c3f-8f4fd9d44e1e" stretchType="ElementGroupHeight" x="1" y="22" width="533" height="128">
+				<dataSourceExpression><![CDATA[$P{indicadoresDataSource}]]></dataSourceExpression>
 				<expression><![CDATA[$P{pathRelatorios} + "/indicadores.jasper"]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				<parameter name="idProjeto">
-					<expression><![CDATA[$P{idProjeto}]]></expression>
-				</parameter>
-				<parameter name="pathRelatorios">
-					<expression><![CDATA[$P{pathRelatorios}]]></expression>
-				</parameter>
-			</element>
-			<element kind="staticText" uuid="01d813d2-b573-42f7-9213-591d3d775577" x="1" y="23" width="170" height="20" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
-				<text><![CDATA[Tipo Indicador]]></text>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-			</element>
-			<element kind="staticText" uuid="cfcf949e-15f2-4d43-99a3-02c76c0a1b3c" x="180" y="23" width="180" height="20" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
-				<text><![CDATA[Indicador]]></text>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-			</element>
-			<element kind="staticText" uuid="397bd0ea-dcf0-499c-bac2-f2d5a66df7ae" x="370" y="23" width="164" height="20" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
-				<text><![CDATA[Meta]]></text>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+		<band height="50">
+			<element kind="staticText" uuid="d512b9e1-74df-419c-87a2-419fd4e94403" x="1" y="0" width="270" height="20" forecolor="#000000" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[ODS ]]></text>
+			</element>
+			<element kind="subreport" uuid="74f04743-ff61-42e4-aff2-f0fe7db08905" key="" stretchType="ElementGroupHeight" x="-1" y="20" width="536" height="20">
+				<dataSourceExpression><![CDATA[$P{odsProjetoDataSource}]]></dataSourceExpression>
+				<expression><![CDATA[$P{pathRelatorios} + "/ods-dic.jasper"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="line" uuid="38972e7c-96d5-4d97-b2c6-e9276bfd8694" x="0" y="20" width="534" height="1" forecolor="#B2B2B2">
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
 		</band>
 		<band height="60" splitType="Stretch">
 			<element kind="staticText" uuid="7bc4f2d7-4870-4a6c-a9b3-e9fde69bf66f" x="0" y="0" width="268" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">

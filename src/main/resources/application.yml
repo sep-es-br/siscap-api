@@ -9,6 +9,11 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
       connection-timeout: 30000
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
       
   jpa:
     properties:
@@ -25,11 +30,12 @@ spring:
     properties:
       mail:
         smtp:
-          auth: false
+          auth: true
           starttls:
             enable: false
 
   flyway:
+    clean-disabled: false
     url: jdbc:postgresql://10.243.135.48:5432/siscap
     user: postgres
     password: kvRfzFXWhUCM5kYTbr5OV7Kk0
@@ -99,7 +105,12 @@ api:
     guidSUBEPP: 90948693-1692-49df-a5d1-7d1ce84f600b # SUBEPP
     guidSUBEO: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO
     lotacao:
-      simulada: 90948693-1692-49df-a5d1-7d1ce84f600b # SUBEPP
+      simulada: 515685f7-2aeb-4cc4-a311-8b793297f8fb # (SUBCAP)
+    
+    overrides:
+      lotacao-usuario: 
+        e0473535-05af-4659-bae6-bfa84fbf50a3: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO # RAQUEL
+    anexos_pdf: C:/siscap/api/arquivos/pareceres/anexos
 
   programa:
     assinantes:
@@ -152,3 +163,35 @@ logging:
 
 listarpapeisprioritarios: false
 
+openapi:
+  server:
+      url: http://localhost:8080/siscap
+  external-docs:
+      url: http://localhost:8080/siscap/swagger-ui/index.html
+
+pentahoBI:
+  
+  baseURL: https://bi.sep.es.gov.br/pentaho/plugin/cda/api/doQuery?
+  userId: anonimo.bi
+  password: Da$hb0ard
+  
+  siscap:
+    path: /public/dashboard/siscap
+    indicadores:
+      target: /indicadores_siscap.cda
+      dataAccessId: indicador_siscap
+    ods:
+      target: /ods_siscap.cda
+      dataAccessId: ods_siscap
+    gestao:
+      target: /gestao_siscap.cda
+      dataAccessId: gestao_siscap
+    desafios:
+      target: /desafios_siscap.cda
+      dataAccessId: desafios_siscap
+    organizacao:
+      target: /organizador_siscap.cda
+      dataAccessId: organizador_siscap
+    odsporindicadores:
+      target: /ods_indicadores_siscap.cda
+      dataAccessId: ods_indicador_siscap          

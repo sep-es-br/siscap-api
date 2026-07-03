@@ -69,14 +69,26 @@ public class ProjetoParecerService {
 	public ProjetoParecer cadastrar(Projeto projeto, ProjetoParecerDto projetoParecerUsuarioDto) {
 
 		logger.info("Cadastrando pareceres DIC com id: {}", projeto.getId());
-
+		
 		Set<ProjetoParecer> projetoParecerSet = new HashSet<>();
 
 		String subUsuario = autenticacaoService.getUsuarioLogado();
 		String guidOrgaoLotacaoUsuario = usuarioService.lotacaoGuidUsuario(subUsuario);
 
+		if( projetoParecerRepository.existsByProjetoIdAndGuidUnidadeOrganizacao( projeto.getId(), guidOrgaoLotacaoUsuario) ) {
+			
+			logger.info(
+				"Parecer já existe para o projeto {} e unidade {}. Inclusão ignorada.",
+				projeto.getId(),
+				guidOrgaoLotacaoUsuario
+			);
+
+			return projetoParecerRepository.findByProjetoIdAndGuidUnidadeOrganizacao(projeto.getId(), guidOrgaoLotacaoUsuario);
+
+		}
+
 		ProjetoParecer projetoParecer = new ProjetoParecer(projeto, guidOrgaoLotacaoUsuario,
-				projetoParecerUsuarioDto.textoParecer(), StatusParecerEnum.PENDENTE);
+			projetoParecerUsuarioDto.textoParecer(), StatusParecerEnum.PENDENTE);
 
 		projetoParecerSet.add(projetoParecer);
 

@@ -134,7 +134,6 @@ public class Programa extends ControleHistorico {
         return this.historicoStatus.stream()
                 .sorted(Comparator.comparing(ProgramaStatus::getInicioEm).reversed())
                 .findFirst().orElse(null);
-
     }
 
     public boolean isRecusado() {

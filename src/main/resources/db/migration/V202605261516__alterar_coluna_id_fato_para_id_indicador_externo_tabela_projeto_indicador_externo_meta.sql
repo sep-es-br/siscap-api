@@ -1,0 +1,2 @@
+ALTER TABLE projeto_indicador_externo_meta
+RENAME COLUMN id_fato TO id_indicador_externo;
