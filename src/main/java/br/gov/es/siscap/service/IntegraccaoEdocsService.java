@@ -165,10 +165,19 @@ public class IntegraccaoEdocsService {
 
 		this.limparEtapas(chave);
 
-		Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
-				projetoParecerService.buscarTipoParecer(idParecer), elegível);
+		ProjetoParecer parecer = projetoParecerService.buscar(idParecer);
 
-		String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
+		Resource resource;
+		String nomeArquivo = "";
+
+		if(!parecer.getNomeOriginalArquivo().isEmpty()){
+			resource = projetoParecerService.buscarArquivo(idParecer);
+			nomeArquivo = parecer.getNomeOriginalArquivo();
+		}else{
+			resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
+					projetoParecerService.buscarTipoParecer(idParecer), elegível);
+			nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
+		}
 
 		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 

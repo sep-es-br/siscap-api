@@ -1,10 +1,16 @@
 package br.gov.es.siscap.models;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.time.LocalDateTime;
+import java.util.HexFormat;
 import java.util.Objects;
 
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.web.multipart.MultipartFile;
 
 import br.gov.es.siscap.dto.ProjetoParecerDto;
 import br.gov.es.siscap.enums.LotacaoUsuarioEnum;
@@ -15,7 +21,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 
 @Entity
 @Table(name = "projeto_parecer")
@@ -40,7 +45,7 @@ public class ProjetoParecer extends ControleHistorico {
 	@Column(name = "guid_unidade_organizacao", nullable = false)
 	private String guidUnidadeOrganizacao;
 
-	@Column(name = "texto_parecer", nullable = true, length=20000)
+	@Column(name = "texto_parecer", nullable = true, length = 20000)
 	private String textoParecer;
 
 	@Column(name = "status_parecer", nullable = false)
@@ -49,16 +54,22 @@ public class ProjetoParecer extends ControleHistorico {
 	@Column(name = "data_envio", nullable = false)
 	private LocalDateTime dataEnvio;
 
-	@Column(name = "guid_documento_edocs", nullable = true, length=50)
+	@Column(name = "guid_documento_edocs", nullable = true, length = 50)
 	private String guidDocumentoEdocs;
 
-	@Column(name = "sub_usuario_enviou", nullable = true, length=50)
+	@Column(name = "sub_usuario_enviou", nullable = true, length = 50)
 	private String subUsuarioEnviou;
 
-	@Transient
-    private LotacaoUsuarioEnum lotacaoParecer = LotacaoUsuarioEnum.OUTRO;
+	@Column(name = "nome_arquivo", nullable = true, length = 50)
+	private String nomeArquivo;
 
-	@Column(name = "registro_arquivo_edocs", nullable = true, length=50)
+	@Column(name = "nome_original_arquivo", nullable = true, length = 50)
+	private String nomeOriginalArquivo;
+
+	@Transient
+	private LotacaoUsuarioEnum lotacaoParecer = LotacaoUsuarioEnum.OUTRO;
+
+	@Column(name = "registro_arquivo_edocs", nullable = true, length = 50)
 	private String registroArquivoEdocs;
 
 	public ProjetoParecer(Projeto projeto, ProjetoParecerDto parecer) {
@@ -72,42 +83,70 @@ public class ProjetoParecer extends ControleHistorico {
 		this.setRegistroArquivoEdocs(parecer.registroArquivoEdocs());
 	}
 
-	public ProjetoParecer(Projeto projeto, String guidUnidadeOrganizacao , String textoParecer, StatusParecerEnum statusParecer ) {
+	public ProjetoParecer(Projeto projeto, String guidUnidadeOrganizacao, String textoParecer,
+			StatusParecerEnum statusParecer, String nomeArquivo, String nomeOriginalArquivo) {
 		this.setProjeto(projeto);
 		this.setGuidUnidadeOrganizacao(guidUnidadeOrganizacao);
 		this.setTextoParecer(textoParecer);
 		this.setStatusParecer(statusParecer.getValue());
+		this.setNomeArquivo(nomeArquivo);
+		this.setNomeOriginalArquivo(nomeOriginalArquivo);
 	}
 
 	public boolean compararIdParecerComParecerDto(ProjetoParecerDto parecerDto) {
-        return Objects.equals(this.getId(), parecerDto.id());
-    }
+		return Objects.equals(this.getId(), parecerDto.id());
+	}
 
-	public void atualizarParecer(ProjetoParecerDto parecerDto, Projeto projeto) {
+	public void atualizarParecer(ProjetoParecerDto parecerDto, Projeto projeto, MultipartFile arquivoParecerAnexo, String uploadPathStr) throws Exception {
 		this.setProjeto(projeto);
+		handleFileUpload(arquivoParecerAnexo, this, uploadPathStr);
 		this.setDataEnvio(parecerDto.dataEnvio());
 		this.setGuidDocumentoEdocs(parecerDto.guidDocumentoEdocs());
 		this.setGuidUnidadeOrganizacao(parecerDto.guidUnidadeOrganizacao());
 		this.setStatusParecer(parecerDto.statusParecer());
 		this.setTextoParecer(parecerDto.textoParecer());
 	}
-        
-        @Transient
-        public Boolean getResultado() {
-            Boolean result = null;
-            
-            if(this.lotacaoParecer == LotacaoUsuarioEnum.SUBCAP) {
-                
-                String status = this.projeto.getStatusAtual().getStatus();
-                
-                if(status.equals(StatusProjetoEnum.ELEGIVEL.getValue()))
-                    result = true;
-                else if(status.equals(StatusProjetoEnum.ARQUIVADO.getValue()))
-                    result = false;
-                
-            }
-            
-            return result;
-        }
+
+	@Transient
+	public Boolean getResultado() {
+		Boolean result = null;
+
+		if (this.lotacaoParecer == LotacaoUsuarioEnum.SUBCAP) {
+
+			String status = this.projeto.getStatusAtual().getStatus();
+
+			if (status.equals(StatusProjetoEnum.ELEGIVEL.getValue()))
+				result = true;
+			else if (status.equals(StatusProjetoEnum.ARQUIVADO.getValue()))
+				result = false;
+
+		}
+
+		return result;
+	}
+
+	public void handleFileUpload(MultipartFile file, ProjetoParecer projetoParecer, String uploadPathStr) throws Exception {
+
+		if (file == null || file.isEmpty())
+			return;
+
+		Path uploadPath = Paths.get(uploadPathStr);
+		Files.createDirectories(uploadPath);
+
+		String originalFileName = Paths.get(file.getOriginalFilename()).getFileName().toString();
+
+		MessageDigest md = MessageDigest.getInstance("SHA-256");
+		byte[] hashBytes = md.digest(file.getBytes());
+
+		String hash = HexFormat.of().formatHex(hashBytes);
+
+		String fileName = hash + "_" + originalFileName;
+
+		Files.write( uploadPath.resolve(fileName), file.getBytes() );
+
+		projetoParecer.setNomeOriginalArquivo(originalFileName);
+		projetoParecer.setNomeArquivo(fileName); 
+
+	}
 
 }
