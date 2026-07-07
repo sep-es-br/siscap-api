@@ -241,8 +241,7 @@ public class ProjetoController {
 
 		ProjetoDto projetoDto = service.atualizar( idProjeto, form, false, pessoa, arquivoParecerAnexo );
 
-		asyncExecutorService.assinarCapturaParecerDIC( idProjeto, projetoDto.parecerProjetoUsuario().id(),
-			projetoDto.parecerProjetoUsuario().elegivel() );
+		asyncExecutorService.assinarCapturaParecerDIC( idProjeto, projetoDto.parecerProjetoUsuario().id(), projetoDto.parecerProjetoUsuario().elegivel() );
 
 		return ResponseEntity.accepted().build();
 	}
