@@ -165,19 +165,10 @@ public class IntegraccaoEdocsService {
 
 		this.limparEtapas(chave);
 
-		ProjetoParecer parecer = projetoParecerService.buscar(idParecer);
+		Resource resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
+				projetoParecerService.buscarTipoParecer(idParecer), elegível);
 
-		Resource resource;
-		String nomeArquivo = "";
-
-		if (!parecer.getNomeOriginalArquivo().isEmpty()) {
-			resource = projetoParecerService.buscarArquivo(idParecer);
-			nomeArquivo = parecer.getNomeOriginalArquivo();
-		} else {
-			resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
-					projetoParecerService.buscarTipoParecer(idParecer), elegível);
-			nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
-		}
+		String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
 
 		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 
@@ -186,15 +177,12 @@ public class IntegraccaoEdocsService {
 		this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado,
 				elegível)
 				.flatMap(mensagem -> {
-
 					logger.info("SUCESSO: {}", mensagem);
-
 					if (projetoParecerService.buscarTipoParecer(idParecer).equals("CAPTAÇÃO")) {
 						return this.entranharParecerProcesso(projetoDto, subJwt);
 					} else {
 						return Mono.empty();
 					}
-
 				})
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
@@ -301,7 +289,7 @@ public class IntegraccaoEdocsService {
 				.map(token -> {
 
 					if (!this.validarMovimentacaoProcessoEdcos(token, projetoDto.idProcessoEdocs())) {
-
+						
 						String msgAlerta = "Não é possível despachar o processo pois o mesmo está em um local de custódia que impede essa movimentação no E-Docs por você.";
 
 						this.registrarFalhaEtapa(
@@ -517,117 +505,56 @@ public class IntegraccaoEdocsService {
 				.thenReturn(ctx);
 	}
 
-	// private Mono<String> atualizarParecer(FluxoContextoIntegracaoDto ctx, Long
-	// idParecer, String subUsuarioLogado,
-	// Boolean elegivel) {
-	// return FeignReativo.fromFeign(() ->
-	// consultarDadosArquivoCapturado(ctx.getIdDocumentos()[0], ctx.getToken()))
-	// .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-	// .switchIfEmpty(Mono.error(new RuntimeException(
-	// "Falha ao executar chamada ao endpoint para consultar dados de um documento
-	// via E-Docs.")))
-	// .flatMap(dadosArquivo -> {
-	// String codigoRegistroEdocs = dadosArquivo.registro();
-	// return Mono.fromCallable(() -> {
-	// projetoParecerService.atualizarIdArquivoCapturado(
-	// ctx.getIdDocumentos()[0],
-	// idParecer,
-	// subUsuarioLogado,
-	// codigoRegistroEdocs);
-	// if
-	// (projetoParecerService.verificarEnvioPareceresProjeto(ctx.getProjeto().id()))
-	// {
-	// projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(
-	// ctx.getProjeto().id(),
-	// ctx.getProjeto().sigla());
-	// }
-	// if
-	// (projetoParecerService.verificarEnvioParecereGEOCProjeto(ctx.getProjeto().id()))
-	// {
-	// String resultado = elegivel ? StatusProjetoEnum.ELEGIVEL.getValue()
-	// : StatusProjetoEnum.INELEGIVEL.getValue();
-	// projetoService.alterarStatusAtualProjetoByIdProjeto(
-	// ctx.getProjeto().id(),
-	// resultado,
-	// subUsuarioLogado);
-	// projetoService.finalizarStatusAtualProjetoByIdProjeto(
-	// ctx.getProjeto().id(),
-	// subUsuarioLogado);
-	// projetoService.enviarAvisoEquipeElaboracaoDicElegibilidade(ctx.getProjeto().id());
-	// entranharParecerProcesso(ctx.getProjeto(), subUsuarioLogado)
-	// .subscribe(
-	// mensagem -> logger.info("SUCESSO: {}", mensagem),
-	// erro -> logger.error("ERRO: {}", erro.getMessage()));
-	// encerrarProcessoEdocs(ctx);
-	// }
-	// return "Atualização do parecer concluída com sucesso.";
-	// });
-	// })
-	// .doOnError(e -> logger.error("Erro ao atualizar parecer com dados do E-Docs",
-	// e));
-	// }
-
 	private Mono<String> atualizarParecer(FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado,
 			Boolean elegivel) {
 
-		Long idProjeto = ctx.getProjeto().id();
-		String siglaProjeto = ctx.getProjeto().sigla();
-		String idDocumento = ctx.getIdDocumentos()[0];
-
-		logger.info(
-				"Iniciando atualização de parecer. idProjeto={}, sigla={}, idParecer={}, idDocumento={}",
-				idProjeto, siglaProjeto, idParecer, idDocumento);
-
-		return FeignReativo.fromFeign(() -> consultarDadosArquivoCapturado(idDocumento, ctx.getToken()))
-
-				.doOnSubscribe(s -> logger.info(
-						"Consultando dados do arquivo capturado no E-Docs. idDocumento={}",
-						idDocumento))
-
-				.retryWhen(
-						Retry.fixedDelay(3, Duration.ofSeconds(2))
-								.doBeforeRetry(retry -> logger.warn(
-										"Tentando novamente consultar arquivo no E-Docs. idDocumento={}, tentativa={}, erro={}",
-										idDocumento,
-										retry.totalRetries() + 1,
-										retry.failure().getMessage())))
-
+		return FeignReativo.fromFeign(() -> consultarDadosArquivoCapturado(ctx.getIdDocumentos()[0], ctx.getToken()))
+				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
 				.switchIfEmpty(Mono.error(new RuntimeException(
 						"Falha ao executar chamada ao endpoint para consultar dados de um documento via E-Docs.")))
-
 				.flatMap(dadosArquivo -> {
 
 					String codigoRegistroEdocs = dadosArquivo.registro();
 
-					logger.info(
-							"Dados do arquivo capturado obtidos. idDocumento={}, codigoRegistroEdocs={}",
-							idDocumento, codigoRegistroEdocs);
-
-					return Mono.fromRunnable(() -> {
+					return Mono.fromCallable(() -> {
 
 						projetoParecerService.atualizarIdArquivoCapturado(
-								idDocumento,
+								ctx.getIdDocumentos()[0],
 								idParecer,
 								subUsuarioLogado,
 								codigoRegistroEdocs);
 
-						logger.info(
-								"Parecer atualizado com ID do arquivo capturado. idParecer={}, idDocumento={}, codigoRegistroEdocs={}",
-								idParecer, idDocumento, codigoRegistroEdocs);
+						if (projetoParecerService.verificarEnvioPareceresProjeto(ctx.getProjeto().id())) {
+							projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(
+									ctx.getProjeto().id(),
+									ctx.getProjeto().sigla());
+						}
+
+						if (projetoParecerService.verificarEnvioParecereGEOCProjeto(ctx.getProjeto().id())) {
+
+							String resultado = elegivel ? StatusProjetoEnum.ELEGIVEL.getValue()
+									: StatusProjetoEnum.INELEGIVEL.getValue();
+
+							projetoService.alterarStatusAtualProjetoByIdProjeto(
+									ctx.getProjeto().id(),
+									resultado,
+									subUsuarioLogado);
+
+							projetoService.finalizarStatusAtualProjetoByIdProjeto(
+									ctx.getProjeto().id(),
+									subUsuarioLogado);
+
+							projetoService.enviarAvisoEquipeElaboracaoDicElegibilidade(ctx.getProjeto().id());
+
+							encerrarProcessoEdcosClient(ctx);
+
+						}
+
+						return "Atualização do parecer concluída com sucesso.";
+
 					});
 				})
-
-				.then(Mono.defer(() -> processarPosAtualizacaoParecer(ctx, subUsuarioLogado, elegivel)))
-
-				.thenReturn("Atualização do parecer concluída com sucesso.")
-
-				.doOnSuccess(msg -> logger.info(
-						"Atualização de parecer finalizada com sucesso. idProjeto={}, idParecer={}",
-						idProjeto, idParecer))
-
-				.doOnError(e -> logger.error(
-						"Erro ao atualizar parecer com dados do E-Docs. idProjeto={}, idParecer={}, idDocumento={}",
-						idProjeto, idParecer, idDocumento, e));
+				.doOnError(e -> logger.error("Erro ao atualizar parecer com dados do E-Docs", e));
 
 	}
 
@@ -687,63 +614,22 @@ public class IntegraccaoEdocsService {
 				.thenReturn(ctx);
 	}
 
-	// private Mono<FluxoContextoIntegracaoDto>
-	// encerrarProcessoEdocs(FluxoContextoIntegracaoDto ctx) {
-	// logger.info("Iniciar processo de encerramento processo E-Docs DIC Id: {}.",
-	// ctx.getProjeto().id());
-	// return FeignReativo.fromFeign(() -> encerrarProcessoEdcosClient(ctx))
-	// .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-	// .switchIfEmpty(
-	// Mono.error(new RuntimeException(
-	// "Falha ao executar chamada ao endpoint para encerrar um processo via
-	// E-Docs.")))
-	// .doOnSuccess(retorno -> ctx.setIdEventoEncerramento(retorno.replace("\"",
-	// "")))
-	// .doOnError(e -> {
-	// logger.error(
-	// "Falha ao executar chamada ao endpoint para encerramento um processo via
-	// E-Docs.", e);
-	// })
-	// .thenReturn(ctx);
-	// }
-
 	private Mono<FluxoContextoIntegracaoDto> encerrarProcessoEdocs(FluxoContextoIntegracaoDto ctx) {
 
-		Long idProjeto = ctx.getProjeto().id();
+		logger.info("Iniciar processo de encerramento processo E-Docs DIC Id: {}.", ctx.getProjeto().id());
 
 		return FeignReativo.fromFeign(() -> encerrarProcessoEdcosClient(ctx))
-
-				.doOnSubscribe(s -> logger.info(
-						"Iniciando encerramento do processo E-Docs. idProjeto={}",
-						idProjeto))
-
-				.retryWhen(
-						Retry.fixedDelay(3, Duration.ofSeconds(2))
-								.doBeforeRetry(retry -> logger.warn(
-										"Nova tentativa de encerramento do processo E-Docs. idProjeto={}, tentativa={}, erro={}",
-										idProjeto,
-										retry.totalRetries() + 1,
-										retry.failure().getMessage())))
-
-				.switchIfEmpty(Mono.error(new RuntimeException(
-						"Falha ao executar chamada ao endpoint para encerrar um processo via E-Docs.")))
-
-				.doOnNext(retorno -> {
-					String idEventoEncerramento = retorno.replace("\"", "");
-					ctx.setIdEventoEncerramento(idEventoEncerramento);
-
-					logger.info(
-							"Processo E-Docs encerrado com sucesso. idProjeto={}, idEventoEncerramento={}",
-							idProjeto,
-							idEventoEncerramento);
+				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+				.switchIfEmpty(
+						Mono.error(new RuntimeException(
+								"Falha ao executar chamada ao endpoint para encerrar um processo via E-Docs.")))
+				.doOnSuccess(retorno -> ctx.setIdEventoEncerramento(retorno.replace("\"", "")))
+				.doOnError(e -> {
+					logger.error(
+							"Falha ao executar chamada ao endpoint para encerramento um processo via E-Docs.", e);
 				})
-
-				.doOnError(e -> logger.error(
-						"Falha ao encerrar processo via E-Docs. idProjeto={}",
-						idProjeto,
-						e))
-
 				.thenReturn(ctx);
+
 	}
 
 	private Mono<FluxoContextoIntegracaoDto> despacharProcessoDIC(FluxoContextoIntegracaoDto ctx) {
@@ -1443,7 +1329,6 @@ public class IntegraccaoEdocsService {
 				: ctx.getProjeto().idProcessoEdocs();
 
 		String tokenLimpo = ctx.getToken().replace("Bearer ", "").trim();
-
 		ACUserInfoDto userInfo = acessoCidadaoService.buscarInformacoesUsuario(tokenLimpo);
 
 		List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService
@@ -2035,77 +1920,6 @@ public class IntegraccaoEdocsService {
 			registrarFalhaEtapa(chave, etapa, mensagem);
 			return Mono.error(erro);
 		};
-	}
-
-	private Mono<String> processarPosAtualizacaoParecer(
-			FluxoContextoIntegracaoDto ctx,
-			String subUsuarioLogado,
-			Boolean elegivel) {
-
-		Long idProjeto = ctx.getProjeto().id();
-		String siglaProjeto = ctx.getProjeto().sigla();
-
-		return Mono.defer(() -> {
-			if (projetoParecerService.verificarEnvioPareceresProjeto(idProjeto)) {
-
-				logger.info("Todos os pareceres do projeto foram capturados. Enviando aviso. idProjeto={}", idProjeto);
-
-				projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(
-						idProjeto,
-						siglaProjeto);
-			}
-
-			if (!projetoParecerService.verificarEnvioParecereGEOCProjeto(idProjeto)) {
-				logger.info("Parecer GEOC ainda não capturado. Fluxo de elegibilidade não será executado. idProjeto={}",
-						idProjeto);
-				return Mono.empty();
-			}
-
-			logger.info("Parecer GEOC capturado. Iniciando fluxo de elegibilidade. idProjeto={}", idProjeto);
-
-			String resultado = Boolean.TRUE.equals(elegivel)
-					? StatusProjetoEnum.ELEGIVEL.getValue()
-					: StatusProjetoEnum.INELEGIVEL.getValue();
-
-			projetoService.alterarStatusAtualProjetoByIdProjeto(
-					idProjeto,
-					resultado,
-					subUsuarioLogado);
-
-			logger.info(
-					"Status atual do projeto alterado. idProjeto={}, novoStatus={}",
-					idProjeto, resultado);
-
-			projetoService.finalizarStatusAtualProjetoByIdProjeto(
-					idProjeto,
-					subUsuarioLogado);
-
-			logger.info("Status atual do projeto finalizado. idProjeto={}", idProjeto);
-
-			projetoService.enviarAvisoEquipeElaboracaoDicElegibilidade(idProjeto);
-
-			logger.info("Aviso de elegibilidade enviado para equipe de elaboração. idProjeto={}", idProjeto);
-
-			return entranharParecerProcesso(ctx.getProjeto(), subUsuarioLogado)
-					.doOnNext(mensagem -> logger.info(
-							"Parecer entranhado no processo E-Docs. idProjeto={}, mensagem={}",
-							idProjeto, mensagem))
-					.then(encerrarProcessoEdocs(ctx))
-					.doOnSuccess(retorno -> logger.info(
-							"Processo E-Docs encerrado. idProjeto={}, idEventoEncerramento={}",
-							idProjeto, retorno.getIdEventoEncerramento()))
-					.thenReturn("Atualização do parecer concluída com sucesso.");
-
-			// return entranharParecerProcesso(ctx.getProjeto(), subUsuarioLogado)
-			// .doOnNext(mensagem -> logger.info(
-			// "Parecer entranhado no processo E-Docs. idProjeto={}, mensagem={}",
-			// idProjeto, mensagem))
-			// .then(Mono.fromRunnable(() -> {
-			// encerrarProcessoEdocs(ctx);
-			// logger.info("Processo E-Docs encerrado. idProjeto={}", idProjeto);
-			// }));
-
-		});
 	}
 
 }

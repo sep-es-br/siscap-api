@@ -57,7 +57,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -441,7 +440,7 @@ public class ProjetoService {
 	}
 
 	@Transactional
-	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho, Pessoa pessoa, MultipartFile arquivoParecerAnexo) {
+	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho, Pessoa pessoa) {
 
 		logger.info("Atualizando projeto com id: {}", id);
 
@@ -505,14 +504,14 @@ public class ProjetoService {
 		ProjetoParecer projetoParecer = null;
 
 		if (projeto.getStatusAtual().getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())
-			|| projeto.getStatusAtual().getStatus().equals(StatusProjetoEnum.ELEGIVEL.getValue())) {
+				|| projeto.getStatusAtual().getStatus().equals(StatusProjetoEnum.ELEGIVEL.getValue())) {
 
 			projetoParecerDto = form.parecerProjetoUsuario();
 
 			if (projetoParecerDto.id() == null)
-				projetoParecer = projetoParecerService.cadastrar(projetoResult, projetoParecerDto, arquivoParecerAnexo);
+				projetoParecer = projetoParecerService.cadastrar(projetoResult, projetoParecerDto);
 			else
-				projetoParecer = projetoParecerService.atualizar(projetoResult, projetoParecerDto, arquivoParecerAnexo);
+				projetoParecer = projetoParecerService.atualizar(projetoResult, projetoParecerDto);
 
 		}
 
