@@ -186,12 +186,15 @@ public class IntegraccaoEdocsService {
 		this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado,
 				elegível)
 				.flatMap(mensagem -> {
+
 					logger.info("SUCESSO: {}", mensagem);
+
 					if (projetoParecerService.buscarTipoParecer(idParecer).equals("CAPTAÇÃO")) {
 						return this.entranharParecerProcesso(projetoDto, subJwt);
 					} else {
 						return Mono.empty();
 					}
+
 				})
 				.subscribe(
 						mensagem -> logger.info("SUCESSO: {}", mensagem),
@@ -514,13 +517,18 @@ public class IntegraccaoEdocsService {
 				.thenReturn(ctx);
 	}
 
-	private Mono<String> atualizarParecer(FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado,
-			Boolean elegivel) {
+	private Mono<String> atualizarParecer( FluxoContextoIntegracaoDto ctx, Long idParecer, String subUsuarioLogado,
+			Boolean elegivel ) {
+
+		// String subJwt = subUsuarioLogado;
 
 		return FeignReativo.fromFeign(() -> consultarDadosArquivoCapturado(ctx.getIdDocumentos()[0], ctx.getToken()))
+
 				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+
 				.switchIfEmpty(Mono.error(new RuntimeException(
 						"Falha ao executar chamada ao endpoint para consultar dados de um documento via E-Docs.")))
+
 				.flatMap(dadosArquivo -> {
 
 					String codigoRegistroEdocs = dadosArquivo.registro();
@@ -554,6 +562,11 @@ public class IntegraccaoEdocsService {
 									subUsuarioLogado);
 
 							projetoService.enviarAvisoEquipeElaboracaoDicElegibilidade(ctx.getProjeto().id());
+
+							entranharParecerProcesso( ctx.getProjeto(), subUsuarioLogado )
+									.subscribe(
+											mensagem -> logger.info("SUCESSO: {}", mensagem),
+											erro -> logger.error("ERRO: {}", erro.getMessage()));
 
 							encerrarProcessoEdcosClient(ctx);
 
