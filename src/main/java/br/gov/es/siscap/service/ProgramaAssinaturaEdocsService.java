@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,12 +39,16 @@ public class ProgramaAssinaturaEdocsService {
 	private final PessoaService pessoaService;
 	private final AcessoCidadaoService acessoCidadaoService;
 
-	private final Logger logger = LogManager.getLogger(ProgramaPessoaService.class);
+	private final Logger logger = LogManager.getLogger(ProgramaAssinaturaEdocsService.class);
 
 	public List<ProgramaAssinaturaEdocsDto> buscarPorPrograma(Programa programa) {
 
 		List<ProgramaAssinaturaEdocs> programaAssinaturaEdocsList = this
 				.buscarProgramaAssinaturasSetPorPrograma(programa).stream().toList();
+
+		if (programaAssinaturaEdocsList.isEmpty()) {
+			return buscarAssinantesConfiguradosNoYml();
+		}
 
 		Map<String, String> papelPorSub = new HashMap<>();
 		Map<String, String> mensagemRecusaAssinaturaPorSub = new HashMap<>();
@@ -138,6 +143,65 @@ public class ProgramaAssinaturaEdocsService {
 
 	private Set<ProgramaAssinaturaEdocs> buscarProgramaAssinaturasSetPorPrograma(Programa programa) {
 		return repository.findAllByPrograma(programa);
+	}
+
+	private List<ProgramaAssinaturaEdocsDto> buscarAssinantesConfiguradosNoYml() {
+
+		Map<String, String> nomePorSub = new HashMap<>();
+		Map<String, String> papelPorSub = new HashMap<>();
+		Map<String, String> mensagemRecusaAssinaturaPorSub = new HashMap<>();
+
+		List<String> subAssinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
+				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
+
+		return subAssinantesEdocsPrograma.stream()
+				.map(subAssinanteConfig -> {
+
+					String sub = subAssinanteConfig;
+
+					preencherDadosAssinante(
+							sub,
+							nomePorSub,
+							papelPorSub,
+							mensagemRecusaAssinaturaPorSub);
+
+					return new ProgramaAssinaturaEdocsDto(
+							nomePorSub.get(sub),
+							papelPorSub.get(sub),
+							mensagemRecusaAssinaturaPorSub.get(sub));
+				})
+				.toList();
+	}
+
+	private void preencherDadosAssinante(
+			String sub,
+			Map<String, String> nomePorSub,
+			Map<String, String> papelPorSub,
+			Map<String, String> mensagemRecusaAssinaturaPorSub) {
+
+		List<ACAgentePublicoPapelDto> papeisAgentePublico = acessoCidadaoService.listarPapeisAgentePublicoPorSub(sub);
+
+		String nomePapelAssinante = papeisAgentePublico.stream()
+				.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
+				.findFirst()
+				.map(ACAgentePublicoPapelDto::Nome)
+				.orElseGet(() -> papeisAgentePublico.stream()
+						.findFirst()
+						.map(ACAgentePublicoPapelDto::Nome)
+						.orElse(""));
+
+		String nomeAssinante = Optional.ofNullable(pessoaService.buscarPorSub(sub))
+				.map(Pessoa::getNome)
+				.orElse("");
+
+		nomePorSub.put(sub, nomeAssinante);
+
+		papelPorSub.put(sub, nomePapelAssinante);
+
+		mensagemRecusaAssinaturaPorSub.put(
+				sub,
+				resolverMensagemRecusaAssinanteGestor(sub));
+
 	}
 
 }
