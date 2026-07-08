@@ -18,6 +18,8 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoParecer;
+import feign.FeignException;
+
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -28,6 +30,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -1141,7 +1145,9 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	private Mono<FluxoContextoIntegracaoDto> capturarAssinar(FluxoContextoIntegracaoDto ctx, String nomeArquivo) {
+	private Mono<FluxoContextoIntegracaoDto> capturarAssinar(
+			FluxoContextoIntegracaoDto ctx,
+			String nomeArquivo) {
 
 		logger.info("Iniciando o processo de capturar/assinar DIC - E-Docs.");
 
@@ -1149,17 +1155,98 @@ public class IntegraccaoEdocsService {
 				ctx.getDtoUploadArquivoResponse().identificadorTemporarioArquivoNaNuvem(),
 				nomeArquivo,
 				ctx.getToken()))
-				.retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
+				.retryWhen(
+						Retry.fixedDelay(3, Duration.ofSeconds(2))
+								.filter(this::deveTentarNovamenteCaptura))
 				.switchIfEmpty(Mono.error(new RuntimeException("Falha ao capturar/assinar documento via E-Docs.")))
 				.doOnSuccess(idEventoRetornoCaptura -> {
 					logger.info("Captura realizada: {}", idEventoRetornoCaptura);
 					ctx.setIdEventoCaptura(idEventoRetornoCaptura.replace("\"", ""));
 				})
+				.onErrorMap( e -> { 
+					this.registrarFalhaEtapa(
+						ctx.getChaveContextoIntegracao(),
+						EtapasIntegracaoEdocsEnum.CAPTURAASSINA, mapearErroCapturaDocumento(e, nomeArquivo).getMessage());
+					return e;
+				})
 				.doOnError(e -> {
 					logger.error("Falha ao enviar captura do arquivo para o servidor S3 do E-Docs.", e);
-					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+					this.registrarFalhaEtapa(
+							ctx.getChaveContextoIntegracao(),
+							EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
 				})
 				.thenReturn(ctx);
+	}
+
+	private boolean deveTentarNovamenteCaptura(Throwable erro) {
+
+		if (erro instanceof FeignException feignException) {
+
+			int status = feignException.status();
+
+			if (status >= 400 && status < 500) {
+				return false;
+			}
+
+			return status >= 500;
+		}
+
+		return true;
+	}
+
+	private Throwable mapearErroCapturaDocumento(Throwable erro, String nomeArquivo) {
+
+		if (erro instanceof FeignException.BadRequest feignException) {
+
+			String body = feignException.contentUTF8();
+
+			if (isDocumentoJaCapturado(body)) {
+
+				String registro = extrairRegistroDocumentoCapturado(body);
+
+				return new ValidacaoSiscapException(
+						List.of(montarMensagemDocumentoJaCapturado(nomeArquivo, registro)));
+
+			}
+		}
+
+		return erro;
+	}
+
+	private String montarMensagemDocumentoJaCapturado(String nomeArquivo, String registro) {
+
+		if (registro != null && !registro.isBlank()) {
+			return "O documento \"" + nomeArquivo + "\" já foi capturado no E-Docs sob o registro " + registro + ".";
+		}
+
+		return "O documento \"" + nomeArquivo + "\" já foi capturado no E-Docs.";
+	}
+
+	private boolean isDocumentoJaCapturado(String body) {
+
+		if (body == null || body.isBlank()) {
+			return false;
+		}
+
+		return body.toLowerCase().contains("documento")
+				&& body.toLowerCase().contains("capturado")
+				&& body.toLowerCase().contains("registro");
+	}
+
+	private String extrairRegistroDocumentoCapturado(String body) {
+
+		if (body == null || body.isBlank()) {
+			return null;
+		}
+
+		Pattern pattern = Pattern.compile("registro:\\s*([0-9]{4}-[A-Z0-9]+)", Pattern.CASE_INSENSITIVE);
+		Matcher matcher = pattern.matcher(body);
+
+		if (matcher.find()) {
+			return matcher.group(1);
+		}
+
+		return null;
 	}
 
 	private Mono<FluxoContextoIntegracaoDto> uploadArquivo(FluxoContextoIntegracaoDto ctx, Resource arquivo,
