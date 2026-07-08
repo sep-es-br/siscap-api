@@ -80,6 +80,8 @@ public class OrganizacaoService {
 				});
 	}
 
+	public 
+
 	public List<OpcoesDto> listarOpcoesDropdown(Long filtroTipoOrganizacao) {
 
 		Sort organizacaoListSort = Sort.by(Sort.Direction.ASC, "nome");

@@ -64,6 +64,8 @@ public class ProjetoPessoa extends ControleHistorico {
 	@Column(name = "data_fim")
 	private LocalDateTime dataFim;
 
+	@Column(name = "entidade")
+	private String entidade;
 
 	public ProjetoPessoa(Projeto projeto, Long idResponsavelProponente) {
 		this.setProjeto(projeto);
