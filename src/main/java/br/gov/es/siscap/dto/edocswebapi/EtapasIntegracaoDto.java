@@ -14,6 +14,7 @@ public class EtapasIntegracaoDto {
     private boolean erro;
     private String msgAlertaExibir;
     private String contextoNegocio;
+    private boolean tokenExpirado = false;
 
     public EtapasIntegracaoDto(Long id, EtapasIntegracaoEdocsEnum etapa, boolean iniciada, boolean finalizada, boolean erro ) {
         this.id = id;
@@ -46,5 +47,8 @@ public class EtapasIntegracaoDto {
 
     public void setContextoNegocio(String contextoNegocio) { this.contextoNegocio = contextoNegocio; }
     public String getContextoNegocio() { return this.contextoNegocio; }
+
+    public void setTokenExpirado(boolean tokenExpirado) { this.tokenExpirado = tokenExpirado; }
+    public boolean isTokenExpirado() { return this.tokenExpirado; }
 
 }
