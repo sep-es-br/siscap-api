@@ -1,8 +1,11 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.EquipeDto;
+import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
+import br.gov.es.siscap.dto.organogramawebapi.OrganogramaOrganizacaoDto;
 import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.exception.EquipeSemResponsavelProponenteException;
+import br.gov.es.siscap.infra.MensagemErroRest;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
@@ -23,10 +26,17 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class ProjetoPessoaService {
 
+	// private final MensagemErroRest mensagemErroRest;
 	private final ProjetoPessoaRepository projetoPessoaRepository;
 	private final PessoaRepository pessoaRepository;
+	private final AcessoCidadaoService acessoCidadaoService;
+	private final OrganogramaService organogramaService;
 
-	private final Logger logger = LogManager.getLogger(ProjetoPessoa.class);
+	private final Logger logger = LogManager.getLogger(ProjetoPessoaService.class);
+
+	// ProjetoPessoaService(MensagemErroRest mensagemErroRest) {
+	// 	this.mensagemErroRest = mensagemErroRest;
+	// }
 
 	public Set<ProjetoPessoa> buscarPorProjeto(Projeto projeto) {
 		logger.info("Buscando equipe do Projeto com id: {}", projeto.getId());
@@ -40,25 +50,38 @@ public class ProjetoPessoaService {
 
 	@Transactional
 	public Set<ProjetoPessoa> cadastrar(Projeto projeto, Long idResponsavelProponente, List<EquipeDto> equipeDtoList) {
-		
+
 		logger.info("Cadastrando equipe do Projeto com id: {}", projeto.getId());
+
+		if (idResponsavelProponente == null) {
+			throw new EquipeSemResponsavelProponenteException();
+		}
 
 		Set<ProjetoPessoa> projetoPessoaSet = new HashSet<>();
 
 		String subResponsavelProponente = pessoaRepository.findById(idResponsavelProponente)
-			.map(Pessoa::getSub)
-			.orElse(null);
+				.map(Pessoa::getSub)
+				.orElse(null);
 
-		ProjetoPessoa responsavelProponente = new ProjetoPessoa( projeto, idResponsavelProponente );
+		String entidadeResponsavelProponente = buscarEntidadePorSubPessoa(subResponsavelProponente);
+
+		ProjetoPessoa responsavelProponente = new ProjetoPessoa(projeto, idResponsavelProponente,
+				entidadeResponsavelProponente);
 
 		responsavelProponente.getPessoa().setSub(subResponsavelProponente);
 
 		projetoPessoaSet.add(responsavelProponente);
 
 		equipeDtoList.forEach(equipeDto -> {
-			ProjetoPessoa projetoPessoa = new ProjetoPessoa(projeto, equipeDto);
+
+			String entidade = buscarEntidadePorSubPessoa(equipeDto.subPessoa());
+
+			ProjetoPessoa projetoPessoa = new ProjetoPessoa(projeto, equipeDto, entidade);
+
 			projetoPessoa.getPessoa().setSub(equipeDto.subPessoa());
+
 			projetoPessoaSet.add(projetoPessoa);
+
 		});
 
 		List<ProjetoPessoa> projetoPessoaList = projetoPessoaRepository.saveAll(projetoPessoaSet);
@@ -76,23 +99,33 @@ public class ProjetoPessoaService {
 		Set<ProjetoPessoa> projetoPessoaSet = this.buscarPorProjeto(projeto);
 
 		ProjetoPessoa responsavelProponente = this.buscarResponsavelProponente(projetoPessoaSet);
-		
-		if (!this.compararIdsResponsavelProponente(responsavelProponente.getPessoa().getId(), idResponsavelProponente)) {
+
+		if (!this.compararIdsResponsavelProponente(responsavelProponente.getPessoa().getId(),
+				idResponsavelProponente)) {
+
+			String entidadeResponsavelProponente = buscarEntidadePorSubPessoa(
+					responsavelProponente.getPessoa().getSub());
+
 			responsavelProponente.atualizarResponsavelProponente(TipoStatusEnum.INATIVO.getValue());
 			projetoPessoaRepository.save(responsavelProponente);
-			projetoPessoaRepository.save(new ProjetoPessoa(projeto, idResponsavelProponente));
+			projetoPessoaRepository
+					.save(new ProjetoPessoa(projeto, idResponsavelProponente, entidadeResponsavelProponente));
+
 		}
 
 		Set<ProjetoPessoa> membrosEquipeSet = this.buscarMembrosEquipe(projetoPessoaSet);
 
-		Set<ProjetoPessoa> membrosEquipeAtualizarSet = this.atualizarMembrosEquipe(projeto, membrosEquipeSet, equipeDtoList);
-		
-		projetoPessoaRepository.saveAllAndFlush(membrosEquipeAtualizarSet);
+		Set<ProjetoPessoa> membrosEquipeAtualizarSet = this.atualizarMembrosEquipe(projeto, membrosEquipeSet,
+				equipeDtoList);
+
+		if (!membrosEquipeAtualizarSet.isEmpty()) {
+			projetoPessoaRepository.saveAllAndFlush(membrosEquipeAtualizarSet);
+		}
 
 		logger.info("Equipe do projeto alterada com sucesso");
 
 		return this.buscarPorProjeto(projeto);
-		
+
 	}
 
 	@Transactional
@@ -114,7 +147,6 @@ public class ProjetoPessoaService {
 	public void excluirFisicamentePorProjeto(Projeto projeto) {
 		logger.info("Excluindo fisicamente equipe do Projeto com id: {}", projeto.getId());
 
-		//Set<ProjetoPessoa> projetoPessoaSet = this.buscarPorProjeto(projeto);
 		projetoPessoaRepository.deleteFisicoPorProjeto(projeto.getId());
 
 		logger.info("Equipe do projeto excluida fisicamente com sucesso");
@@ -135,56 +167,96 @@ public class ProjetoPessoaService {
 		logger.info("Pessoa excluida da(s) equipe(s) de projeto com sucesso");
 	}
 
-
 	private ProjetoPessoa buscarResponsavelProponente(Set<ProjetoPessoa> projetoPessoaSet) {
-		projetoPessoaSet.stream().forEach(ps -> logger.info( "Tipo papel busca responsavel : {} ", ps.getTipoPapel() )  );
+		projetoPessoaSet.stream().forEach(ps -> logger.info("Tipo papel busca responsavel : {} ", ps.getTipoPapel()));
 		return projetoPessoaSet
-					.stream()
-					.filter(ProjetoPessoa::isResponsavelProponente)
-					.findFirst()
-					.orElseThrow(EquipeSemResponsavelProponenteException::new);
+				.stream()
+				.filter(ProjetoPessoa::isResponsavelProponente)
+				.findFirst()
+				.orElseThrow(EquipeSemResponsavelProponenteException::new);
 	}
 
 	private Set<ProjetoPessoa> buscarMembrosEquipe(Set<ProjetoPessoa> projetoPessoaSet) {
 
 		return projetoPessoaSet
-					.stream()
-					.filter(Predicate.not(ProjetoPessoa::isResponsavelProponente))
-					.collect(Collectors.toSet());
+				.stream()
+				.filter(Predicate.not(ProjetoPessoa::isResponsavelProponente))
+				.collect(Collectors.toSet());
 	}
 
 	private boolean compararIdsResponsavelProponente(Long id_A, Long id_B) {
 		return Objects.equals(id_A, id_B);
 	}
 
-	private Set<ProjetoPessoa> atualizarMembrosEquipe(Projeto projeto, Set<ProjetoPessoa> membrosEquipeSet, List<EquipeDto> equipeDtoList) {
+	private Set<ProjetoPessoa> atualizarMembrosEquipe(Projeto projeto, Set<ProjetoPessoa> membrosEquipeSet,
+			List<EquipeDto> equipeDtoList) {
 
 		Set<ProjetoPessoa> membrosEquipeAlterarSet = new HashSet<>();
 		Set<ProjetoPessoa> membrosEquipeAdicionarSet = new HashSet<>();
 
 		equipeDtoList.forEach(equipeDto -> {
 			membrosEquipeSet
-						.stream()
-						.filter(projetoPessoa -> projetoPessoa.compararIdPessoaComEquipeDto(equipeDto))
-						.findFirst()
-						.ifPresentOrElse(
+					.stream()
+					.filter(projetoPessoa -> projetoPessoa.compararIdPessoaComEquipeDto(equipeDto))
+					.findFirst()
+					.ifPresentOrElse(
 							(projetoPessoa) -> {
-								if (equipeDto.idStatus() != null && equipeDto.idStatus().equals(TipoStatusEnum.EXCLUIDO.getValue())) {
-									projetoPessoaRepository.deleteFisico(projetoPessoa.getId()); // excluir fisicamente da tabela
+								if (equipeDto.idStatus() != null
+										&& equipeDto.idStatus().equals(TipoStatusEnum.EXCLUIDO.getValue())) {
+									projetoPessoaRepository.deleteFisico(projetoPessoa.getId()); // excluir fisicamente
+																									// da tabela
 								} else {
 									projetoPessoa.atualizarMembroEquipe(equipeDto);
 									membrosEquipeAlterarSet.add(projetoPessoa);
 								}
 							},
 							() -> {
-								membrosEquipeAdicionarSet.add(new ProjetoPessoa(projeto, equipeDto));
-							}
-						);
+
+								String entidade = buscarEntidadePorSubPessoa(equipeDto.subPessoa());
+
+								membrosEquipeAdicionarSet.add(new ProjetoPessoa(projeto, equipeDto, entidade));
+
+							});
 		});
 
 		membrosEquipeAdicionarSet.addAll(membrosEquipeAlterarSet);
 
 		return membrosEquipeAdicionarSet;
+
+	}
+
+	private String buscarEntidadePorSubPessoa(String subPessoa) {
+
+		List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService
+				.listarPapeisAgentePublicoPorSub(subPessoa);
+
+		String guidLotacaoPapelUsuario = listaPapeisUsuario.stream()
+				.filter(papel -> Boolean.TRUE.equals(papel.Prioritario()))
+				.findFirst()
+				.or(() -> listaPapeisUsuario.stream().findFirst())
+				.map(ACAgentePublicoPapelDto::LotacaoGuid)
+				.orElse(null);
+
+		if (guidLotacaoPapelUsuario == null || guidLotacaoPapelUsuario.isBlank()) {
+			return "";
+		}
+
+		String guidOrganizacao = organogramaService
+				.listarUnidadeInfoPorLotacaoGuid(guidLotacaoPapelUsuario)
+				.guidOrganizacao();
+
+		if (guidOrganizacao == null || guidOrganizacao.isBlank()) {
+			return "";
+		}
+
+		OrganogramaOrganizacaoDto organizacaoDto = organogramaService
+				.listarDadosOrganizacaoPorGuid(guidOrganizacao);
+
+		if (organizacaoDto == null) {
+			return "";
+		}
+
+		return organizacaoDto.sigla() + " - " + organizacaoDto.nomeFantasia();
 
 	}
 
