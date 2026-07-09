@@ -11,7 +11,6 @@ import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.TipoOrganizacao;
 import br.gov.es.siscap.repository.OrganizacaoRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,7 +18,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,9 +29,6 @@ import java.util.*;
 @Transactional(readOnly = true)
 public class OrganizacaoService {
 
-	// @Value("${api.organograma.sync.organizacoes-cron}")
-	// private String cronJobSincronizacaoOrganizacoeString;
-
 	private final OrganizacaoRepository repository;
 	private final OrganogramaService organogramaService;
 	private final ImagemPerfilService imagemPerfilService;
@@ -43,29 +38,6 @@ public class OrganizacaoService {
 	private final PaisService paisService;
 	private final TipoOrganizacaoService tipoOrganizacaoService;
 	private final Logger logger = LogManager.getLogger(OrganizacaoService.class);
-
-	@PostConstruct
-	protected void init() {
-		// this.sincronizarOrganizacoesBancoComOrganogramaAPI();
-	}
-
-	@Scheduled(cron = "${api.organograma.sync.organizacoes-cron}", zone = "America/Sao_Paulo")
-	public void jobSincronizarOrganizacoes() {
-
-		logger.info("Iniciando job de sincronização de organizações");
-
-		// long inicio = System.currentTimeMillis();
-
-		// try {
-		// 	this.sincronizarOrganizacoesBancoComOrganogramaAPI();
-		// 	long duracao = System.currentTimeMillis() - inicio;
-		// 	logger.info("Job finalizado com sucesso em {} ms", duracao);
-		// } catch (Exception e) {
-		// 	logger.error("Erro ao executar job de sincronização", e);
-		// 	throw e;
-		// }
-
-	}
 
 	public Page<OrganizacaoListaDto> listarTodos(Pageable pageable, String search) {
 		logger.info("Buscando todas as organizacoes");
@@ -80,7 +52,20 @@ public class OrganizacaoService {
 				});
 	}
 
-	public 
+	public OrganizacaoDto buscarPorGuid(String guid) throws IOException {
+
+		logger.info("Buscando organizacao com guid: {}", guid);
+
+		Organizacao organizacao = repository.findByGuid(guid)
+				.orElseThrow(() -> new OrganizacaoNaoEncontradaException(guid) );
+
+		PessoaOrganizacao pessoaOrganizacao = pessoaOrganizacaoService.buscarPorOrganizacao(organizacao);
+
+		Long idPessoaResponsavel = pessoaOrganizacao != null ? pessoaOrganizacao.getPessoa().getId() : null;
+
+		return new OrganizacaoDto( organizacao, this.getImagemNotNull(organizacao.getNomeImagem()), idPessoaResponsavel );
+
+	}
 
 	public List<OpcoesDto> listarOpcoesDropdown(Long filtroTipoOrganizacao) {
 

@@ -67,22 +67,24 @@ public class ProjetoPessoa extends ControleHistorico {
 	@Column(name = "entidade")
 	private String entidade;
 
-	public ProjetoPessoa(Projeto projeto, Long idResponsavelProponente) {
+	public ProjetoPessoa(Projeto projeto, Long idResponsavelProponente, String entidadeFormatada) {
 		this.setProjeto(projeto);
 		this.setPessoa(new Pessoa(idResponsavelProponente));
 		this.setTipoPapel(new TipoPapel(TipoPapelEnum.RESPONSAVEL_PROPONENTE.getValue()));
 		this.setTipoEquipe(new TipoEquipe(TipoEquipeEnum.ELABORACAO.getValue()));
 		this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
 		this.setJustificativa(null);
+		this.setEntidade(entidadeFormatada);
 	}
 
-	public ProjetoPessoa(Projeto projeto, EquipeDto equipeDto) {
+	public ProjetoPessoa(Projeto projeto, EquipeDto equipeDto, String entidadeFormatada) {
 		this.setProjeto(projeto);
 		this.setPessoa(new Pessoa(equipeDto.idPessoa()));
 		this.setTipoPapel(new TipoPapel(equipeDto.idPapel()));
 		this.setTipoEquipe(new TipoEquipe(TipoEquipeEnum.ELABORACAO.getValue()));
 		this.setTipoStatus(new TipoStatus(equipeDto.idStatus()));
 		this.setJustificativa(equipeDto.justificativa());
+		this.setEntidade(entidadeFormatada);
 	}
 
 	public void atualizarResponsavelProponente(Long idStatus) {

@@ -69,16 +69,6 @@ public class ProjetoIndicadorService {
 		Set<ProjetoIndicador> indicadoresProjetoAtualizarSet = this.atualizarIndicadoresProjeto(projeto,
 				projetoIndicadorSet, projetoIndicadorDtoList);
 
-		// indicadoresProjetoAtualizarSet.forEach(indicadorProjeto -> {
-		// 	ProjetoIndicadorDto indicadorDto = projetoIndicadorDtoList.stream()
-		// 			.filter(dto -> Objects.equals(dto.idIndicador(), indicadorProjeto.getId()))
-		// 			.findFirst()
-		// 			.orElse(null);
-		// 	if (indicadorDto != null) {
-		// 		sincronizarOdsSelecionadas(indicadorProjeto, indicadorDto);
-		// 	}
-		// });
-
 		projetoIndicadorRepository.saveAllAndFlush(indicadoresProjetoAtualizarSet);
 
 		Set<Integer> idsDto = projetoIndicadorDtoList.stream()
