@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -187,10 +188,10 @@ public class PessoaService {
 	public Pessoa buscarPorSub(String sub) {
 		return repository.findBySub(sub).orElseThrow(() -> new PessoaNaoEncontradoException(sub));
 	}
-        
-        public Pessoa buscarProEmail(String email) {
-            return repository.findByEmail(email).orElseThrow(() -> new PessoaNaoEncontradoException(email));
-        }
+
+	public Pessoa buscarProEmail(String email) {
+		return repository.findByEmail(email).orElseThrow(() -> new PessoaNaoEncontradoException(email));
+	}
 
 	public PessoaDto buscarMeuPerfil(String subNovo) throws IOException {
 		Pessoa pessoa = buscarPorSub(subNovo);
@@ -285,9 +286,19 @@ public class PessoaService {
 
 		listaResponsavelOrganizacao = acessoCidadaoService.buscarPessoasUnidadePapelPrioritario(unidadeGuid);
 
+		List<String> subsPessoList = listaResponsavelOrganizacao.stream()
+				.map(ResponsavelProponenteOpcoesDto::agentePublicoSub)
+				.collect(Collectors.toList());
+
+		Map<String, Long> idPessoaPorSub = repository.findAllBySubIn(subsPessoList)
+				.stream()
+				.collect(Collectors.toMap(
+						Pessoa::getSub,
+						Pessoa::getId));
+
 		List<ResponsavelProponenteOpcoesDto> listaAtualizada = listaResponsavelOrganizacao.stream()
 				.map(p -> new ResponsavelProponenteOpcoesDto(
-						p.id(),
+						idPessoaPorSub.get(p.agentePublicoSub()),
 						p.nome(),
 						p.papelPrioritario(),
 						p.agentePublicoSub(),
@@ -499,14 +510,12 @@ public class PessoaService {
 	}
 
 	public List<String> buscarSubsPorIds(List<Long> idsPessoas) {
-			return idsPessoas
+		return idsPessoas
 				.stream()
-				.map( idpessoa -> 
-					repository.findById(idpessoa)
-							.map(p -> p.getSub())
-							.orElse("")
-				).
-			toList();
-    }
+				.map(idpessoa -> repository.findById(idpessoa)
+						.map(p -> p.getSub())
+						.orElse(""))
+				.toList();
+	}
 
 }
