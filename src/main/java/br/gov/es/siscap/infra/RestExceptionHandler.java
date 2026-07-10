@@ -132,4 +132,12 @@ public class RestExceptionHandler {
 		return ResponseEntity.status(mensagem.status()).body(mensagem);
 	}
 
+	@ExceptionHandler(EdocsTokenExpiradoException.class)
+	private ResponseEntity<MensagemErroRest> tokenEdocsExpirouHandler(
+			EdocsTokenExpiradoException e) {
+		var mensagem = new MensagemErroRest(HttpStatus.UNAUTHORIZED, EdocsTokenExpiradoException.CODIGO,
+				Collections.singletonList(e.getMessage()));
+		return montarRetorno(mensagem);
+	}
+
 }

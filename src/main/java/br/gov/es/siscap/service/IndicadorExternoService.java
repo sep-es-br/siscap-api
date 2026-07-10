@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Year;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
@@ -88,8 +90,10 @@ public class IndicadorExternoService {
 
 		List<DesafiosPentahoBiDto> desafios = this.listarDesafiosGestaoBI();
 
+		int anoAtual = Year.now(ZoneId.of("America/Sao_Paulo")).getValue();
+
 		return gestoes.stream()
-				.map(gestao -> {
+				.map( gestao -> {
 
 					List<OrganizadorGestaoPentahoBiDto> organizadores = this
 							.listarOrganizadoresGestaoBI(gestao.idGestao());
@@ -105,13 +109,24 @@ public class IndicadorExternoService {
 							.distinct()
 							.toList();
 
+					int deAnoGestao = gestao.deAno() != null ? gestao.deAno() : 0;
+					int ateAnoGestao = gestao.ateAno() != null ? gestao.ateAno() : 0;
+
+					int quantidadeAnosGestao = ateAnoGestao - deAnoGestao + 1;
+
+					int deAnoMeta = Math.max(deAnoGestao, anoAtual);
+					int ateAnoMeta = deAnoMeta + quantidadeAnosGestao - 1;
+
 					return new OpcoesGestaoIndicadorDto(
 							gestao.idGestao(),
 							gestao.nomeGestao(),
 							labels,
 							desafiosDto,
-							gestao.deAno() != null ? gestao.deAno() : 0,
-							gestao.ateAno() != null ? gestao.ateAno() : 0);
+							deAnoGestao,
+							ateAnoGestao,
+							deAnoMeta,
+							ateAnoMeta
+					);
 				})
 				.toList();
 	}

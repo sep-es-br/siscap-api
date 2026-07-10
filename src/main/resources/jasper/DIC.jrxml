@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
@@ -231,11 +231,11 @@ group by
 				<text><![CDATA[Equipe de Elaboração]]></text>
 			</element>
 			<element kind="line" uuid="981c129b-2f35-4729-8886-b595af33b8e4" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
-			<element kind="staticText" uuid="85b842ee-c12a-46c1-bee6-7c78e516bd27" x="0" y="30" width="214" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+			<element kind="staticText" uuid="85b842ee-c12a-46c1-bee6-7c78e516bd27" x="0" y="30" width="200" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Nome]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
-			<element kind="staticText" uuid="bf794a23-8da1-4a02-85b3-1deb89c2e20b" x="214" y="30" width="214" height="20" fontName="SansSerif" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<element kind="staticText" uuid="bf794a23-8da1-4a02-85b3-1deb89c2e20b" x="200" y="30" width="228" height="20" fontName="SansSerif" bold="true" hTextAlign="Left" vTextAlign="Middle">
 				<text><![CDATA[Entidade]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
@@ -255,6 +255,26 @@ group by
 				<expression><![CDATA[$F{situacao_problema_projeto}]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
+		</band>
+		<band height="60" splitType="Stretch">
+			<element kind="staticText" uuid="7bc4f2d7-4870-4a6c-a9b3-e9fde69bf66f" x="0" y="0" width="268" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[Objetivo]]></text>
+			</element>
+			<element kind="line" uuid="2b8ae95c-2df0-4574-8c98-43230807a828" x="0" y="20" width="534" height="1" forecolor="#B2B2B2"/>
+			<element kind="textField" uuid="3e6833bf-280c-4e77-9181-7bb454b44334" stretchType="ElementGroupBottom" mode="Transparent" x="0" y="25" width="534" height="10" forecolor="#0A588F" backcolor="rgba(232, 34, 30, 0.88235295)" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified" vTextAlign="Top">
+				<expression><![CDATA[$F{objetivo_projeto}]]></expression>
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
+			</element>
+		</band>
+		<band height="60">
+			<element kind="staticText" uuid="14419ec7-1eec-4b94-a9e0-1ee8ec7e6387" x="0" y="0" width="270" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[Objetivo Específico]]></text>
+			</element>
+			<element kind="textField" uuid="7b5c18ad-3e4e-491a-b705-d44555a85a84" stretchType="ElementGroupHeight" x="-2" y="22" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
+				<expression><![CDATA[$F{objetivo_especifico_projeto}]]></expression>
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
+			</element>
+			<element kind="line" uuid="e1a7a115-e4b3-4f5c-861b-08fc4e3b8256" x="1" y="20" width="534" height="1" forecolor="#B2B2B2"/>
 		</band>
 		<band height="156" splitType="Stretch">
 			<element kind="staticText" uuid="59dcd36d-3f62-4a6a-880e-ba979b86ed65" x="1" y="1" width="270" height="20" forecolor="#000000" fontName="SansSerif" bold="true" vTextAlign="Middle">
@@ -283,26 +303,6 @@ group by
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
-		</band>
-		<band height="60" splitType="Stretch">
-			<element kind="staticText" uuid="7bc4f2d7-4870-4a6c-a9b3-e9fde69bf66f" x="0" y="0" width="268" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[Objetivo]]></text>
-			</element>
-			<element kind="line" uuid="2b8ae95c-2df0-4574-8c98-43230807a828" x="0" y="20" width="534" height="1" forecolor="#B2B2B2"/>
-			<element kind="textField" uuid="3e6833bf-280c-4e77-9181-7bb454b44334" stretchType="ElementGroupBottom" mode="Transparent" x="0" y="25" width="534" height="10" forecolor="#0A588F" backcolor="rgba(232, 34, 30, 0.88235295)" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified" vTextAlign="Top">
-				<expression><![CDATA[$F{objetivo_projeto}]]></expression>
-				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
-			</element>
-		</band>
-		<band height="60">
-			<element kind="staticText" uuid="14419ec7-1eec-4b94-a9e0-1ee8ec7e6387" x="0" y="0" width="270" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[Objetivo Específico]]></text>
-			</element>
-			<element kind="textField" uuid="7b5c18ad-3e4e-491a-b705-d44555a85a84" stretchType="ElementGroupHeight" x="-2" y="22" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
-				<expression><![CDATA[$F{objetivo_especifico_projeto}]]></expression>
-				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
-			</element>
-			<element kind="line" uuid="e1a7a115-e4b3-4f5c-861b-08fc4e3b8256" x="1" y="20" width="534" height="1" forecolor="#B2B2B2"/>
 		</band>
 		<band height="60" splitType="Stretch">
 			<element kind="staticText" uuid="72032e68-a709-44df-93c5-2815c2b50ebe" x="1" y="0" width="218" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">

@@ -8,5 +8,7 @@ public record OpcoesGestaoIndicadorDto(
     List<LabelDTO> labels,
     List<IndicadorDesafioExternoDTO> desafios,
     int doAno,
-    int ateAno
+    int ateAno,
+    int deAnoMeta,      // ano inicial calculado para metas
+    int ateAnoMeta     // ano final calculado para metas
 ) {}

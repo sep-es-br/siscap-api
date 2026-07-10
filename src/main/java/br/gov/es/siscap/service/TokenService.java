@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 
@@ -23,14 +24,17 @@ public class TokenService {
 	@Value("${token.secret}")
 	private String secret;
 
+	@Value("${token.tempo-expiracao:120}")
+	private Integer tempoExpiracaoToken;
+
 	public String gerarToken(Usuario usuario) {
 		try {
 			Algorithm algoritmo = Algorithm.HMAC256(secret);
 			return JWT.create()
-						.withIssuer(ISSUER)
-						.withSubject(usuario.getSub())
-						.withExpiresAt(getDataExpiracao())
-						.sign(algoritmo);
+					.withIssuer(ISSUER)
+					.withSubject(usuario.getSub())
+					.withExpiresAt(getDataExpiracao())
+					.sign(algoritmo);
 		} catch (JWTCreationException exception) {
 			throw new SiscapServiceException(List.of("Erro ao gerar o token", exception.getMessage()));
 		}
@@ -39,19 +43,22 @@ public class TokenService {
 	public String validarToken(String token) {
 		Algorithm algoritmo = Algorithm.HMAC256(secret);
 		return JWT.require(algoritmo)
-					.withIssuer(ISSUER)
-					.build()
-					.verify(token)
-					.getSubject();
+				.withIssuer(ISSUER)
+				.build()
+				.verify(token)
+				.getSubject();
 	}
 
 	public String buscarDataExpiracaoToken(String token) {
-		LocalDateTime dataExpiracao = LocalDateTime.ofInstant(JWT.decode(token).getExpiresAt().toInstant(), ZoneOffset.of("-03:00"));
+		LocalDateTime dataExpiracao = LocalDateTime.ofInstant(JWT.decode(token).getExpiresAt().toInstant(),
+				ZoneOffset.of("-03:00"));
 		return FormatadorData.format(dataExpiracao, FormatoDataEnum.COMPLETO);
 	}
 
 	private Instant getDataExpiracao() {
-		return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+		return OffsetDateTime.now(ZoneOffset.of("-03:00"))
+				.plusMinutes(tempoExpiracaoToken)
+				.toInstant();
 	}
 
 }

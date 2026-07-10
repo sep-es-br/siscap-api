@@ -1,6 +1,8 @@
 package br.gov.es.siscap.repository;
 
 import br.gov.es.siscap.models.Pessoa;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,5 +54,7 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
                 map -> map.get("nome").toString()             // Converte para String
             ));
     }
+
+	List<Pessoa> findAllBySubIn(Collection<String> subs);
 
 }
