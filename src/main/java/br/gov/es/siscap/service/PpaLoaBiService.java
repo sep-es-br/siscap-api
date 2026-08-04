@@ -1,5 +1,6 @@
 package br.gov.es.siscap.service;
 
+import br.gov.es.siscap.dto.AcaoPpaLoaDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesPeriodoPpaLoaDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesPpaLoaDto;
 import br.gov.es.siscap.utils.pentaho.ApiUtils;
@@ -148,7 +149,7 @@ public class PpaLoaBiService {
 				.collect(Collectors.joining(","));
 
 		String funcoesFormatadas = funcoes.stream()
-				.map(funcao -> String.format("%01d", funcao))
+				.map(funcao -> String.format("%02d", funcao))
 				.collect(Collectors.joining(","));
 
 		Map<String, Object> params = Map.of(
@@ -179,11 +180,11 @@ public class PpaLoaBiService {
 				.collect(Collectors.joining(","));
 
 		String funcoesFormatadas = funcoes.stream()
-				.map(funcao -> String.format("%05d", funcao))
+				.map(funcao -> String.format("%02d", funcao))
 				.collect(Collectors.joining(","));
 
 		String programasFormatados = programas.stream()
-				.map(programa -> String.format("%05d", programa))
+				.map(programa -> String.format("%04d", programa))
 				.collect(Collectors.joining(","));
 
 		Map<String, Object> params = Map.of(
@@ -200,7 +201,58 @@ public class PpaLoaBiService {
 				rs -> new OpcoesPpaLoaDto(
 						rs.get("cod_acao").asLong(),
 						rs.get("nom_acao").asText()));
+		
+	}
 
+	public List<AcaoPpaLoaDto> dadosAcoes(List<Long> funcoes, List<Long> programas, List<Long> anos, List<Long> uos,
+			List<Long> acoes) {
+
+		String anosFormatados = anos.stream()
+				.map(String::valueOf)
+				.collect(Collectors.joining(","));
+
+		String uosFormatados = uos.stream()
+				.map(uo -> String.format("%05d", uo))
+				.collect(Collectors.joining(","));
+
+		String funcoesFormatadas = funcoes.stream()
+				.map(funcao -> String.format("%02d", funcao))
+				.collect(Collectors.joining(","));
+
+		String programasFormatados = programas.stream()
+				.map(programa -> String.format("%04d", programa))
+				.collect(Collectors.joining(","));
+
+		Map<String, Object> params = Map.of(
+				"paramp_ano", anosFormatados,
+				"paramp_cod_uo", uosFormatados,
+				"paramp_cod_funcao", funcoesFormatadas,
+				"paramp_cod_programa", programasFormatados);
+
+		String pmoPath = siscapSigefesPath;
+		String target = targetAcoesPpa;
+		String dataAccessId = acoesPpaDataAccessId;
+		
+		List<AcaoPpaLoaDto> dadosAcoes = apiUtils.consult(target, dataAccessId, pmoPath, params,
+			rs -> new AcaoPpaLoaDto(
+				rs.get("cod_acao").asLong(),                  				  // id
+				rs.get("cod_acao").asText(null),               // codigo
+				rs.get("nom_acao").asText(null),               // titulo
+				rs.get("dsc_acao").asText(null),               // descricao
+				rs.get("unidade_orcamentaria").asText(null),   // unidadeOrcamentaria
+				rs.get("orgao").asText(null),                  // orgao
+				rs.get("funcao").asText(null),                 // funcao
+				rs.get("programa").asText(null),               // programa
+				rs.get("periodo_ppa").asText(null),            // periodoPpa
+				rs.get("valor_ppa").decimalValue(),            			 // valorPpa
+				rs.get("ano_loa").asInt(),                     			 // anoLoa
+				rs.get("valor_loa").decimalValue(),            			 // valorLoa
+				List.of()                                      					// detalhamentoOrcamentarioLoa
+			)
+		);
+
+		return dadosAcoes;
+		
 	}
 
 }

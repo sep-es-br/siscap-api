@@ -1,5 +1,6 @@
 package br.gov.es.siscap.controller;
 
+import br.gov.es.siscap.dto.AcaoPpaLoaDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesPeriodoPpaLoaDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesPpaLoaDto;
 import br.gov.es.siscap.service.PpaLoaBiService;
@@ -56,6 +57,16 @@ public class PpaLoaBiController {
 		@RequestParam List<Long> anos,
 		@RequestParam List<Long> uos) {
 		return service.listarAcoes( funcoes, programas, anos, uos );
+	}
+
+	@GetMapping("/ppa/acoes/dados")
+	public List<AcaoPpaLoaDto> dadosAcoes(
+		@RequestParam List<Long> funcoes,
+		@RequestParam List<Long> programas,
+		@RequestParam List<Long> anos,
+		@RequestParam List<Long> uos,
+		@RequestParam List<Long> acoes) {
+		return service.dadosAcoes( funcoes, programas, anos, uos, acoes );
 	}
 
 	// .set('funcoes', idFuncoes.join(','))
