@@ -32,6 +32,7 @@ import br.gov.es.siscap.repository.ProjetoRepository;
 import br.gov.es.siscap.specification.ProjetoSpecification;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import jakarta.mail.MessagingException;
+import jakarta.persistence.Column;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.io.IOException;
@@ -304,11 +305,9 @@ public class ProjetoService {
 				.collect(Collectors.toMap(
 
 						dto -> new ChaveAcaoLoa(
-								normalizarCodigo(dto.codAcao()),
-								normalizarCodigo(dto.codFuncao()),
-								normalizarCodigo(dto.codPrograma()),
-								normalizarCodigo(dto.ano()),
-								normalizarCodigo(dto.codUo())),
+								normalizarCodigo(dto.codigoUnidadeOrcamentaria()),
+								normalizarCodigo(dto.codigoPrograma()),
+								normalizarCodigo(dto.codigoAcao())),
 
 						Function.identity(),
 
@@ -322,9 +321,7 @@ public class ProjetoService {
 					ChaveAcaoLoa chave = new ChaveAcaoLoa(
 							normalizarCodigo(planejamento.getCodAcao()),
 							normalizarCodigo(planejamento.getCodFuncao()),
-							normalizarCodigo(planejamento.getCodPrograma()),
-							normalizarCodigo(planejamento.getAno()),
-							normalizarCodigo(planejamento.getCodUo()));
+							normalizarCodigo(planejamento.getCodPrograma()));
 
 					AcaoPpaLoaDto acaoDoBi = dadosBiPorChave.get(chave);
 
@@ -334,7 +331,7 @@ public class ProjetoService {
 					}
 
 					return new ProjetoPlanejamentoPpaLoaResponseDto(acaoDoBi);
-					
+
 				})
 				.toList();
 
