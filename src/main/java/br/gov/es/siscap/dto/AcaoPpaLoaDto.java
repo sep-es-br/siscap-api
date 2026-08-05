@@ -4,19 +4,31 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record AcaoPpaLoaDto(
+    
     Long id,
-    String codigo,
-    String titulo,
-    String descricao,
-    String unidadeOrcamentaria,
-    String orgao,
-    String funcao,
-    String programa,
-    String periodoPpa,
+
+    String codigoOrgao,
+    String siglaOrgao,
+    String nomeOrgao,
+
+    String codigoUnidadeOrcamentaria,
+    String siglaUnidadeOrcamentaria,
+    String nomeUnidadeOrcamentaria,
+
+    String codigoPrograma,
+    String nomePrograma,
+
+    String codigoAcao,
+    String nomeAcao,
+
+    String codigoFuncao,
+    String nomeFuncao,
+
     BigDecimal valorPpa,
-    Integer anoLoa,
     BigDecimal valorLoa,
-    List<DetalhamentoOrcamentarioLoaDto> detalhamentoOrcamentarioLoa
+
+    List<DetalhamentoOrcamentarioLoaDto> detalhamentosLoa
+    
 ) {
 
 }

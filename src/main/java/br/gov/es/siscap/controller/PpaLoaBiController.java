@@ -60,30 +60,14 @@ public class PpaLoaBiController {
 	}
 
 	@GetMapping("/ppa/acoes/dados")
-	public List<AcaoPpaLoaDto> dadosAcoes(
+	public List<AcaoPpaLoaDto> dadosAcoes( 
+		@RequestParam(required = false) String ppa,
 		@RequestParam List<Long> funcoes,
 		@RequestParam List<Long> programas,
 		@RequestParam List<Long> anos,
 		@RequestParam List<Long> uos,
 		@RequestParam List<Long> acoes) {
-		return service.dadosAcoes( funcoes, programas, anos, uos, acoes );
+		return service.dadosAcoes( ppa, funcoes, programas, anos, uos, acoes );
 	}
-
-	// .set('funcoes', idFuncoes.join(','))
-    //   .set('programas', idsProgramas.join(','))
-    //   .set('anos', idAnos.join(','))
-    //   .set('uos', idUos.join(','));
-
-	// @PostMapping("/gestoes/{idGestao}/indicadores")
-	// public List<OpcoesIndicadoresDto> listarIndicadoresFiltro(@PathVariable
-	// @NotNull Long idGestao,
-	// @RequestBody(required = false) FiltroIndicadorDto filtro) {
-	// return service.listarIndicadoresFiltro(idGestao, filtro);
-	// }
-
-	// @GetMapping("/ods")
-	// public List<OdsPentahoBiDto> listarOds() {
-	// return service.listarOdsBI();
-	// }
 
 }

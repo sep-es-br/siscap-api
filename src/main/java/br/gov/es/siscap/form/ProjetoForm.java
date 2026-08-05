@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.ProjetoAcaoDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import br.gov.es.siscap.dto.ProjetoParecerDto;
+import br.gov.es.siscap.dto.ProjetoPlanejamentoPpaLoaDto;
 import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.dto.ValorDto;
 import br.gov.es.siscap.dto.ProjetoOdsDto;
@@ -88,7 +89,10 @@ public record ProjetoForm(
 			List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto,
 
 			@Valid
-			List<ProjetoOdsDto> odsProjeto
+			List<ProjetoOdsDto> odsProjeto,
+
+			List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaProjeto
 
 ) {
+
 }

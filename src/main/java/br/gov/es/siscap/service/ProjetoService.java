@@ -25,6 +25,7 @@ import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
 import br.gov.es.siscap.models.ProjetoOds;
 import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.models.ProjetoPessoa;
+import br.gov.es.siscap.models.ProjetoPlanejamentoPpaLoa;
 import br.gov.es.siscap.models.TipoMotivoArquivamento;
 import br.gov.es.siscap.repository.PessoaRepository;
 import br.gov.es.siscap.repository.ProjetoRepository;
@@ -44,6 +45,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -84,6 +86,8 @@ public class ProjetoService {
 	private final UsuarioService usuarioService;
 	private final ProjetoIndicadorAvulsoService projetoIndicadorAvulsoService;
 	private final ProjetoOdsService projetoOdsService;
+	private final ProjetoPlanejamentoPpaLoaService projetoPlanejamentoPpaLoaService;
+	private final PpaLoaBiService ppaLoaBiService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -224,6 +228,9 @@ public class ProjetoService {
 
 		Set<ProjetoOds> odsProjeto = projetoOdsService.buscarPorProjeto(projeto);
 
+		Set<ProjetoPlanejamentoPpaLoa> planejamentoPpaLoaProjeto = projetoPlanejamentoPpaLoaService
+				.buscarPorProjeto(projeto);
+
 		return new ProjetoDto(projeto, valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
@@ -245,8 +252,98 @@ public class ProjetoService {
 				Optional.ofNullable(projeto.getPessoa()).map(Pessoa::getNome).orElse(null),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				this.buscarIndicadoresAvulsos(indicadoresAvulsos),
-				this.buscarOdsProjeto(odsProjeto));
+				this.buscarOdsProjeto(odsProjeto),
+				this.buscarPlanejamentoPpaLoaProjeto(planejamentoPpaLoaProjeto));
 
+	}
+
+	private List<ProjetoPlanejamentoPpaLoaResponseDto> buscarPlanejamentoPpaLoaProjeto(
+			Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet) {
+
+		if (projetoPlanejamentoPpaLoaSet == null || projetoPlanejamentoPpaLoaSet.isEmpty()) {
+			return List.of();
+		}
+
+		String ppaPlanejamento = "";
+
+		List<Long> funcoes = new ArrayList<>();
+		List<Long> programas = new ArrayList<>();
+		List<Long> anos = new ArrayList<>();
+		List<Long> uos = new ArrayList<>();
+		List<Long> acoes = new ArrayList<>();
+
+		projetoPlanejamentoPpaLoaSet.forEach(ppaloa -> {
+
+			if (ppaloa.getCodFuncao() != null && !ppaloa.getCodFuncao().isBlank()) {
+				funcoes.add(Long.valueOf(ppaloa.getCodFuncao()));
+			}
+
+			if (ppaloa.getCodPrograma() != null && !ppaloa.getCodPrograma().isBlank()) {
+				programas.add(Long.valueOf(ppaloa.getCodPrograma()));
+			}
+
+			if (ppaloa.getAno() != null && !ppaloa.getAno().isBlank()) {
+				anos.add(Long.valueOf(ppaloa.getAno()));
+			}
+
+			if (ppaloa.getCodUo() != null && !ppaloa.getCodUo().isBlank()) {
+				uos.add(Long.valueOf(ppaloa.getCodUo()));
+			}
+
+		});
+
+		List<AcaoPpaLoaDto> dadosAcoes = ppaLoaBiService.dadosAcoes(
+				ppaPlanejamento,
+				funcoes,
+				programas,
+				anos,
+				uos,
+				acoes);
+
+		Map<ChaveAcaoLoa, AcaoPpaLoaDto> dadosBiPorChave = dadosAcoes.stream()
+				.collect(Collectors.toMap(
+
+						dto -> new ChaveAcaoLoa(
+								normalizarCodigo(dto.codAcao()),
+								normalizarCodigo(dto.codFuncao()),
+								normalizarCodigo(dto.codPrograma()),
+								normalizarCodigo(dto.ano()),
+								normalizarCodigo(dto.codUo())),
+
+						Function.identity(),
+
+						// Caso o BI devolva a mesma chave mais de uma vez,
+						// mantém o primeiro registro encontrado.
+						(primeiro, repetido) -> primeiro));
+
+		return projetoPlanejamentoPpaLoaSet.stream()
+				.map(planejamento -> {
+
+					ChaveAcaoLoa chave = new ChaveAcaoLoa(
+							normalizarCodigo(planejamento.getCodAcao()),
+							normalizarCodigo(planejamento.getCodFuncao()),
+							normalizarCodigo(planejamento.getCodPrograma()),
+							normalizarCodigo(planejamento.getAno()),
+							normalizarCodigo(planejamento.getCodUo()));
+
+					AcaoPpaLoaDto acaoDoBi = dadosBiPorChave.get(chave);
+
+					if (acaoDoBi == null) {
+						throw new IllegalStateException(
+								"Ação do planejamento não encontrada no BI. Chave: " + chave);
+					}
+
+					return new ProjetoPlanejamentoPpaLoaResponseDto(acaoDoBi);
+					
+				})
+				.toList();
+
+	}
+
+	private String normalizarCodigo(String valor) {
+		return valor == null
+				? ""
+				: valor.trim();
 	}
 
 	private List<ProjetoOdsDto> buscarOdsProjeto(Set<ProjetoOds> projetoOdsSet) {
@@ -280,7 +377,7 @@ public class ProjetoService {
 						ods.odsDescricao(),
 						ods.odsCor()))
 				.toList();
-				
+
 	}
 
 	private List<ProjetoIndicadorAvulsoDto> buscarIndicadoresAvulsos(
@@ -394,8 +491,10 @@ public class ProjetoService {
 		projetoIndicadorAvulsoService.sincronizar(projeto, indicadoresAvulsosProjetoParaGravar);
 
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
-
 		projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
+
+		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.planejamentoPpaLoaProjeto();
+		projetoPlanejamentoPpaLoaService.sincronizar(projeto, planejamentoPpaLoaParaGravar);
 
 		try {
 			if (form.enviarProjetoGestor()) {
@@ -436,12 +535,14 @@ public class ProjetoService {
 				this.buscarNomeProponente(projetoPessoaSet),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				indicadoresAvulsosProjetoParaGravar,
-				indicadoresOdsParaGravar);
+				indicadoresOdsParaGravar,
+				null); // seria necessario nesse ponto ir no BI pegar os dados das acoes e ppa?
 
 	}
 
 	@Transactional
-	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho, Pessoa pessoa, MultipartFile arquivoParecerAnexo) {
+	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho, Pessoa pessoa,
+			MultipartFile arquivoParecerAnexo) {
 
 		logger.info("Atualizando projeto com id: {}", id);
 
@@ -501,11 +602,15 @@ public class ProjetoService {
 
 		String nomeProponente = projeto.getPessoa().getNome();
 
+		List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDto = form.planejamentoPpaLoaProjeto();
+		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
+				.atualizar(projetoResult, projetoPlanejamentoPpaLoaDto);
+
 		ProjetoParecerDto projetoParecerDto;
 		ProjetoParecer projetoParecer = null;
 
 		if (projeto.getStatusAtual().getStatus().equals(StatusProjetoEnum.PARECER_SEP.getValue())
-			|| projeto.getStatusAtual().getStatus().equals(StatusProjetoEnum.ELEGIVEL.getValue())) {
+				|| projeto.getStatusAtual().getStatus().equals(StatusProjetoEnum.ELEGIVEL.getValue())) {
 
 			projetoParecerDto = form.parecerProjetoUsuario();
 
@@ -559,7 +664,8 @@ public class ProjetoService {
 				this.buscarNomeProponente(projetoPessoaSet),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				this.buscarIndicadoresAvulsos(projetoIndicadoresAvulsoSet),
-				this.buscarOdsProjeto(projetoOdsSet));
+				this.buscarOdsProjeto(projetoOdsSet),
+				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet));
 
 	}
 
@@ -829,7 +935,7 @@ public class ProjetoService {
 		}
 
 		return true;
-		
+
 	}
 
 	public void enviarEmailGerenciaSubcap(Long idDIC) {
@@ -1478,7 +1584,8 @@ public class ProjetoService {
 		String tituloDic = projeto.getTitulo();
 		String statusDic = projeto.getStatusAtual().getStatus();
 
-		if (emailService.enviarEmailAvisoDicElegibilidade(emailsInteressadosList, siglaDic, idDic, tituloDic, statusDic)) {
+		if (emailService.enviarEmailAvisoDicElegibilidade(emailsInteressadosList, siglaDic, idDic, tituloDic,
+				statusDic)) {
 			logger.info("Email aviso DIC Elegível id {}", idDic);
 		} else {
 			erros.add("Erro ao enviar aviso elegibilidade DIC id " + idDic);

@@ -169,6 +169,9 @@ public class Projeto extends ControleHistorico {
 	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<ProjetoOds> ods = new HashSet<>();
 
+	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<ProjetoPlanejamentoPpaLoa> planejamentoPpaLoa = new HashSet<>();
+
 	public void addOds(ProjetoOds ods) {
 		ods.setProjeto(this);
 		this.ods.add(ods);

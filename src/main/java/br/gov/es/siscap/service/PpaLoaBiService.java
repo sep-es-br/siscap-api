@@ -1,14 +1,18 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.AcaoPpaLoaDto;
+import br.gov.es.siscap.dto.ChaveAcaoLoa;
+import br.gov.es.siscap.dto.DetalhamentoOrcamentarioLoaDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesPeriodoPpaLoaDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesPpaLoaDto;
+import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.utils.pentaho.ApiUtils;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,7 +71,23 @@ public class PpaLoaBiService {
 	@Value("${pentahoBI.sigefes.acoes.target}")
 	private String targetAcoesPpa;
 
+	@Value("${pentahoBI.sigefes.dadosacoes.target}")
+	private String targetDadosAcoesPpa;
+
+	@Value("${pentahoBI.sigefes.dadosacoes.dataAccessId}")
+	private String dadosAcoesPpaDataAccessId;
+
+	@Value("${pentahoBI.sigefes.dadosloa.target}")
+	private String targetDadosLoa;
+
+	@Value("${pentahoBI.sigefes.dadosloa.dataAccessId}")
+	private String dadosLoaDataAccessId;
+
 	private final ApiUtils apiUtils;
+
+	// PpaLoaBiService(SiscapApplication siscapApplication) {
+	// this.siscapApplication = siscapApplication;
+	// }
 
 	public OpcoesPeriodoPpaLoaDto listarPeriodoPpaAtivo() {
 
@@ -201,10 +221,11 @@ public class PpaLoaBiService {
 				rs -> new OpcoesPpaLoaDto(
 						rs.get("cod_acao").asLong(),
 						rs.get("nom_acao").asText()));
-		
+
 	}
 
-	public List<AcaoPpaLoaDto> dadosAcoes(List<Long> funcoes, List<Long> programas, List<Long> anos, List<Long> uos,
+	public List<AcaoPpaLoaDto> dadosAcoes(String ppa, List<Long> funcoes, List<Long> programas, List<Long> anos,
+			List<Long> uos,
 			List<Long> acoes) {
 
 		String anosFormatados = anos.stream()
@@ -223,36 +244,153 @@ public class PpaLoaBiService {
 				.map(programa -> String.format("%04d", programa))
 				.collect(Collectors.joining(","));
 
+		String acoesFormatadas = acoes.stream()
+				.map(acao -> String.format("%04d", acao))
+				.collect(Collectors.joining(","));
+
 		Map<String, Object> params = Map.of(
+				"paramp_ppa", ppa,
 				"paramp_ano", anosFormatados,
 				"paramp_cod_uo", uosFormatados,
-				"paramp_cod_funcao", funcoesFormatadas,
-				"paramp_cod_programa", programasFormatados);
+				"paramp_cod_programa", programasFormatados,
+				"paramp_cod_acao", acoesFormatadas,
+				"paramp_cod_funcao", funcoesFormatadas);
 
 		String pmoPath = siscapSigefesPath;
-		String target = targetAcoesPpa;
-		String dataAccessId = acoesPpaDataAccessId;
-		
+		String target = targetDadosAcoesPpa;
+		String dataAccessId = dadosAcoesPpaDataAccessId;
+
 		List<AcaoPpaLoaDto> dadosAcoes = apiUtils.consult(target, dataAccessId, pmoPath, params,
-			rs -> new AcaoPpaLoaDto(
-				rs.get("cod_acao").asLong(),                  				  // id
-				rs.get("cod_acao").asText(null),               // codigo
-				rs.get("nom_acao").asText(null),               // titulo
-				rs.get("dsc_acao").asText(null),               // descricao
-				rs.get("unidade_orcamentaria").asText(null),   // unidadeOrcamentaria
-				rs.get("orgao").asText(null),                  // orgao
-				rs.get("funcao").asText(null),                 // funcao
-				rs.get("programa").asText(null),               // programa
-				rs.get("periodo_ppa").asText(null),            // periodoPpa
-				rs.get("valor_ppa").decimalValue(),            			 // valorPpa
-				rs.get("ano_loa").asInt(),                     			 // anoLoa
-				rs.get("valor_loa").decimalValue(),            			 // valorLoa
-				List.of()                                      					// detalhamentoOrcamentarioLoa
-			)
-		);
+				rs -> new AcaoPpaLoaDto(
+
+						rs.get("cod_acao").asLong(), // id
+
+						rs.get("cod_orgao").asText(null),
+						rs.get("sigla").asText(null),
+						rs.get("nom_orgao").asText(null),
+
+						rs.get("cod_uo").asText(null),
+						rs.get("mne_uo").asText(null),
+						rs.get("nom_uo").asText(null),
+
+						rs.get("cod_programa").asText(null),
+						rs.get("nom_programa").asText(null),
+
+						rs.get("cod_acao").asText(null),
+						rs.get("nom_acao").asText(null),
+
+						rs.get("cod_funcao").asText(null),
+						rs.get("nom_funcao").asText(null),
+
+						rs.get("vlr_ppa").decimalValue(),
+
+						BigDecimal.ZERO,
+
+						List.of() // detalhamentoOrcamentarioLoa
+
+				));
+
+		if (dadosAcoes.isEmpty()) {
+			throw new ValidacaoSiscapException(Arrays.asList("Nenhum dado encontrado para os filtros informados."));
+		}
+
+		String targetLoa = targetDadosLoa;
+		String dataAccessIdLoa = dadosLoaDataAccessId;
+
+		List<DadosLoaBiDto> dadosLoa = apiUtils.consult(targetLoa, dataAccessIdLoa, pmoPath, params,
+				rs -> new DadosLoaBiDto(
+						rs.get("orgao").asText(null), // orgao
+						rs.get("sigla").asText(null), // sigla
+						rs.get("nom_orgao").asText(null), // nomeOrgao
+						rs.get("uo").asText(null), // unidadeOrcamentaria
+						rs.get("mne_uo").asText(null), // siglaUnidadeOrcamentaria
+						rs.get("NOM_UO").asText(null), // nomeUnidadeOrcamentaria
+						rs.get("COD_PROGRAMA").asText(null), // codigoPrograma
+						rs.get("NOM_PROGRAMA").asText(null), // nomePrograma
+						rs.get("acao").asText(null), // codigoAcao
+						rs.get("NOM_ACAO").asText(null), // nomeAcao
+						rs.get("grupo").asText(null), // codigoGrupoDespesa
+						rs.get("NOM_GRUPO_DESPESA").asText(null), // nomeGrupoDespesa
+						rs.get("SGL_GRUPO_DESPESA").asText(null), // siglaGrupoDespesa
+						rs.get("modalidade").asText(null), // codigoModalidade
+						rs.get("iduso").asText(null), // idUso
+						rs.get("fonte").asText(null), // fonte
+						rs.get("loa_fin").decimalValue() // valorLoa
+				));
+
+		if (dadosLoa.isEmpty()) {
+			throw new ValidacaoSiscapException(Arrays.asList("Nenhum dado encontrado para os filtros informados."));
+		}
+
+		Map<ChaveAcaoLoa, List<DetalhamentoOrcamentarioLoaDto>> detalhamentosPorAcao = dadosLoa.stream()
+				.collect(Collectors.groupingBy(
+						item -> new ChaveAcaoLoa(
+								normalizarCodigo(item.unidadeOrcamentaria()),
+								normalizarCodigo(item.codigoPrograma()),
+								normalizarCodigo(item.codigoAcao())),
+						Collectors.mapping(
+								item -> new DetalhamentoOrcamentarioLoaDto(
+										item.codigoGrupoDespesa(),
+										item.codigoModalidade(),
+										item.idUso(),
+										item.fonte(),
+										item.valorLoa()),
+								Collectors.toList())));
+
+		if (detalhamentosPorAcao.isEmpty()) {
+			throw new ValidacaoSiscapException(
+					Arrays.asList("Nenhum detalhamento orçamentário encontrado para os filtros informados."));
+		}
+
+		dadosAcoes = dadosAcoes.stream()
+				.map(acao -> {
+
+					ChaveAcaoLoa chave = new ChaveAcaoLoa(
+							normalizarCodigo(acao.codigoUnidadeOrcamentaria()),
+							normalizarCodigo(acao.codigoPrograma()),
+							normalizarCodigo(acao.codigoAcao()));
+
+					List<DetalhamentoOrcamentarioLoaDto> detalhamentosDaAcao = detalhamentosPorAcao.getOrDefault(chave,List.of());
+
+					BigDecimal valorTotalLoa = Optional
+							.ofNullable(detalhamentosDaAcao)
+							.orElseGet(List::of)
+							.stream()
+							.filter(Objects::nonNull) // remove DTOs nulos
+							.map(DetalhamentoOrcamentarioLoaDto::valor)
+							.filter(Objects::nonNull) // remove valores nulos
+							.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+					return new AcaoPpaLoaDto(
+							acao.id(),
+							acao.codigoOrgao(),
+							acao.siglaOrgao(),
+							acao.nomeOrgao(),
+							acao.codigoUnidadeOrcamentaria(),
+							acao.siglaUnidadeOrcamentaria(),
+							acao.nomeUnidadeOrcamentaria(),
+							acao.codigoPrograma(),
+							acao.nomePrograma(),
+							acao.codigoAcao(),
+							acao.nomeAcao(),
+							acao.codigoFuncao(),
+							acao.nomeFuncao(),
+							acao.valorPpa(),
+							valorTotalLoa,
+							detalhamentosDaAcao // detalhamentoOrcamentarioLoa
+					);
+
+				})
+				.toList();
 
 		return dadosAcoes;
-		
+
+	}
+
+	private String normalizarCodigo(String valor) {
+		return valor == null
+				? ""
+				: valor.trim();
 	}
 
 }
