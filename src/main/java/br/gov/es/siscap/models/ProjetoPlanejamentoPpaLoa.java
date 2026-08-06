@@ -5,10 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import br.gov.es.siscap.dto.ProjetoAcaoDto;
 import br.gov.es.siscap.dto.ProjetoPlanejamentoPpaLoaDto;
+import br.gov.es.siscap.enums.TipoStatusEnum;
 
 @Entity
 @Table(name = "projeto_planejamento_ppa_loa")
@@ -60,6 +64,19 @@ public class ProjetoPlanejamentoPpaLoa extends ControleHistorico {
         this.ano = planejamentoDto.ano();
         this.codUo = planejamentoDto.codUo();
         this.codAcao = planejamentoDto.codAcao();
+    }
+
+    public Boolean compararIdAcaoComAcaoDto(ProjetoPlanejamentoPpaLoaDto acaoDto) {
+         return Objects.equals(this.getId(), acaoDto.id());
+    }
+
+    public void atualizarAcao(ProjetoPlanejamentoPpaLoaDto acaoDto) {
+       this.setAno(acaoDto.ano());
+       this.setCodAcao(acaoDto.codAcao());
+       this.setCodPrograma(acaoDto.codPrograma());
+       this.setCodUo(acaoDto.codUo());
+       this.setCodFuncao(acaoDto.codFuncao());
+       super.atualizarHistorico();
     }
 
 }

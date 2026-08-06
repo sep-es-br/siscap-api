@@ -46,7 +46,7 @@ public record ProjetoPlanejamentoPpaLoaResponseDto(
             acaoPpaLoaDtos.codigoAcao(),
             acaoPpaLoaDtos.codigoFuncao(),
             acaoPpaLoaDtos.codigoPrograma(),
-            null,
+            acaoPpaLoaDtos.anoAcao(),
             acaoPpaLoaDtos.codigoUnidadeOrcamentaria(),
             acaoPpaLoaDtos
         );

@@ -286,6 +286,8 @@ public class PpaLoaBiService {
 
 						BigDecimal.ZERO,
 
+						rs.get("ano_acao").asText(null),
+
 						List.of() // detalhamentoOrcamentarioLoa
 
 				));
@@ -377,6 +379,7 @@ public class PpaLoaBiService {
 							acao.nomeFuncao(),
 							acao.valorPpa(),
 							valorTotalLoa,
+							acao.anoAcao(),
 							detalhamentosDaAcao // detalhamentoOrcamentarioLoa
 					);
 

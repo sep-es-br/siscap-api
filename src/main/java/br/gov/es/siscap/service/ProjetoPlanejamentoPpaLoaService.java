@@ -8,6 +8,7 @@ import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.models.IndicadorAvulso;
 import br.gov.es.siscap.models.Projeto;
+import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
 import br.gov.es.siscap.models.ProjetoIndicadorAvulsoMeta;
 import br.gov.es.siscap.models.ProjetoOds;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 public class ProjetoPlanejamentoPpaLoaService {
 
 	private final ProjetoPlanejamentoPpaLoaRepository projetoPlanejamentoPpaLoaRepository;
-	
+
 	private final Logger logger = LogManager.getLogger(ProjetoPlanejamentoPpaLoaService.class);
 
 	public Set<ProjetoPlanejamentoPpaLoa> buscarPorProjeto(Projeto projeto) {
@@ -47,11 +48,11 @@ public class ProjetoPlanejamentoPpaLoaService {
 
 		logger.info("Sincronizando planejamento PPA LOA do Projeto com id: {}", projeto.getId());
 
-		removerPlanejamentosNaoEnviados( projeto, projetoPlanejamentoPpaLoaDtoList );
+		removerPlanejamentosNaoEnviados(projeto, projetoPlanejamentoPpaLoaDtoList);
 
 		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = new HashSet<>();
 
-		projetoPlanejamentoPpaLoaDtoList.forEach( planejamentoDto -> {
+		projetoPlanejamentoPpaLoaDtoList.forEach(planejamentoDto -> {
 
 			ProjetoPlanejamentoPpaLoa projetoPlanejamentoPpaLoa;
 
@@ -98,14 +99,16 @@ public class ProjetoPlanejamentoPpaLoaService {
 				.map(ProjetoPlanejamentoPpaLoaDto::id)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toSet());
-				
-		Set<ProjetoPlanejamentoPpaLoa> planejamentosExistentes = projetoPlanejamentoPpaLoaRepository.findAllByProjeto(projeto);
+
+		Set<ProjetoPlanejamentoPpaLoa> planejamentosExistentes = projetoPlanejamentoPpaLoaRepository
+				.findAllByProjeto(projeto);
 		List<ProjetoPlanejamentoPpaLoa> planejamentosParaRemover = planejamentosExistentes.stream()
 				.filter(planejamento -> !idsRecebidos.contains(planejamento.getId()))
 				.toList();
-				
+
 		if (!planejamentosParaRemover.isEmpty()) {
-			logger.info("Removendo relacao de planejamentos PPA LOA com projeto não enviados: {}", planejamentosParaRemover.size());
+			logger.info("Removendo relacao de planejamentos PPA LOA com projeto não enviados: {}",
+					planejamentosParaRemover.size());
 			projetoPlanejamentoPpaLoaRepository.deleteAll(planejamentosParaRemover);
 		}
 
@@ -129,82 +132,87 @@ public class ProjetoPlanejamentoPpaLoaService {
 
 	@Transactional
 	public Set<ProjetoPlanejamentoPpaLoa> atualizar(Projeto projeto,
-			List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDtoList){
+			Set<ProjetoPlanejamentoPpaLoa> acoesProjetoExistentes,
+			List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDtoList) {
 
 		logger.info("Alterando dados de Planejamentos PPA LOA do Projeto com id: {}", projeto.getId());
 
-		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = this.buscarPorProjeto(projeto);
+		Set<ProjetoPlanejamentoPpaLoa> acoesAlterarSet = new HashSet<>();
 
-		Set<ProjetoPlanejamentoPpaLoa> projetoPpaLoaAtualizarSet = this.atualizarPlanejamentoPpaLoaProjeto(projeto,
-				projetoPlanejamentoPpaLoaSet, projetoPlanejamentoPpaLoaDtoList);
+		Set<ProjetoPlanejamentoPpaLoa> acoesAdicionarSet = new HashSet<>();
 
-		projetoPlanejamentoPpaLoaRepository.saveAllAndFlush(projetoPpaLoaAtualizarSet);
+		projetoPlanejamentoPpaLoaDtoList.forEach(acaoDto -> {
+			acoesProjetoExistentes
+					.stream()
+					.filter(projetoAcao -> projetoAcao.compararIdAcaoComAcaoDto(acaoDto))
+					.findFirst()
+					.ifPresentOrElse(
+							(projetoAcao) -> {
+								projetoAcao.atualizarAcao(acaoDto);
+								acoesAlterarSet.add(projetoAcao);
+							},
+							() -> acoesAdicionarSet.add(new ProjetoPlanejamentoPpaLoa(projeto, acaoDto)));
+		});
 
-		Set<Long> idsDto = projetoPlanejamentoPpaLoaDtoList.stream()
-				.map(ProjetoPlanejamentoPpaLoaDto::id)
-				.filter(Objects::nonNull)
+		acoesAdicionarSet.addAll(acoesAlterarSet);
+
+		projetoPlanejamentoPpaLoaRepository.saveAllAndFlush(acoesAdicionarSet);
+
+		Set<ProjetoPlanejamentoPpaLoa> acoesRemover = acoesProjetoExistentes.stream()
+				.filter(acaoExistente -> projetoPlanejamentoPpaLoaDtoList.stream()
+						.noneMatch(acaoDto -> acaoExistente
+								.compararIdAcaoComAcaoDto(
+										acaoDto)))
 				.collect(Collectors.toSet());
 
-		Set<ProjetoPlanejamentoPpaLoa> planejamentosParaRemover = projetoPlanejamentoPpaLoaSet.stream()
-				.filter(planejamento -> !idsDto.contains(planejamento.getId()))
-				.collect(Collectors.toSet());
+		if (!acoesRemover.isEmpty())
+			projetoPlanejamentoPpaLoaRepository.deleteAll(acoesRemover);
 
-		if(!planejamentosParaRemover.isEmpty()) {
-			logger.info("Removendo relacao de planejamentos PPA LOA com projeto não enviados: {}", planejamentosParaRemover.size());
-		}
-
-		projetoPlanejamentoPpaLoaRepository.deleteAll(planejamentosParaRemover);
-
-		logger.info("Planejamentos PPA LOA do projeto alterados com sucesso");
-
-		return this.buscarPorProjeto(projeto);
-
+		return acoesAdicionarSet;
+		
 	}
 
-	private Set<ProjetoPlanejamentoPpaLoa> atualizarPlanejamentoPpaLoaProjeto(
-			Projeto projeto,
-			Set<ProjetoPlanejamentoPpaLoa> planejamentosExistentes,
-			List<ProjetoPlanejamentoPpaLoaDto> dtoList) {
-
-		Map<Long, ProjetoPlanejamentoPpaLoa> planejamentosExistentesMap = planejamentosExistentes.stream()
-				.filter( planejamento -> planejamento.getId() != null)
-				.collect(Collectors.toMap(ProjetoPlanejamentoPpaLoa::getId, Function.identity()));
-
-		return dtoList.stream()
-				.map(dto -> {
-
-					if (dto.id() == null) {
-						throw new ValidacaoSiscapException(List.of("Id do Planejamento PPA LOA não pode ser null."));
-					}
-
-					ProjetoPlanejamentoPpaLoa planejamento;
-
-					if (dto.id() != null && planejamentosExistentesMap.containsKey(dto.id())) {
-						planejamento = planejamentosExistentesMap.get(dto.id());
-					} else {
-						planejamento = new ProjetoPlanejamentoPpaLoa();
-						planejamento.setProjeto(projeto);
-					}
-
-					planejamento.setId(dto.id());
-					planejamento.setCodFuncao(dto.codFuncao());
-					planejamento.setCodPrograma(dto.codPrograma());
-					planejamento.setAno(dto.ano());
-					planejamento.setCodUo(dto.codUo());
-					planejamento.setCodAcao(dto.codAcao());
-
-					return planejamento;
-				})
-				.collect(Collectors.toSet());
-
-	}
+	// private Set<ProjetoPlanejamentoPpaLoa> atualizarPlanejamentoPpaLoaProjeto(
+	// Projeto projeto,
+	// Set<ProjetoPlanejamentoPpaLoa> planejamentosExistentes,
+	// List<ProjetoPlanejamentoPpaLoaDto> dtoList) {
+	// Map<Long, ProjetoPlanejamentoPpaLoa> planejamentosExistentesMap =
+	// planejamentosExistentes.stream()
+	// .filter(planejamento -> planejamento.getId() != null)
+	// .collect(Collectors.toMap(ProjetoPlanejamentoPpaLoa::getId,
+	// Function.identity()));
+	// return dtoList.stream()
+	// .map(dto -> {
+	// if (dto.id() == null) {
+	// throw new ValidacaoSiscapException(List.of("Id do Planejamento PPA LOA não
+	// pode ser null."));
+	// }
+	// ProjetoPlanejamentoPpaLoa planejamento;
+	// if (dto.id() != null && planejamentosExistentesMap.containsKey(dto.id())) {
+	// planejamento = planejamentosExistentesMap.get(dto.id());
+	// } else {
+	// planejamento = new ProjetoPlanejamentoPpaLoa();
+	// planejamento.setProjeto(projeto);
+	// }
+	// planejamento.setId(dto.id());
+	// planejamento.setCodFuncao(dto.codFuncao());
+	// planejamento.setCodPrograma(dto.codPrograma());
+	// planejamento.setAno(dto.ano());
+	// planejamento.setCodUo(dto.codUo());
+	// planejamento.setCodAcao(dto.codAcao());
+	// return planejamento;
+	// })
+	// .collect(Collectors.toSet());
+	// }
 
 	// @Transactional
 	// public void excluirFisicamentePorProjeto(Projeto projeto) {
-	// 	logger.info("Excluindo fisicamente indicadores avulsos do Projeto com id: {}", projeto.getId());
-	// 	projetoIndicadorAvulsoMetaRepository.deleteFisicoPorProjeto(projeto.getId());
-	// 	projetoIndicadorAvulsoRepository.deleteFisicoPorProjeto(projeto.getId());
-	// 	logger.info("Indicadores avulsos do projeto excluídos fisicamente com sucesso");
+	// logger.info("Excluindo fisicamente indicadores avulsos do Projeto com id:
+	// {}", projeto.getId());
+	// projetoIndicadorAvulsoMetaRepository.deleteFisicoPorProjeto(projeto.getId());
+	// projetoIndicadorAvulsoRepository.deleteFisicoPorProjeto(projeto.getId());
+	// logger.info("Indicadores avulsos do projeto excluídos fisicamente com
+	// sucesso");
 	// }
 
 }

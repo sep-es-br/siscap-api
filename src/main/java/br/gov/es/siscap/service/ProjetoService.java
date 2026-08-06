@@ -265,7 +265,7 @@ public class ProjetoService {
 			return List.of();
 		}
 
-		String ppaPlanejamento = "";
+		String ppaPlanejamento = "2024-2027";
 
 		List<Long> funcoes = new ArrayList<>();
 		List<Long> programas = new ArrayList<>();
@@ -291,6 +291,10 @@ public class ProjetoService {
 				uos.add(Long.valueOf(ppaloa.getCodUo()));
 			}
 
+			if (ppaloa.getCodAcao() != null && !ppaloa.getCodAcao().isBlank()) {
+				acoes.add(Long.valueOf(ppaloa.getCodAcao()));
+			}
+
 		});
 
 		List<AcaoPpaLoaDto> dadosAcoes = ppaLoaBiService.dadosAcoes(
@@ -306,8 +310,8 @@ public class ProjetoService {
 
 						dto -> new ChaveAcaoLoa(
 								normalizarCodigo(dto.codigoUnidadeOrcamentaria()),
-								normalizarCodigo(dto.codigoPrograma()),
-								normalizarCodigo(dto.codigoAcao())),
+								normalizarCodigo(dto.codigoAcao()),
+								normalizarCodigo(dto.codigoPrograma())),
 
 						Function.identity(),
 
@@ -319,9 +323,9 @@ public class ProjetoService {
 				.map(planejamento -> {
 
 					ChaveAcaoLoa chave = new ChaveAcaoLoa(
-							normalizarCodigo(planejamento.getCodAcao()),
-							normalizarCodigo(planejamento.getCodFuncao()),
-							normalizarCodigo(planejamento.getCodPrograma()));
+							normalizarCodigo(String.format("%05d", Integer.parseInt(planejamento.getCodUo()))),
+							normalizarCodigo(String.format("%04d", Integer.parseInt(planejamento.getCodAcao()))),
+							normalizarCodigo(String.format("%04d", Integer.parseInt(planejamento.getCodPrograma()))));
 
 					AcaoPpaLoaDto acaoDoBi = dadosBiPorChave.get(chave);
 
@@ -490,7 +494,7 @@ public class ProjetoService {
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
 		projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
 
-		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.planejamentoPpaLoaProjeto();
+		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
 		projetoPlanejamentoPpaLoaService.sincronizar(projeto, planejamentoPpaLoaParaGravar);
 
 		try {
@@ -599,9 +603,11 @@ public class ProjetoService {
 
 		String nomeProponente = projeto.getPessoa().getNome();
 
-		List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDto = form.planejamentoPpaLoaProjeto();
+		List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDto = form.acoesPlanejamentoProjeto();
+		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoExistentes = projetoPlanejamentoPpaLoaService
+				.buscarPorProjeto(projetoResult);
 		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
-				.atualizar(projetoResult, projetoPlanejamentoPpaLoaDto);
+				.atualizar(projetoResult, projetoPlanejamentoExistentes, projetoPlanejamentoPpaLoaDto);
 
 		ProjetoParecerDto projetoParecerDto;
 		ProjetoParecer projetoParecer = null;

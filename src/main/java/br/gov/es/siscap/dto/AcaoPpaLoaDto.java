@@ -27,6 +27,8 @@ public record AcaoPpaLoaDto(
     BigDecimal valorPpa,
     BigDecimal valorLoa,
 
+    String anoAcao,
+
     List<DetalhamentoOrcamentarioLoaDto> detalhamentosLoa
     
 ) {

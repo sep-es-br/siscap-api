@@ -91,7 +91,9 @@ public record ProjetoForm(
 			@Valid
 			List<ProjetoOdsDto> odsProjeto,
 
-			List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaProjeto
+			List<ProjetoPlanejamentoPpaLoaDto> acoesPlanejamentoProjeto,
+
+			Boolean naoPrevistoNoPpa
 
 ) {
 

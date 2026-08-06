@@ -45,7 +45,7 @@ public record ProjetoDto(
 		List<StatusProjetoDto> historico,
 		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto,
 		List<ProjetoOdsDto> odsProjeto,
-		List<ProjetoPlanejamentoPpaLoaResponseDto> planejamentoPpaLoa
+		List<ProjetoPlanejamentoPpaLoaResponseDto> acoesPlanejamentoProjeto
 	) {
 
 	public ProjetoDto(Projeto projeto,
@@ -72,7 +72,7 @@ public record ProjetoDto(
 			List<StatusProjetoDto> historico,
 			List<ProjetoIndicadorAvulsoDto> projetoIndicadorAvulsos,
 			List<ProjetoOdsDto> odsProjeto,
-			List<ProjetoPlanejamentoPpaLoaResponseDto> planejamentoPpaLoa) {
+			List<ProjetoPlanejamentoPpaLoaResponseDto> acoesPlanejamentoProjeto) {
 
 		this(projeto.getId(),
 				projeto.getSigla(),
@@ -112,7 +112,7 @@ public record ProjetoDto(
 				historico,
 				projetoIndicadorAvulsos,
 				odsProjeto,
-				planejamentoPpaLoa);
+				acoesPlanejamentoProjeto);
 
 	}
 
