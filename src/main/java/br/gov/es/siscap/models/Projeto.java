@@ -172,6 +172,9 @@ public class Projeto extends ControleHistorico {
 	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<ProjetoPlanejamentoPpaLoa> planejamentoPpaLoa = new HashSet<>();
 
+	@Column(name = "nao_previsto_ppa", nullable = true)
+	private Boolean naoPrevistoNoPpa;
+
 	public void addOds(ProjetoOds ods) {
 		ods.setProjeto(this);
 		this.ods.add(ods);
@@ -245,6 +248,7 @@ public class Projeto extends ControleHistorico {
 		this.setFase("DIC");
 		this.setPecasPlanejamento(form.pecasPlanejamento());
 		this.setProtocoloEdocs(form.protocoloEdocs());
+		this.setNaoPrevistoNoPpa(form.naoPrevistoNoPpa());
 	}
 
 	public void alterarStatus(String novoStatus, Pessoa pessoa) {

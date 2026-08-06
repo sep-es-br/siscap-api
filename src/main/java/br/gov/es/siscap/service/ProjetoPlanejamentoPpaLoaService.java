@@ -139,7 +139,7 @@ public class ProjetoPlanejamentoPpaLoaService {
 
 		Set<ProjetoPlanejamentoPpaLoa> acoesAlterarSet = new HashSet<>();
 
-		Set<ProjetoPlanejamentoPpaLoa> acoesAdicionarSet = new HashSet<>();
+		Set<ProjetoPlanejamentoPpaLoa> acoesPersistirSet = new HashSet<>();
 
 		projetoPlanejamentoPpaLoaDtoList.forEach(acaoDto -> {
 			acoesProjetoExistentes
@@ -151,13 +151,13 @@ public class ProjetoPlanejamentoPpaLoaService {
 								projetoAcao.atualizarAcao(acaoDto);
 								acoesAlterarSet.add(projetoAcao);
 							},
-							() -> acoesAdicionarSet.add(new ProjetoPlanejamentoPpaLoa(projeto, acaoDto)));
+							() -> acoesPersistirSet.add(new ProjetoPlanejamentoPpaLoa(projeto, acaoDto)));
 		});
 
-		acoesAdicionarSet.addAll(acoesAlterarSet);
+		acoesPersistirSet.addAll(acoesAlterarSet);
 
-		projetoPlanejamentoPpaLoaRepository.saveAllAndFlush(acoesAdicionarSet);
-
+		projetoPlanejamentoPpaLoaRepository.saveAllAndFlush(acoesPersistirSet);
+		
 		Set<ProjetoPlanejamentoPpaLoa> acoesRemover = acoesProjetoExistentes.stream()
 				.filter(acaoExistente -> projetoPlanejamentoPpaLoaDtoList.stream()
 						.noneMatch(acaoDto -> acaoExistente
@@ -165,45 +165,15 @@ public class ProjetoPlanejamentoPpaLoaService {
 										acaoDto)))
 				.collect(Collectors.toSet());
 
-		if (!acoesRemover.isEmpty())
+		if (!acoesRemover.isEmpty()){
 			projetoPlanejamentoPpaLoaRepository.deleteAll(acoesRemover);
+		}
 
-		return acoesAdicionarSet;
+		projetoPlanejamentoPpaLoaRepository.flush();
+
+		return acoesPersistirSet;
 		
 	}
-
-	// private Set<ProjetoPlanejamentoPpaLoa> atualizarPlanejamentoPpaLoaProjeto(
-	// Projeto projeto,
-	// Set<ProjetoPlanejamentoPpaLoa> planejamentosExistentes,
-	// List<ProjetoPlanejamentoPpaLoaDto> dtoList) {
-	// Map<Long, ProjetoPlanejamentoPpaLoa> planejamentosExistentesMap =
-	// planejamentosExistentes.stream()
-	// .filter(planejamento -> planejamento.getId() != null)
-	// .collect(Collectors.toMap(ProjetoPlanejamentoPpaLoa::getId,
-	// Function.identity()));
-	// return dtoList.stream()
-	// .map(dto -> {
-	// if (dto.id() == null) {
-	// throw new ValidacaoSiscapException(List.of("Id do Planejamento PPA LOA não
-	// pode ser null."));
-	// }
-	// ProjetoPlanejamentoPpaLoa planejamento;
-	// if (dto.id() != null && planejamentosExistentesMap.containsKey(dto.id())) {
-	// planejamento = planejamentosExistentesMap.get(dto.id());
-	// } else {
-	// planejamento = new ProjetoPlanejamentoPpaLoa();
-	// planejamento.setProjeto(projeto);
-	// }
-	// planejamento.setId(dto.id());
-	// planejamento.setCodFuncao(dto.codFuncao());
-	// planejamento.setCodPrograma(dto.codPrograma());
-	// planejamento.setAno(dto.ano());
-	// planejamento.setCodUo(dto.codUo());
-	// planejamento.setCodAcao(dto.codAcao());
-	// return planejamento;
-	// })
-	// .collect(Collectors.toSet());
-	// }
 
 	// @Transactional
 	// public void excluirFisicamentePorProjeto(Projeto projeto) {
