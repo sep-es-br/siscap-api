@@ -20,11 +20,7 @@ public class RegrasDePermissaoService {
         boolean ehResponsavelProponente = this.usuarioEhResponsavelProponente(subUsuario, projeto);
 
         if (ehDaSubcap) {
-            if (StatusProjetoEnum.EM_ANALISE.getValue().equals(projeto.getStatusAtual().getStatus())) {
-                podeEditar = true;
-            } else {
-                podeEditar = false;
-            }
+            podeEditar = false;
         } else if (!ehDaSubcap) {
             if (StatusProjetoEnum.COMPLEMETACAO.getValue().equals(projeto.getStatusAtual().getStatus())) {
                 podeEditar = true;
