@@ -334,7 +334,7 @@ public class ProjetoService {
 								"Ação do planejamento não encontrada no BI. Chave: " + chave);
 					}
 
-					return new ProjetoPlanejamentoPpaLoaResponseDto(acaoDoBi);
+					return new ProjetoPlanejamentoPpaLoaResponseDto( planejamento.getId(), acaoDoBi );
 
 				})
 				.toList();
@@ -494,10 +494,13 @@ public class ProjetoService {
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
 		projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
 
+		logger.info("ID projeto antes de gravar planejamento: {}", projeto.getId());
+
 		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
-		projetoPlanejamentoPpaLoaService.sincronizar(projeto, planejamentoPpaLoaParaGravar);
+		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService.sincronizar(projeto, planejamentoPpaLoaParaGravar);
 
 		try {
+
 			if (form.enviarProjetoGestor()) {
 
 				logger.info("Envio email para gestor");
@@ -537,7 +540,7 @@ public class ProjetoService {
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				indicadoresAvulsosProjetoParaGravar,
 				indicadoresOdsParaGravar,
-				null); // seria necessario nesse ponto ir no BI pegar os dados das acoes e ppa?
+				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet)); 
 
 	}
 
@@ -603,11 +606,12 @@ public class ProjetoService {
 
 		String nomeProponente = projeto.getPessoa().getNome();
 
-		List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDto = form.acoesPlanejamentoProjeto();
-		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoExistentes = projetoPlanejamentoPpaLoaService
-				.buscarPorProjeto(projetoResult);
-		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
-				.atualizar(projetoResult, projetoPlanejamentoExistentes, projetoPlanejamentoPpaLoaDto);
+		// List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDto = form.acoesPlanejamentoProjeto();
+		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoExistentes = projetoPlanejamentoPpaLoaService.buscarPorProjeto(projetoResult);
+		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService.atualizar(projetoResult, projetoPlanejamentoExistentes, projetoPlanejamentoPpaLoaDto);
+
+		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
+		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService.sincronizar(projeto, planejamentoPpaLoaParaGravar);
 
 		ProjetoParecerDto projetoParecerDto;
 		ProjetoParecer projetoParecer = null;

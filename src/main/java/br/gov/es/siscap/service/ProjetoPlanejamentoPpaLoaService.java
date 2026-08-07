@@ -1,21 +1,8 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoDto;
-import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoMetaDto;
-import br.gov.es.siscap.dto.ProjetoOdsDto;
 import br.gov.es.siscap.dto.ProjetoPlanejamentoPpaLoaDto;
-import br.gov.es.siscap.exception.ValidacaoSiscapException;
-import br.gov.es.siscap.exception.service.SiscapServiceException;
-import br.gov.es.siscap.models.IndicadorAvulso;
 import br.gov.es.siscap.models.Projeto;
-import br.gov.es.siscap.models.ProjetoAcao;
-import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
-import br.gov.es.siscap.models.ProjetoIndicadorAvulsoMeta;
-import br.gov.es.siscap.models.ProjetoOds;
 import br.gov.es.siscap.models.ProjetoPlanejamentoPpaLoa;
-import br.gov.es.siscap.repository.IndicadorAvulsoRepository;
-import br.gov.es.siscap.repository.ProjetoIndicadorAvulsoMetaRepository;
-import br.gov.es.siscap.repository.ProjetoIndicadorAvulsoRepository;
 import br.gov.es.siscap.repository.ProjetoPlanejamentoPpaLoaRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,48 +29,24 @@ public class ProjetoPlanejamentoPpaLoaService {
 	}
 
 	@Transactional
-	public Set<ProjetoPlanejamentoPpaLoa> sincronizar(Projeto projeto,
+	public Set<ProjetoPlanejamentoPpaLoa> sincronizar(
+			Projeto projeto,
 			List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDtoList) {
 
 		logger.info("Sincronizando planejamento PPA LOA do Projeto com id: {}", projeto.getId());
 
-		removerPlanejamentosNaoEnviados(projeto, projetoPlanejamentoPpaLoaDtoList);
+		List<ProjetoPlanejamentoPpaLoaDto> planejamentos = projetoPlanejamentoPpaLoaDtoList != null
+				? projetoPlanejamentoPpaLoaDtoList
+				: List.of();
 
-		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = new HashSet<>();
+		removerPlanejamentosNaoEnviados(projeto, planejamentos);
 
-		projetoPlanejamentoPpaLoaDtoList.forEach(planejamentoDto -> {
+		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = planejamentos.stream()
+				.map(dto -> buscarOuCriarProjetoPlanejamentoPpaLoa(projeto, dto))
+				.collect(Collectors.toSet());
 
-			ProjetoPlanejamentoPpaLoa projetoPlanejamentoPpaLoa;
-
-			Long idPlanejamento = planejamentoDto.id();
-
-			if (idPlanejamento != null) {
-
-				projetoPlanejamentoPpaLoa = projetoPlanejamentoPpaLoaRepository
-						.findById(idPlanejamento)
-						.orElseThrow(() -> new RuntimeException("Planejamento PPA LOA não encontrado."));
-
-			} else {
-
-				projetoPlanejamentoPpaLoa = projetoPlanejamentoPpaLoaRepository
-						.save(new ProjetoPlanejamentoPpaLoa(planejamentoDto));
-
-			}
-
-			if (projetoPlanejamentoPpaLoa != null)
-				projetoPlanejamentoPpaLoa = projetoPlanejamentoPpaLoaRepository.save(projetoPlanejamentoPpaLoa);
-			else
-				throw new SiscapServiceException(
-						Arrays.asList("Planejamento PPA LOA inválido."));
-
-			projetoPlanejamentoPpaLoa = buscarOuCriarProjetoPlanejamentoPpaLoa(projeto, planejamentoDto);
-
-			projetoPlanejamentoPpaLoaSet.add(projetoPlanejamentoPpaLoa);
-
-		});
-
-		List<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaList = projetoPlanejamentoPpaLoaRepository
-				.saveAll(projetoPlanejamentoPpaLoaSet);
+		List<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaList = projetoPlanejamentoPpaLoaRepository.saveAll(
+				projetoPlanejamentoPpaLoaSet);
 
 		logger.info("Planejamentos PPA LOA sincronizados com sucesso.");
 
@@ -102,6 +64,7 @@ public class ProjetoPlanejamentoPpaLoaService {
 
 		Set<ProjetoPlanejamentoPpaLoa> planejamentosExistentes = projetoPlanejamentoPpaLoaRepository
 				.findAllByProjeto(projeto);
+
 		List<ProjetoPlanejamentoPpaLoa> planejamentosParaRemover = planejamentosExistentes.stream()
 				.filter(planejamento -> !idsRecebidos.contains(planejamento.getId()))
 				.toList();
@@ -109,7 +72,10 @@ public class ProjetoPlanejamentoPpaLoaService {
 		if (!planejamentosParaRemover.isEmpty()) {
 			logger.info("Removendo relacao de planejamentos PPA LOA com projeto não enviados: {}",
 					planejamentosParaRemover.size());
+			
 			projetoPlanejamentoPpaLoaRepository.deleteAll(planejamentosParaRemover);
+
+			projetoPlanejamentoPpaLoaRepository.flush();
 		}
 
 	}
@@ -119,14 +85,16 @@ public class ProjetoPlanejamentoPpaLoaService {
 			ProjetoPlanejamentoPpaLoaDto planejamentoDto) {
 
 		if (planejamentoDto.id() != null) {
+
 			return projetoPlanejamentoPpaLoaRepository
 					.findById(planejamentoDto.id())
-					.orElseThrow(() -> new RuntimeException("Planejamento PPA LOA não encontrado."));
+					.orElseThrow(() -> new RuntimeException(
+							"Planejamento PPA LOA não encontrado."));
 		}
 
-		ProjetoPlanejamentoPpaLoa novo = new ProjetoPlanejamentoPpaLoa(projeto, planejamentoDto);
-
-		return projetoPlanejamentoPpaLoaRepository.save(novo);
+		return new ProjetoPlanejamentoPpaLoa(
+				projeto,
+				planejamentoDto);
 
 	}
 
@@ -157,7 +125,7 @@ public class ProjetoPlanejamentoPpaLoaService {
 		acoesPersistirSet.addAll(acoesAlterarSet);
 
 		projetoPlanejamentoPpaLoaRepository.saveAllAndFlush(acoesPersistirSet);
-		
+
 		Set<ProjetoPlanejamentoPpaLoa> acoesRemover = acoesProjetoExistentes.stream()
 				.filter(acaoExistente -> projetoPlanejamentoPpaLoaDtoList.stream()
 						.noneMatch(acaoDto -> acaoExistente
@@ -165,14 +133,14 @@ public class ProjetoPlanejamentoPpaLoaService {
 										acaoDto)))
 				.collect(Collectors.toSet());
 
-		if (!acoesRemover.isEmpty()){
+		if (!acoesRemover.isEmpty()) {
 			projetoPlanejamentoPpaLoaRepository.deleteAll(acoesRemover);
 		}
 
 		projetoPlanejamentoPpaLoaRepository.flush();
 
 		return acoesPersistirSet;
-		
+
 	}
 
 	// @Transactional

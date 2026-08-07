@@ -39,9 +39,9 @@ public record ProjetoPlanejamentoPpaLoaResponseDto(
         );
     }
 
-    public ProjetoPlanejamentoPpaLoaResponseDto(AcaoPpaLoaDto acaoPpaLoaDtos) {
+    public ProjetoPlanejamentoPpaLoaResponseDto(Long idAcaoPpaLoaProjeto, AcaoPpaLoaDto acaoPpaLoaDtos) {
         this(
-            acaoPpaLoaDtos.id(),
+            idAcaoPpaLoaProjeto,
             null,
             acaoPpaLoaDtos.codigoAcao(),
             acaoPpaLoaDtos.codigoFuncao(),

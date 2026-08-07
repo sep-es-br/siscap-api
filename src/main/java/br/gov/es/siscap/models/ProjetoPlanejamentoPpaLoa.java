@@ -10,9 +10,7 @@ import java.util.Objects;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
-import br.gov.es.siscap.dto.ProjetoAcaoDto;
 import br.gov.es.siscap.dto.ProjetoPlanejamentoPpaLoaDto;
-import br.gov.es.siscap.enums.TipoStatusEnum;
 
 @Entity
 @Table(name = "projeto_planejamento_ppa_loa")

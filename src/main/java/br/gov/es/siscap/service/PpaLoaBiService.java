@@ -136,10 +136,12 @@ public class PpaLoaBiService {
 	public List<OpcoesPpaLoaDto> listarFuncoes(List<Long> anos, List<Long> uos) {
 
 		String anosFormatados = anos.stream()
+				.distinct()
 				.map(String::valueOf)
 				.collect(Collectors.joining(","));
 
 		String uosFormatados = uos.stream()
+				.distinct()
 				.map(uo -> String.format("%05d", uo))
 				.collect(Collectors.joining(","));
 
@@ -161,14 +163,17 @@ public class PpaLoaBiService {
 	public List<OpcoesPpaLoaDto> listarProgramas(List<Long> anos, List<Long> uos, List<Long> funcoes) {
 
 		String anosFormatados = anos.stream()
+				.distinct()
 				.map(String::valueOf)
 				.collect(Collectors.joining(","));
 
 		String uosFormatados = uos.stream()
+				.distinct()
 				.map(uo -> String.format("%05d", uo))
 				.collect(Collectors.joining(","));
 
 		String funcoesFormatadas = funcoes.stream()
+				.distinct()
 				.map(funcao -> String.format("%02d", funcao))
 				.collect(Collectors.joining(","));
 
@@ -192,18 +197,22 @@ public class PpaLoaBiService {
 			List<Long> uos) {
 
 		String anosFormatados = anos.stream()
+				.distinct()
 				.map(String::valueOf)
 				.collect(Collectors.joining(","));
 
 		String uosFormatados = uos.stream()
+				.distinct()
 				.map(uo -> String.format("%05d", uo))
 				.collect(Collectors.joining(","));
 
 		String funcoesFormatadas = funcoes.stream()
+				.distinct()
 				.map(funcao -> String.format("%02d", funcao))
 				.collect(Collectors.joining(","));
 
 		String programasFormatados = programas.stream()
+				.distinct()
 				.map(programa -> String.format("%04d", programa))
 				.collect(Collectors.joining(","));
 
@@ -229,22 +238,27 @@ public class PpaLoaBiService {
 			List<Long> acoes) {
 
 		String anosFormatados = anos.stream()
+				.distinct()
 				.map(String::valueOf)
 				.collect(Collectors.joining(","));
 
 		String uosFormatados = uos.stream()
+				.distinct()
 				.map(uo -> String.format("%05d", uo))
 				.collect(Collectors.joining(","));
 
 		String funcoesFormatadas = funcoes.stream()
+				.distinct()
 				.map(funcao -> String.format("%02d", funcao))
 				.collect(Collectors.joining(","));
 
 		String programasFormatados = programas.stream()
+				.distinct()
 				.map(programa -> String.format("%04d", programa))
 				.collect(Collectors.joining(","));
 
 		String acoesFormatadas = acoes.stream()
+				.distinct()
 				.map(acao -> String.format("%04d", acao))
 				.collect(Collectors.joining(","));
 
@@ -352,7 +366,8 @@ public class PpaLoaBiService {
 							normalizarCodigo(acao.codigoPrograma()),
 							normalizarCodigo(acao.codigoAcao()));
 
-					List<DetalhamentoOrcamentarioLoaDto> detalhamentosDaAcao = detalhamentosPorAcao.getOrDefault(chave,List.of());
+					List<DetalhamentoOrcamentarioLoaDto> detalhamentosDaAcao = detalhamentosPorAcao.getOrDefault(chave,
+							List.of());
 
 					BigDecimal valorTotalLoa = Optional
 							.ofNullable(detalhamentosDaAcao)
