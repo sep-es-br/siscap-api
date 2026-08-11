@@ -310,10 +310,17 @@ public class PpaLoaBiService {
 			throw new ValidacaoSiscapException(Arrays.asList("Nenhum dado encontrado para os filtros informados."));
 		}
 
+		Map<String, Object> paramsLoa = Map.of(
+				"paramp_ano", anosFormatados,
+				"paramp_cod_uo", uosFormatados,
+				"paramp_cod_programa", programasFormatados,
+				"paramp_cod_acao", acoesFormatadas,
+				"paramp_cod_funcao", funcoesFormatadas);
+
 		String targetLoa = targetDadosLoa;
 		String dataAccessIdLoa = dadosLoaDataAccessId;
 
-		List<DadosLoaBiDto> dadosLoa = apiUtils.consult(targetLoa, dataAccessIdLoa, pmoPath, params,
+		List<DadosLoaBiDto> dadosLoa = apiUtils.consult(targetLoa, dataAccessIdLoa, pmoPath, paramsLoa,
 				rs -> new DadosLoaBiDto(
 						rs.get("orgao").asText(null), // orgao
 						rs.get("sigla").asText(null), // sigla
