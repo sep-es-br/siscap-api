@@ -16,6 +16,8 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 
 @Service
@@ -85,9 +87,7 @@ public class PpaLoaBiService {
 
 	private final ApiUtils apiUtils;
 
-	// PpaLoaBiService(SiscapApplication siscapApplication) {
-	// this.siscapApplication = siscapApplication;
-	// }
+	private final Logger logger = LogManager.getLogger(PpaLoaBiService.class);
 
 	public OpcoesPeriodoPpaLoaDto listarPeriodoPpaAtivo() {
 
@@ -320,26 +320,35 @@ public class PpaLoaBiService {
 		String targetLoa = targetDadosLoa;
 		String dataAccessIdLoa = dadosLoaDataAccessId;
 
-		List<DadosLoaBiDto> dadosLoa = apiUtils.consult(targetLoa, dataAccessIdLoa, pmoPath, paramsLoa,
-				rs -> new DadosLoaBiDto(
-						rs.get("orgao").asText(null), // orgao
-						rs.get("sigla").asText(null), // sigla
-						rs.get("nom_orgao").asText(null), // nomeOrgao
-						rs.get("uo").asText(null), // unidadeOrcamentaria
-						rs.get("mne_uo").asText(null), // siglaUnidadeOrcamentaria
-						rs.get("NOM_UO").asText(null), // nomeUnidadeOrcamentaria
-						rs.get("COD_PROGRAMA").asText(null), // codigoPrograma
-						rs.get("NOM_PROGRAMA").asText(null), // nomePrograma
-						rs.get("acao").asText(null), // codigoAcao
-						rs.get("NOM_ACAO").asText(null), // nomeAcao
-						rs.get("grupo").asText(null), // codigoGrupoDespesa
-						rs.get("NOM_GRUPO_DESPESA").asText(null), // nomeGrupoDespesa
-						rs.get("SGL_GRUPO_DESPESA").asText(null), // siglaGrupoDespesa
-						rs.get("modalidade").asText(null), // codigoModalidade
-						rs.get("iduso").asText(null), // idUso
-						rs.get("fonte").asText(null), // fonte
-						rs.get("loa_fin").decimalValue() // valorLoa
-				));
+		List<DadosLoaBiDto> dadosLoa = apiUtils.consult( targetLoa, dataAccessIdLoa, pmoPath, paramsLoa,
+				rs -> {
+
+					logger.info("Campos retornados pelo BI: {}", rs.keySet());
+					logger.info("Registro BI: {}", rs);
+
+					return new DadosLoaBiDto(
+							rs.get("orgao").asText(null),
+							rs.get("sigla").asText(null),
+							rs.get("nom_orgao").asText(null),
+							rs.get("uo").asText(null),
+							rs.get("mne_uo").asText(null),
+							rs.get("NOM_UO").asText(null),
+							rs.get("COD_PROGRAMA").asText(null),
+							rs.get("NOM_PROGRAMA").asText(null),
+							rs.get("acao").asText(null),
+							rs.get("NOM_ACAO").asText(null),
+							// algumas acoes apesar de estarem no ppa nao possuem loa entao esses valores
+							// vem vazios
+							rs.get("grupo").asText(""),
+							rs.get("NOM_GRUPO_DESPESA").asText(""),
+							rs.get("SGL_GRUPO_DESPESA").asText(""),
+							rs.get("modalidade").asText(""),
+							rs.get("iduso").asText(""),
+							rs.get("fonte").asText(""),
+							rs.get("loa_fin").decimalValue());
+				}
+
+		);
 
 		if (dadosLoa.isEmpty()) {
 			throw new ValidacaoSiscapException(Arrays.asList("Nenhum dado encontrado para os filtros informados."));
