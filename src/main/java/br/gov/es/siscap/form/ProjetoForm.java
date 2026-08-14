@@ -15,86 +15,78 @@ import java.util.List;
 
 public record ProjetoForm(
 
-			@NotBlank
-			@Size(max = 12)
-			String sigla,
+		@NotBlank 
+		@Size(max = 12) 
+		String sigla,
 
-			@NotBlank
-			@Size(max = 150)
-			String titulo,
+		@NotBlank 
+		@Size(max = 150) 
+		String titulo,
 
-			@NotNull
-			@Positive
-			Long idOrganizacao,
+		@NotNull 
+		@Positive 
+		Long idResponsavelProponente,
 
-			@Valid
-			ValorDto valor,
+		@NotEmpty 
+		@Valid 
+		List<EquipeDto> equipeElaboracao,
 
-			@NotEmpty
-			@Valid
-			List<RateioDto> rateio,
+		@Positive 
+		Long idOrganizacao,
 
-			@NotBlank
-			@Size(max = 2000)
-			String objetivo,
+		@Valid 
+		ValorDto valor,
 
-			@NotBlank
-			@Size(max = 2000)
-			String objetivoEspecifico,
+		@Valid 
+		List<RateioDto> rateio,
 
-			@NotBlank
-			@Size(max = 2000)
-			String situacaoProblema,
+		@Size(max = 2000) 
+		String objetivo,
 
-			@NotBlank
-			@Size(max = 2000)
-			String solucoesPropostas,
+		@Size(max = 2000) 
+		String objetivoEspecifico,
 
-			@NotBlank
-			@Size(max = 2000)
-			String impactos,
+		@Size(max = 2000) 
+		String situacaoProblema,
 
-			@NotBlank
-			@Size(max = 2000)
-			String arranjosInstitucionais,
+		@Size(max = 2000) 
+		String solucoesPropostas,
 
-			@Positive
-			@NotNull
-			long idResponsavelProponente,
+		@Size(max = 2000) 
+		String impactos,
 
-			@NotEmpty
-			List<EquipeDto> equipeElaboracao,
+		@Size(max = 2000) 
+		String arranjosInstitucionais,
 
-			List<ProjetoIndicadorDto> indicadoresProjeto,
-			
-			@NotEmpty
-			List<ProjetoAcaoDto> acoesProjeto,
+		@Valid 
+		List<ProjetoIndicadorDto> indicadoresProjeto,
 
-			@NotBlank
-			@Size(max = 2000)
-			String pecasPlanejamento,
+		@Valid 
+		List<ProjetoAcaoDto> acoesProjeto,
 
-			@NotNull
-			boolean enviarProjetoGestor,
-			
-			@Size(max = 15)
-			String protocoloEdocs,
+		@Size(max = 2000) 
+		String pecasPlanejamento,
 
-			@NotNull
-			boolean enviarProjetoPedirParecer,
+		boolean enviarProjetoGestor,
 
-			ProjetoParecerDto parecerProjetoUsuario,
+		@Size(max = 15) 
+		String protocoloEdocs,
 
-			@Valid
-			List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto,
+		boolean 
+		enviarProjetoPedirParecer,
 
-			@Valid
-			List<ProjetoOdsDto> odsProjeto,
+		@Valid 
+		ProjetoParecerDto parecerProjetoUsuario,
 
-			List<ProjetoPlanejamentoPpaLoaDto> acoesPlanejamentoProjeto,
+		@Valid 
+		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto,
 
-			Boolean naoPrevistoNoPpa
+		@Valid 
+		List<ProjetoOdsDto> odsProjeto,
 
-) {
+		@Valid 
+		List<ProjetoPlanejamentoPpaLoaDto> acoesPlanejamentoProjeto,
 
-}
+		Boolean naoPrevistoNoPpa
+
+) { }
