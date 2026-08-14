@@ -129,7 +129,7 @@ public class PpaLoaBiService {
 		return apiUtils.consult(target, dataAccessId, pmoPath, params,
 				rs -> new OpcoesPpaLoaDto(
 						rs.get("cod_uo").asLong(),
-						rs.get("mne_uo").asText()));
+						rs.get("cod_uo").asText() + " - " + rs.get("mne_uo").asText() ) );
 
 	}
 
@@ -156,7 +156,7 @@ public class PpaLoaBiService {
 		return apiUtils.consult(target, dataAccessId, pmoPath, params,
 				rs -> new OpcoesPpaLoaDto(
 						rs.get("cod_funcao").asLong(),
-						rs.get("nom_funcao").asText()));
+						rs.get("cod_funcao").asText() + " - " + rs.get("nom_funcao").asText()));
 
 	}
 
@@ -189,7 +189,7 @@ public class PpaLoaBiService {
 		return apiUtils.consult(target, dataAccessId, pmoPath, params,
 				rs -> new OpcoesPpaLoaDto(
 						rs.get("cod_programa").asLong(),
-						rs.get("nom_programa").asText()));
+						rs.get("cod_programa").asText() + " - " + rs.get("nom_programa").asText()));
 
 	}
 
@@ -229,7 +229,7 @@ public class PpaLoaBiService {
 		return apiUtils.consult(target, dataAccessId, pmoPath, params,
 				rs -> new OpcoesPpaLoaDto(
 						rs.get("cod_acao").asLong(),
-						rs.get("nom_acao").asText()));
+						rs.get("cod_acao").asText() + " - " + rs.get("nom_acao").asText()));
 
 	}
 
