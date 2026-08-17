@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -129,7 +130,7 @@ public class PpaLoaBiService {
 		return apiUtils.consult(target, dataAccessId, pmoPath, params,
 				rs -> new OpcoesPpaLoaDto(
 						rs.get("cod_uo").asLong(),
-						rs.get("cod_uo").asText() + " - " + rs.get("mne_uo").asText() ) );
+						rs.get("cod_uo").asText() + " - " + rs.get("mne_uo").asText()));
 
 	}
 
@@ -140,15 +141,17 @@ public class PpaLoaBiService {
 				.map(String::valueOf)
 				.collect(Collectors.joining(","));
 
-		String uosFormatados = uos.stream()
-				.distinct()
-				.map(uo -> String.format("%05d", uo))
-				.collect(Collectors.joining(","));
+		String uosFormatados = (uos == null || uos.isEmpty())
+				? "-1"
+				: uos.stream()
+						.distinct()
+						.map(uo -> String.format("%05d", uo))
+						.collect(Collectors.joining(","));
 
 		Map<String, Object> params = Map.of(
 				"paramp_ano", anosFormatados,
 				"paramp_cod_uo", uosFormatados);
-
+					
 		String pmoPath = siscapSigefesPath;
 		String target = targetFuncoesPpa;
 		String dataAccessId = funcoesPpaDataAccessId;
@@ -300,7 +303,7 @@ public class PpaLoaBiService {
 
 						BigDecimal.ZERO,
 
-						rs.get("ano_acao").asText(null),
+						rs.get("ano_acao") == null ? "" : rs.get("ano_acao").asText(null),
 
 						List.of() // detalhamentoOrcamentarioLoa
 
@@ -320,7 +323,7 @@ public class PpaLoaBiService {
 		String targetLoa = targetDadosLoa;
 		String dataAccessIdLoa = dadosLoaDataAccessId;
 
-		List<DadosLoaBiDto> dadosLoa = apiUtils.consult( targetLoa, dataAccessIdLoa, pmoPath, paramsLoa,
+		List<DadosLoaBiDto> dadosLoa = apiUtils.consult(targetLoa, dataAccessIdLoa, pmoPath, paramsLoa,
 				rs -> {
 
 					logger.info("Campos retornados pelo BI: {}", rs.keySet());
@@ -351,7 +354,24 @@ public class PpaLoaBiService {
 		);
 
 		if (dadosLoa.isEmpty()) {
-			throw new ValidacaoSiscapException(Arrays.asList("Nenhum dado encontrado para os filtros informados."));
+			dadosLoa = Arrays.asList(new DadosLoaBiDto(
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					"",
+					"",
+					"",
+					"",
+					"",
+					"",
+					BigDecimal.ZERO));
 		}
 
 		Map<ChaveAcaoLoa, List<DetalhamentoOrcamentarioLoaDto>> detalhamentosPorAcao = dadosLoa.stream()
