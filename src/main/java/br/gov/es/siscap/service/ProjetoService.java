@@ -334,7 +334,7 @@ public class ProjetoService {
 								"Ação do planejamento não encontrada no BI. Chave: " + chave);
 					}
 
-					return new ProjetoPlanejamentoPpaLoaResponseDto( planejamento.getId(), acaoDoBi );
+					return new ProjetoPlanejamentoPpaLoaResponseDto( planejamento.getId(), acaoDoBi, String.valueOf(anos.get(0)) );
 
 				})
 				.toList();

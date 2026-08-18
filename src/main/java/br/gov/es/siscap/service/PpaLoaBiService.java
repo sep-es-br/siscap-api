@@ -151,7 +151,7 @@ public class PpaLoaBiService {
 		Map<String, Object> params = Map.of(
 				"paramp_ano", anosFormatados,
 				"paramp_cod_uo", uosFormatados);
-					
+
 		String pmoPath = siscapSigefesPath;
 		String target = targetFuncoesPpa;
 		String dataAccessId = funcoesPpaDataAccessId;
@@ -209,15 +209,19 @@ public class PpaLoaBiService {
 				.map(uo -> String.format("%05d", uo))
 				.collect(Collectors.joining(","));
 
-		String funcoesFormatadas = funcoes.stream()
-				.distinct()
-				.map(funcao -> String.format("%02d", funcao))
-				.collect(Collectors.joining(","));
+		String funcoesFormatadas = (funcoes == null || funcoes.isEmpty())
+				? "-1"
+				: funcoes.stream()
+						.distinct()
+						.map(funcao -> String.format("%02d", funcao))
+						.collect(Collectors.joining(","));
 
-		String programasFormatados = programas.stream()
-				.distinct()
-				.map(programa -> String.format("%04d", programa))
-				.collect(Collectors.joining(","));
+		String programasFormatados = (programas == null || programas.isEmpty())
+				? "-1"
+				: programas.stream()
+						.distinct()
+						.map(programa -> String.format("%04d", programa))
+						.collect(Collectors.joining(","));
 
 		Map<String, Object> params = Map.of(
 				"paramp_ano", anosFormatados,
@@ -250,24 +254,30 @@ public class PpaLoaBiService {
 				.map(uo -> String.format("%05d", uo))
 				.collect(Collectors.joining(","));
 
-		String funcoesFormatadas = funcoes.stream()
-				.distinct()
-				.map(funcao -> String.format("%02d", funcao))
-				.collect(Collectors.joining(","));
+		String funcoesFormatadas = (funcoes == null || funcoes.isEmpty())
+				? "-1"
+				: funcoes.stream()
+						.distinct()
+						.map(funcao -> String.format("%02d", funcao))
+						.collect(Collectors.joining(","));
 
-		String programasFormatados = programas.stream()
-				.distinct()
-				.map(programa -> String.format("%04d", programa))
-				.collect(Collectors.joining(","));
+		String programasFormatados = (programas == null || programas.isEmpty())
+				? "-1"
+				: programas.stream()
+						.distinct()
+						.map(programa -> String.format("%04d", programa))
+						.collect(Collectors.joining(","));
 
-		String acoesFormatadas = acoes.stream()
-				.distinct()
-				.map(acao -> String.format("%04d", acao))
-				.collect(Collectors.joining(","));
+		String acoesFormatadas = (acoes == null || acoes.isEmpty())
+				? "-1"
+				: acoes.stream()
+						.distinct()
+						.map(acao -> String.format("%04d", acao))
+						.collect(Collectors.joining(","));
 
 		Map<String, Object> params = Map.of(
 				"paramp_ppa", ppa,
-				"paramp_ano", anosFormatados,
+				// "paramp_ano", anosFormatados,
 				"paramp_cod_uo", uosFormatados,
 				"paramp_cod_programa", programasFormatados,
 				"paramp_cod_acao", acoesFormatadas,
@@ -303,7 +313,7 @@ public class PpaLoaBiService {
 
 						BigDecimal.ZERO,
 
-						rs.get("ano_acao") == null ? "" : rs.get("ano_acao").asText(null),
+						String.valueOf(anos.get(0)), // rs.get("ano_acao") == null ? "" : rs.get("ano_acao").asText(null),
 
 						List.of() // detalhamentoOrcamentarioLoa
 
@@ -326,8 +336,8 @@ public class PpaLoaBiService {
 		List<DadosLoaBiDto> dadosLoa = apiUtils.consult(targetLoa, dataAccessIdLoa, pmoPath, paramsLoa,
 				rs -> {
 
-					logger.info("Campos retornados pelo BI: {}", rs.keySet());
-					logger.info("Registro BI: {}", rs);
+					// logger.info("Campos retornados pelo BI: {}", rs.keySet());
+					// logger.info("Registro BI: {}", rs);
 
 					return new DadosLoaBiDto(
 							rs.get("orgao").asText(null),
