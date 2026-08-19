@@ -1,0 +1,244 @@
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<jasperReport name="planejamentoPpaLoa" language="java" columnCount="1" pageWidth="536" pageHeight="842" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="536" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="8baf0ff5-1924-4eb3-b5af-c470ff35e5dd">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<dataset name="detalhamentoLoaDataset" uuid="d2fd1ed6-24d5-47a7-a187-6c93b9178d01">
+		<field name="gnd" class="java.lang.String"/>
+		<field name="modalidade" class="java.lang.String"/>
+		<field name="idUso" class="java.lang.String"/>
+		<field name="fonte" class="java.lang.String"/>
+		<field name="valor" class="java.math.BigDecimal"/>
+	</dataset>
+	<parameter name="naoPrevistoPpa" class="java.lang.Boolean"/>
+	<parameter name="periodoPlanejamento" class="java.lang.String"/>
+	<field name="codigoAcao" class="java.lang.String"/>
+	<field name="nomeAcao" class="java.lang.String"/>
+	<field name="unidadeOrcamentaria" class="java.lang.String"/>
+	<field name="orgao" class="java.lang.String"/>
+	<field name="funcao" class="java.lang.String"/>
+	<field name="programa" class="java.lang.String"/>
+	<field name="valorPpa" class="java.math.BigDecimal"/>
+	<field name="anoLoa" class="java.lang.String"/>
+	<field name="valorLoa" class="java.math.BigDecimal"/>
+	<field name="detalhamentos" class="java.util.Collection"/>
+	<background splitType="Stretch"/>
+	<detail>
+		<band height="200" splitType="Stretch">
+			<element kind="textField" uuid="ce32366c-f152-4e52-bf20-8191b2126ac5" x="3" y="3" width="522" height="18" forecolor="#0A588F" fontName="SansSerif" fontSize="9.0" textAdjust="StretchHeight" bold="true" vTextAlign="Middle">
+				<expression><![CDATA[
+					($F{codigoAcao} == null ? "" : $F{codigoAcao})
+					+ " - "
+					+ ($F{nomeAcao} == null ? "" : $F{nomeAcao}.toUpperCase())
+				]]></expression>
+			</element>
+			<element kind="staticText" uuid="6ae1e601-a140-44f2-a95d-c5ff63081d75" positionType="Float" x="3" y="28" width="250" height="12" forecolor="#555555" fontName="SansSerif" fontSize="7.0" bold="true">
+				<text><![CDATA[UNIDADE ORÇAMENTÁRIA]]></text>
+			</element>
+			<element kind="staticText" uuid="40436616-fc67-48df-99a8-f71c3742306e" positionType="Float" x="271" y="28" width="250" height="12" forecolor="#555555" fontName="SansSerif" fontSize="7.0" bold="true">
+				<text><![CDATA[ÓRGÃO]]></text>
+			</element>
+			<element kind="textField" uuid="6f960696-592b-47a0-ae4e-417897f64dc7" positionType="Float" x="3" y="40" width="250" height="14" fontName="SansSerif" fontSize="8.0" textAdjust="StretchHeight" bold="true">
+				<expression><![CDATA[
+					$F{unidadeOrcamentaria} == null
+						? "-"
+						: $F{unidadeOrcamentaria}
+				]]></expression>
+			</element>
+			<element kind="textField" uuid="12db772a-b9da-421c-a55e-17b53f491cd6" positionType="Float" x="271" y="40" width="250" height="14" fontName="SansSerif" fontSize="8.0" textAdjust="StretchHeight" bold="true">
+				<expression><![CDATA[
+					$F{orgao} == null
+						? "-"
+						: $F{orgao}
+				]]></expression>
+			</element>
+			<element kind="staticText" uuid="68815c3f-e548-4081-81fc-a3124b29aa96" positionType="Float" x="3" y="57" width="250" height="12" forecolor="#555555" fontName="SansSerif" fontSize="7.0" bold="true">
+				<text><![CDATA[FUNÇÃO]]></text>
+			</element>
+			<element kind="staticText" uuid="4d163821-ee77-4db3-852a-e0dafdf3d379" positionType="Float" x="271" y="57" width="250" height="12" forecolor="#555555" fontName="SansSerif" fontSize="7.0" bold="true">
+				<text><![CDATA[PROGRAMA]]></text>
+			</element>
+			<element kind="textField" uuid="171d5071-79fb-4ec5-9150-aaf012e565fa" positionType="Float" x="3" y="69" width="250" height="14" fontName="SansSerif" fontSize="8.0" textAdjust="StretchHeight" bold="true">
+				<expression><![CDATA[
+					$F{funcao} == null
+						? "-"
+						: $F{funcao}
+				]]></expression>
+			</element>
+			<element kind="textField" uuid="73e442c8-aa68-4c04-ab7e-a3c084372cc2" positionType="Float" x="271" y="69" width="250" height="14" fontName="SansSerif" fontSize="8.0" textAdjust="StretchHeight" bold="true">
+				<expression><![CDATA[
+					$F{programa} == null
+						? "-"
+						: $F{programa}
+				]]></expression>
+			</element>
+			<element kind="textField" uuid="14c0fb67-eb80-47d3-885a-c00f687cb9df" positionType="Float" x="3" y="86" width="250" height="12" forecolor="#555555" fontName="SansSerif" fontSize="7.0" bold="true">
+				<expression><![CDATA[
+					"VALOR PPA "
+					+ ($P{periodoPlanejamento} == null
+						? ""
+						: $P{periodoPlanejamento})
+				]]></expression>
+			</element>
+			<element kind="textField" uuid="0c29149f-a6da-4cc0-a38f-d9a06945b9dd" positionType="Float" x="271" y="86" width="250" height="12" forecolor="#555555" fontName="SansSerif" fontSize="7.0" bold="true">
+				<expression><![CDATA[
+				    "VALOR LOA "
+				    + ($F{anoLoa} == null ? "" : $F{anoLoa})
+				]]></expression>
+			</element>
+			<element kind="textField" uuid="08c63389-e3cf-410e-a695-6f44a9b93cd2" positionType="Float" x="3" y="98" width="250" height="14" fontName="SansSerif" fontSize="8.0" bold="true">
+				<expression><![CDATA[
+					$F{valorPpa} == null
+						? "-"
+						: String.format(
+							new java.util.Locale("pt", "BR"),
+							"R$ %,.2f",
+							$F{valorPpa}
+						)
+				]]></expression>
+			</element>
+			<element kind="textField" uuid="53db41fd-f25a-4cef-b25b-e6e99d997621" positionType="Float" x="271" y="98" width="250" height="14" forecolor="#008A4C" fontName="SansSerif" fontSize="8.0" bold="true">
+				<expression><![CDATA[
+					$F{valorLoa} == null
+						? "-"
+						: String.format(
+							new java.util.Locale("pt", "BR"),
+							"R$ %,.2f",
+							$F{valorLoa}
+						)
+				]]></expression>
+			</element>
+			<element kind="frame" uuid="39503eca-8db6-4462-ab42-2fa42865858f" positionType="Float" x="3" y="117" width="522" height="34">
+				<printWhenExpression><![CDATA[
+					$F{detalhamentos} != null
+					&& !$F{detalhamentos}.isEmpty()
+				]]></printWhenExpression>
+				<element kind="staticText" uuid="c7f3a051-4f81-487c-b6c6-e7dc2541f15b" x="8" y="3" width="506" height="13" forecolor="#555555" fontName="SansSerif" fontSize="7.0" bold="true">
+					<text><![CDATA[DETALHAMENTO ORÇAMENTÁRIO LOA]]></text>
+				</element>
+				<element kind="staticText" uuid="d9c105ae-f7a6-4619-9a93-5f53f4a5981a" x="10" y="19" width="55" height="12" forecolor="#0A588F" fontName="SansSerif" fontSize="7.0" bold="true" hTextAlign="Center">
+					<text><![CDATA[GND]]></text>
+				</element>
+				<element kind="staticText" uuid="f92d77cd-faab-47d5-b5c4-b0f8f13cf6a3" x="65" y="19" width="85" height="12" forecolor="#0A588F" fontName="SansSerif" fontSize="7.0" bold="true" hTextAlign="Center">
+					<text><![CDATA[Modalidade]]></text>
+				</element>
+				<element kind="staticText" uuid="aabc1d35-068c-4b68-b8ef-eb61d34bd231" x="150" y="19" width="70" height="12" forecolor="#0A588F" fontName="SansSerif" fontSize="7.0" bold="true" hTextAlign="Center">
+					<text><![CDATA[ID-USO]]></text>
+				</element>
+				<element kind="staticText" uuid="5d2e2ded-2f3c-47b1-bcf4-8449648c783f" x="220" y="19" width="90" height="12" forecolor="#0A588F" fontName="SansSerif" fontSize="7.0" bold="true" hTextAlign="Center">
+					<text><![CDATA[Fonte]]></text>
+				</element>
+				<element kind="staticText" uuid="936f717b-386d-4bb7-a0e2-a36d22da5157" x="310" y="19" width="204" height="12" forecolor="#0A588F" fontName="SansSerif" fontSize="7.0" bold="true" hTextAlign="Right">
+					<text><![CDATA[Valor]]></text>
+				</element>
+				<box>
+					<topPen lineWidth="0.5" lineColor="#D9E2E8"/>
+					<leftPen lineWidth="0.5" lineColor="#D9E2E8"/>
+					<bottomPen lineWidth="0.5" lineColor="#D9E2E8"/>
+					<rightPen lineWidth="0.5" lineColor="#D9E2E8"/>
+				</box>
+			</element>
+			<element kind="component" uuid="22e0f202-0445-41ea-b881-a53458462c3a" positionType="Float" x="3" y="151" width="522" height="18">
+				<printWhenExpression><![CDATA[
+					$F{detalhamentos} != null
+					&& !$F{detalhamentos}.isEmpty()
+				]]></printWhenExpression>
+				<component kind="list" printOrder="Vertical">
+					<datasetRun uuid="ba5e7071-f11e-44c7-a423-0ae29569f5ef" subDataset="detalhamentoLoaDataset">
+						<dataSourceExpression><![CDATA[
+							new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource(
+								$F{detalhamentos} == null
+									? java.util.Collections.emptyList()
+									: $F{detalhamentos}
+							)
+						]]></dataSourceExpression>
+					</datasetRun>
+					<contents height="18" width="522">
+						<element kind="frame" uuid="4b4fc16e-2a9b-4f42-b381-54c20011fa7b" x="0" y="0" width="522" height="18">
+							<element kind="textField" uuid="2a390baa-d963-407f-b2a5-17f22811b6c6" x="10" y="2" width="55" height="13" fontName="SansSerif" fontSize="7.0" hTextAlign="Center" vTextAlign="Middle">
+								<expression><![CDATA[
+									$F{gnd} == null ? "-" : $F{gnd}
+								]]></expression>
+							</element>
+							<element kind="textField" uuid="a6675bf1-c6f0-4196-ba50-0882bb558655" x="65" y="2" width="85" height="13" fontName="SansSerif" fontSize="7.0" hTextAlign="Center" vTextAlign="Middle">
+								<expression><![CDATA[
+									$F{modalidade} == null
+										? "-"
+										: $F{modalidade}
+								]]></expression>
+							</element>
+							<element kind="textField" uuid="ba853a01-dee0-4c11-b65a-d36bb9246b1e" x="150" y="2" width="70" height="13" fontName="SansSerif" fontSize="7.0" hTextAlign="Center" vTextAlign="Middle">
+								<expression><![CDATA[
+									$F{idUso} == null
+										? "-"
+										: $F{idUso}
+								]]></expression>
+							</element>
+							<element kind="textField" uuid="829938d5-a6f8-4900-a670-1a6bcb9cf0d6" x="220" y="2" width="90" height="13" fontName="SansSerif" fontSize="7.0" hTextAlign="Center" vTextAlign="Middle">
+								<expression><![CDATA[
+									$F{fonte} == null
+										? "-"
+										: $F{fonte}
+								]]></expression>
+							</element>
+							<element kind="textField" uuid="4c74e3c4-7670-4337-8313-1adb93d3a8c8" x="310" y="2" width="204" height="13" fontName="SansSerif" fontSize="7.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+								<expression><![CDATA[
+									$F{valor} == null
+										? "-"
+										: String.format(
+											new java.util.Locale("pt", "BR"),
+											"R$ %,.2f",
+											$F{valor}
+										)
+								]]></expression>
+							</element>
+							<box>
+								<leftPen lineWidth="0.5" lineColor="#D9E2E8"/>
+								<bottomPen lineWidth="0.25" lineColor="#E5E7EB"/>
+								<rightPen lineWidth="0.5" lineColor="#D9E2E8"/>
+							</box>
+						</element>
+					</contents>
+				</component>
+			</element>
+			<element kind="staticText" uuid="31e1245c-3896-4a77-8210-ddaab30dc44a" positionType="Float" x="280" y="171" width="115" height="15" forecolor="#0A588F" fontName="SansSerif" fontSize="8.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+				<text><![CDATA[TOTAL DA AÇÃO]]></text>
+			</element>
+			<element kind="textField" uuid="15367334-049d-4378-8067-aa7792330348" positionType="Float" x="400" y="171" width="125" height="15" forecolor="#008A4C" fontName="SansSerif" fontSize="9.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+				<expression><![CDATA[
+					$F{valorLoa} == null
+						? "-"
+						: String.format(
+							new java.util.Locale("pt", "BR"),
+							"R$ %,.2f",
+							$F{valorLoa}
+						)
+				]]></expression>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</detail>
+	<noData height="26" splitType="Stretch">
+		<printWhenExpression><![CDATA[
+            Boolean.TRUE.equals($P{naoPrevistoPpa})
+        ]]></printWhenExpression>
+		<element kind="textField" uuid="0b156213-835d-4859-af5d-a85492224ee4" x="3" y="3" width="522" height="18" forecolor="#0A588F" fontName="SansSerif" fontSize="9.0" bold="true" vTextAlign="Middle">
+			<expression><![CDATA[
+                "Não previsto no PPA"
+                + (
+                    $P{periodoPlanejamento} == null
+                    || $P{periodoPlanejamento}.trim().isEmpty()
+                        ? ""
+                        : " " + $P{periodoPlanejamento}
+                )
+            ]]></expression>
+		</element>
+	</noData>
+</jasperReport>

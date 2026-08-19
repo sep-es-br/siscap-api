@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
@@ -13,6 +13,9 @@
 	</parameter>
 	<parameter name="odsProjetoDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
 	<parameter name="indicadoresDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<parameter name="planejamentoDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<parameter name="periodoPlanejamento" class="java.lang.String"/>
+	<parameter name="naoPrevistoPpa" class="java.lang.Boolean"/>
 	<query language="sql"><![CDATA[select
 	proj.id as id_projeto,
 	proj.criado_em as data_criacao_projeto,
@@ -303,6 +306,27 @@ group by
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
+		</band>
+		<band height="156">
+			<element kind="staticText" uuid="4ea84ce3-0676-4610-a9da-0b2f0a64ce72" x="1" y="1" width="270" height="20" forecolor="#000000" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[Planejamento]]></text>
+			</element>
+			<element kind="line" uuid="3f775d3f-de5b-41cd-b6bc-c4e86e855ee7" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
+			<element kind="subreport" uuid="9fceaf18-a9d3-4b8c-b225-cd36c1bf0d3d" x="1" y="22" width="533" height="128">
+				<dataSourceExpression><![CDATA[$P{planejamentoDataSource}]]></dataSourceExpression>
+				<expression><![CDATA[$P{pathRelatorios} + "/planejamento_ppa_loa_dic.jasper"]]></expression>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<parameter name="naoPrevistoPpa">
+					<expression><![CDATA[$P{naoPrevistoPpa}]]></expression>
+				</parameter>
+				<parameter name="periodoPlanejamento">
+					<expression><![CDATA[$P{periodoPlanejamento}]]></expression>
+				</parameter>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
 		<band height="60" splitType="Stretch">
 			<element kind="staticText" uuid="72032e68-a709-44df-93c5-2815c2b50ebe" x="1" y="0" width="218" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
