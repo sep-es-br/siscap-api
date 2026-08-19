@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
@@ -308,6 +308,14 @@ group by
 			</element>
 		</band>
 		<band height="156">
+			<printWhenExpression><![CDATA[
+			    Boolean.TRUE.equals($P{naoPrevistoPpa})
+			    ||
+			    (
+			        $P{planejamentoDataSource} != null
+			        && $P{planejamentoDataSource}.getRecordCount() > 0
+			    )
+			]]></printWhenExpression>
 			<element kind="staticText" uuid="4ea84ce3-0676-4610-a9da-0b2f0a64ce72" x="1" y="1" width="270" height="20" forecolor="#000000" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Planejamento]]></text>
 			</element>
