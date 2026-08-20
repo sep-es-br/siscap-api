@@ -217,10 +217,10 @@
 			</element>
 		</band>
 		<band height="17">
-			<element kind="staticText" uuid="31e1245c-3896-4a77-8210-ddaab30dc44a" positionType="Float" x="280" y="0" width="115" height="15" forecolor="#0A588F" fontName="SansSerif" fontSize="8.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<element kind="staticText" uuid="31e1245c-3896-4a77-8210-ddaab30dc44a" positionType="Float" x="272" y="0" width="115" height="15" forecolor="#0A588F" fontName="SansSerif" fontSize="8.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
 				<text><![CDATA[TOTAL DA AÇÃO]]></text>
 			</element>
-			<element kind="textField" uuid="15367334-049d-4378-8067-aa7792330348" positionType="Float" x="400" y="0" width="125" height="15" forecolor="#008A4C" fontName="SansSerif" fontSize="9.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<element kind="textField" uuid="15367334-049d-4378-8067-aa7792330348" positionType="Float" x="389" y="0" width="125" height="15" forecolor="#008A4C" fontName="SansSerif" fontSize="9.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
 				<expression><![CDATA[
 					$F{valorLoa} == null
 						? "-"
