@@ -31,7 +31,7 @@
 	<field name="detalhamentos" class="java.util.Collection"/>
 	<background splitType="Stretch"/>
 	<detail>
-		<band height="200" splitType="Stretch">
+		<band height="113" splitType="Stretch">
 			<element kind="textField" uuid="ce32366c-f152-4e52-bf20-8191b2126ac5" x="3" y="3" width="522" height="18" forecolor="#0A588F" fontName="SansSerif" fontSize="9.0" textAdjust="StretchHeight" bold="true" vTextAlign="Middle">
 				<expression><![CDATA[
 					($F{codigoAcao} == null ? "" : $F{codigoAcao})
@@ -115,7 +115,14 @@
 						)
 				]]></expression>
 			</element>
-			<element kind="frame" uuid="39503eca-8db6-4462-ab42-2fa42865858f" positionType="Float" x="3" y="117" width="522" height="34">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+		<band height="61">
+			<printWhenExpression><![CDATA[
+					$F{detalhamentos} != null
+					&& !$F{detalhamentos}.isEmpty()
+				]]></printWhenExpression>
+			<element kind="frame" uuid="39503eca-8db6-4462-ab42-2fa42865858f" positionType="Float" x="0" y="7" width="522" height="34">
 				<printWhenExpression><![CDATA[
 					$F{detalhamentos} != null
 					&& !$F{detalhamentos}.isEmpty()
@@ -145,7 +152,7 @@
 					<rightPen lineWidth="0.5" lineColor="#D9E2E8"/>
 				</box>
 			</element>
-			<element kind="component" uuid="22e0f202-0445-41ea-b881-a53458462c3a" positionType="Float" x="3" y="151" width="522" height="18">
+			<element kind="component" uuid="22e0f202-0445-41ea-b881-a53458462c3a" positionType="Float" x="0" y="41" width="522" height="18">
 				<printWhenExpression><![CDATA[
 					$F{detalhamentos} != null
 					&& !$F{detalhamentos}.isEmpty()
@@ -208,10 +215,12 @@
 					</contents>
 				</component>
 			</element>
-			<element kind="staticText" uuid="31e1245c-3896-4a77-8210-ddaab30dc44a" positionType="Float" x="280" y="171" width="115" height="15" forecolor="#0A588F" fontName="SansSerif" fontSize="8.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+		</band>
+		<band height="17">
+			<element kind="staticText" uuid="31e1245c-3896-4a77-8210-ddaab30dc44a" positionType="Float" x="280" y="0" width="115" height="15" forecolor="#0A588F" fontName="SansSerif" fontSize="8.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
 				<text><![CDATA[TOTAL DA AÇÃO]]></text>
 			</element>
-			<element kind="textField" uuid="15367334-049d-4378-8067-aa7792330348" positionType="Float" x="400" y="171" width="125" height="15" forecolor="#008A4C" fontName="SansSerif" fontSize="9.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<element kind="textField" uuid="15367334-049d-4378-8067-aa7792330348" positionType="Float" x="400" y="0" width="125" height="15" forecolor="#008A4C" fontName="SansSerif" fontSize="9.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
 				<expression><![CDATA[
 					$F{valorLoa} == null
 						? "-"
@@ -222,7 +231,6 @@
 						)
 				]]></expression>
 			</element>
-			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
 	</detail>
 	<noData height="26" splitType="Stretch">

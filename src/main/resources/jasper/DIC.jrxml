@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
@@ -293,6 +293,12 @@ group by
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
 		<band height="50">
+			<printWhenExpression><![CDATA[
+			    (
+			        $P{odsProjetoDataSource} != null
+			        && $P{odsProjetoDataSource}.getRecordCount() > 0
+			    )
+			]]></printWhenExpression>
 			<element kind="staticText" uuid="d512b9e1-74df-419c-87a2-419fd4e94403" x="1" y="0" width="270" height="20" forecolor="#000000" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[ODS ]]></text>
 			</element>
@@ -307,7 +313,7 @@ group by
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			</element>
 		</band>
-		<band height="156">
+		<band height="54">
 			<printWhenExpression><![CDATA[
 			    Boolean.TRUE.equals($P{naoPrevistoPpa})
 			    ||
@@ -320,7 +326,7 @@ group by
 				<text><![CDATA[Planejamento]]></text>
 			</element>
 			<element kind="line" uuid="3f775d3f-de5b-41cd-b6bc-c4e86e855ee7" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
-			<element kind="subreport" uuid="9fceaf18-a9d3-4b8c-b225-cd36c1bf0d3d" x="1" y="22" width="533" height="128">
+			<element kind="subreport" uuid="9fceaf18-a9d3-4b8c-b225-cd36c1bf0d3d" x="1" y="22" width="533" height="26">
 				<dataSourceExpression><![CDATA[$P{planejamentoDataSource}]]></dataSourceExpression>
 				<expression><![CDATA[$P{pathRelatorios} + "/planejamento_ppa_loa_dic.jasper"]]></expression>
 				<property name="com.jaspersoft.studio.unit.y" value="px"/>
