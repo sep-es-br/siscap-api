@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -336,9 +335,6 @@ public class PpaLoaBiService {
 		List<DadosLoaBiDto> dadosLoa = apiUtils.consult(targetLoa, dataAccessIdLoa, pmoPath, paramsLoa,
 				rs -> {
 
-					// logger.info("Campos retornados pelo BI: {}", rs.keySet());
-					// logger.info("Registro BI: {}", rs);
-
 					return new DadosLoaBiDto(
 							rs.get("orgao").asText(null),
 							rs.get("sigla").asText(null),
@@ -350,6 +346,7 @@ public class PpaLoaBiService {
 							rs.get("NOM_PROGRAMA").asText(null),
 							rs.get("acao").asText(null),
 							rs.get("NOM_ACAO").asText(null),
+
 							// algumas acoes apesar de estarem no ppa nao possuem loa entao esses valores
 							// vem vazios
 							rs.get("grupo").asText(""),
@@ -358,7 +355,13 @@ public class PpaLoaBiService {
 							rs.get("modalidade").asText(""),
 							rs.get("iduso").asText(""),
 							rs.get("fonte").asText(""),
-							rs.get("loa_fin").decimalValue());
+							rs.get("loa_fin").decimalValue(),
+						
+							rs.get("nome_modalidade").asText(""),
+							rs.get("nome_iduso").asText(""),
+							rs.get("nome_fonte").asText("")
+						
+						);
 				}
 
 		);
@@ -381,7 +384,10 @@ public class PpaLoaBiService {
 					"",
 					"",
 					"",
-					BigDecimal.ZERO));
+					BigDecimal.ZERO,
+					"",
+					"",
+					""));
 		}
 
 		Map<ChaveAcaoLoa, List<DetalhamentoOrcamentarioLoaDto>> detalhamentosPorAcao = dadosLoa.stream()
@@ -396,7 +402,11 @@ public class PpaLoaBiService {
 										item.codigoModalidade(),
 										item.idUso(),
 										item.fonte(),
-										item.valorLoa()),
+										item.valorLoa(),
+										item.nomeGrupoDespesa(),
+										item.nomeModalidade(),
+										item.nomeIdUso(),
+										item.nomeFonte()),
 								Collectors.toList())));
 
 		if (detalhamentosPorAcao.isEmpty()) {

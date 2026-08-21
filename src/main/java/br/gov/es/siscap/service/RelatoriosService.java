@@ -243,7 +243,7 @@ public class RelatoriosService {
 			map.put("odsProjetoDataSource", new JRBeanCollectionDataSource(listaOdsProjeto));
 			map.put("indicadoresDataSource", new JRBeanCollectionDataSource(listaIndicadoresProjetoFinal));
 			map.put("planejamentoDataSource", new JRBeanCollectionDataSource(listaPlanejamentoAcoesProjeto));
-			map.put("naoPrevistoPpa", projetoDto.naoPrevistoNoPpa() );
+			map.put("naoPrevistoPpa", projetoDto.naoPrevistoNoPpa());
 			map.put("periodoPlanejamento", "");
 
 			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
