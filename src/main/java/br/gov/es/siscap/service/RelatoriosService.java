@@ -2,6 +2,8 @@ package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.IndicadorMetaRelatorioDto;
 import br.gov.es.siscap.dto.IndicadorPentahoBiDto;
+import br.gov.es.siscap.dto.PlanejamentoDetalhamentoRelatorioDto;
+import br.gov.es.siscap.dto.ProjetoAcoesPlanejamentoProjetoRelatorio;
 import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoMetaDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorCatalogoMetaDto;
@@ -163,9 +165,10 @@ public class RelatoriosService {
 								.sorted(Comparator.comparing(ProjetoIndicadorCatalogoMetaDto::anoMeta))
 								.map(meta -> meta.anoMeta() + " (" + meta.valorMeta() + ")")
 								.collect(Collectors.joining(" • "));
-						
-						String baseReferencia = String.format("%s (%s)", indicadorBI.maiorAnoIndicador(), indicadorBI.maiorMetaIndicador());
-						
+
+						String baseReferencia = String.format("%s (%s)", indicadorBI.maiorAnoIndicador(),
+								indicadorBI.maiorMetaIndicador());
+
 						return new ProjetoIndicadoresRelatorio(
 								indicadorBI.nomeIndicador(),
 								indicadorBI.unidadeMedida(),
@@ -208,11 +211,39 @@ public class RelatoriosService {
 			listaIndicadoresProjetoFinal.addAll(listaIndicadoresAvulsosProjeto);
 			listaIndicadoresProjetoFinal.addAll(listaIndicadoresBI);
 
+			List<ProjetoAcoesPlanejamentoProjetoRelatorio> listaPlanejamentoAcoesProjeto = projetoDto
+					.acoesPlanejamentoProjeto()
+					.stream()
+					.map(acao -> new ProjetoAcoesPlanejamentoProjetoRelatorio(
+							projetoDto.naoPrevistoNoPpa(),
+							"",
+							acao.codAcao(),
+							acao.acaoPpaLoa().nomeAcao(),
+							acao.acaoPpaLoa().nomeUnidadeOrcamentaria(),
+							acao.acaoPpaLoa().nomeOrgao(),
+							acao.acaoPpaLoa().nomeFuncao(),
+							acao.acaoPpaLoa().nomePrograma(),
+							acao.acaoPpaLoa().valorPpa(),
+							acao.acaoPpaLoa().anoAcao(),
+							acao.acaoPpaLoa().valorLoa(),
+							acao.acaoPpaLoa().detalhamentosLoa().stream()
+									.map(detalhamento -> new PlanejamentoDetalhamentoRelatorioDto(
+											detalhamento.codigoGnd(),
+											detalhamento.codigoModalidade(),
+											detalhamento.idUso(),
+											detalhamento.fonte(),
+											detalhamento.valor()))
+									.toList()))
+					.toList();
+
 			map.put("idProjeto", idProjeto);
 			map.put("pathRelatorios", raizRelatorios);
 			map.put("exibirMarcaDagua", marca);
 			map.put("odsProjetoDataSource", new JRBeanCollectionDataSource(listaOdsProjeto));
 			map.put("indicadoresDataSource", new JRBeanCollectionDataSource(listaIndicadoresProjetoFinal));
+			map.put("planejamentoDataSource", new JRBeanCollectionDataSource(listaPlanejamentoAcoesProjeto));
+			map.put("naoPrevistoPpa", projetoDto.naoPrevistoNoPpa());
+			map.put("periodoPlanejamento", "");
 
 			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
 
