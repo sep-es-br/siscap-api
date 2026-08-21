@@ -19,6 +19,8 @@ import br.gov.es.siscap.service.TokenService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -54,8 +56,13 @@ public class ProjetoController {
 			@PageableDefault(size = 15, sort = "criadoEm", direction = Sort.Direction.DESC) Pageable pageable,
 			@RequestParam(required = false) String siglaOuTitulo,
 			@RequestParam(required = false) Long idOrganizacao,
-			@RequestParam(required = false) String status) {
-		return service.listarTodos(pageable, siglaOuTitulo, idOrganizacao, status);
+			@RequestParam(required = false) String status, 
+			@RequestParam(required = false) String dataCriacaoDic,
+			@RequestParam(required = false) BigDecimal valorEstimado,
+			@RequestParam(required = false) String protocoloEdocs ) {
+
+		return service.listarTodos( pageable, siglaOuTitulo, idOrganizacao, status );
+
 	}
 
 	@GetMapping("/opcoes")
