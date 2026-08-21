@@ -277,7 +277,7 @@ public class PpaLoaBiService {
 
 		Map<String, Object> params = Map.of(
 				"paramp_ppa", ppa,
-				// "paramp_ano", anosFormatados,
+				 "paramp_ano", anosFormatados,
 				"paramp_cod_uo", uosFormatados,
 				"paramp_cod_programa", programasFormatados,
 				"paramp_cod_acao", acoesFormatadas,
