@@ -33,12 +33,12 @@ public class ProjetoAcaoService {
 
 	@Transactional
 	public Set<ProjetoAcao> cadastrar(Projeto projeto, List<ProjetoAcaoDto> ProjetoAcaoDtoList) {
-        
+
 		logger.info("Cadastrando acoes do Projeto com id: {}", projeto.getId());
 
 		Set<ProjetoAcao> ProjetoAcaoSet = new HashSet<>();
 
-		ProjetoAcaoDtoList.forEach( acaoDto -> {
+		ProjetoAcaoDtoList.forEach(acaoDto -> {
 			ProjetoAcao acaoProjeto = new ProjetoAcao(projeto, acaoDto);
 			ProjetoAcaoSet.add(acaoProjeto);
 		});
@@ -53,15 +53,16 @@ public class ProjetoAcaoService {
 
 	@Transactional
 	public Set<ProjetoAcao> atualizar(Projeto projeto, List<ProjetoAcaoDto> ProjetoAcaoDtoList, boolean isSalvar) {
-		
+
 		logger.info("Alterando dados de acões do Projeto com id: {}", projeto.getId());
 
 		Set<ProjetoAcao> ProjetoAcaoSet = this.buscarPorProjeto(projeto);
 
-		Set<ProjetoAcao> acoesProjetoAtualizarSet = this.atualizarAcoesProjeto( projeto, ProjetoAcaoSet, ProjetoAcaoDtoList );
-		
-		if(!isSalvar)
-			if ( this.validarValorEstimadoProjetoAcoes( projeto, acoesProjetoAtualizarSet, isSalvar ) )
+		Set<ProjetoAcao> acoesProjetoAtualizarSet = this.atualizarAcoesProjeto(projeto, ProjetoAcaoSet,
+				ProjetoAcaoDtoList);
+
+		if (!isSalvar)
+			if (this.validarValorEstimadoProjetoAcoes(projeto, acoesProjetoAtualizarSet, isSalvar))
 				throw new ValorEstimadoIncompativelAcoesProjetoException();
 
 		projetoAcapRepository.saveAllAndFlush(acoesProjetoAtualizarSet);
@@ -72,24 +73,23 @@ public class ProjetoAcaoService {
 
 	}
 
-	private boolean validarValorEstimadoProjetoAcoes( Projeto projeto, Set<ProjetoAcao> projetoAcaoSet, boolean isSalvar ) {
-						
-		BigDecimal totalValorEstimadoAcoes = projetoAcaoSet.stream()
-			.map(ProjetoAcao::getValorEstimado)
-			.filter(Objects::nonNull)
-			.collect(Collectors.reducing(
-				BigDecimal.ZERO,
-				BigDecimal::add
-			));
+	private boolean validarValorEstimadoProjetoAcoes(Projeto projeto, Set<ProjetoAcao> projetoAcaoSet,
+			boolean isSalvar) {
 
-			BigDecimal totalValorEstimadoProjeto = projeto.getLocalidadeQuantiaSet()
-			.stream()
-			.map(LocalidadeQuantia::getQuantia)
-			.filter(Objects::nonNull)
-			.collect(Collectors.reducing(
-				BigDecimal.ZERO,
-				BigDecimal::add
-			));
+		BigDecimal totalValorEstimadoAcoes = projetoAcaoSet.stream()
+				.map(ProjetoAcao::getValorEstimado)
+				.filter(Objects::nonNull)
+				.collect(Collectors.reducing(
+						BigDecimal.ZERO,
+						BigDecimal::add));
+
+		BigDecimal totalValorEstimadoProjeto = projeto.getLocalidadeQuantiaSet()
+				.stream()
+				.map(LocalidadeQuantia::getQuantia)
+				.filter(Objects::nonNull)
+				.collect(Collectors.reducing(
+						BigDecimal.ZERO,
+						BigDecimal::add));
 
 		return totalValorEstimadoAcoes.compareTo(totalValorEstimadoProjeto) != 0;
 
@@ -99,12 +99,17 @@ public class ProjetoAcaoService {
 	public void excluirPorProjeto(Projeto projeto) {
 
 		logger.info("Excluindo ações do Projeto com id: {}", projeto.getId());
-		
-		Set<ProjetoAcao> ProjetoAcaoSet = this.buscarPorProjeto(projeto);
-		
-		List<ProjetoAcao> ProjetoAcaoList = projetoAcapRepository.saveAllAndFlush(ProjetoAcaoSet);
-		
-		projetoAcapRepository.deleteAll(ProjetoAcaoList);
+
+		Set<ProjetoAcao> projetoAcaoSet = this.buscarPorProjeto(projeto);
+
+		if(projetoAcaoSet.isEmpty()){
+			logger.info("Nenhuma ação de projeto encontrada para exclusão.");
+			return;
+		}
+
+		List<ProjetoAcao> projetoAcaoList = projetoAcapRepository.saveAllAndFlush(projetoAcaoSet);
+
+		projetoAcapRepository.deleteAll(projetoAcaoList);
 
 		logger.info("Ações do projeto excluida com sucesso");
 
@@ -121,27 +126,26 @@ public class ProjetoAcaoService {
 
 	}
 
-
-	private Set<ProjetoAcao> atualizarAcoesProjeto( Projeto projeto, Set<ProjetoAcao> acoesProjetoExistentes, List<ProjetoAcaoDto> acoesProjetoDtoList ) {
+	private Set<ProjetoAcao> atualizarAcoesProjeto(Projeto projeto, Set<ProjetoAcao> acoesProjetoExistentes,
+			List<ProjetoAcaoDto> acoesProjetoDtoList) {
 
 		Set<ProjetoAcao> acoesAlterarSet = new HashSet<>();
 
 		Set<ProjetoAcao> acoesAdicionarSet = new HashSet<>();
 
-		acoesProjetoDtoList.forEach( acaoDto -> {
+		acoesProjetoDtoList.forEach(acaoDto -> {
 			acoesProjetoExistentes
-						.stream()
-						.filter( projetoAcao -> projetoAcao.compararIdAcaoComAcaoDto(acaoDto) )
-						.findFirst()
-						.ifPresentOrElse(
-									(projetoAcao) -> {
-										projetoAcao.atualizarAcao(acaoDto);
-										acoesAlterarSet.add(projetoAcao);
-									},
-									() -> {
-										acoesAdicionarSet.add(new ProjetoAcao(projeto, acaoDto));
-									}
-						);
+					.stream()
+					.filter(projetoAcao -> projetoAcao.compararIdAcaoComAcaoDto(acaoDto))
+					.findFirst()
+					.ifPresentOrElse(
+							(projetoAcao) -> {
+								projetoAcao.atualizarAcao(acaoDto);
+								acoesAlterarSet.add(projetoAcao);
+							},
+							() -> {
+								acoesAdicionarSet.add(new ProjetoAcao(projeto, acaoDto));
+							});
 		});
 
 		acoesAdicionarSet.addAll(acoesAlterarSet);

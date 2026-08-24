@@ -72,7 +72,7 @@ public class ProjetoPlanejamentoPpaLoaService {
 		if (!planejamentosParaRemover.isEmpty()) {
 			logger.info("Removendo relacao de planejamentos PPA LOA com projeto não enviados: {}",
 					planejamentosParaRemover.size());
-			
+
 			projetoPlanejamentoPpaLoaRepository.deleteAll(planejamentosParaRemover);
 
 			projetoPlanejamentoPpaLoaRepository.flush();
@@ -143,14 +143,15 @@ public class ProjetoPlanejamentoPpaLoaService {
 
 	}
 
-	// @Transactional
-	// public void excluirFisicamentePorProjeto(Projeto projeto) {
-	// logger.info("Excluindo fisicamente indicadores avulsos do Projeto com id:
-	// {}", projeto.getId());
-	// projetoIndicadorAvulsoMetaRepository.deleteFisicoPorProjeto(projeto.getId());
-	// projetoIndicadorAvulsoRepository.deleteFisicoPorProjeto(projeto.getId());
-	// logger.info("Indicadores avulsos do projeto excluídos fisicamente com
-	// sucesso");
-	// }
+	@Transactional
+	public void excluirFisicamentePorProjeto(Projeto projeto) {
+
+		logger.info("Excluindo fisicamente ações de planejamento do Projeto com id: {}", projeto.getId());
+
+		projetoPlanejamentoPpaLoaRepository.deleteFisicoPorProjeto(projeto.getId());
+
+		logger.info("Ações de planejamento do projeto excluidas fisicamente com sucesso");
+
+	}
 
 }

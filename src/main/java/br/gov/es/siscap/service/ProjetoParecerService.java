@@ -167,7 +167,7 @@ public class ProjetoParecerService {
 
 		projetoParecerRepository.deleteFisicoPorProjeto(projeto.getId());
 
-		logger.info("Ações do projeto excluidas fisicamente com sucesso");
+		logger.info("Pareceres do projeto excluidos fisicamente com sucesso");
 
 	}
 

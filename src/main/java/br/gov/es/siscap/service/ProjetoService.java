@@ -334,7 +334,8 @@ public class ProjetoService {
 								"Ação do planejamento não encontrada no BI. Chave: " + chave);
 					}
 
-					return new ProjetoPlanejamentoPpaLoaResponseDto( planejamento.getId(), acaoDoBi, String.valueOf(anos.get(0)) );
+					return new ProjetoPlanejamentoPpaLoaResponseDto(planejamento.getId(), acaoDoBi,
+							String.valueOf(anos.get(0)));
 
 				})
 				.toList();
@@ -497,7 +498,8 @@ public class ProjetoService {
 		logger.info("ID projeto antes de gravar planejamento: {}", projeto.getId());
 
 		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
-		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService.sincronizar(projeto, planejamentoPpaLoaParaGravar);
+		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
+				.sincronizar(projeto, planejamentoPpaLoaParaGravar);
 
 		try {
 
@@ -540,7 +542,7 @@ public class ProjetoService {
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				indicadoresAvulsosProjetoParaGravar,
 				indicadoresOdsParaGravar,
-				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet)); 
+				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet));
 
 	}
 
@@ -606,12 +608,17 @@ public class ProjetoService {
 
 		String nomeProponente = projeto.getPessoa().getNome();
 
-		// List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDto = form.acoesPlanejamentoProjeto();
-		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoExistentes = projetoPlanejamentoPpaLoaService.buscarPorProjeto(projetoResult);
-		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService.atualizar(projetoResult, projetoPlanejamentoExistentes, projetoPlanejamentoPpaLoaDto);
+		// List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDto =
+		// form.acoesPlanejamentoProjeto();
+		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoExistentes =
+		// projetoPlanejamentoPpaLoaService.buscarPorProjeto(projetoResult);
+		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet =
+		// projetoPlanejamentoPpaLoaService.atualizar(projetoResult,
+		// projetoPlanejamentoExistentes, projetoPlanejamentoPpaLoaDto);
 
 		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
-		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService.sincronizar(projeto, planejamentoPpaLoaParaGravar);
+		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
+				.sincronizar(projeto, planejamentoPpaLoaParaGravar);
 
 		ProjetoParecerDto projetoParecerDto;
 		ProjetoParecer projetoParecer = null;
@@ -738,6 +745,11 @@ public class ProjetoService {
 
 	private void exclusaoFisica(Projeto projeto) {
 
+		if (projeto == null) {
+			throw new ValidacaoSiscapException(
+					List.of("Projeto não encontrado para efetivar a exclusão física."));
+		}
+
 		projetoPessoaService.excluirFisicamentePorProjeto(projeto);
 
 		localidadeQuantiaService.excluirFisicamentePorProjeto(projeto);
@@ -754,9 +766,7 @@ public class ProjetoService {
 
 		projetoParecerService.excluirFisicamentePorProjeto(projeto);
 
-		if (projeto == null) {
-			throw new ValidacaoSiscapException(List.of("Projeto não encontrado para efetivar a exclusao física."));
-		}
+		projetoPlanejamentoPpaLoaService.excluirFisicamentePorProjeto(projeto);
 
 		repository.saveAndFlush(projeto);
 
