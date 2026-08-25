@@ -117,10 +117,10 @@ public class PpaLoaBiService {
 
 	}
 
-	public List<OpcoesPpaLoaDto> listarUosAnoPpa(Long ano) {
+	public List<OpcoesPpaLoaDto> listarUosAnoPpa(String ppa) {
 
 		Map<String, Object> params = Map.of(
-				"paramp_ano", ano);
+				"paramp_ppa", ppa);
 
 		String pmoPath = siscapSigefesPath;
 		String target = targetUosPpa;
@@ -133,12 +133,7 @@ public class PpaLoaBiService {
 
 	}
 
-	public List<OpcoesPpaLoaDto> listarFuncoes(List<Long> anos, List<Long> uos) {
-
-		String anosFormatados = anos.stream()
-				.distinct()
-				.map(String::valueOf)
-				.collect(Collectors.joining(","));
+	public List<OpcoesPpaLoaDto> listarFuncoes(String ppa, List<Long> uos) {
 
 		String uosFormatados = (uos == null || uos.isEmpty())
 				? "-1"
@@ -148,7 +143,7 @@ public class PpaLoaBiService {
 						.collect(Collectors.joining(","));
 
 		Map<String, Object> params = Map.of(
-				"paramp_ano", anosFormatados,
+				"paramp_ppa", ppa,
 				"paramp_cod_uo", uosFormatados);
 
 		String pmoPath = siscapSigefesPath;
@@ -162,12 +157,7 @@ public class PpaLoaBiService {
 
 	}
 
-	public List<OpcoesPpaLoaDto> listarProgramas(List<Long> anos, List<Long> uos, List<Long> funcoes) {
-
-		String anosFormatados = anos.stream()
-				.distinct()
-				.map(String::valueOf)
-				.collect(Collectors.joining(","));
+	public List<OpcoesPpaLoaDto> listarProgramas(String ppa, List<Long> uos, List<Long> funcoes) {
 
 		String uosFormatados = uos.stream()
 				.distinct()
@@ -180,7 +170,7 @@ public class PpaLoaBiService {
 				.collect(Collectors.joining(","));
 
 		Map<String, Object> params = Map.of(
-				"paramp_ano", anosFormatados,
+				"paramp_ppa", ppa,
 				"paramp_cod_uo", uosFormatados,
 				"paramp_cod_funcao", funcoesFormatadas);
 
@@ -195,13 +185,8 @@ public class PpaLoaBiService {
 
 	}
 
-	public List<OpcoesPpaLoaDto> listarAcoes(List<Long> funcoes, List<Long> programas, List<Long> anos,
+	public List<OpcoesPpaLoaDto> listarAcoes(List<Long> funcoes, List<Long> programas, String ppa,
 			List<Long> uos) {
-
-		String anosFormatados = anos.stream()
-				.distinct()
-				.map(String::valueOf)
-				.collect(Collectors.joining(","));
 
 		String uosFormatados = uos.stream()
 				.distinct()
@@ -223,7 +208,7 @@ public class PpaLoaBiService {
 						.collect(Collectors.joining(","));
 
 		Map<String, Object> params = Map.of(
-				"paramp_ano", anosFormatados,
+				"paramp_ppa", ppa,
 				"paramp_cod_uo", uosFormatados,
 				"paramp_cod_funcao", funcoesFormatadas,
 				"paramp_cod_programa", programasFormatados);
