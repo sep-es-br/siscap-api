@@ -1,16 +1,23 @@
 package br.gov.es.siscap.specification;
 
 import br.gov.es.siscap.enums.StatusProjetoEnum;
+import br.gov.es.siscap.models.LocalidadeQuantia;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.StatusProjeto;
 import br.gov.es.siscap.utils.FormatadorData;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.NoArgsConstructor;
+
 import org.springframework.data.jpa.domain.Specification;
+
+import org.springframework.data.domain.Sort;
 
 @NoArgsConstructor
 public class ProjetoSpecification {
@@ -67,5 +74,38 @@ public class ProjetoSpecification {
                 );
             };
         }
+
+    public static Specification<Projeto> ordenarPorValorEstimado(
+			Sort.Direction direction) {
+
+		return (root, query, criteriaBuilder) -> {
+
+			// A Specification também é executada na query de COUNT da paginação.
+			// Não queremos GROUP BY / ORDER BY nela.
+			boolean countQuery = Long.class.equals(query.getResultType())
+					|| long.class.equals(query.getResultType());
+
+			if (!countQuery) {
+
+				Join<Projeto, LocalidadeQuantia> localidadeQuantia = root.join("localidadeQuantiaSet", JoinType.LEFT);
+
+				Expression<BigDecimal> valorTotal = criteriaBuilder.coalesce(
+						criteriaBuilder.sum(
+								localidadeQuantia.<BigDecimal>get("quantia")),
+						BigDecimal.ZERO);
+
+				query.groupBy(root);
+
+				query.orderBy(
+						direction.isAscending()
+								? criteriaBuilder.asc(valorTotal)
+								: criteriaBuilder.desc(valorTotal));
+			}
+
+			return criteriaBuilder.conjunction();
+
+		};
+
+	}
 
 }

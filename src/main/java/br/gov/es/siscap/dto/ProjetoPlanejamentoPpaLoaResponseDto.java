@@ -39,14 +39,14 @@ public record ProjetoPlanejamentoPpaLoaResponseDto(
         );
     }
 
-    public ProjetoPlanejamentoPpaLoaResponseDto(Long idAcaoPpaLoaProjeto, AcaoPpaLoaDto acaoPpaLoaDtos) {
+    public ProjetoPlanejamentoPpaLoaResponseDto( Long idAcaoPpaLoaProjeto, AcaoPpaLoaDto acaoPpaLoaDtos, String ano ) {
         this(
             idAcaoPpaLoaProjeto,
             null,
             acaoPpaLoaDtos.codigoAcao(),
             acaoPpaLoaDtos.codigoFuncao(),
             acaoPpaLoaDtos.codigoPrograma(),
-            acaoPpaLoaDtos.anoAcao(),
+            ano,
             acaoPpaLoaDtos.codigoUnidadeOrcamentaria(),
             acaoPpaLoaDtos
         );

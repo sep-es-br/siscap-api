@@ -129,7 +129,7 @@ public class PpaLoaBiService {
 		return apiUtils.consult(target, dataAccessId, pmoPath, params,
 				rs -> new OpcoesPpaLoaDto(
 						rs.get("cod_uo").asLong(),
-						rs.get("mne_uo").asText()));
+						rs.get("cod_uo").asText() + " - " + rs.get("mne_uo").asText()));
 
 	}
 
@@ -140,10 +140,12 @@ public class PpaLoaBiService {
 				.map(String::valueOf)
 				.collect(Collectors.joining(","));
 
-		String uosFormatados = uos.stream()
-				.distinct()
-				.map(uo -> String.format("%05d", uo))
-				.collect(Collectors.joining(","));
+		String uosFormatados = (uos == null || uos.isEmpty())
+				? "-1"
+				: uos.stream()
+						.distinct()
+						.map(uo -> String.format("%05d", uo))
+						.collect(Collectors.joining(","));
 
 		Map<String, Object> params = Map.of(
 				"paramp_ano", anosFormatados,
@@ -156,7 +158,7 @@ public class PpaLoaBiService {
 		return apiUtils.consult(target, dataAccessId, pmoPath, params,
 				rs -> new OpcoesPpaLoaDto(
 						rs.get("cod_funcao").asLong(),
-						rs.get("nom_funcao").asText()));
+						rs.get("cod_funcao").asText() + " - " + rs.get("nom_funcao").asText()));
 
 	}
 
@@ -189,7 +191,7 @@ public class PpaLoaBiService {
 		return apiUtils.consult(target, dataAccessId, pmoPath, params,
 				rs -> new OpcoesPpaLoaDto(
 						rs.get("cod_programa").asLong(),
-						rs.get("nom_programa").asText()));
+						rs.get("cod_programa").asText() + " - " + rs.get("nom_programa").asText()));
 
 	}
 
@@ -206,15 +208,19 @@ public class PpaLoaBiService {
 				.map(uo -> String.format("%05d", uo))
 				.collect(Collectors.joining(","));
 
-		String funcoesFormatadas = funcoes.stream()
-				.distinct()
-				.map(funcao -> String.format("%02d", funcao))
-				.collect(Collectors.joining(","));
+		String funcoesFormatadas = (funcoes == null || funcoes.isEmpty())
+				? "-1"
+				: funcoes.stream()
+						.distinct()
+						.map(funcao -> String.format("%02d", funcao))
+						.collect(Collectors.joining(","));
 
-		String programasFormatados = programas.stream()
-				.distinct()
-				.map(programa -> String.format("%04d", programa))
-				.collect(Collectors.joining(","));
+		String programasFormatados = (programas == null || programas.isEmpty())
+				? "-1"
+				: programas.stream()
+						.distinct()
+						.map(programa -> String.format("%04d", programa))
+						.collect(Collectors.joining(","));
 
 		Map<String, Object> params = Map.of(
 				"paramp_ano", anosFormatados,
@@ -229,7 +235,7 @@ public class PpaLoaBiService {
 		return apiUtils.consult(target, dataAccessId, pmoPath, params,
 				rs -> new OpcoesPpaLoaDto(
 						rs.get("cod_acao").asLong(),
-						rs.get("nom_acao").asText()));
+						rs.get("cod_acao").asText() + " - " + rs.get("nom_acao").asText()));
 
 	}
 
@@ -247,24 +253,30 @@ public class PpaLoaBiService {
 				.map(uo -> String.format("%05d", uo))
 				.collect(Collectors.joining(","));
 
-		String funcoesFormatadas = funcoes.stream()
-				.distinct()
-				.map(funcao -> String.format("%02d", funcao))
-				.collect(Collectors.joining(","));
+		String funcoesFormatadas = (funcoes == null || funcoes.isEmpty())
+				? "-1"
+				: funcoes.stream()
+						.distinct()
+						.map(funcao -> String.format("%02d", funcao))
+						.collect(Collectors.joining(","));
 
-		String programasFormatados = programas.stream()
-				.distinct()
-				.map(programa -> String.format("%04d", programa))
-				.collect(Collectors.joining(","));
+		String programasFormatados = (programas == null || programas.isEmpty())
+				? "-1"
+				: programas.stream()
+						.distinct()
+						.map(programa -> String.format("%04d", programa))
+						.collect(Collectors.joining(","));
 
-		String acoesFormatadas = acoes.stream()
-				.distinct()
-				.map(acao -> String.format("%04d", acao))
-				.collect(Collectors.joining(","));
+		String acoesFormatadas = (acoes == null || acoes.isEmpty())
+				? "-1"
+				: acoes.stream()
+						.distinct()
+						.map(acao -> String.format("%04d", acao))
+						.collect(Collectors.joining(","));
 
 		Map<String, Object> params = Map.of(
 				"paramp_ppa", ppa,
-				"paramp_ano", anosFormatados,
+				 "paramp_ano", anosFormatados,
 				"paramp_cod_uo", uosFormatados,
 				"paramp_cod_programa", programasFormatados,
 				"paramp_cod_acao", acoesFormatadas,
@@ -300,7 +312,7 @@ public class PpaLoaBiService {
 
 						BigDecimal.ZERO,
 
-						rs.get("ano_acao").asText(null),
+						String.valueOf(anos.get(0)), // rs.get("ano_acao") == null ? "" : rs.get("ano_acao").asText(null),
 
 						List.of() // detalhamentoOrcamentarioLoa
 
@@ -320,11 +332,8 @@ public class PpaLoaBiService {
 		String targetLoa = targetDadosLoa;
 		String dataAccessIdLoa = dadosLoaDataAccessId;
 
-		List<DadosLoaBiDto> dadosLoa = apiUtils.consult( targetLoa, dataAccessIdLoa, pmoPath, paramsLoa,
+		List<DadosLoaBiDto> dadosLoa = apiUtils.consult(targetLoa, dataAccessIdLoa, pmoPath, paramsLoa,
 				rs -> {
-
-					logger.info("Campos retornados pelo BI: {}", rs.keySet());
-					logger.info("Registro BI: {}", rs);
 
 					return new DadosLoaBiDto(
 							rs.get("orgao").asText(null),
@@ -337,6 +346,7 @@ public class PpaLoaBiService {
 							rs.get("NOM_PROGRAMA").asText(null),
 							rs.get("acao").asText(null),
 							rs.get("NOM_ACAO").asText(null),
+
 							// algumas acoes apesar de estarem no ppa nao possuem loa entao esses valores
 							// vem vazios
 							rs.get("grupo").asText(""),
@@ -345,13 +355,39 @@ public class PpaLoaBiService {
 							rs.get("modalidade").asText(""),
 							rs.get("iduso").asText(""),
 							rs.get("fonte").asText(""),
-							rs.get("loa_fin").decimalValue());
+							rs.get("loa_fin").decimalValue(),
+						
+							rs.get("nome_modalidade").asText(""),
+							rs.get("nome_iduso").asText(""),
+							rs.get("nome_fonte").asText("")
+						
+						);
 				}
 
 		);
 
 		if (dadosLoa.isEmpty()) {
-			throw new ValidacaoSiscapException(Arrays.asList("Nenhum dado encontrado para os filtros informados."));
+			dadosLoa = Arrays.asList(new DadosLoaBiDto(
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					"",
+					"",
+					"",
+					"",
+					"",
+					"",
+					BigDecimal.ZERO,
+					"",
+					"",
+					""));
 		}
 
 		Map<ChaveAcaoLoa, List<DetalhamentoOrcamentarioLoaDto>> detalhamentosPorAcao = dadosLoa.stream()
@@ -366,7 +402,11 @@ public class PpaLoaBiService {
 										item.codigoModalidade(),
 										item.idUso(),
 										item.fonte(),
-										item.valorLoa()),
+										item.valorLoa(),
+										item.nomeGrupoDespesa(),
+										item.nomeModalidade(),
+										item.nomeIdUso(),
+										item.nomeFonte()),
 								Collectors.toList())));
 
 		if (detalhamentosPorAcao.isEmpty()) {

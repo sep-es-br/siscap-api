@@ -35,6 +35,8 @@ import jakarta.mail.MessagingException;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.JoinType;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
@@ -54,6 +56,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -61,6 +64,14 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -156,11 +167,38 @@ public class ProjetoService {
 			filtroPesquisa = filtroProjetosOrganizacao;
 		}
 
-		return repository.findAll(filtroPesquisa, pageable)
+		Sort.Order ordemValorEstimado = pageable.getSort().getOrderFor("valorEstimado");
+
+		Pageable pageableConsulta = pageable;
+
+		if (ordemValorEstimado != null) {
+
+			Specification<Projeto> ordenacaoValorEstimado = ProjetoSpecification.ordenarPorValorEstimado(
+					ordemValorEstimado.getDirection());
+
+			filtroPesquisa = Specification
+					.where(filtroPesquisa)
+					.and(ordenacaoValorEstimado);
+
+			pageableConsulta = PageRequest.of(
+					pageable.getPageNumber(),
+					pageable.getPageSize(),
+					Sort.unsorted());
+
+		}
+
+		return repository.findAll(filtroPesquisa, pageableConsulta)
 				.map(projeto -> {
+
 					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
-					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
-					return new ProjetoListaDto(projeto, valorDto.quantia(), lotacaoUsuario.getValue());
+
+					ValorDto valorDto = localidadeQuantiaService.montarValorDto(
+							localidadeQuantiaSet);
+
+					return new ProjetoListaDto(
+							projeto,
+							valorDto.quantia(),
+							lotacaoUsuario.getValue());
 				});
 
 	}
@@ -334,7 +372,8 @@ public class ProjetoService {
 								"Ação do planejamento não encontrada no BI. Chave: " + chave);
 					}
 
-					return new ProjetoPlanejamentoPpaLoaResponseDto( planejamento.getId(), acaoDoBi );
+					return new ProjetoPlanejamentoPpaLoaResponseDto(planejamento.getId(), acaoDoBi,
+							String.valueOf(anos.get(0)));
 
 				})
 				.toList();
@@ -497,7 +536,8 @@ public class ProjetoService {
 		logger.info("ID projeto antes de gravar planejamento: {}", projeto.getId());
 
 		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
-		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService.sincronizar(projeto, planejamentoPpaLoaParaGravar);
+		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
+				.sincronizar(projeto, planejamentoPpaLoaParaGravar);
 
 		try {
 
@@ -540,7 +580,7 @@ public class ProjetoService {
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				indicadoresAvulsosProjetoParaGravar,
 				indicadoresOdsParaGravar,
-				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet)); 
+				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet));
 
 	}
 
@@ -606,12 +646,17 @@ public class ProjetoService {
 
 		String nomeProponente = projeto.getPessoa().getNome();
 
-		// List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDto = form.acoesPlanejamentoProjeto();
-		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoExistentes = projetoPlanejamentoPpaLoaService.buscarPorProjeto(projetoResult);
-		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService.atualizar(projetoResult, projetoPlanejamentoExistentes, projetoPlanejamentoPpaLoaDto);
+		// List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDto =
+		// form.acoesPlanejamentoProjeto();
+		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoExistentes =
+		// projetoPlanejamentoPpaLoaService.buscarPorProjeto(projetoResult);
+		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet =
+		// projetoPlanejamentoPpaLoaService.atualizar(projetoResult,
+		// projetoPlanejamentoExistentes, projetoPlanejamentoPpaLoaDto);
 
 		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
-		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService.sincronizar(projeto, planejamentoPpaLoaParaGravar);
+		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
+				.sincronizar(projeto, planejamentoPpaLoaParaGravar);
 
 		ProjetoParecerDto projetoParecerDto;
 		ProjetoParecer projetoParecer = null;

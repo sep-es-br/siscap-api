@@ -54,7 +54,16 @@ public record DadosLoaBiDto(
     String fonte,
 
     @JsonProperty("loa_fin")
-    BigDecimal valorLoa
+    BigDecimal valorLoa,
+
+    @JsonProperty("nome_modalidade")
+    String nomeModalidade,
+
+    @JsonProperty("nome_iduso")
+    String nomeIdUso,
+
+    @JsonProperty("nome_fonte")
+    String nomeFonte
 
 ) {
 }
