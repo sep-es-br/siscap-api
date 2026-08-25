@@ -30,33 +30,33 @@ public class PpaLoaBiController {
 		return service.listarAnosPpaAtivo();
 	}
 
-	@GetMapping("/ppa/uos/{ano}")
-	public List<OpcoesPpaLoaDto> listarUosPorAno(@PathVariable @NotNull Long ano) {
-		return service.listarUosAnoPpa(ano);
+	@GetMapping("/ppa/uos/{ppa}")
+	public List<OpcoesPpaLoaDto> listarUosPorPpa(@PathVariable @NotNull String ppa) {
+		return service.listarUosAnoPpa(ppa);
 	}
 
 	@GetMapping("/ppa/funcoes")
 	public List<OpcoesPpaLoaDto> listarFuncoes(
-        @RequestParam List<Long> anos,
+        @RequestParam String ppa,
         @RequestParam List<Long> uos) {
-		return service.listarFuncoes( anos, uos );
+		return service.listarFuncoes( ppa, uos );
 	}
 
 	@GetMapping("/ppa/programas")
 	public List<OpcoesPpaLoaDto> listarProgramas(
-        @RequestParam List<Long> anos,
+        @RequestParam String ppa,
         @RequestParam List<Long> uos,
 		@RequestParam List<Long> funcoes ) {
-		return service.listarProgramas( anos, uos, funcoes );
+		return service.listarProgramas( ppa, uos, funcoes );
 	}
 
 	@GetMapping("/ppa/acoes")
 	public List<OpcoesPpaLoaDto> listarAcoes(
+		@RequestParam String ppa,
+		@RequestParam List<Long> uos,
 		@RequestParam List<Long> funcoes,
-		@RequestParam List<Long> programas,
-		@RequestParam List<Long> anos,
-		@RequestParam List<Long> uos) {
-		return service.listarAcoes( funcoes, programas, anos, uos );
+		@RequestParam List<Long> programas ) {
+		return service.listarAcoes( funcoes, programas, ppa, uos );
 	}
 
 	@GetMapping("/ppa/acoes/dados")
