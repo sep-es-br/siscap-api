@@ -228,11 +228,6 @@ public class PpaLoaBiService {
 			List<Long> uos,
 			List<Long> acoes) {
 
-		String anosFormatados = anos.stream()
-				.distinct()
-				.map(String::valueOf)
-				.collect(Collectors.joining(","));
-
 		String uosFormatados = uos.stream()
 				.distinct()
 				.map(uo -> String.format("%05d", uo))
@@ -261,7 +256,6 @@ public class PpaLoaBiService {
 
 		Map<String, Object> params = Map.of(
 				"paramp_ppa", ppa,
-				 "paramp_ano", anosFormatados,
 				"paramp_cod_uo", uosFormatados,
 				"paramp_cod_programa", programasFormatados,
 				"paramp_cod_acao", acoesFormatadas,
@@ -306,6 +300,11 @@ public class PpaLoaBiService {
 		if (dadosAcoes.isEmpty()) {
 			throw new ValidacaoSiscapException(Arrays.asList("Nenhum dado encontrado para os filtros informados."));
 		}
+
+		String anosFormatados = anos.stream()
+				.distinct()
+				.map(String::valueOf)
+				.collect(Collectors.joining(","));
 
 		Map<String, Object> paramsLoa = Map.of(
 				"paramp_ano", anosFormatados,
