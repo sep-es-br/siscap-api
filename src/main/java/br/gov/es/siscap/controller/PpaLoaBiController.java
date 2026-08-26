@@ -4,9 +4,7 @@ import br.gov.es.siscap.dto.AcaoPpaLoaDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesPeriodoPpaLoaDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesPpaLoaDto;
 import br.gov.es.siscap.service.PpaLoaBiService;
-import feign.Param;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.*;
