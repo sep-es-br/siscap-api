@@ -9,12 +9,13 @@ public record RateioDto(
 
 			Long idLocalidade,
 
-			@NotNull
-			@Positive
+			// @NotNull
+			// @Positive
 			BigDecimal percentual,
 
-			@NotNull
-			@Positive
+			// @NotNull
+			// @Positive
 			BigDecimal quantia
+
 ) {
 }

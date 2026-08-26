@@ -9,16 +9,16 @@ import java.math.BigDecimal;
 
 public record ValorDto(
 
-			@NotNull
-			@Positive
+			// @NotNull
+			// @Positive
 			BigDecimal quantia,
 
-			@NotNull
-			@Positive
+			// @NotNull
+			// @Positive
 			Long tipo,
 
-			@NotBlank
-			@Size(max = 3)
+			// @NotBlank
+			// @Size(max = 3)
 			String moeda
 ) {
 }

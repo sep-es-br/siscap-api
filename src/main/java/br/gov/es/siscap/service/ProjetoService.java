@@ -368,18 +368,32 @@ public class ProjetoService {
 					AcaoPpaLoaDto acaoDoBi = dadosBiPorChave.get(chave);
 
 					if (acaoDoBi == null) {
-						throw new IllegalStateException(
-								"Ação do planejamento não encontrada no BI. Chave: " + chave);
+
+						logger.warn(
+								"Ação do planejamento não encontrada no BI. Chave: {}. " +
+										"Retornando dados vazios para o planejamento {}.",
+								chave,
+								planejamento.getId());
+
+						return new ProjetoPlanejamentoPpaLoaResponseDto(
+								planejamento.getId(),
+								new AcaoPpaLoaDto(planejamento.getId(),
+												planejamento.getCodUo(),		
+												planejamento.getCodAcao(),	
+												planejamento.getCodPrograma()),
+								String.valueOf(anos.get(0)));
+
 					}
 
 					return new ProjetoPlanejamentoPpaLoaResponseDto(planejamento.getId(), acaoDoBi,
 							String.valueOf(anos.get(0)));
 
+
 				})
 				.toList();
 
 	}
-
+	
 	private String normalizarCodigo(String valor) {
 		return valor == null
 				? ""
