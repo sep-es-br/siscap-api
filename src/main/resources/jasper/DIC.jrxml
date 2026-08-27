@@ -39,12 +39,11 @@ from projeto proj
 	inner join organizacao org on proj.id_organizacao = org.id
 	inner join projeto_pessoa proj_pes on proj.id = proj_pes.id_projeto
 	inner join pessoa pes on proj_pes.id_pessoa = pes.id and proj_pes.id_tipo_status = 1
-	inner join localidade_quantia lq on proj.id = lq.id_projeto
+	left join localidade_quantia lq on proj.id = lq.id_projeto and lq.apagado = false
 	left join pessoa pes_redator on proj.id_pessoa_redator = pes_redator.id
 where
 	proj_pes.id_tipo_papel = 2 and
 	proj_pes.apagado  = false and
-	lq.apagado = false and
 	proj.id = $P{idProjeto}
 group by
 	proj.id,
