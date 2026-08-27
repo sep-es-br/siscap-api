@@ -8,6 +8,8 @@ import br.gov.es.siscap.dto.ProjetoParecerDto;
 import br.gov.es.siscap.dto.ProjetoPlanejamentoPpaLoaDto;
 import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.dto.ValorDto;
+import br.gov.es.siscap.validation.groups.ValidacaoEnvio;
+import br.gov.es.siscap.validation.groups.ValidacaoRascunho;
 import br.gov.es.siscap.dto.ProjetoOdsDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -15,78 +17,118 @@ import java.util.List;
 
 public record ProjetoForm(
 
-		@NotBlank 
-		@Size(max = 12) 
-		String sigla,
+        @NotBlank(
+                message = "Sigla é obrigatória",
+                groups = ValidacaoRascunho.class
+        )
+        @Size(max = 12)
+        String sigla,
 
-		@NotBlank 
-		@Size(max = 150) 
-		String titulo,
+        @NotBlank(
+                message = "Título é obrigatório",
+                groups = ValidacaoRascunho.class
+        )
+        @Size(max = 150)
+        String titulo,
 
-		@NotNull 
-		@Positive 
-		Long idResponsavelProponente,
+        @Positive
+        Long idResponsavelProponente,
 
-		@NotEmpty 
-		@Valid 
-		List<EquipeDto> equipeElaboracao,
+        @NotEmpty(
+                message = "Equipe de elaboração é obrigatória",
+                groups = ValidacaoRascunho.class
+        )
+        @Valid
+        List<EquipeDto> equipeElaboracao,
 
-		@Positive 
-		Long idOrganizacao,
+        @NotNull(
+                message = "Organização é obrigatória",
+                groups = ValidacaoRascunho.class
+        )
+        @Positive
+        Long idOrganizacao,
 
-		@Valid 
-		ValorDto valor,
+        @Valid
+        ValorDto valor,
 
-		@Valid 
-		List<RateioDto> rateio,
+        @Valid
+        List<RateioDto> rateio,
 
-		@Size(max = 2000) 
-		String objetivo,
+        @NotBlank(
+                message = "Objetivo é obrigatório",
+                groups = ValidacaoEnvio.class
+        )
+        @Size(max = 2000)
+        String objetivo,
 
-		@Size(max = 2000) 
-		String objetivoEspecifico,
+        @NotBlank(
+                message = "Objetivo específico é obrigatório",
+                groups = ValidacaoEnvio.class
+        )
+        @Size(max = 2000)
+        String objetivoEspecifico,
 
-		@Size(max = 2000) 
-		String situacaoProblema,
+        @NotBlank(
+                message = "Situação problema é obrigatória",
+                groups = ValidacaoEnvio.class
+        )
+        @Size(max = 2000)
+        String situacaoProblema,
 
-		@Size(max = 2000) 
-		String solucoesPropostas,
+        @NotBlank(
+                message = "Soluções propostas são obrigatórias",
+                groups = ValidacaoEnvio.class
+        )
+        @Size(max = 2000)
+        String solucoesPropostas,
 
-		@Size(max = 2000) 
-		String impactos,
+        @NotBlank(
+                message = "Impactos é obrigatório",
+                groups = ValidacaoEnvio.class
+        )
+        @Size(max = 2000)
+        String impactos,
 
-		@Size(max = 2000) 
-		String arranjosInstitucionais,
+        @NotBlank(
+                message = "Arranjos institucionais é obrigatório",
+                groups = ValidacaoEnvio.class
+        )
+        @Size(max = 2000)
+        String arranjosInstitucionais,
 
-		@Valid 
-		List<ProjetoIndicadorDto> indicadoresProjeto,
+        @Valid
+        List<ProjetoIndicadorDto> indicadoresProjeto,
 
-		@Valid 
-		List<ProjetoAcaoDto> acoesProjeto,
+        @Valid
+        List<ProjetoAcaoDto> acoesProjeto,
 
-		@Size(max = 2000) 
-		String pecasPlanejamento,
+        @NotBlank(
+                message = "Peças de planejamento é obrigatório",
+                groups = ValidacaoEnvio.class
+        )
+        @Size(max = 2000)
+        String pecasPlanejamento,
 
-		boolean enviarProjetoGestor,
+        boolean enviarProjetoGestor,
 
-		@Size(max = 15) 
-		String protocoloEdocs,
+        @Size(max = 15)
+        String protocoloEdocs,
 
-		boolean 
-		enviarProjetoPedirParecer,
+        boolean enviarProjetoPedirParecer,
 
-		@Valid 
-		ProjetoParecerDto parecerProjetoUsuario,
+        @Valid
+        ProjetoParecerDto parecerProjetoUsuario,
 
-		@Valid 
-		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto,
+        @Valid
+        List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto,
 
-		@Valid 
-		List<ProjetoOdsDto> odsProjeto,
+        @Valid
+        List<ProjetoOdsDto> odsProjeto,
 
-		@Valid 
-		List<ProjetoPlanejamentoPpaLoaDto> acoesPlanejamentoProjeto,
+        @Valid
+        List<ProjetoPlanejamentoPpaLoaDto> acoesPlanejamentoProjeto,
 
-		Boolean naoPrevistoNoPpa
+        Boolean naoPrevistoNoPpa
 
-) { }
+) {
+}

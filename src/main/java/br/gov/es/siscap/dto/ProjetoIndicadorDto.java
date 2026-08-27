@@ -5,6 +5,7 @@ import java.util.List;
 import br.gov.es.siscap.models.ProjetoIndicador;
 
 public record ProjetoIndicadorDto(
+    
     Integer idIndicador,
     String tipoIndicador,
     String descricaoIndicador,
@@ -12,6 +13,7 @@ public record ProjetoIndicadorDto(
     Long idStatus,
     Integer idIndicadorExterno,
     List<ProjetoIndicadorCatalogoMetaDto> metasIndicadorProjeto
+
 ) {
     
     public ProjetoIndicadorDto(ProjetoIndicador projetoIndicador) {
@@ -44,4 +46,5 @@ public record ProjetoIndicadorDto(
             metasIndicadorCatalogo != null ? metasIndicadorCatalogo : List.of()
         );
     }
+
 }

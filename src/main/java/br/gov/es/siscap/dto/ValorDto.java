@@ -7,18 +7,21 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
+import br.gov.es.siscap.validation.groups.ValidacaoEnvio;
+
 public record ValorDto(
 
-			// @NotNull
-			// @Positive
+			@NotNull( message = "Valor estimado é obrigatório",	groups = ValidacaoEnvio.class )
+			@Positive( message = "Valor estimado deve ser maior que zero", groups = ValidacaoEnvio.class )
 			BigDecimal quantia,
 
-			// @NotNull
-			// @Positive
+			@NotNull( message = "Tipo de valor estimado é obrigatório",	groups = ValidacaoEnvio.class )
+			@Positive( message = "Tipo de valor estimado deve ser maior que zero", groups = ValidacaoEnvio.class )
 			Long tipo,
 
-			// @NotBlank
-			// @Size(max = 3)
+			@NotBlank( message = "Moeda de valor estimado é obrigatório", groups = ValidacaoEnvio.class )
+			@Size(max = 3)
 			String moeda
+
 ) {
 }
