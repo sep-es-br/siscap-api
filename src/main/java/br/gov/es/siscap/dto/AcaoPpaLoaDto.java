@@ -3,6 +3,8 @@ package br.gov.es.siscap.dto;
 import java.math.BigDecimal;
 import java.util.List;
 
+import br.gov.es.siscap.models.Endereco;
+
 public record AcaoPpaLoaDto(
     
     Long id,
@@ -32,5 +34,28 @@ public record AcaoPpaLoaDto(
     List<DetalhamentoOrcamentarioLoaDto> detalhamentosLoa
     
 ) {
+
+    public AcaoPpaLoaDto(Long id, String codUo, String codAcao, String codPrograma) {
+        this( 
+            id,
+            null,
+            "",
+            "",
+            codUo,
+            "",
+            "",
+            codPrograma,
+            "",
+            codAcao,
+            "",
+            "",
+            "",
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            "",
+            List.of()
+         );
+    }
+    
 
 }

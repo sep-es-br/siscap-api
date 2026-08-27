@@ -5,7 +5,6 @@ import br.gov.es.siscap.dto.acessocidadaoapi.ACAgentePublicoPapelDto;
 import br.gov.es.siscap.dto.organogramawebapi.OrganogramaOrganizacaoDto;
 import br.gov.es.siscap.enums.TipoStatusEnum;
 import br.gov.es.siscap.exception.EquipeSemResponsavelProponenteException;
-import br.gov.es.siscap.infra.MensagemErroRest;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoPessoa;
@@ -107,9 +106,9 @@ public class ProjetoPessoaService {
 					responsavelProponente.getPessoa().getSub());
 
 			responsavelProponente.atualizarResponsavelProponente(TipoStatusEnum.INATIVO.getValue());
+
 			projetoPessoaRepository.save(responsavelProponente);
-			projetoPessoaRepository
-					.save(new ProjetoPessoa(projeto, idResponsavelProponente, entidadeResponsavelProponente));
+			projetoPessoaRepository.save(new ProjetoPessoa(projeto, idResponsavelProponente, entidadeResponsavelProponente));
 
 		}
 

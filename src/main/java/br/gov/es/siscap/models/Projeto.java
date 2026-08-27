@@ -13,16 +13,19 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLJoinTableRestriction;
 import org.hibernate.annotations.SQLRestriction;
@@ -43,16 +46,16 @@ public class Projeto extends ControleHistorico {
 	@Column(name = "id", nullable = false)
 	private long id;
 
-	@Column(name = "sigla", length = 12)
+	@Column(name = "sigla", nullable = false, length = 12)
 	private String sigla;
 
 	@Column(name = "titulo", nullable = false, length = 150)
 	private String titulo;
 
-	@Column(name = "objetivo", nullable = false, length = 2000)
+	@Column(name = "objetivo", length = 2000)
 	private String objetivo;
 
-	@Column(name = "objetivo_especifico", nullable = false, length = 2000)
+	@Column(name = "objetivo_especifico", length = 2000)
 	private String objetivoEspecifico;
 
 	@ManyToOne
@@ -67,46 +70,46 @@ public class Projeto extends ControleHistorico {
 	private boolean rascunho;
 
 	@ManyToOne
-	@JoinColumn(name = "id_organizacao", nullable = false)
+	@JoinColumn(name = "id_organizacao")
 	@SQLJoinTableRestriction("apagado = FALSE")
 	private Organizacao organizacao;
 
-	@Column(name = "situacao_problema", nullable = false, length = 2000)
+	@Column(name = "situacao_problema", length = 2000)
 	private String situacaoProblema;
 
-	@Column(name = "solucoes_propostas", nullable = false, length = 2000)
+	@Column(name = "solucoes_propostas", length = 2000)
 	private String solucoesPropostas;
 
-	@Column(name = "impactos", nullable = false, length = 2000)
+	@Column(name = "impactos", length = 2000)
 	private String impactos;
 
-	@Column(name = "arranjos_institucionais", nullable = false, length = 2000)
+	@Column(name = "arranjos_institucionais", length = 2000)
 	private String arranjosInstitucionais;
 
 	@OneToMany(mappedBy = "projeto")
-	private Set<ProjetoPessoa> projetoPessoaSet;
+	private Set<ProjetoPessoa> projetoPessoaSet = new HashSet<>();
 
 	@OneToMany(mappedBy = "projeto")
-	private Set<LocalidadeQuantia> localidadeQuantiaSet;
+	private Set<LocalidadeQuantia> localidadeQuantiaSet = new HashSet<>();
 
 	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
 	@SQLRestriction("""
-			    apagado_em IS NULL AND
-			    NOT EXISTS (
-			        SELECT 1
-			        FROM programa_status ps
-			        WHERE ps.id_programa = id_programa
-			          AND ps.status = 5
-			          AND ps.inicio_em = (
-			              SELECT MAX(ps2.inicio_em)
-			              FROM programa_status ps2
-			              WHERE ps2.id_programa = ps.id_programa
-			          )
-			    )
+			apagado_em IS NULL AND
+			NOT EXISTS (
+			    SELECT 1
+			    FROM programa_status ps
+			    WHERE ps.id_programa = id_programa
+			      AND ps.status = 5
+			      AND ps.inicio_em = (
+			          SELECT MAX(ps2.inicio_em)
+			          FROM programa_status ps2
+			          WHERE ps2.id_programa = ps.id_programa
+			      )
+			)
 			""")
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
-	private Set<ProjetoPrograma> programaHistorico;
+	private Set<ProjetoPrograma> programaHistorico = new HashSet<>();
 
 	@ManyToOne
 	@JoinColumn(name = "id_area")
@@ -121,15 +124,15 @@ public class Projeto extends ControleHistorico {
 	private String countAno;
 
 	@OneToMany(mappedBy = "projeto")
-	private Set<ProjetoIndicador> projetoIndicadorSet;
+	private Set<ProjetoIndicador> projetoIndicadorSet = new HashSet<>();
 
 	@OneToMany(mappedBy = "projeto")
-	private Set<ProjetoAcao> projetoAcoesSet;
+	private Set<ProjetoAcao> projetoAcoesSet = new HashSet<>();
 
-	@Column(name = "pecas_planejamento", nullable = false, length = 2000)
+	@Column(name = "pecas_planejamento", length = 2000)
 	private String pecasPlanejamento;
 
-	@Column(name = "protocolo_edocs", nullable = false, length = 15)
+	@Column(name = "protocolo_edocs", length = 15)
 	private String protocoloEdocs;
 
 	@ManyToOne
@@ -137,34 +140,34 @@ public class Projeto extends ControleHistorico {
 	@SQLJoinTableRestriction("apagado = FALSE")
 	private TipoMotivoArquivamento tipoMotivoArquivamento;
 
-	@Column(name = "justificativa_arquivamento", nullable = false, length = 255)
+	@Column(name = "justificativa_arquivamento", length = 255)
 	private String justificativaArquivamento;
 
-	@Column(name = "id_documento_edocs", nullable = false, length = 50)
+	@Column(name = "id_documento_edocs", length = 50)
 	private String idDocumentoCapturadoEdocs;
 
-	@Column(name = "id_processo_edocs", nullable = false, length = 50)
+	@Column(name = "id_processo_edocs", length = 50)
 	private String idProcessoEdocs;
 
 	@OneToMany(mappedBy = "projeto")
-	private Set<ProjetoCamposComplementacao> projetoComplementoSet;
+	private Set<ProjetoCamposComplementacao> projetoComplementoSet = new HashSet<>();
 
-	@Column(name = "justificativa_exclusao_logica", nullable = true, length = 500)
+	@Column(name = "justificativa_exclusao_logica", length = 500)
 	private String justificativaExclusaoLogica;
 
 	@OneToMany(mappedBy = "projeto")
-	private Set<ProjetoParecer> projetoParecerSet;
+	private Set<ProjetoParecer> projetoParecerSet = new HashSet<>();
 
 	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Setter(AccessLevel.NONE)
-	private Set<StatusProjeto> historicoStatus;
+	private Set<StatusProjeto> historicoStatus = new HashSet<>();
 
-	@ManyToOne()
+	@ManyToOne
 	@JoinColumn(name = "id_pessoa_redator")
 	private Pessoa pessoa;
 
 	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
-	private Set<ProjetoIndicadorAvulso> projetoIndicadorAvulsoSet;
+	private Set<ProjetoIndicadorAvulso> projetoIndicadorAvulsoSet = new HashSet<>();
 
 	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<ProjetoOds> ods = new HashSet<>();
@@ -172,51 +175,110 @@ public class Projeto extends ControleHistorico {
 	@OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<ProjetoPlanejamentoPpaLoa> planejamentoPpaLoa = new HashSet<>();
 
-	@Column(name = "nao_previsto_ppa", nullable = true)
+	@Column(name = "nao_previsto_ppa")
 	private Boolean naoPrevistoNoPpa;
-
-	public void addOds(ProjetoOds ods) {
-		ods.setProjeto(this);
-		this.ods.add(ods);
-	}
 
 	public Projeto(Long id) {
 		this.setId(id);
 	}
 
 	public Projeto(ProjetoForm form) {
-		this.setDadosProjeto(form);
+		inicializarProjeto();
+		atualizarDadosEditaveis(form);
 	}
 
 	public void atualizarProjeto(ProjetoForm form) {
-		this.setDadosProjeto(form);
+
+		atualizarDadosEditaveis(form);
+
 		super.atualizarHistorico();
 	}
 
+	private void inicializarProjeto() {
+
+		this.setTipoStatus(
+				new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
+
+		this.setFase("DIC");
+
+		this.setRascunho(true);
+	}
+
+	private void atualizarDadosEditaveis(ProjetoForm form) {
+
+		this.setSigla(form.sigla());
+		this.setTitulo(form.titulo());
+
+		this.setObjetivo(form.objetivo());
+		this.setObjetivoEspecifico(form.objetivoEspecifico());
+
+		this.setOrganizacao(
+				form.idOrganizacao() != null
+						? new Organizacao(form.idOrganizacao())
+						: null);
+
+		this.setSituacaoProblema(form.situacaoProblema());
+
+		this.setSolucoesPropostas(form.solucoesPropostas());
+
+		this.setImpactos(form.impactos());
+
+		this.setArranjosInstitucionais(
+				form.arranjosInstitucionais());
+
+		this.setPecasPlanejamento(
+				form.pecasPlanejamento());
+
+		this.setProtocoloEdocs(
+				form.protocoloEdocs());
+
+		this.setNaoPrevistoNoPpa(
+				form.naoPrevistoNoPpa());
+	}
+
 	public void apagarProjeto() {
-		this.setSigla(null);
-		this.setPrograma(null);
+
+		removerPrograma();
+
 		super.apagarHistorico();
 	}
 
 	public Long getIdEixo() {
-		return this.area.getEixo() != null ? this.area.getEixo().getId() : null;
+
+		return Optional.ofNullable(this.area)
+				.map(Area::getEixo)
+				.map(eixo -> eixo.getId())
+				.orElse(null);
 	}
 
 	public Long getIdPlano() {
-		if (getIdEixo() == null)
-			return null;
-		return this.area.getEixo().getPlano() != null ? this.area.getEixo().getPlano().getId() : null;
+
+		return Optional.ofNullable(this.area)
+				.map(Area::getEixo)
+				.map(eixo -> eixo.getPlano())
+				.map(plano -> plano.getId())
+				.orElse(null);
 	}
 
 	public boolean isAtivo() {
-		return Objects.equals(this.getTipoStatus().getId(), TipoStatusEnum.ATIVO.getValue());
+
+		return this.getTipoStatus() != null
+				&& Objects.equals(
+						this.getTipoStatus().getId(),
+						TipoStatusEnum.ATIVO.getValue());
 	}
 
 	public boolean isStatusElegivel() {
-		if (this.getStatusAtual() == null)
+
+		StatusProjeto statusAtual = this.getStatusAtual();
+
+		if (statusAtual == null) {
 			return false;
-		return Objects.equals(this.getStatusAtual().getStatus(), StatusProjetoEnum.ELEGIVEL.getValue());
+		}
+
+		return Objects.equals(
+				statusAtual.getStatus(),
+				StatusProjetoEnum.ELEGIVEL.getValue());
 	}
 
 	public boolean isElegivelParaVinculo() {
@@ -231,91 +293,123 @@ public class Projeto extends ControleHistorico {
 
 		return this.getPrograma().isRecusado()
 				|| this.getPrograma().isEmEdicao();
-
 	}
 
-	private void setDadosProjeto(ProjetoForm form) {
-		this.setSigla(form.sigla());
-		this.setTitulo(form.titulo());
-		this.setObjetivo(form.objetivo());
-		this.setObjetivoEspecifico(form.objetivoEspecifico());
-		this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
-		this.setOrganizacao(new Organizacao(form.idOrganizacao()));
-		this.setSituacaoProblema(form.situacaoProblema());
-		this.setSolucoesPropostas(form.solucoesPropostas());
-		this.setImpactos(form.impactos());
-		this.setArranjosInstitucionais(form.arranjosInstitucionais());
-		this.setFase("DIC");
-		this.setPecasPlanejamento(form.pecasPlanejamento());
-		this.setProtocoloEdocs(form.protocoloEdocs());
-		this.setNaoPrevistoNoPpa(form.naoPrevistoNoPpa());
-	}
+	public void alterarStatus(
+			String novoStatus,
+			Pessoa pessoa) {
 
-	public void alterarStatus(String novoStatus, Pessoa pessoa) {
+		StatusProjeto statusAtual = this.getStatusAtual();
 
-		if (this.getStatusAtual() != null && this.getStatusAtual().getStatus().equals(novoStatus))
+		if (statusAtual != null
+				&& Objects.equals(
+						statusAtual.getStatus(),
+						novoStatus)) {
+
 			return;
+		}
 
 		this.finalizarStatusAtual(pessoa);
 
-		// Cria novo status
 		StatusProjeto novoStatusProjeto = StatusProjeto.init(this, novoStatus);
 
-		// Inicializa coleção se estiver nula
-		if (this.getHistoricoStatus() == null) {
-			this.historicoStatus = new HashSet<>();
-		}
-
-		this.getHistoricoStatus().add(novoStatusProjeto);
-
+		this.historicoStatus.add(novoStatusProjeto);
 	}
 
-	public StatusProjeto finalizarStatusAtual(Pessoa pessoa) {
-		if (this.getStatusAtual() == null)
-			return null;
+	public StatusProjeto finalizarStatusAtual(
+			Pessoa pessoa) {
 
-		return this.getStatusAtual().finalizar(pessoa);
+		StatusProjeto statusAtual = this.getStatusAtual();
+
+		if (statusAtual == null) {
+			return null;
+		}
+
+		return statusAtual.finalizar(pessoa);
 	}
 
 	public StatusProjeto getStatusAtual() {
-		if (historicoStatus == null)
+
+		if (historicoStatus == null
+				|| historicoStatus.isEmpty()) {
+
 			return null;
+		}
+
 		return historicoStatus.stream()
-				.sorted(Comparator.comparing(StatusProjeto::getInicioEm).reversed())
-				.findFirst().orElse(null);
+				.sorted(
+						Comparator.comparing(
+								StatusProjeto::getInicioEm).reversed())
+				.findFirst()
+				.orElse(null);
 	}
 
 	public Programa getPrograma() {
-		return Optional.ofNullable(this.getHistoricoAtivo()).map(ProjetoPrograma::getPrograma).orElse(null);
+
+		return Optional.ofNullable(
+				this.getHistoricoAtivo())
+				.map(ProjetoPrograma::getPrograma)
+				.orElse(null);
 	}
 
 	public void removerPrograma() {
+
 		ProjetoPrograma historicoAtivo = this.getHistoricoAtivo();
-		if (historicoAtivo == null)
+
+		if (historicoAtivo == null) {
 			return;
+		}
 
-		historicoAtivo.setApagadoEm(LocalDateTime.now());
-
+		historicoAtivo.setApagadoEm(
+				LocalDateTime.now());
 	}
 
-	public void setPrograma(Programa programa) {
+	public void setPrograma(
+			Programa programa) {
 
-		Assert.isNull(this.getHistoricoAtivo(), "Favor remover o programa antes de incluir outro");
+		Assert.notNull(
+				programa,
+				"Programa não pode ser nulo.");
 
-		ProjetoPrograma novo = new ProjetoPrograma(this, programa);
-		if (this.programaHistorico == null) {
-			this.programaHistorico = new HashSet<>();
-		}
+		Assert.isNull(
+				this.getHistoricoAtivo(),
+				"Favor remover o programa antes de incluir outro.");
+
+		ProjetoPrograma novo = new ProjetoPrograma(
+				this,
+				programa);
 
 		this.programaHistorico.add(novo);
 	}
 
 	private ProjetoPrograma getHistoricoAtivo() {
+
+		if (programaHistorico == null
+				|| programaHistorico.isEmpty()) {
+
+			return null;
+		}
+
 		return programaHistorico.stream()
-				.filter(pp -> pp.getApagadoEm() == null)
-				.filter(pp -> !pp.getPrograma().isRecusado()) // ou equivalente
+				.filter(
+						pp -> pp.getApagadoEm() == null)
+				.filter(
+						pp -> pp.getPrograma() != null)
+				.filter(
+						pp -> !pp.getPrograma().isRecusado())
 				.findFirst()
 				.orElse(null);
 	}
+
+	// public void addOds(
+	// ProjetoOds ods
+	// ) {
+	// Assert.notNull(
+	// ods,
+	// "ODS não pode ser nulo."
+	// );
+	// ods.setProjeto(this);
+	// this.ods.add(ods);
+	// }
 
 }

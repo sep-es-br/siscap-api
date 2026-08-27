@@ -5,16 +5,19 @@ import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 
+import br.gov.es.siscap.validation.groups.ValidacaoEnvio;
+
 public record RateioDto(
 
-			Long idLocalidade,
+	Long idLocalidade,
 
-			@NotNull
-			@Positive
-			BigDecimal percentual,
+	@NotNull(message = "Percentual do rateio é obrigatório", groups = ValidacaoEnvio.class) 
+	@Positive(message = "Percentual do rateio deve ser maior que zero", groups = ValidacaoEnvio.class) 
+	BigDecimal percentual,
 
-			@NotNull
-			@Positive
-			BigDecimal quantia
+	@NotNull(message = "Quantia do rateio é obrigatório", groups = ValidacaoEnvio.class) 
+	@Positive(message = "Quantia do rateio deve ser maior que zero", groups = ValidacaoEnvio.class) 
+	BigDecimal quantia
+
 ) {
 }
