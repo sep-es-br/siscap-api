@@ -8,6 +8,8 @@ import br.gov.es.siscap.dto.listagem.PessoaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.dto.opcoes.ResponsavelProponenteOpcoesDto;
 import br.gov.es.siscap.exception.OrganizacaoSemResponsavelException;
+import br.gov.es.siscap.exception.PessoaAmbiguaException;
+import br.gov.es.siscap.exception.PessoaNaoInformadaException;
 import br.gov.es.siscap.exception.UsuarioSemAutorizacaoException;
 import br.gov.es.siscap.exception.ValidacaoSiscapException;
 import br.gov.es.siscap.exception.naoencontrado.PessoaNaoEncontradoException;
@@ -516,6 +518,37 @@ public class PessoaService {
 						.map(p -> p.getSub())
 						.orElse(""))
 				.toList();
+	}
+
+	public Pessoa buscarPorEmail(List<String> emails) {
+
+		List<Pessoa> pessoas = repository.findByEmailIn(emails);
+
+		if (pessoas.isEmpty()) {
+			logger.error("Nenhuma pessoa encontrada para os e-mails informados: {}", emails);
+			throw new PessoaNaoEncontradoException(
+					"Nenhuma pessoa encontrada para os e-mails informados.");
+		}
+
+		if (pessoas.size() > 1) {
+			logger.error(
+					"Mais de uma pessoa encontrada para os e-mails informados. Emails: {}, pessoas: {}", emails,
+					pessoas.stream().map(Pessoa::getId).toList());
+			throw new PessoaAmbiguaException(
+					"Mais de uma pessoa encontrada para os e-mails informados.");
+		}
+
+		return pessoas.get(0);
+	}
+
+	@Transactional
+	public Pessoa salvar(Pessoa pessoa) {
+		return Optional.ofNullable(pessoa)
+				.map(repository::save)
+				.orElseThrow(() -> {
+					logger.error("Erro ao excluir corpo da carta de consulta");
+					throw new PessoaNaoInformadaException("Erro ao excluir corpo da carta de consulta");
+				});
 	}
 
 }

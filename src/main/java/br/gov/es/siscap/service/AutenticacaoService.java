@@ -17,14 +17,18 @@ import jakarta.transaction.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,6 +37,9 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+
+import com.nimbusds.openid.connect.sdk.claims.UserInfo;
+
 import reactor.core.publisher.Mono;
 
 @Service
@@ -157,8 +164,11 @@ public class AutenticacaoService {
 	}
 
 	private Usuario buscarOuCriarUsuario(ACUserInfoDto userInfo, String accessToken) {
+
 		Usuario usuario = (Usuario) usuarioRepository.findBySub(userInfo.subNovo());
+
 		if (usuario != null) {
+
 			pessoaService.validarSub(userInfo.subNovo(), usuario.getPessoa().getId());
 
 			atualizarNomeNomeSocialPessoa(usuario.getPessoa(), userInfo);
@@ -169,18 +179,20 @@ public class AutenticacaoService {
 			usuarioRepository.saveAndFlush(usuario);
 
 			logger.info("Usuário atualizado com sucesso.");
+
 			return usuario;
 		}
 
 		logger.info("Usuário inexistente, prosseguindo para criação de um novo usuário.");
+
 		Pessoa pessoa;
 		try {
 			pessoa = pessoaService.buscarPorSub(userInfo.subNovo());
-			logger.info("Foi encontrado uma pessoa com este sub, procedendo para criação de usuário para essa pessoa.");
-			pessoa = atualizarNomeNomeSocialPessoa(pessoa, userInfo);
 		} catch (PessoaNaoEncontradoException e) {
-			pessoa = criarPessoa(userInfo);
+			pessoa = buscarPessoaPorEmailOuCriar(userInfo);
 		}
+
+		pessoa = atualizarNomeNomeSocialPessoa(pessoa, userInfo);
 
 		usuario = new Usuario(null, validarPapeisUsuario(userInfo), pessoa, userInfo.subNovo(), accessToken);
 
@@ -492,6 +504,31 @@ public class AutenticacaoService {
 
 	private static String getEmailUserInfo(ACUserInfoDto userInfo) {
 		return userInfo.emailCorporativo() != null ? userInfo.emailCorporativo() : userInfo.email();
+	}
+
+	private Pessoa buscarPessoaPorEmailOuCriar(ACUserInfoDto userInfo) {
+		try {
+
+			List<String> emailsAC = Stream.of(
+					userInfo.email(),
+					userInfo.emailCorporativo())
+					.filter(Objects::nonNull)
+					.map(String::trim)
+					.filter(email -> !email.isEmpty())
+					.toList();
+
+			Pessoa pessoa = pessoaService.buscarPorEmail(emailsAC);
+
+			logger.info("Pessoa encontrada pelo e-mail. Atualizando sub do Acesso Cidadão.");
+
+			pessoa.setSub(userInfo.subNovo());
+
+			return pessoaService.salvar(pessoa);
+
+		} catch (PessoaNaoEncontradoException e) {
+			logger.info("Pessoa não encontrada pelo sub nem pelo e-mail. Criando nova pessoa.");
+			return criarPessoa(userInfo);
+		}
 	}
 
 }
