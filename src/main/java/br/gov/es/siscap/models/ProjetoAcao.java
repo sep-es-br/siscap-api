@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -44,20 +46,23 @@ public class ProjetoAcao extends ControleHistorico {
     private String descricaoAcaoSecundaria;
 
     @ManyToOne()
-	@JoinColumn(name = "id_tipo_status")
-	private TipoStatus tipoStatus;
+    @JoinColumn(name = "id_tipo_status")
+    private TipoStatus tipoStatus;
+
+    @OneToMany(mappedBy = "projetoAcao", fetch = FetchType.LAZY)
+    private Set<ProjetoAcaoLocalidadeQuantia> rateios = new HashSet<>();
 
     public ProjetoAcao(Projeto projeto) {
         this.setProjeto(projeto);
     }
 
     public ProjetoAcao(Projeto projeto, ProjetoAcaoDto acao) {
-		this.setProjeto(projeto);
-		this.setDescricaoAcaoPrincipal(acao.descricaoAcaoPrincipal());
-		this.setDescricaoAcaoSecundaria(acao.descricaoAcaoSecundaria());
+        this.setProjeto(projeto);
+        this.setDescricaoAcaoPrincipal(acao.descricaoAcaoPrincipal());
+        this.setDescricaoAcaoSecundaria(acao.descricaoAcaoSecundaria());
         this.setValorEstimado(acao.valorEstimadoAcaoPrincipal());
         this.setTipoStatus(new TipoStatus(TipoStatusEnum.ATIVO.getValue()));
-	}
+    }
 
     public boolean compararIdAcaoComAcaoDto(ProjetoAcaoDto acaoDto) {
         return Objects.equals(this.getId(), acaoDto.idAcao());
@@ -67,11 +72,10 @@ public class ProjetoAcao extends ControleHistorico {
         this.setDescricaoAcaoPrincipal(acaoDtoDto.descricaoAcaoPrincipal());
         this.setDescricaoAcaoSecundaria(acaoDtoDto.descricaoAcaoSecundaria());
         this.setValorEstimado(acaoDtoDto.valorEstimadoAcaoPrincipal());
-		if (!Objects.equals( acaoDtoDto.idStatus(), TipoStatusEnum.ATIVO.getValue() ) ) {
-			this.setTipoStatus(new TipoStatus(acaoDtoDto.idStatus()));
-			super.atualizarHistorico();
-		}
-	}
+        if (!Objects.equals(acaoDtoDto.idStatus(), TipoStatusEnum.ATIVO.getValue())) {
+            this.setTipoStatus(new TipoStatus(acaoDtoDto.idStatus()));
+            super.atualizarHistorico();
+        }
+    }
 
 }
-

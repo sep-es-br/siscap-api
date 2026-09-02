@@ -536,8 +536,7 @@ public class ProjetoService {
 
 		projetoPessoaSet = projetoPessoaService.cadastrar(projeto, form.idResponsavelProponente(), equipeParaGravar);
 
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(),
-				form.rateio());
+		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar( projeto, form.valor(), form.rateio() );
 
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
