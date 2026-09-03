@@ -158,52 +158,56 @@ public class IntegraccaoEdocsService {
 
 		logger.info("Iniciando processo para Assinar e Capturar Pareceres do projeto {} no E-Docs..", idProjeto);
 
-		if (projetoParecerService.verificarCapturaParecer(idParecer)) {
-			logger.info("Parecere {} já capturado no E-Docs..", idParecer);
-			throw new ValidacaoSiscapException(
-					List.of("Parecer já capturado via E-Docs"));
-		}
-
-		String subUsuarioLogado = autenticacaoService.getUsuarioLogado();
-
 		var chave = new ChaveEtapasIntegracao(idProjeto, ContextoIntegracaoEdocsEnum.DIC);
 
 		this.limparEtapas(chave);
+		this.adicionarEtapa(chave,
+				new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
 
-		ProjetoParecer parecer = projetoParecerService.buscar(idParecer);
+		try {
+			if (projetoParecerService.verificarCapturaParecer(idParecer)) {
+				logger.info("Parecere {} já capturado no E-Docs..", idParecer);
+				throw new ValidacaoSiscapException(
+						List.of("Parecer já capturado via E-Docs"));
+			}
 
-		Resource resource;
-		String nomeArquivo = "";
+			ProjetoParecer parecer = projetoParecerService.buscar(idParecer);
 
-		if (!parecer.getNomeOriginalArquivo().isEmpty()) {
-			resource = projetoParecerService.buscarArquivo(idParecer);
-			nomeArquivo = parecer.getNomeOriginalArquivo();
-		} else {
-			resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
-					projetoParecerService.buscarTipoParecer(idParecer), elegível);
-			nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
+			Resource resource;
+			String nomeArquivo = "";
+
+			if (!parecer.getNomeOriginalArquivo().isEmpty()) {
+				resource = projetoParecerService.buscarArquivo(idParecer);
+				nomeArquivo = parecer.getNomeOriginalArquivo();
+			} else {
+				resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
+						projetoParecerService.buscarTipoParecer(idParecer), elegível);
+				nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
+			}
+
+			String subUsuarioLogado = autenticacaoService.getUsuarioLogado();
+			ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
+
+			String subJwt = autenticacaoService.getUsuarioSub();
+
+			this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado,
+					elegível)
+					.flatMap(mensagem -> {
+						logger.info("SUCESSO: {}", mensagem);
+						if (projetoParecerService.buscarTipoParecer(idParecer).equals("CAPTAÇÃO")) {
+							return this.entranharParecerProcesso(projetoDto, subJwt);
+						} else {
+							return Mono.empty();
+						}
+					})
+					.doOnError(erro -> registrarFalhaCapturaParecer(chave, erro))
+					.subscribe(
+							mensagem -> logger.info("SUCESSO: {}", mensagem),
+							erro -> logger.error("ERRO: {}", erro.getMessage()));
+		} catch (RuntimeException erro) {
+			registrarFalhaCapturaParecer(chave, erro);
+			throw erro;
 		}
-
-		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
-
-		String subJwt = autenticacaoService.getUsuarioSub();
-
-		this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado,
-				elegível)
-				.flatMap(mensagem -> {
-
-					logger.info("SUCESSO: {}", mensagem);
-
-					if (projetoParecerService.buscarTipoParecer(idParecer).equals("CAPTAÇÃO")) {
-						return this.entranharParecerProcesso(projetoDto, subJwt);
-					} else {
-						return Mono.empty();
-					}
-
-				})
-				.subscribe(
-						mensagem -> logger.info("SUCESSO: {}", mensagem),
-						erro -> logger.error("ERRO: {}", erro.getMessage()));
 
 	}
 
@@ -423,9 +427,6 @@ public class IntegraccaoEdocsService {
 
 		var chave = new ChaveEtapasIntegracao(projetoDto.id(), ContextoIntegracaoEdocsEnum.DIC);
 
-		this.adicionarEtapa(chave,
-				new EtapasIntegracaoDto(projetoDto.id(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
-
 		return buscarTokenReativo()
 				.onErrorResume(tratarErroToken(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA))
 				.switchIfEmpty(Mono.error(
@@ -439,9 +440,21 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> atualizarParecer(ctx, idParecer, subUsuarioLogado, elegivel))
 				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idParecer))
 				.doOnSuccess(v -> logger.info("Parecer {} atualizado com sucesso", idParecer))
-				.doOnError(e -> logger.error("Erro ao atualizar parecer {}", idParecer, e))
+				.doOnError(e -> {
+					logger.error("Erro ao atualizar parecer {}", idParecer, e);
+					registrarFalhaCapturaParecer(chave, e);
+				})
 				.thenReturn("Assinatura e Captura do parecer concluída com sucesso.");
 
+	}
+
+	private void registrarFalhaCapturaParecer(ChaveEtapasIntegracao chave, Throwable erro) {
+		String mensagem = erro.getMessage();
+		if (mensagem == null || mensagem.isBlank()) {
+			mensagem = "Falha ao assinar e capturar o parecer via E-Docs.";
+		}
+
+		registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, mensagem);
 	}
 
 	public Mono<String> reentranharDicProjetoReativo(ProjetoDto projetoDto, Resource arquivoCorrigido,
