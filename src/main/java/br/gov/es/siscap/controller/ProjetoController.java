@@ -30,12 +30,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @Tag(name = "DIC", description = "")
 @RestController
 @RequestMapping("/projetos")
 @RequiredArgsConstructor
 public class ProjetoController {
+
+	private static final Logger logger = LogManager.getLogger(ProjetoController.class);
 
 	private final ProjetoService service;
 	private final RelatoriosService relatoriosService;
@@ -218,6 +222,7 @@ public class ProjetoController {
 	public ResponseEntity<Resource> assinarCapturaParecerDIC(@PathVariable Long idProjeto,
 			@Valid @RequestBody ProjetoForm form,
 			@RequestHeader("Authorization") String auth) {
+		logger.info("PARECER_CONTROLLER_ENTERED projectId={} attachmentPresent=notSupportedByMainContract", idProjeto);
 
 		String token = auth.replace("Bearer ", "");
 
@@ -225,8 +230,12 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 		ProjetoDto projetoDto = service.atualizar(idProjeto, form, false, pessoa);
+		logger.info("PARECER_UPDATE_COMPLETED projectId={} parecerId={}",
+				idProjeto, projetoDto.parecerProjetoUsuario().id());
 		asyncExecutorService.assinarCapturaParecerDIC(idProjeto, projetoDto.parecerProjetoUsuario().id(),
 				projetoDto.parecerProjetoUsuario().elegivel());
+		logger.info("PARECER_EDOCS_ASYNC_STARTED projectId={} parecerId={} elegivel={}",
+				idProjeto, projetoDto.parecerProjetoUsuario().id(), projetoDto.parecerProjetoUsuario().elegivel());
 		return ResponseEntity.accepted().build();
 	}
 

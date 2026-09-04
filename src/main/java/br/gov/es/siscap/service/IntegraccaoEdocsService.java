@@ -177,6 +177,8 @@ public class IntegraccaoEdocsService {
 					projetoParecerService.buscarTipoParecer(idParecer), elegível);
 
 			String nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
+			logger.info("PARECER_EDOCS_RESOURCE source=generatedReport projectId={} parecerId={} fileName={}",
+					idProjeto, idParecer, nomeArquivo);
 
 			ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 

@@ -104,6 +104,8 @@ public class AutenticacaoService {
 		logger.info("Autenticar usuário SisCap.");
 
 		ACUserInfoDto userInfo = acessoCidadaoService.buscarInformacoesUsuario(accessToken);
+		logger.info("AUTH_AC_ROLES_RECEIVED agentepublico={} roles={}",
+				userInfo.agentepublico(), userInfo.role());
 
 		if (Boolean.FALSE.equals(userInfo.agentepublico()) && (userInfo.role() == null || userInfo.role().isEmpty()))
 			throw new UsuarioSemAutorizacaoException();
@@ -119,12 +121,17 @@ public class AutenticacaoService {
 		if (isProponente)
 			userInfo.role().add("PROPONENTE");
 
+		logger.info("AUTH_SISCAP_ROLES_EFFECTIVE generatedRole={} roles={}",
+				isProponente ? "PROPONENTE" : "none", userInfo.role());
+
 		Usuario usuario = buscarOuCriarUsuario(userInfo, accessToken);
 		String token = tokenService.gerarToken(usuario);
 
 		byte[] imagemPerfil = construirImagemPerfilUsuario(usuario.getPessoa().getNomeImagem());
 
 		Set<Permissoes> permissoes = construirPermissoesSet(usuario.getPapeis());
+		logger.info("AUTH_SISCAP_PERMISSIONS_GENERATED roles={} permissions={}",
+				usuario.getPapeis(), permissoes);
 
 		Set<Long> idOrganizacoes = construirIdOrganizacoesSet(usuario.getPessoa(), usuario.getSub());
 
@@ -163,9 +170,13 @@ public class AutenticacaoService {
 
 			atualizarNomeNomeSocialPessoa(usuario.getPessoa(), userInfo);
 
+			Set<String> papeisAnteriores = usuario.getPapeis();
+			Set<String> papeisNovos = validarPapeisUsuario(userInfo);
+			logger.info("AUTH_USER_ROLES_REPLACED previousRoles={} newRoles={}",
+					papeisAnteriores, papeisNovos);
 			logger.info("Usuário já existente, procedendo com atualizações de papeis e token.");
 			usuario.setAccessToken(accessToken);
-			usuario.setPapeis(validarPapeisUsuario(userInfo));
+			usuario.setPapeis(papeisNovos);
 			usuarioRepository.saveAndFlush(usuario);
 
 			logger.info("Usuário atualizado com sucesso.");
@@ -182,7 +193,9 @@ public class AutenticacaoService {
 			pessoa = criarPessoa(userInfo);
 		}
 
-		usuario = new Usuario(null, validarPapeisUsuario(userInfo), pessoa, userInfo.subNovo(), accessToken);
+		Set<String> papeisNovos = validarPapeisUsuario(userInfo);
+		logger.info("AUTH_USER_CREATED roles={}", papeisNovos);
+		usuario = new Usuario(null, papeisNovos, pessoa, userInfo.subNovo(), accessToken);
 
 		usuarioRepository.save(usuario);
 

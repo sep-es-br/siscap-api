@@ -51,7 +51,16 @@ public class AsyncExecutorService {
 
     @Async
     public void assinarCapturaParecerDIC(Long idProjeto, Long idParecer, Boolean elegivel) {
-        integracaoEdocsService.assinarCapturaParecerDIC(idProjeto, idParecer, elegivel);
+        logger.info("PARECER_EDOCS_ASYNC_ENTERED projectId={} parecerId={} elegivel={}",
+                idProjeto, idParecer, elegivel);
+        try {
+            integracaoEdocsService.assinarCapturaParecerDIC(idProjeto, idParecer, elegivel);
+            logger.info("PARECER_EDOCS_ASYNC_DELEGATED projectId={} parecerId={}", idProjeto, idParecer);
+        } catch (RuntimeException e) {
+            logger.error("PARECER_EDOCS_ASYNC_FAILED projectId={} parecerId={} message={}",
+                    idProjeto, idParecer, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Async

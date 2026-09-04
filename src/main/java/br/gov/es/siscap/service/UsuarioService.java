@@ -70,27 +70,32 @@ public class UsuarioService implements UserDetailsService {
 
         String overrideLotacao = overrideProperties.getLotacaoUsuario().get(subUsuario);
         if (overrideLotacao != null) {
+            logger.info("LOTACAO_RESOLVED source=userOverride guid={}", overrideLotacao);
             return overrideLotacao;
         }
 
         // ⚙️ Simulação de ambiente de teste
         if (lotacaoSimulada != null && !lotacaoSimulada.isEmpty()) {
-            return switch (lotacaoSimulada.toUpperCase()) {
+            String guidResolvido = switch (lotacaoSimulada.toUpperCase()) {
                 case "SUBEPP" -> guidSUBEPP;
                 case "SUBEO" -> guidSUBEO;
                 default -> lotacaoSimulada;
             };
+            logger.info("LOTACAO_RESOLVED source=globalSimulation guid={}", guidResolvido);
+            return guidResolvido;
         }
 
         Usuario usuarioBanco = (Usuario) this.repository.findBySub(subUsuario);
 
-        if (usuarioBanco.getPapeis() != null && usuarioBanco.getPapeis().contains("SUBCAP"))
+        if (usuarioBanco.getPapeis() != null && usuarioBanco.getPapeis().contains("SUBCAP")) {
+            logger.info("LOTACAO_RESOLVED source=userRole_SUBCAP guid={}", guidSUBCAP);
             return guidSUBCAP;
+        }
 
         List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService
                 .listarPapeisAgentePublicoPorSub(subUsuario);
 
-        return listaPapeisUsuario.stream()
+        String guidResolvido = listaPapeisUsuario.stream()
                 .filter(papel -> Boolean.TRUE.equals(papel.Prioritario()))
                 .findFirst()
                 .map(ACAgentePublicoPapelDto::LotacaoGuid)
@@ -98,6 +103,9 @@ public class UsuarioService implements UserDetailsService {
                         .findFirst()
                         .map(ACAgentePublicoPapelDto::LotacaoGuid)
                         .orElse(""));
+
+        logger.info("LOTACAO_RESOLVED source=acessoCidadao guid={}", guidResolvido);
+        return guidResolvido;
 
     }
 
