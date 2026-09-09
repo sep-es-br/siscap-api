@@ -8,9 +8,11 @@ import br.gov.es.siscap.dto.opcoes.ProjetoPropostoOpcoesDto;
 import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.form.ProjetoForm;
 import br.gov.es.siscap.models.Pessoa;
+import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.service.AsyncExecutorService;
 import br.gov.es.siscap.service.IntegraccaoEdocsService;
 import br.gov.es.siscap.service.PessoaService;
+import br.gov.es.siscap.service.ProjetoParecerService;
 import br.gov.es.siscap.service.ProjetoService;
 import br.gov.es.siscap.service.RelatoriosService;
 import br.gov.es.siscap.service.TokenService;
@@ -46,6 +48,7 @@ public class ProjetoController {
 	private final RelatoriosService relatoriosService;
 	private final AsyncExecutorService asyncExecutorService;
 	private final IntegraccaoEdocsService integracaoEdocsService;
+	private final ProjetoParecerService parecerService;
 
 	private final TokenService tokenService;
 	private final PessoaService pessoaSrv;
@@ -103,7 +106,7 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 
-		return ResponseEntity.ok(service.atualizar(id, form, rascunho, pessoa));
+		return ResponseEntity.ok(service.atualizar(id, form, rascunho, pessoa, arquivoParecerAnexo));
 
 	}
 
@@ -127,7 +130,9 @@ public class ProjetoController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body("Falha ao excluir o projeto.");
 		}
+
 		return ResponseEntity.ok().body("Projeto excluído com sucesso!");
+
 	}
 
 	@PutMapping("/{id}/status")
@@ -196,6 +201,7 @@ public class ProjetoController {
 		Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto, ExibirMarcaDaguaProgramaEnum.EXIBIR,
 				service.buscarPorId(idProjeto.longValue()));
 
+
 		String nomeArquivo = service.gerarNomeArquivo(idProjeto);
 		String contentType = "application/pdf";
 
@@ -216,14 +222,19 @@ public class ProjetoController {
 		String subNovo = this.tokenService.validarToken(token);
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
-		service.atualizar(idProjeto, form, false, pessoa);
+
+		service.atualizar(idProjeto, form, false, pessoa, null);
+
 		asyncExecutorService.executarAutuacaoEdocs(idProjeto, pessoa, ExibirMarcaDaguaProgramaEnum.NAOEXIBIR, subNovo);
+
 		return ResponseEntity.accepted().build();
 	}
 
 	@PutMapping("/dic/edocs/capturarparecer/{idProjeto}")
-	public ResponseEntity<Resource> assinarCapturaParecerDIC(@PathVariable Long idProjeto,
-			@Valid @RequestBody ProjetoForm form,
+	public ResponseEntity<Resource> assinarCapturaParecerDIC(
+			@PathVariable Long idProjeto,
+			@RequestPart("projeto") ProjetoForm form,
+			@RequestPart(value = "arquivoParecerAnexo", required = false) MultipartFile arquivoParecerAnexo,
 			@RequestHeader("Authorization") String auth) {
 		logger.info("PARECER_CONTROLLER_ENTERED projectId={} attachmentPresent=notSupportedByMainContract", idProjeto);
 
@@ -232,13 +243,11 @@ public class ProjetoController {
 		String subNovo = this.tokenService.validarToken(token);
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
-		ProjetoDto projetoDto = service.atualizar(idProjeto, form, false, pessoa);
-		logger.info("PARECER_UPDATE_COMPLETED projectId={} parecerId={}",
-				idProjeto, projetoDto.parecerProjetoUsuario().id());
-		asyncExecutorService.assinarCapturaParecerDIC(idProjeto, projetoDto.parecerProjetoUsuario().id(),
-				projetoDto.parecerProjetoUsuario().elegivel());
-		logger.info("PARECER_EDOCS_ASYNC_STARTED projectId={} parecerId={} elegivel={}",
-				idProjeto, projetoDto.parecerProjetoUsuario().id(), projetoDto.parecerProjetoUsuario().elegivel());
+
+		ProjetoDto projetoDto = service.atualizar( idProjeto, form, false, pessoa, arquivoParecerAnexo );
+
+		asyncExecutorService.assinarCapturaParecerDIC( idProjeto, projetoDto.parecerProjetoUsuario().id(), projetoDto.parecerProjetoUsuario().elegivel() );
+
 		return ResponseEntity.accepted().build();
 	}
 
@@ -259,7 +268,7 @@ public class ProjetoController {
 
 		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
 
-		service.atualizar(idProjeto, form, false, pessoa);
+		service.atualizar(idProjeto, form, false, pessoa, null);
 
 		asyncExecutorService.executarReentranhamentoDicEdocs(idProjeto, pessoa, ExibirMarcaDaguaProgramaEnum.NAOEXIBIR);
 
@@ -278,6 +287,30 @@ public class ProjetoController {
 	public ResponseEntity<Void> reenviarEmailPedidoParecer(
 			@PathVariable Long id) {
 		service.reenviarEmailPedidoParecer(id);
+		return ResponseEntity.noContent().build();
+	}
+
+	@GetMapping("/dic/parecer/{idParecer}/arquivo")
+	public ResponseEntity<Resource> baixarArquivoParecerDIC(@PathVariable Long idParecer) {
+
+		Resource resource = parecerService.buscarArquivo(idParecer);
+
+		ProjetoParecer parecer = parecerService.buscar(idParecer);
+
+		String nomeArquivo = parecer.getNomeOriginalArquivo();
+		String contentType = "application/pdf";
+
+		return ResponseEntity.ok()
+				.contentType(MediaType.parseMediaType(contentType))
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + "\"")
+				.body(resource);
+
+	}
+
+	@DeleteMapping("/dic/parecer/{idParecer}/arquivo")
+	public ResponseEntity<Void> removerAnexoParecer(
+		@PathVariable Long idParecer) {
+		parecerService.removerAnexoParecer(idParecer);
 		return ResponseEntity.noContent().build();
 	}
 
