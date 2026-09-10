@@ -1,15 +1,12 @@
 package br.gov.es.siscap.service;
 
-import br.gov.es.siscap.dto.IndicadorAvulsoMetaDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoDto;
 import br.gov.es.siscap.dto.ProjetoIndicadorAvulsoMetaDto;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.models.IndicadorAvulso;
-import br.gov.es.siscap.models.IndicadorAvulsoMeta;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
 import br.gov.es.siscap.models.ProjetoIndicadorAvulsoMeta;
-import br.gov.es.siscap.repository.IndicadorAvulsoMetaRepository;
 import br.gov.es.siscap.repository.IndicadorAvulsoRepository;
 import br.gov.es.siscap.repository.ProjetoIndicadorAvulsoMetaRepository;
 import br.gov.es.siscap.repository.ProjetoIndicadorAvulsoRepository;
