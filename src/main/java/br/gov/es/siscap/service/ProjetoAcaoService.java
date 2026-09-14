@@ -33,21 +33,6 @@ public class ProjetoAcaoService {
 		return this.projetoAcaoRepository.findAllByProjeto(projeto);
 	}
 
-	// @Transactional
-	// public Set<ProjetoAcao> cadastrar(Projeto projeto, List<ProjetoAcaoDto>
-	// ProjetoAcaoDtoList) {
-	// logger.info("Cadastrando acoes do Projeto com id: {}", projeto.getId());
-	// Set<ProjetoAcao> ProjetoAcaoSet = new HashSet<>();
-	// ProjetoAcaoDtoList.forEach(acaoDto -> {
-	// ProjetoAcao acaoProjeto = new ProjetoAcao(projeto, acaoDto);
-	// ProjetoAcaoSet.add(acaoProjeto);
-	// });
-	// List<ProjetoAcao> ProjetoAcaoList =
-	// projetoAcapRepository.saveAll(ProjetoAcaoSet);
-	// logger.info("Ações do projeto cadastradas com sucesso");
-	// return new HashSet<>(ProjetoAcaoList);
-	// }
-
 	@Transactional
 	public Set<ProjetoAcao> cadastrar(
 			Projeto projeto,
@@ -85,24 +70,6 @@ public class ProjetoAcaoService {
 
 		return projetoAcaoSet;
 	}
-
-	// @Transactional
-	// public Set<ProjetoAcao> atualizar(Projeto projeto, List<ProjetoAcaoDto>
-	// ProjetoAcaoDtoList, boolean isSalvar) {
-	// logger.info("Alterando dados de acões do Projeto com id: {}",
-	// projeto.getId());
-	// Set<ProjetoAcao> ProjetoAcaoSet = this.buscarPorProjeto(projeto);
-	// Set<ProjetoAcao> acoesProjetoAtualizarSet =
-	// this.atualizarAcoesProjeto(projeto, ProjetoAcaoSet,
-	// ProjetoAcaoDtoList);
-	// if (!isSalvar)
-	// if (this.validarValorEstimadoProjetoAcoes(projeto, acoesProjetoAtualizarSet,
-	// isSalvar))
-	// throw new ValorEstimadoIncompativelAcoesProjetoException();
-	// projetoAcaoRepository.saveAllAndFlush(acoesProjetoAtualizarSet);
-	// logger.info("Ações do projeto alterada com sucesso");
-	// return this.buscarPorProjeto(projeto);
-	// }
 
 	@Transactional
 	public Set<ProjetoAcao> atualizar(

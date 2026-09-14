@@ -4,12 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
 import br.gov.es.siscap.dto.RateioDto;
+import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.models.ProjetoAcaoLocalidadeQuantia;
 import br.gov.es.siscap.repository.ProjetoAcaoLocalidadeQuantiaRepository;
@@ -21,75 +26,82 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class ProjetoAcaoLocalidadeQuantiaService {
 
-    private final ProjetoAcaoLocalidadeQuantiaRepository repository;
+        private final ProjetoAcaoLocalidadeQuantiaRepository repository;
 
-    public List<ProjetoAcaoLocalidadeQuantia> cadastrar(
-            ProjetoAcao projetoAcao,
-            List<RateioDto> rateios) {
+        private final Logger logger = LogManager.getLogger(ProjetoAcaoLocalidadeQuantiaService.class);
 
-        if (rateios == null || rateios.isEmpty()) {
-            return List.of();
+        public List<ProjetoAcaoLocalidadeQuantia> cadastrar(
+                        ProjetoAcao projetoAcao,
+                        List<RateioDto> rateios) {
+
+                if (rateios == null || rateios.isEmpty()) {
+                        return List.of();
+                }
+
+                List<ProjetoAcaoLocalidadeQuantia> localidades = rateios.stream()
+                                .map(rateio -> new ProjetoAcaoLocalidadeQuantia(
+                                                projetoAcao,
+                                                rateio))
+                                .toList();
+
+                return repository.saveAll(localidades);
+
         }
 
-        List<ProjetoAcaoLocalidadeQuantia> localidades = rateios.stream()
-                .map(rateio -> new ProjetoAcaoLocalidadeQuantia(
-                        projetoAcao,
-                        rateio))
-                .toList();
+        @Transactional
+        public void atualizar(
+                        ProjetoAcao projetoAcao,
+                        List<RateioDto> rateiosDto) {
 
-        return repository.saveAll(localidades);
+                List<RateioDto> rateios = Optional.ofNullable(rateiosDto)
+                                .orElseGet(List::of);
 
-    }
+                Map<Long, RateioDto> rateiosRecebidos = rateios.stream()
+                                .collect(Collectors.toMap(
+                                                RateioDto::idLocalidade,
+                                                Function.identity(),
+                                                (rateio1, rateio2) -> {
+                                                        throw new IllegalArgumentException(
+                                                                        "Localidade duplicada no rateio da ação: "
+                                                                                        + rateio1.idLocalidade());
+                                                }));
 
-    @Transactional
-    public void atualizar(
-            ProjetoAcao projetoAcao,
-            List<RateioDto> rateiosDto) {
+                Set<ProjetoAcaoLocalidadeQuantia> rateiosAtuais = repository.findByProjetoAcao(projetoAcao);
 
-        List<RateioDto> rateios = Optional.ofNullable(rateiosDto)
-                .orElseGet(List::of);
+                Map<Long, ProjetoAcaoLocalidadeQuantia> rateiosAtuaisPorLocalidade = rateiosAtuais.stream()
+                                .collect(Collectors.toMap(
+                                                rateio -> rateio.getLocalidade().getId(),
+                                                Function.identity()));
 
-        Map<Long, RateioDto> rateiosRecebidos = rateios.stream()
-                .collect(Collectors.toMap(
-                        RateioDto::idLocalidade,
-                        Function.identity(),
-                        (rateio1, rateio2) -> {
-                            throw new IllegalArgumentException(
-                                    "Localidade duplicada no rateio da ação: "
-                                            + rateio1.idLocalidade());
-                        }));
+                List<ProjetoAcaoLocalidadeQuantia> rateiosParaSalvar = new ArrayList<>();
 
-        List<ProjetoAcaoLocalidadeQuantia> rateiosAtuais = repository.findByProjetoAcao(projetoAcao);
+                rateiosRecebidos.forEach((idLocalidade, rateioDto) -> {
 
-        Map<Long, ProjetoAcaoLocalidadeQuantia> rateiosAtuaisPorLocalidade = rateiosAtuais.stream()
-                .collect(Collectors.toMap(
-                        rateio -> rateio.getLocalidade().getId(),
-                        Function.identity()));
+                        ProjetoAcaoLocalidadeQuantia rateio = rateiosAtuaisPorLocalidade.remove(idLocalidade);
 
-        List<ProjetoAcaoLocalidadeQuantia> rateiosParaSalvar = new ArrayList<>();
+                        if (rateio == null) {
+                                rateio = new ProjetoAcaoLocalidadeQuantia(
+                                                projetoAcao,
+                                                rateioDto);
+                        } else {
+                                rateio.atualizar(rateioDto);
+                        }
 
-        rateiosRecebidos.forEach((idLocalidade, rateioDto) -> {
+                        rateiosParaSalvar.add(rateio);
+                });
 
-            ProjetoAcaoLocalidadeQuantia rateio = rateiosAtuaisPorLocalidade.remove(idLocalidade);
+                // Tudo que sobrou existia no banco,
+                // mas não veio mais do front.
+                rateiosAtuaisPorLocalidade.values()
+                                .forEach(repository::delete);
 
-            if (rateio == null) {
-                rateio = new ProjetoAcaoLocalidadeQuantia(
-                        projetoAcao,
-                        rateioDto);
-            } else {
-                rateio.atualizar(rateioDto);
-            }
+                repository.saveAll(rateiosParaSalvar);
 
-            rateiosParaSalvar.add(rateio);
-        });
+        }
 
-        // Tudo que sobrou existia no banco,
-        // mas não veio mais do front.
-        rateiosAtuaisPorLocalidade.values()
-                .forEach(repository::delete);
-
-        repository.saveAll(rateiosParaSalvar);
-        
-    }
+        public Set<ProjetoAcaoLocalidadeQuantia> buscarPorProjeto(ProjetoAcao projetoAcao) {
+                logger.info("Buscando acoes e rateios da ação de projeto com id: {}", projetoAcao.getId());
+                return this.repository.findByProjetoAcao(projetoAcao);
+        }
 
 }

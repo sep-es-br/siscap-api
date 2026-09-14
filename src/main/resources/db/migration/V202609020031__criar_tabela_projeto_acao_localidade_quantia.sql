@@ -10,7 +10,11 @@ CREATE TABLE projeto_acao_localidade_quantia (
     id_localidade BIGINT NOT NULL,
     percentual NUMERIC(7, 4) NOT NULL,
     quantia NUMERIC(25, 2) NOT NULL,
-    apagado BOOLEAN NOT NULL DEFAULT FALSE,
+   
+    criado_em       TIMESTAMP NOT NULL DEFAULT now(),
+    atualizado_em   TIMESTAMP,
+    apagado         BOOLEAN NOT NULL DEFAULT FALSE,
+
     CONSTRAINT pk_projeto_acao_localidade_quantia PRIMARY KEY (id),
     CONSTRAINT fk_projeto_acao_localidade_quantia_acao FOREIGN KEY (id_projeto_acao) REFERENCES projeto_acao (id),
     CONSTRAINT fk_projeto_acao_localidade_quantia_localidade FOREIGN KEY (id_localidade) REFERENCES localidade (id),

@@ -19,6 +19,7 @@ import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoAcao;
+import br.gov.es.siscap.models.ProjetoAcaoLocalidadeQuantia;
 import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
 import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
@@ -36,7 +37,6 @@ import br.gov.es.siscap.validation.groups.ValidacaoRascunho;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.validation.ConstraintViolation;
 
 import java.io.IOException;
@@ -109,6 +109,8 @@ public class ProjetoService {
 	private final PpaLoaBiService ppaLoaBiService;
 
 	private final Validator validator;
+
+	private final ProjetoAcaoLocalidadeQuantiaService projetoAcaoLocalidadeQuantiaService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -250,6 +252,9 @@ public class ProjetoService {
 		Set<ProjetoIndicadorAvulso> indicadoresAvulsos = projetoIndicadorAvulsoService.buscarPorProjeto(projeto);
 
 		Set<ProjetoAcao> acoes = projetoAcaoService.buscarPorProjeto(projeto);
+
+		// Set<ProjetoAcaoLocalidadeQuantia> acoesRateios =
+		// projetoAcaoLocalidadeQuantiaService.buscarPorProjeto(projeto);
 
 		String subUsuario = autenticacaoService.getUsuarioLogado();
 
@@ -465,9 +470,7 @@ public class ProjetoService {
 			Set<ProjetoCamposComplementacao> projetoCamposComplementacaoSet) {
 		return projetoCamposComplementacaoSet
 				.stream()
-				.map(campo -> {
-					return new ProjetoCamposComplementacaoDto(campo, null);
-				})
+				.map(campo -> new ProjetoCamposComplementacaoDto(campo, null))
 				.toList();
 	}
 
@@ -536,7 +539,8 @@ public class ProjetoService {
 
 		projetoPessoaSet = projetoPessoaService.cadastrar(projeto, form.idResponsavelProponente(), equipeParaGravar);
 
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar( projeto, form.valor(), form.rateio() );
+		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(),
+				form.rateio());
 
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
@@ -660,20 +664,12 @@ public class ProjetoService {
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
-		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesProjeto();
+		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesRateioProjeto();
 		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar(projetoResult, projetoAcoesDto, rascunho);
 
 		String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
 
 		String nomeProponente = projeto.getPessoa().getNome();
-
-		// List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDto =
-		// form.acoesPlanejamentoProjeto();
-		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoExistentes =
-		// projetoPlanejamentoPpaLoaService.buscarPorProjeto(projetoResult);
-		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet =
-		// projetoPlanejamentoPpaLoaService.atualizar(projetoResult,
-		// projetoPlanejamentoExistentes, projetoPlanejamentoPpaLoaDto);
 
 		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
 		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
