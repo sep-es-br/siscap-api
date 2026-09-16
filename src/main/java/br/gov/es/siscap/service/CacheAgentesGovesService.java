@@ -18,7 +18,7 @@ public class CacheAgentesGovesService {
     private List<ResponsavelProponenteOpcoesDto> cache = new ArrayList<>();
 
     private final PessoaService pessoaService;
-	private final Logger logger = LogManager.getLogger(PessoaService.class);
+	private final Logger logger = LogManager.getLogger(CacheAgentesGovesService.class);
 
     @PostConstruct
     public void init() {
