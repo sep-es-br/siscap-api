@@ -571,7 +571,7 @@ public class ProjetoService {
 
 				PessoaDto pessoaProponenteDto = pessoaService.buscarPorId(projeto.getPessoa().getId());
 
-				String nomeProponente = pessoaProponenteDto.nome();
+				String nomeProponente = pessoaProponenteDto.nome().toUpperCase();
 
 				this.enviarEmailGestorAvaliarDic(projeto.getId(), subResponsavelProponente, nomeProponente);
 
@@ -667,14 +667,6 @@ public class ProjetoService {
 		String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
 
 		String nomeProponente = projeto.getPessoa().getNome();
-
-		// List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDto =
-		// form.acoesPlanejamentoProjeto();
-		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoExistentes =
-		// projetoPlanejamentoPpaLoaService.buscarPorProjeto(projetoResult);
-		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet =
-		// projetoPlanejamentoPpaLoaService.atualizar(projetoResult,
-		// projetoPlanejamentoExistentes, projetoPlanejamentoPpaLoaDto);
 
 		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
 		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
@@ -1337,14 +1329,6 @@ public class ProjetoService {
 				.findFirst()
 				.map(projetoPessoa -> projetoPessoa.getPessoa().getNome())
 				.orElse("");
-	}
-
-	private Long buscarIdProponente(Set<ProjetoPessoa> projetoPessoaSet) {
-		return projetoPessoaSet.stream()
-				.filter(ProjetoPessoa::isProponente)
-				.findFirst()
-				.map(projetoPessoa -> projetoPessoa.getPessoa().getId())
-				.orElse(null);
 	}
 
 	private List<EquipeDto> buscarEquipeElaboracao(Set<ProjetoPessoa> projetoPessoaSet) {

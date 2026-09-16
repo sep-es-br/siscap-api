@@ -13,8 +13,6 @@ import br.gov.es.siscap.models.Usuario;
 import br.gov.es.siscap.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 
-import jakarta.transaction.Transactional;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
