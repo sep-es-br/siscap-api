@@ -78,22 +78,6 @@ public class IntegraccaoEdocsService {
 
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
-	// private static final String RESUMO_AUTUACAO_DIC = """
-	// Autua-se o presente processo com o objetivo de registrar e acompanhar a
-	// tramitação do Documento Inicial de Captação (DIC) %s, cadastrado no Sistema
-	// de Captação de Recursos – SISCAP, referente à proposta de projeto/programa
-	// com potencial de captação de recursos.
-
-	// O processo seguirá o fluxo estabelecido na Norma de Procedimento vigente,
-	// contemplando as análises, manifestações e demais atos necessários às etapas
-	// do processo de captação.
-
-	// Os trâmites, análises e manifestações relacionados ao processo deverão ser
-	// realizados por meio do Sistema de Captação de Recursos – SISCAP.
-
-	// Termo de autuação gerado automaticamente pelo SISCAP.
-	// """;
-
 	private static final String RESUMO_AUTUACAO_DIC = """
 			Autuação do Documento Inicial de Captação (DIC) %s, cadastrado no Sistema de Captação de Recursos – SISCAP, para registro e acompanhamento da tramitação da proposta de projeto/programa com potencial de captação de recursos.
 			""";
@@ -107,13 +91,14 @@ public class IntegraccaoEdocsService {
 			""";
 
 	private static final String MENSAGEM_JUSTIFICATIVA_ENTRANHAMENTO_PARECERES = """
-				Entranha-se ao presente processo os pareceres emitidos no âmbito do Sistema de Captação de Recursos – SISCAP, referentes ao Documento Inicial de Captação (DIC) %s:
+			Entranha-se ao presente processo os pareceres emitidos no âmbito do Sistema de Captação de Recursos – SISCAP, referentes ao Documento Inicial de Captação (DIC) %s:
 
-				Parecer Estratégico %s;
-				Parecer Orçamentário %s.
-				Os trâmites, análises e manifestações relacionados ao processo deverão ser realizados por meio do Sistema de Captação de Recursos – SISCAP.
+			Parecer Estratégico %s;
+			Parecer Orçamentário %s.
 
-				Termo de entranhamento gerado automaticamente pelo SISCAP.
+			Os trâmites, análises e manifestações relacionados ao processo deverão ser realizados por meio do Sistema de Captação de Recursos – SISCAP.
+
+			Termo de entranhamento gerado automaticamente pelo SISCAP.
 			""";
 
 	private Map<ChaveEtapasIntegracao, List<EtapasIntegracaoDto>> etapasPorChave = new ConcurrentHashMap<>();
@@ -245,7 +230,8 @@ public class IntegraccaoEdocsService {
 					.flatMap(mensagem -> {
 						logger.info("SUCESSO: {}", mensagem);
 						if (projetoParecerService.buscarTipoParecer(idParecer).equals("CAPTAÇÃO")) {
-							return this.entranharParecerProcesso(projetoDto, subJwt, "Entranhamento do parecer referente ao DIC.");
+							return this.entranharParecerProcesso(projetoDto, subJwt,
+									"Entranhamento do parecer referente ao DIC.");
 						} else {
 							return Mono.empty();
 						}
@@ -1706,17 +1692,17 @@ public class IntegraccaoEdocsService {
 			}
 
 			if (Objects.equals(guidSUBEO, parecer.getGuidUnidadeOrganizacao())) {
-				guidDocumentoSubeo = parecer.getGuidDocumentoEdocs();
-			
+				guidDocumentoSubeo = parecer.getRegistroArquivoEdocs();
+
 			} else if (Objects.equals(guidSUBEPP, parecer.getGuidUnidadeOrganizacao())) {
-				guidDocumentoSubepp = parecer.getGuidDocumentoEdocs();
+				guidDocumentoSubepp = parecer.getRegistroArquivoEdocs();
 			}
 
 		}
 
 		// (DIC) %s:
-		// 		Parecer Estratégico %s;
-		// 		Parecer Orçamentário %s.
+		// Parecer Estratégico %s;
+		// Parecer Orçamentário %s.
 		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 
 		// String justificativaEntramento = "Entranhamento dos pareceres referente ao
@@ -2242,7 +2228,8 @@ public class IntegraccaoEdocsService {
 
 			logger.info("Aviso de elegibilidade enviado para equipe de elaboração. idProjeto={}", idProjeto);
 
-			return entranharParecerProcesso(ctx.getProjeto(), subUsuarioLogado, "Entranhamento do parecer referente ao DIC.")
+			return entranharParecerProcesso(ctx.getProjeto(), subUsuarioLogado,
+					"Entranhamento do parecer referente ao DIC.")
 					.doOnNext(mensagem -> logger.info(
 							"Parecer entranhado no processo E-Docs. idProjeto={}, mensagem={}",
 							idProjeto, mensagem))
