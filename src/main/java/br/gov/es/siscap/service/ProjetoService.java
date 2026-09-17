@@ -31,9 +31,14 @@ import br.gov.es.siscap.repository.PessoaRepository;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import br.gov.es.siscap.specification.ProjetoSpecification;
 import br.gov.es.siscap.utils.FormatadorCountAno;
+import br.gov.es.siscap.validation.groups.ValidacaoEnvio;
+import br.gov.es.siscap.validation.groups.ValidacaoRascunho;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.validation.ConstraintViolation;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
@@ -62,6 +67,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.math.BigDecimal;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
+import jakarta.validation.groups.Default;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -89,6 +107,8 @@ public class ProjetoService {
 	private final ProjetoOdsService projetoOdsService;
 	private final ProjetoPlanejamentoPpaLoaService projetoPlanejamentoPpaLoaService;
 	private final PpaLoaBiService ppaLoaBiService;
+
+	private final Validator validator;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -367,9 +387,9 @@ public class ProjetoService {
 						return new ProjetoPlanejamentoPpaLoaResponseDto(
 								planejamento.getId(),
 								new AcaoPpaLoaDto(planejamento.getId(),
-												planejamento.getCodUo(),		
-												planejamento.getCodAcao(),	
-												planejamento.getCodPrograma()),
+										planejamento.getCodUo(),
+										planejamento.getCodAcao(),
+										planejamento.getCodPrograma()),
 								String.valueOf(anos.get(0)));
 
 					}
@@ -377,12 +397,11 @@ public class ProjetoService {
 					return new ProjetoPlanejamentoPpaLoaResponseDto(planejamento.getId(), acaoDoBi,
 							String.valueOf(anos.get(0)));
 
-
 				})
 				.toList();
 
 	}
-	
+
 	private String normalizarCodigo(String valor) {
 		return valor == null
 				? ""
@@ -786,6 +805,11 @@ public class ProjetoService {
 
 	private void exclusaoFisica(Projeto projeto) {
 
+		if (projeto == null) {
+			throw new ValidacaoSiscapException(
+					List.of("Projeto não encontrado para efetivar a exclusão física."));
+		}
+
 		projetoPessoaService.excluirFisicamentePorProjeto(projeto);
 
 		localidadeQuantiaService.excluirFisicamentePorProjeto(projeto);
@@ -802,9 +826,7 @@ public class ProjetoService {
 
 		projetoParecerService.excluirFisicamentePorProjeto(projeto);
 
-		if (projeto == null) {
-			throw new ValidacaoSiscapException(List.of("Projeto não encontrado para efetivar a exclusao física."));
-		}
+		projetoPlanejamentoPpaLoaService.excluirFisicamentePorProjeto(projeto);
 
 		repository.saveAndFlush(projeto);
 
@@ -1346,6 +1368,19 @@ public class ProjetoService {
 
 	private void validarProjeto(ProjetoForm form, boolean isSalvar) {
 		List<String> erros = new ArrayList<>();
+
+		Class<?> grupo = form.enviarProjetoGestor()
+				? ValidacaoEnvio.class
+				: ValidacaoRascunho.class;
+
+		Set<ConstraintViolation<ProjetoForm>> violacoes = validator.validate(
+				form,
+				Default.class,
+				grupo);
+
+		if (!violacoes.isEmpty()) {
+			throw new ConstraintViolationException(violacoes);
+		}
 
 		boolean checkFormIdOrganizacaoExistePorId = !organizacaoService.existePorId(form.idOrganizacao());
 		boolean checkProjetoExistePorSigla = repository.existsBySigla(form.sigla()) && isSalvar;
