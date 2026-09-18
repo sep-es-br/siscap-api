@@ -230,7 +230,9 @@ public class Projeto extends ControleHistorico {
 				form.pecasPlanejamento());
 
 		this.setProtocoloEdocs(
-				form.protocoloEdocs());
+				form.protocoloEdocs() == null || form.protocoloEdocs().isBlank()
+						? null
+						: form.protocoloEdocs().trim());
 
 		this.setNaoPrevistoNoPpa(
 				form.naoPrevistoNoPpa());
