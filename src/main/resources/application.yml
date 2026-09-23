@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://10.243.135.48:5432/siscap
+    url: jdbc:postgresql://localhost:5432/siscap_3
     username: postgres
-    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
+    password: postgres
     hikari:
       maximum-pool-size: 1000
       minimum-idle: 5
@@ -36,10 +36,11 @@ spring:
 
   flyway:
     clean-disabled: false
-    url: jdbc:postgresql://10.243.135.48:5432/siscap
+    url: jdbc:postgresql://localhost:5432/siscap_3
     user: postgres
-    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
+    password: postgres
     enabled: true
+    outOfOrder: true
 
   security:
     oauth2:
@@ -99,18 +100,17 @@ api:
     uri:
       webapi: https://api.treinamento.e-docs.es.gov.br
     classedocumento-id: 66c3fb09-bcdc-468e-a365-5cb5f8eef6b6
-    guiddestinoSUBCAP: 515685f7-2aeb-4cc4-a311-8b793297f8fb # (SUBCAP) # d2ab305b-3f41-4802-b509-09f447ab3016 # (CGTI) 
+    guiddestinoSUBCAP: 515685f7-2aeb-4cc4-a311-8b793297f8fb # (SUBCAP) # d2ab305b-3f41-4802-b509-09f447ab3016 # (CGTI)
 
   parecer:
     guidSUBEPP: 90948693-1692-49df-a5d1-7d1ce84f600b # SUBEPP
     guidSUBEO: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO
     lotacao:
       simulada: 515685f7-2aeb-4cc4-a311-8b793297f8fb # (SUBCAP)
-    
     overrides:
       lotacao-usuario: 
         e0473535-05af-4659-bae6-bfa84fbf50a3: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO # RAQUEL
-    anexos_pdf: C:/siscap/api/arquivos/pareceres/anexos
+    anexos_pdf: c:/siscap/api/parecer/anexos
 
   programa:
     assinantes:
@@ -133,6 +133,7 @@ authorities:
 
 token:
   secret: eXEuFkMDTTEX24UtGF2UQsCdylQVrjHxqe16DYdiSgo8oclXXqyAroPJjiE0OE95
+  tempo-expiracao: 120 # 480 # tempo de expiração do token em minutos
 
 email:
   remetente:
@@ -174,7 +175,34 @@ pentahoBI:
   baseURL: https://bi.sep.es.gov.br/pentaho/plugin/cda/api/doQuery?
   userId: anonimo.bi
   password: Da$hb0ard
-  
+
+  sigefes:
+    path: /public/dashboard/siscap/sigefes
+    planejamento:
+      target: /filtro_ppa_siscap.cda
+      dataAccessId: ppa_sigefes
+    anosppa:
+      target: /filtro_ano_siscap.cda
+      dataAccessId: ano_sigefes
+    uosano:
+      target: /filtro_uo_siscap.cda
+      dataAccessId: sigefes_uo
+    funcoes:
+      target: /filtro_funcao_siscap.cda
+      dataAccessId: sigefes_funcao
+    programas:
+      target: /filtro_programas_siscap.cda
+      dataAccessId: sigefes_programas
+    acoes:
+      target: /filtro_acao_siscap.cda
+      dataAccessId: sigefes_acao
+    dadosacoes:
+      target: /dados_ppa.cda
+      dataAccessId: sigefes_ppa
+    dadosloa:
+      target: /dados_loa.cda
+      dataAccessId: sigefes_loa
+
   siscap:
     path: /public/dashboard/siscap
     indicadores:

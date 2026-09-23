@@ -203,6 +203,8 @@ public class ProjetoService {
 
 					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 
+					if( !localidadeQuantiaSet.isEmpty()){
+						
 					ValorDto valorDto = localidadeQuantiaService.montarValorDto(
 							localidadeQuantiaSet);
 
@@ -210,6 +212,20 @@ public class ProjetoService {
 							projeto,
 							valorDto.quantia(),
 							lotacaoUsuario.getValue());
+
+					}
+
+					Set<ProjetoAcao> acoesAtuais = projetoAcaoService.buscarPorProjeto(projeto);
+
+					BigDecimal valorEstimado = acoesAtuais.stream()
+							.map(ProjetoAcao::getValorEstimado)
+							.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+					return new ProjetoListaDto(
+							projeto,
+							valorEstimado,
+							lotacaoUsuario.getValue());
+
 				});
 
 	}

@@ -77,7 +77,12 @@ public class ProjetoAcaoService {
 			List<ProjetoAcaoDto> acoesDto,
 			boolean isSalvar) {
 
-		logger.info("Alterando ações do Projeto com id: {}", projeto.getId());
+		logger.info(
+				"Alterando ações do Projeto com id: {}",
+				projeto.getId());
+
+		List<ProjetoAcaoDto> acoesRecebidas = Optional.ofNullable(acoesDto)
+				.orElseGet(Collections::emptyList);
 
 		Set<ProjetoAcao> acoesAtuais = buscarPorProjeto(projeto);
 
@@ -89,22 +94,41 @@ public class ProjetoAcaoService {
 
 		Map<ProjetoAcaoDto, ProjetoAcao> acoesProcessadas = new LinkedHashMap<>();
 
-		acoesDto.forEach(dto -> {
+		acoesRecebidas.forEach(dto -> {
 
 			ProjetoAcao acao = Optional.ofNullable(dto.idAcao())
 					.filter(id -> id > 0)
 					.map(acoesPorId::get)
-					.orElseGet(() -> new ProjetoAcao(projeto, dto));
+					.orElseGet(
+							() -> new ProjetoAcao(
+									projeto,
+									dto));
 
 			if (acao.getId() != null) {
 				acao.atualizarAcao(dto);
 			}
 
 			acoesProcessadas.put(dto, acao);
-			
 		});
 
-		Set<ProjetoAcao> acoesAtualizadas = new HashSet<>(acoesProcessadas.values());
+		Set<ProjetoAcao> acoesAtualizadas = new HashSet<>(
+				acoesProcessadas.values());
+
+		/*
+		 * Ações existentes no banco que não vieram mais
+		 * no payload devem ser removidas.
+		 */
+		Set<Integer> idsRecebidos = acoesRecebidas.stream()
+				.map(ProjetoAcaoDto::idAcao)
+				.filter(Objects::nonNull)
+				.filter(id -> id > 0)
+				.collect(Collectors.toSet());
+
+		Set<ProjetoAcao> acoesRemovidas = acoesAtuais.stream()
+				.filter(acao -> acao.getId() != null &&
+						!idsRecebidos.contains(
+								acao.getId()))
+				.collect(Collectors.toSet());
 
 		if (!isSalvar &&
 				validarValorEstimadoProjetoAcoes(
@@ -115,21 +139,35 @@ public class ProjetoAcaoService {
 			throw new ValorEstimadoIncompativelAcoesProjetoException();
 		}
 
-		projetoAcaoRepository.saveAllAndFlush(acoesAtualizadas);
+		/*
+		 * Primeiro remove o que deixou de existir.
+		 */
+		if (!acoesRemovidas.isEmpty()) {
+			projetoAcaoRepository.deleteAll(acoesRemovidas);
+		}
+
+		/*
+		 * Depois salva novas ações e atualizações.
+		 */
+		projetoAcaoRepository.saveAllAndFlush(
+				acoesAtualizadas);
 
 		/*
 		 * Neste ponto as ações novas já possuem ID.
 		 * Agora sincronizamos o rateio de cada ação.
 		 */
-		acoesProcessadas.forEach((dto, acao) -> projetoAcaoLocalidadeQuantiaService.atualizar(
-				acao,
-				dto.rateio()));
+		acoesProcessadas.forEach(
+				(dto, acao) -> projetoAcaoLocalidadeQuantiaService
+						.atualizar(
+								acao,
+								dto.rateio()));
 
 		logger.info(
 				"Ações e rateios do Projeto com id {} alterados com sucesso",
 				projeto.getId());
 
 		return buscarPorProjeto(projeto);
+
 	}
 
 	private boolean validarValorEstimadoProjetoAcoes(Projeto projeto, Set<ProjetoAcao> projetoAcaoSet,
