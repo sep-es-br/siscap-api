@@ -25,14 +25,20 @@ import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
 import br.gov.es.siscap.models.ProjetoOds;
 import br.gov.es.siscap.models.ProjetoParecer;
 import br.gov.es.siscap.models.ProjetoPessoa;
+import br.gov.es.siscap.models.ProjetoPlanejamentoPpaLoa;
 import br.gov.es.siscap.models.TipoMotivoArquivamento;
 import br.gov.es.siscap.repository.PessoaRepository;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import br.gov.es.siscap.specification.ProjetoSpecification;
 import br.gov.es.siscap.utils.FormatadorCountAno;
+import br.gov.es.siscap.validation.groups.ValidacaoEnvio;
+import br.gov.es.siscap.validation.groups.ValidacaoRascunho;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.validation.ConstraintViolation;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
@@ -44,6 +50,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -51,12 +58,27 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.math.BigDecimal;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
+import jakarta.validation.groups.Default;
 
 @Service
 @RequiredArgsConstructor
@@ -83,6 +105,10 @@ public class ProjetoService {
 	private final UsuarioService usuarioService;
 	private final ProjetoIndicadorAvulsoService projetoIndicadorAvulsoService;
 	private final ProjetoOdsService projetoOdsService;
+	private final ProjetoPlanejamentoPpaLoaService projetoPlanejamentoPpaLoaService;
+	private final PpaLoaBiService ppaLoaBiService;
+
+	private final Validator validator;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -150,11 +176,38 @@ public class ProjetoService {
 			filtroPesquisa = filtroProjetosOrganizacao;
 		}
 
-		return repository.findAll(filtroPesquisa, pageable)
+		Sort.Order ordemValorEstimado = pageable.getSort().getOrderFor("valorEstimado");
+
+		Pageable pageableConsulta = pageable;
+
+		if (ordemValorEstimado != null) {
+
+			Specification<Projeto> ordenacaoValorEstimado = ProjetoSpecification.ordenarPorValorEstimado(
+					ordemValorEstimado.getDirection());
+
+			filtroPesquisa = Specification
+					.where(filtroPesquisa)
+					.and(ordenacaoValorEstimado);
+
+			pageableConsulta = PageRequest.of(
+					pageable.getPageNumber(),
+					pageable.getPageSize(),
+					Sort.unsorted());
+
+		}
+
+		return repository.findAll(filtroPesquisa, pageableConsulta)
 				.map(projeto -> {
+
 					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
-					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
-					return new ProjetoListaDto(projeto, valorDto.quantia(), lotacaoUsuario.getValue());
+
+					ValorDto valorDto = localidadeQuantiaService.montarValorDto(
+							localidadeQuantiaSet);
+
+					return new ProjetoListaDto(
+							projeto,
+							valorDto.quantia(),
+							lotacaoUsuario.getValue());
 				});
 
 	}
@@ -223,6 +276,9 @@ public class ProjetoService {
 
 		Set<ProjetoOds> odsProjeto = projetoOdsService.buscarPorProjeto(projeto);
 
+		Set<ProjetoPlanejamentoPpaLoa> planejamentoPpaLoaProjeto = projetoPlanejamentoPpaLoaService
+				.buscarPorProjeto(projeto);
+
 		return new ProjetoDto(projeto, valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
@@ -244,8 +300,112 @@ public class ProjetoService {
 				Optional.ofNullable(projeto.getPessoa()).map(Pessoa::getNome).orElse(null),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				this.buscarIndicadoresAvulsos(indicadoresAvulsos),
-				this.buscarOdsProjeto(odsProjeto));
+				this.buscarOdsProjeto(odsProjeto),
+				this.buscarPlanejamentoPpaLoaProjeto(planejamentoPpaLoaProjeto));
 
+	}
+
+	private List<ProjetoPlanejamentoPpaLoaResponseDto> buscarPlanejamentoPpaLoaProjeto(
+			Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet) {
+
+		if (projetoPlanejamentoPpaLoaSet == null || projetoPlanejamentoPpaLoaSet.isEmpty()) {
+			return List.of();
+		}
+
+		String ppaPlanejamento = "2024-2027";
+
+		List<Long> funcoes = new ArrayList<>();
+		List<Long> programas = new ArrayList<>();
+		List<Long> anos = new ArrayList<>();
+		List<Long> uos = new ArrayList<>();
+		List<Long> acoes = new ArrayList<>();
+
+		projetoPlanejamentoPpaLoaSet.forEach(ppaloa -> {
+
+			if (ppaloa.getCodFuncao() != null && !ppaloa.getCodFuncao().isBlank()) {
+				funcoes.add(Long.valueOf(ppaloa.getCodFuncao()));
+			}
+
+			if (ppaloa.getCodPrograma() != null && !ppaloa.getCodPrograma().isBlank()) {
+				programas.add(Long.valueOf(ppaloa.getCodPrograma()));
+			}
+
+			if (ppaloa.getAno() != null && !ppaloa.getAno().isBlank()) {
+				anos.add(Long.valueOf(ppaloa.getAno()));
+			}
+
+			if (ppaloa.getCodUo() != null && !ppaloa.getCodUo().isBlank()) {
+				uos.add(Long.valueOf(ppaloa.getCodUo()));
+			}
+
+			if (ppaloa.getCodAcao() != null && !ppaloa.getCodAcao().isBlank()) {
+				acoes.add(Long.valueOf(ppaloa.getCodAcao()));
+			}
+
+		});
+
+		List<AcaoPpaLoaDto> dadosAcoes = ppaLoaBiService.dadosAcoes(
+				ppaPlanejamento,
+				funcoes,
+				programas,
+				anos,
+				uos,
+				acoes);
+
+		Map<ChaveAcaoLoa, AcaoPpaLoaDto> dadosBiPorChave = dadosAcoes.stream()
+				.collect(Collectors.toMap(
+
+						dto -> new ChaveAcaoLoa(
+								normalizarCodigo(dto.codigoUnidadeOrcamentaria()),
+								normalizarCodigo(dto.codigoAcao()),
+								normalizarCodigo(dto.codigoPrograma())),
+
+						Function.identity(),
+
+						// Caso o BI devolva a mesma chave mais de uma vez,
+						// mantém o primeiro registro encontrado.
+						(primeiro, repetido) -> primeiro));
+
+		return projetoPlanejamentoPpaLoaSet.stream()
+				.map(planejamento -> {
+
+					ChaveAcaoLoa chave = new ChaveAcaoLoa(
+							normalizarCodigo(String.format("%05d", Integer.parseInt(planejamento.getCodUo()))),
+							normalizarCodigo(String.format("%04d", Integer.parseInt(planejamento.getCodAcao()))),
+							normalizarCodigo(String.format("%04d", Integer.parseInt(planejamento.getCodPrograma()))));
+
+					AcaoPpaLoaDto acaoDoBi = dadosBiPorChave.get(chave);
+
+					if (acaoDoBi == null) {
+
+						logger.warn(
+								"Ação do planejamento não encontrada no BI. Chave: {}. " +
+										"Retornando dados vazios para o planejamento {}.",
+								chave,
+								planejamento.getId());
+
+						return new ProjetoPlanejamentoPpaLoaResponseDto(
+								planejamento.getId(),
+								new AcaoPpaLoaDto(planejamento.getId(),
+										planejamento.getCodUo(),
+										planejamento.getCodAcao(),
+										planejamento.getCodPrograma()),
+								String.valueOf(anos.get(0)));
+
+					}
+
+					return new ProjetoPlanejamentoPpaLoaResponseDto(planejamento.getId(), acaoDoBi,
+							String.valueOf(anos.get(0)));
+
+				})
+				.toList();
+
+	}
+
+	private String normalizarCodigo(String valor) {
+		return valor == null
+				? ""
+				: valor.trim();
 	}
 
 	private List<ProjetoOdsDto> buscarOdsProjeto(Set<ProjetoOds> projetoOdsSet) {
@@ -279,7 +439,7 @@ public class ProjetoService {
 						ods.odsDescricao(),
 						ods.odsCor()))
 				.toList();
-				
+
 	}
 
 	private List<ProjetoIndicadorAvulsoDto> buscarIndicadoresAvulsos(
@@ -393,10 +553,16 @@ public class ProjetoService {
 		projetoIndicadorAvulsoService.sincronizar(projeto, indicadoresAvulsosProjetoParaGravar);
 
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
-
 		projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
 
+		logger.info("ID projeto antes de gravar planejamento: {}", projeto.getId());
+
+		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
+		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
+				.sincronizar(projeto, planejamentoPpaLoaParaGravar);
+
 		try {
+
 			if (form.enviarProjetoGestor()) {
 
 				logger.info("Envio email para gestor");
@@ -435,12 +601,14 @@ public class ProjetoService {
 				this.buscarNomeProponente(projetoPessoaSet),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				indicadoresAvulsosProjetoParaGravar,
-				indicadoresOdsParaGravar);
+				indicadoresOdsParaGravar,
+				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet));
 
 	}
 
 	@Transactional
-	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho, Pessoa pessoa) {
+	public ProjetoDto atualizar(Long id, ProjetoForm form, boolean rascunho, Pessoa pessoa,
+			MultipartFile arquivoParecerAnexo) {
 
 		logger.info("Atualizando projeto com id: {}", id);
 
@@ -500,6 +668,18 @@ public class ProjetoService {
 
 		String nomeProponente = projeto.getPessoa().getNome();
 
+		// List<ProjetoPlanejamentoPpaLoaDto> projetoPlanejamentoPpaLoaDto =
+		// form.acoesPlanejamentoProjeto();
+		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoExistentes =
+		// projetoPlanejamentoPpaLoaService.buscarPorProjeto(projetoResult);
+		// Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet =
+		// projetoPlanejamentoPpaLoaService.atualizar(projetoResult,
+		// projetoPlanejamentoExistentes, projetoPlanejamentoPpaLoaDto);
+
+		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
+		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
+				.sincronizar(projeto, planejamentoPpaLoaParaGravar);
+
 		ProjetoParecerDto projetoParecerDto;
 		ProjetoParecer projetoParecer = null;
 
@@ -509,9 +689,9 @@ public class ProjetoService {
 			projetoParecerDto = form.parecerProjetoUsuario();
 
 			if (projetoParecerDto.id() == null)
-				projetoParecer = projetoParecerService.cadastrar(projetoResult, projetoParecerDto);
+				projetoParecer = projetoParecerService.cadastrar(projetoResult, projetoParecerDto, arquivoParecerAnexo);
 			else
-				projetoParecer = projetoParecerService.atualizar(projetoResult, projetoParecerDto);
+				projetoParecer = projetoParecerService.atualizar(projetoResult, projetoParecerDto, arquivoParecerAnexo);
 
 		}
 
@@ -558,7 +738,8 @@ public class ProjetoService {
 				this.buscarNomeProponente(projetoPessoaSet),
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				this.buscarIndicadoresAvulsos(projetoIndicadoresAvulsoSet),
-				this.buscarOdsProjeto(projetoOdsSet));
+				this.buscarOdsProjeto(projetoOdsSet),
+				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet));
 
 	}
 
@@ -624,6 +805,11 @@ public class ProjetoService {
 
 	private void exclusaoFisica(Projeto projeto) {
 
+		if (projeto == null) {
+			throw new ValidacaoSiscapException(
+					List.of("Projeto não encontrado para efetivar a exclusão física."));
+		}
+
 		projetoPessoaService.excluirFisicamentePorProjeto(projeto);
 
 		localidadeQuantiaService.excluirFisicamentePorProjeto(projeto);
@@ -640,9 +826,7 @@ public class ProjetoService {
 
 		projetoParecerService.excluirFisicamentePorProjeto(projeto);
 
-		if (projeto == null) {
-			throw new ValidacaoSiscapException(List.of("Projeto não encontrado para efetivar a exclusao física."));
-		}
+		projetoPlanejamentoPpaLoaService.excluirFisicamentePorProjeto(projeto);
 
 		repository.saveAndFlush(projeto);
 
@@ -828,7 +1012,7 @@ public class ProjetoService {
 		}
 
 		return true;
-		
+
 	}
 
 	public void enviarEmailGerenciaSubcap(Long idDIC) {
@@ -1185,6 +1369,19 @@ public class ProjetoService {
 	private void validarProjeto(ProjetoForm form, boolean isSalvar) {
 		List<String> erros = new ArrayList<>();
 
+		Class<?> grupo = form.enviarProjetoGestor()
+				? ValidacaoEnvio.class
+				: ValidacaoRascunho.class;
+
+		Set<ConstraintViolation<ProjetoForm>> violacoes = validator.validate(
+				form,
+				Default.class,
+				grupo);
+
+		if (!violacoes.isEmpty()) {
+			throw new ConstraintViolationException(violacoes);
+		}
+
 		boolean checkFormIdOrganizacaoExistePorId = !organizacaoService.existePorId(form.idOrganizacao());
 		boolean checkProjetoExistePorSigla = repository.existsBySigla(form.sigla()) && isSalvar;
 
@@ -1477,7 +1674,8 @@ public class ProjetoService {
 		String tituloDic = projeto.getTitulo();
 		String statusDic = projeto.getStatusAtual().getStatus();
 
-		if (emailService.enviarEmailAvisoDicElegibilidade(emailsInteressadosList, siglaDic, idDic, tituloDic, statusDic)) {
+		if (emailService.enviarEmailAvisoDicElegibilidade(emailsInteressadosList, siglaDic, idDic, tituloDic,
+				statusDic)) {
 			logger.info("Email aviso DIC Elegível id {}", idDic);
 		} else {
 			erros.add("Erro ao enviar aviso elegibilidade DIC id " + idDic);
