@@ -39,19 +39,18 @@ public class ProgramaController {
 	private final ProgramaService service;
 	private final RelatoriosService relatoriosService;
 	private final IntegraccaoEdocsService integracaoEdocsService;
-        
-        private final TokenService tokenService;
-        private final PessoaService pessoaSrv;
+
+	private final TokenService tokenService;
+	private final PessoaService pessoaSrv;
 
 	@GetMapping
-        public Page<ProgramaListaDto> listarTodos(
-                @PageableDefault(size = 15, sort = "dataInicio", direction = Direction.DESC) Pageable pageable,
-                @RequestParam(required = false, defaultValue = "") String search,
-                @RequestParam(required = false) int status
-        ) {
-            Page<ProgramaListaDto> pageList = service.listarTodos(pageable, search, status);
-            return pageList;
-        }
+	public Page<ProgramaListaDto> listarTodos(
+			@PageableDefault(size = 15, sort = "dataInicio", direction = Direction.DESC) Pageable pageable,
+			@RequestParam(required = false, defaultValue = "") String search,
+			@RequestParam(required = false) int status) {
+		Page<ProgramaListaDto> pageList = service.listarTodos(pageable, search, status);
+		return pageList;
+	}
 
 	@GetMapping("/opcoes")
 	public List<OpcoesDto> listarOpcoesDropdown() {
@@ -66,14 +65,12 @@ public class ProgramaController {
 	@PostMapping
 	public ResponseEntity<ProgramaDto> cadastrar(
 			@Valid @RequestBody ProgramaForm form,
-                        @RequestHeader("Authorization") String auth) {
-            
+			@RequestHeader("Authorization") String auth) {
+
 		String token = auth.replace("Bearer ", "");
-                
-                
-                String subNovo = this.tokenService.validarToken(token);
-                
-                
+
+		String subNovo = this.tokenService.validarToken(token);
+
 		return new ResponseEntity<>(service.cadastrar(form, subNovo), HttpStatus.CREATED);
 	}
 
@@ -93,16 +90,14 @@ public class ProgramaController {
 
 	@PostMapping("/programa/{idPrograma}/edocs/solicitarassinaturas")
 	public ResponseEntity<Resource> solicitarAssinaturasProgramaEdocs(@PathVariable Long idPrograma,
-                        @RequestHeader("Authorization") String auth) {
-            
+			@RequestHeader("Authorization") String auth) {
+
 		String token = auth.replace("Bearer ", "");
-                
-                
-                String subNovo = this.tokenService.validarToken(token);
-                
-                Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
-                
+		String subNovo = this.tokenService.validarToken(token);
+		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
+
 		service.criarArquivoProgramaEdocsAssinaturasPendentes(idPrograma, pessoa.getId());
+
 		return ResponseEntity.accepted().build();
 	}
 
@@ -119,22 +114,21 @@ public class ProgramaController {
 	}
 
 	@PostMapping("/programa/{idPrograma}/edocs/assinar")
-	public ResponseEntity<Resource> assinarProgramaEdocs( @PathVariable Long idPrograma ) {
-		service.assinarProgramaEdocs( idPrograma );
+	public ResponseEntity<Resource> assinarProgramaEdocs(@PathVariable Long idPrograma) {
+		service.assinarProgramaEdocs(idPrograma);
 		return ResponseEntity.accepted().build();
 	}
 
 	@PostMapping("/programa/{idPrograma}/edocs/autuar")
 	public ResponseEntity<Void> autuarProgramaEdocs(@PathVariable Long idPrograma,
-                        @RequestHeader("Authorization") String auth) {
-            
+			@RequestHeader("Authorization") String auth) {
+
 		String token = auth.replace("Bearer ", "");
-                
-                
-                String subNovo = this.tokenService.validarToken(token);
-                
-                Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
-                
+
+		String subNovo = this.tokenService.validarToken(token);
+
+		Pessoa pessoa = this.pessoaSrv.buscarPorSub(subNovo);
+
 		service.autuarProgramaEdocs(idPrograma, pessoa.getId());
 		return ResponseEntity.accepted().build();
 	}

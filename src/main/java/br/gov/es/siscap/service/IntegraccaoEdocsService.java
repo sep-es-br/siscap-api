@@ -1785,11 +1785,13 @@ public class IntegraccaoEdocsService {
 				.orElseGet(() -> listaPapeisUsuario.stream().findFirst().orElse(null))
 				.Guid();
 
-		return this
-				.capturarArquivoAssinaturaPendentesReativo(idPrograma, resourceArquivo, nomeArquivo, guidPapelUsuario,
-						assinantes)
-				.map(dto -> dto.getIdDocumentoAssinarFaseAssinatura())
-				.flatMap(Mono::just);
+		return capturarArquivoAssinaturaPendentesReativo(
+				idPrograma,
+				resourceArquivo,
+				nomeArquivo,
+				guidPapelUsuario,
+				assinantes)
+				.map(FluxoContextoIntegracaoDto::getIdDocumentoAssinarFaseAssinatura);
 
 	}
 
