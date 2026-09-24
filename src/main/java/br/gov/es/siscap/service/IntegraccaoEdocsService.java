@@ -24,6 +24,7 @@ import feign.FeignException;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -1761,72 +1762,130 @@ public class IntegraccaoEdocsService {
 
 	}
 
-	public Mono<String> enviarArquivoAssinaturasPendentes(Long idPrograma, List<String> assinantes,
+	public Mono<String> enviarArquivoAssinaturasPendentes(
+			Long idPrograma,
+			List<String> assinantes,
 			String nomeArquivo) {
 
-		logger.info("Iniciando processo para criar arquivo no E-Docs com pendencia de suas assinaturas.. {}",
-				idPrograma.intValue());
+		return Mono.defer(() -> {
 
-		Resource resourceArquivo = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma.intValue(),
-				ExibirMarcaDaguaProgramaEnum.NAOEXIBIR);
+			logger.info(
+					"Iniciando processo para criar arquivo no E-Docs com pendência de assinaturas. Programa {}",
+					idPrograma);
 
-		String subJwt = autenticacaoService.getUsuarioSub();
-		String tokenArmazenado = autorizacaoACService.getEdocsToken(subJwt);
-		String tokenLimpo = tokenArmazenado.replace("Bearer ", "").trim();
+			Resource resourceArquivo = relatoriosService.gerarArquivoPrograma(
+					"PROGRAMA",
+					idPrograma.intValue(),
+					ExibirMarcaDaguaProgramaEnum.NAOEXIBIR);
 
-		ACUserInfoDto userInfo = acessoCidadaoService.buscarInformacoesUsuario(tokenLimpo);
+			String subJwt = autenticacaoService.getUsuarioSub();
 
-		List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService
-				.listarPapeisAgentePublicoPorSub(userInfo.subNovo());
+			String tokenArmazenado = autorizacaoACService.getEdocsToken(subJwt);
 
-		String guidPapelUsuario = listaPapeisUsuario.stream()
-				.filter(papel -> papel.Prioritario())
-				.findFirst()
-				.orElseGet(() -> listaPapeisUsuario.stream().findFirst().orElse(null))
-				.Guid();
+			if (tokenArmazenado == null || tokenArmazenado.isBlank()) {
+				throw new ValidacaoSiscapException(
+						Arrays.asList("Token do E-Docs não encontrado para o usuário."));
+			}
 
-		return this
-				.capturarArquivoAssinaturaPendentesReativo(idPrograma, resourceArquivo, nomeArquivo, guidPapelUsuario,
-						assinantes)
+			String tokenLimpo = tokenArmazenado.replace("Bearer ", "").trim();
+
+			ACUserInfoDto userInfo = acessoCidadaoService
+					.buscarInformacoesUsuario(tokenLimpo);
+
+			if (userInfo == null || userInfo.subNovo() == null) {
+				throw new ValidacaoSiscapException(
+						Arrays.asList("Não foi possível obter as informações do usuário no Acesso Cidadão."));
+			}
+
+			List<ACAgentePublicoPapelDto> listaPapeisUsuario = acessoCidadaoService
+					.listarPapeisAgentePublicoPorSub(
+							userInfo.subNovo());
+
+			if (listaPapeisUsuario == null || listaPapeisUsuario.isEmpty()) {
+				throw new ValidacaoSiscapException(
+						Arrays.asList("Nenhum papel de agente público encontrado para o usuário."));
+			}
+
+			ACAgentePublicoPapelDto papelUsuario = listaPapeisUsuario.stream()
+					.filter(papel -> Boolean.TRUE.equals(
+							papel.Prioritario()))
+					.findFirst()
+					.orElse(listaPapeisUsuario.get(0));
+
+			String guidPapelUsuario = papelUsuario.Guid();
+
+			return capturarArquivoAssinaturaPendentesReativo(
+					idPrograma,
+					resourceArquivo,
+					nomeArquivo,
+					guidPapelUsuario,
+					assinantes);
+
+		})
 				.map(dto -> dto.getIdDocumentoAssinarFaseAssinatura())
-				.flatMap(Mono::just);
-
+				.doOnError(error -> logger.error(
+						"Erro ao enviar arquivo para assinatura no E-Docs. Programa {}",
+						idPrograma,
+						error));
 	}
 
-	private Mono<FluxoContextoIntegracaoDto> capturarArquivoAssinaturaPendentesReativo(Long idPrograma,
+	private Mono<FluxoContextoIntegracaoDto> capturarArquivoAssinaturaPendentesReativo(
+			Long idPrograma,
 			Resource arquivo,
-			String nomeArquivo, String idPapelCapturador, List<String> assinantes) {
+			String nomeArquivo,
+			String idPapelCapturador,
+			List<String> assinantes) {
 
-		final long tamanho;
-		try {
-			tamanho = arquivo.contentLength();
-		} catch (IOException e) {
-			return Mono.error(new RuntimeException("Falha ao obter tamanho do arquivo", e));
-		}
+		var etapa = EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE;
+		var chave = new ChaveEtapasIntegracao(
+				idPrograma,
+				ContextoIntegracaoEdocsEnum.PROGRAMA);
 
-		var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
+		return Mono.defer(() -> {
 
-		this.limparEtapas(chave);
+			prepararEtapaCapturaAssinaturaPendente(
+					idPrograma,
+					chave,
+					etapa);
 
-		this.adicionarEtapa(chave,
-				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.CAPTURAASSINAPENDENTE, true, false,
-						false));
+			return obterTamanhoArquivo(arquivo)
+					.flatMap(tamanho -> buscarTokenReativo()
+							.onErrorResume(
+									tratarErroToken(chave, etapa))
+							.switchIfEmpty(
+									Mono.error(
+											new EdocsTokenExpiradoException(
+													"O token do E-Docs expirou. Realize um novo login no SISCAP.")))
+							.map(token -> new FluxoContextoIntegracaoDto(
+									token,
+									assinantes,
+									chave))
+							.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
+							.flatMap(ctx -> uploadArquivo(
+									ctx,
+									arquivo,
+									nomeArquivo))
+							.flatMap(ctx -> enviarArquivoFaseAssinatura(
+									ctx,
+									nomeArquivo,
+									idPapelCapturador)));
+		})
+				.doOnSuccess(ctx -> {
 
-		return buscarTokenReativo()
-				.onErrorResume(tratarErroToken(chave, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO))
-				.switchIfEmpty(Mono.error(
-						new EdocsTokenExpiradoException("O token do E-Docs expirou. Realize um novo login no SISCAP.")))
-				.map(token -> new FluxoContextoIntegracaoDto(token, assinantes, chave))
-				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
-				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
-				.flatMap(ctx -> enviarArquivoFaseAssinatura(ctx, nomeArquivo, idPapelCapturador))
-				.doOnSuccess(retorno -> {
 					finalizaTodasEtapas(chave);
-					logger.info("Arquivo {} capturado em fase de assinatur com sucesso", nomeArquivo);
-				})
-				.doOnError(e -> logger.error("Erro ao criar arquivo {} em fase de assinatura no E-Docs. {}",
-						nomeArquivo, e));
 
+					logger.info(
+							"Arquivo {} capturado em fase de assinatura com sucesso. Programa {}",
+							nomeArquivo,
+							idPrograma);
+
+				})
+				.doOnError(error -> logger.error(
+						"Erro ao criar arquivo {} em fase de assinatura no E-Docs. Programa {}",
+						nomeArquivo,
+						idPrograma,
+						error));
+						
 	}
 
 	private Mono<FluxoContextoIntegracaoDto> enviarArquivoFaseAssinatura(FluxoContextoIntegracaoDto ctx,
@@ -2233,6 +2292,31 @@ public class IntegraccaoEdocsService {
 				}
 			}
 		}
+	}
+
+	private Mono<Long> obterTamanhoArquivo(Resource arquivo) {
+
+		return Mono.fromCallable(arquivo::contentLength)
+				.onErrorMap(IOException.class, e -> new RuntimeException(
+						"Falha ao obter tamanho do arquivo",
+						e));
+	}
+
+	private void prepararEtapaCapturaAssinaturaPendente(
+			Long idPrograma,
+			ChaveEtapasIntegracao chave,
+			EtapasIntegracaoEdocsEnum etapa) {
+
+		limparEtapas(chave);
+
+		adicionarEtapa(
+				chave,
+				new EtapasIntegracaoDto(
+						idPrograma,
+						etapa,
+						true,
+						false,
+						false));
 	}
 
 }

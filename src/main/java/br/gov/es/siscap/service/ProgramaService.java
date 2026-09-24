@@ -279,6 +279,7 @@ public class ProgramaService {
 		}
 
 		programaProcessamentoService.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, subAssinantesEdocsPrograma);
+		
 	}
 
 	public void assinarProgramaEdocs(Long idPrograma) {
