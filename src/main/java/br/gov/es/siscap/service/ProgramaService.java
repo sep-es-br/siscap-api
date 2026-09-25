@@ -259,6 +259,7 @@ public class ProgramaService {
 				programa.getCountAno();
 	}
 
+	@Transactional
 	public void criarArquivoProgramaEdocsAssinaturasPendentes(
 			Long idPrograma,
 			Long idPessoa) {
