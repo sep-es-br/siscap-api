@@ -43,10 +43,8 @@ import reactor.core.publisher.Mono;
 public class ProgramaService {
 
 	private final ProgramaRepository repository;
-        private final PessoaRepository pessoaRepository;
-        
-        
-        
+	private final PessoaRepository pessoaRepository;
+
 	private final ProjetoService projetoService;
 	private final ProgramaPessoaService programaPessoaService;
 	private final PessoaService pessoaService;
@@ -70,8 +68,7 @@ public class ProgramaService {
 
 	public Page<ProgramaListaDto> listarTodos(Pageable pageable, String search, int status) {
 
-		StatusProgramaEnum statusParam =
-				(status <= -1) ? null : StatusProgramaEnum.fromCodigo(status);
+		StatusProgramaEnum statusParam = (status <= -1) ? null : StatusProgramaEnum.fromCodigo(status);
 
 		return repository
 				.paginarProgramasPorFiltroPesquisaSimples(search, pageable, statusParam)
@@ -104,11 +101,11 @@ public class ProgramaService {
 
 	@Transactional
 	public ProgramaDto cadastrar(ProgramaForm form, String subPessoa) {
-            
+
 		logger.info("Cadastrando novo programa");
 		logger.info("Dados: {}", form);
-                
-                Pessoa pessoa = this.pessoaRepository.findBySub(subPessoa).orElseThrow();
+
+		Pessoa pessoa = this.pessoaRepository.findBySub(subPessoa).orElseThrow();
 
 		this.validarProgramaForm(form);
 
@@ -229,10 +226,10 @@ public class ProgramaService {
 			throw new ValidacaoSiscapException(
 					List.of("Programa não pode ser excluído pois já possui um protocolo E-Docs associado."));
 		}
-                
+
 		programaPessoaService.excluirPorPrograma(programa);
 		projetoService.desvincularProjetosDoPrograma(programa);
-                
+
 		programa.apagar();
 		repository.saveAndFlush(programa);
 
@@ -262,23 +259,45 @@ public class ProgramaService {
 				programa.getCountAno();
 	}
 
-	public void criarArquivoProgramaEdocsAssinaturasPendentes(Long idPrograma, Long idPessoa) {
+	@Transactional
+	public void criarArquivoProgramaEdocsAssinaturasPendentes(
+			Long idPrograma,
+			Long idPessoa) {
 
-		String nomeArquivo = this.gerarNomeArquivo(idPrograma);
+		validarParametrosSolicitacaoAssinatura(idPrograma,idPessoa);
 
-		List<String> subAssinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
-				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
+		Programa programa = buscar(idPrograma);
 
-		Programa programa = this.buscar(idPrograma);
+		List<String> assinantes = obterAssinantesEdocsPrograma();
 
-		Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma = programa.getProgramaAssinantesEdocsSet();
+		if (documentoAssinaturaAindaNaoCriado(programa)) {
 
-		if (assinantesDevemAssinarPrograma.isEmpty()) {
-			asyncExecutorService.criarArquivoProgramaFaseAssinaturaEdocsServidor(idPrograma, subAssinantesEdocsPrograma,
-					nomeArquivo, idPessoa);
+			logger.info("Programa {} ainda não possui documento de assinatura no E-Docs. " + "Iniciando integração.", idPrograma);
+
+			String nomeArquivo = gerarNomeArquivo(idPrograma);
+
+			asyncExecutorService
+					.criarArquivoProgramaFaseAssinaturaEdocsServidor(
+							idPrograma,
+							assinantes,
+							nomeArquivo,
+							idPessoa);
+
+			return;
+
 		}
 
-		programaProcessamentoService.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, subAssinantesEdocsPrograma);
+		logger.info(
+				"Programa {} já possui documento de assinatura no E-Docs. "
+						+ "Reenviando aviso aos assinantes.",
+				idPrograma);
+
+		programaProcessamentoService
+				.enviarAvisoSolicitarAssinaturaPrograma(
+						idPrograma,
+						assinantes);
+
+
 	}
 
 	public void assinarProgramaEdocs(Long idPrograma) {
@@ -327,23 +346,6 @@ public class ProgramaService {
 
 	}
 
-	// private void validarAssinaturasSolicitadas(long idPrograma) {
-	// List<String> erros = new ArrayList<>();
-	// Programa programa = this.buscar(idPrograma);
-	// Set<ProgramaAssinaturaEdocs> assinantesDevemAssinarPrograma =
-	// programa.getProgramaAssinantesEdocsSet();
-	// if (!assinantesDevemAssinarPrograma.isEmpty()) {
-	// erros.add(
-	// "Assinaturas já solicitadas para o programa id " + programa.getId() + ".");
-	// erros.forEach(logger::error);
-	// throw new ValidacaoSiscapException(erros);
-	// }
-	// if (!erros.isEmpty()) {
-	// erros.forEach(logger::error);
-	// throw new ValidacaoSiscapException(erros);
-	// }
-	// }
-
 	public void autuarProgramaEdocs(Long idPrograma, Long idPessoa) {
 		Programa programa = this.buscar(idPrograma);
 		this.validarSeProgramaPodeSerAutuado(programa);
@@ -365,8 +367,7 @@ public class ProgramaService {
 		return Mono.empty();
 
 	}
-        
-        
+
 	private void validarSeTodasAssinaturasForamRealizadas(Programa programa) {
 
 		List<String> erros = new ArrayList<>();
@@ -449,6 +450,75 @@ public class ProgramaService {
 		Programa programa = this.buscar(idPrograma);
 		String idDocumentoCapturadoEdocs = programa.getIdDocumentoCapturadoEdocs();
 		asyncExecutorService.recusarAssinaturaProgramaEdocs(idPrograma, idDocumentoCapturadoEdocs, subAssinante);
+	}
+
+	private boolean documentoAssinaturaAindaNaoCriado(
+			Programa programa) {
+
+		return programa.getIdDocumentoCapturadoEdocs() == null
+				|| programa.getIdDocumentoCapturadoEdocs().isBlank();
+	}
+
+	private void validarParametrosSolicitacaoAssinatura(
+			Long idPrograma,
+			Long idPessoa) {
+
+		List<String> erros = new ArrayList<>();
+
+		if (idPrograma == null || idPrograma <= 0) {
+			erros.add("Programa não informado.");
+		}
+
+		if (idPessoa == null || idPessoa <= 0) {
+			erros.add("Usuário responsável pela operação não informado.");
+		}
+
+		if (!erros.isEmpty()) {
+			throw new ValidacaoSiscapException(erros);
+		}
+
+	}
+
+	private List<String> obterAssinantesEdocsPrograma() {
+
+		validarSubAssinante(
+				"Gestor SUBCAP",
+				assinanteEdocsProgramaGestorSUBCAP);
+
+		validarSubAssinante(
+				"Gestor SEP",
+				assinanteEdocsProgramaGestorSEP);
+
+		validarSubAssinante(
+				"Gestor GOVES",
+				assinanteEdocsProgramaGestorGOVES);
+
+		List<String> assinantes = List.of(
+				assinanteEdocsProgramaGestorSUBCAP.trim(),
+				assinanteEdocsProgramaGestorSEP.trim(),
+				assinanteEdocsProgramaGestorGOVES.trim());
+
+		if (assinantes.stream().distinct().count() != assinantes.size()) {
+			throw new ValidacaoSiscapException(
+					List.of(
+							"Existem assinantes duplicados configurados para assinatura do Programa."));
+		}
+
+		return assinantes;
+
+	}
+
+	private void validarSubAssinante(
+			String papel,
+			String sub) {
+
+		if (sub == null || sub.isBlank()) {
+			throw new ValidacaoSiscapException(
+					List.of(
+							"SUB do assinante '" + papel
+									+ "' não está configurado."));
+		}
+
 	}
 
 }

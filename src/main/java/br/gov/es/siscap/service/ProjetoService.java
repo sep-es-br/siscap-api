@@ -571,8 +571,12 @@ public class ProjetoService {
 		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjetoParaGravar = form.indicadoresAvulsosProjeto();
 		projetoIndicadorAvulsoService.sincronizar(projeto, indicadoresAvulsosProjetoParaGravar);
 
-		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
+		// List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
+		// projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
+
+		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesRateioProjeto();
 		projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
+		// projetoAcaoService.atualizar(projeto, projetoAcoesDto, rascunho);
 
 		logger.info("ID projeto antes de gravar planejamento: {}", projeto.getId());
 

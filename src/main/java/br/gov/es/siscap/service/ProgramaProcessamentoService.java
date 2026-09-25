@@ -32,6 +32,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 @Service
 @RequiredArgsConstructor
 public class ProgramaProcessamentoService {
@@ -50,27 +53,62 @@ public class ProgramaProcessamentoService {
     private final Logger logger = LogManager.getLogger(ProgramaProcessamentoService.class);
 
     @Transactional
-    public void marcarCriacaoArquivoProgramaEdocs(Long idPrograma, List<String> assinantesEdocsPrograma,
-            String idDocumentoEdocs, Long idPessoa) {
-        this.marcarComoAguardandoAssinaturas(idPrograma, assinantesEdocsPrograma, idDocumentoEdocs, idPessoa);
-        this.enviarAvisoSolicitarAssinaturaPrograma(idPrograma, assinantesEdocsPrograma);
+    public void marcarCriacaoArquivoProgramaEdocs(
+            Long idPrograma,
+            List<String> assinantesEdocsPrograma,
+            String idDocumentoEdocs,
+            Long idPessoa) {
+
+        marcarComoAguardandoAssinaturas(
+                idPrograma,
+                assinantesEdocsPrograma,
+                idDocumentoEdocs,
+                idPessoa);
+
+        try {
+
+            enviarAvisoSolicitarAssinaturaPrograma(
+                    idPrograma,
+                    assinantesEdocsPrograma);
+
+        } catch (Exception e) {
+
+            logger.error(
+                    "Programa {} integrado com E-Docs, porém ocorreu erro ao enviar aviso aos assinantes.",
+                    idPrograma,
+                    e);
+        }
+
     }
 
     public void marcarComoAguardandoAssinaturas(long idPrograma, List<String> assinantesEdocsPrograma,
             String idDocumentoEdocs, long idPessoa) {
+
         logger.info("Registra as pendencias de assinatura no programa;");
+
         Pessoa pessoa = pessoaRepository.findById(idPessoa).orElseThrow();
 
         Programa programa = repository.findById(idPrograma)
                 .orElseThrow(() -> new RuntimeException("Programa não encontrado"));
-        if (programaAssinaturaEdocsService.buscarPorPrograma(programa).isEmpty()) {
-            programaAssinaturaEdocsService.cadastrar(programa, assinantesEdocsPrograma);
-        }
-        programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
 
+        List<ProgramaAssinaturaEdocsDto> listaAssinaturasPorPrograma = programaAssinaturaEdocsService
+                .buscarPorPrograma(programa);
+
+        boolean possuiAssinaturasPersistidas = listaAssinaturasPorPrograma.stream()
+                .anyMatch(assinatura -> assinatura.id() != null);
+
+        if (!possuiAssinaturasPersistidas) {
+            programaAssinaturaEdocsService.cadastrar(
+                    programa,
+                    assinantesEdocsPrograma);
+        }
+
+        programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
         programa.setIdDocumentoCapturadoEdocs(idDocumentoEdocs);
         programa.alterarStatus(StatusProgramaEnum.AGUARDANDOASSINATURAS, pessoa);
+
         repository.save(programa);
+
     }
 
     public boolean enviarAvisoSolicitarAssinaturaPrograma(Long idPrograma, List<String> subAssinantes) {
@@ -133,33 +171,34 @@ public class ProgramaProcessamentoService {
     }
 
     @Transactional
-    public void marcarProgramaAssinado(long idPrograma, String subAssinante) {
+    public void marcarProgramaAssinado(
+            long idPrograma,
+            String subAssinante) {
 
         Programa programa = repository.findById(idPrograma)
-                .orElseThrow(() -> new ValidacaoSiscapException(List.of("Programa não encontrado.")));
-
-        ProgramaAssinaturaEdocs assinatura = programa.getProgramaAssinantesEdocsSet()
-                .stream()
-                .filter(a -> subAssinante.equals(a.getPessoa().getSub()))
-                .findFirst()
                 .orElseThrow(() -> new ValidacaoSiscapException(
-                        List.of("Não existe(m) documento(s) a serem assinados.")));
+                        List.of("Programa não encontrado.")));
 
-        assinatura.setDataAssinatura(LocalDateTime.now());
-        assinatura.setStatusAssinatura(TipoStatusAssinaturaEnum.ASSINADO.getValue());
+        ProgramaAssinaturaEdocs assinatura = buscarAssinaturaDoPrograma(
+                programa,
+                subAssinante);
 
-        boolean todosJaAssinaram = programa.getProgramaAssinantesEdocsSet().stream().allMatch(
-                assinante -> assinante.getStatusAssinatura().equals(TipoStatusAssinaturaEnum.ASSINADO.getValue()));
+        marcarAssinaturaComoAssinada(assinatura);
+
+        boolean todosJaAssinaram = todosAssinantesAssinaram(programa);
 
         if (todosJaAssinaram) {
-            programa.alterarStatus(StatusProgramaEnum.ASSINADO, assinatura.getPessoa());
-            programa.getStatusAtual().finalizarStatus(assinatura.getPessoa());
-            emailService.enviarEmailAvisoProgramaAssinadoSubcap(Arrays.asList(emailSubcap),programa);
+            marcarProgramaComoAssinado(
+                    programa,
+                    assinatura.getPessoa());
         }
 
-        repository.saveAndFlush(programa);
+        programaAssinaturaEdocsRepository.save(assinatura);
+        repository.save(programa);
 
-        programaAssinaturaEdocsRepository.saveAndFlush(assinatura);
+        if (todosJaAssinaram) {
+            registrarEnvioEmailAposCommit(programa.getId());
+        }
 
     }
 
@@ -245,7 +284,8 @@ public class ProgramaProcessamentoService {
             emailsSubAssinates.put(emailAssinanteAC, sub);
         });
 
-        Programa programa = repository.findById(idPrograma).orElseThrow(() -> new RuntimeException("Programa não encontrado"));
+        Programa programa = repository.findById(idPrograma)
+                .orElseThrow(() -> new RuntimeException("Programa não encontrado"));
 
         String tituloPrograma = programa.getTitulo();
         String siglaPrograma = programa.getSigla();
@@ -337,6 +377,96 @@ public class ProgramaProcessamentoService {
 
     }
 
-    
+    private ProgramaAssinaturaEdocs buscarAssinaturaDoPrograma(
+            Programa programa,
+            String subAssinante) {
+
+        return programa.getProgramaAssinantesEdocsSet()
+                .stream()
+                .filter(assinatura -> subAssinante.equals(
+                        assinatura.getPessoa().getSub()))
+                .findFirst()
+                .orElseThrow(() -> new ValidacaoSiscapException(
+                        List.of(
+                                "Não existe documento pendente de assinatura para este usuário.")));
+    }
+
+    private void marcarAssinaturaComoAssinada(
+            ProgramaAssinaturaEdocs assinatura) {
+
+        assinatura.setDataAssinatura(
+                LocalDateTime.now());
+
+        assinatura.setStatusAssinatura(
+                TipoStatusAssinaturaEnum.ASSINADO.getValue());
+    }
+
+    private boolean todosAssinantesAssinaram(
+            Programa programa) {
+
+        Integer statusAssinado = TipoStatusAssinaturaEnum.ASSINADO.getValue();
+
+        return programa.getProgramaAssinantesEdocsSet()
+                .stream()
+                .allMatch(assinatura -> Objects.equals(
+                        assinatura.getStatusAssinatura(),
+                        statusAssinado));
+    }
+
+    private void marcarProgramaComoAssinado(
+            Programa programa,
+            Pessoa pessoa) {
+
+        programa.alterarStatus(
+                StatusProgramaEnum.ASSINADO,
+                pessoa);
+
+        programa.getStatusAtual()
+                .finalizarStatus(pessoa);
+    }
+
+    private void registrarEnvioEmailAposCommit(
+            Long idPrograma) {
+
+        TransactionSynchronizationManager
+                .registerSynchronization(
+                        new TransactionSynchronization() {
+
+                            @Override
+                            public void afterCommit() {
+
+                                enviarEmailProgramaAssinado(
+                                        idPrograma);
+                            }
+                        });
+    }
+
+    private void enviarEmailProgramaAssinado(
+            Long idPrograma) {
+
+        try {
+
+            Programa programa = repository.findById(idPrograma)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Programa não encontrado após assinatura. Id: "
+                                    + idPrograma));
+
+            emailService.enviarEmailAvisoProgramaAssinadoSubcap(
+                    List.of(emailSubcap),
+                    programa);
+
+            logger.info(
+                    "E-mail de programa assinado enviado com sucesso. Programa {}",
+                    idPrograma);
+
+        } catch (Exception e) {
+
+            logger.error(
+                    "Programa {} foi marcado como assinado, "
+                            + "mas ocorreu erro ao enviar o e-mail de aviso.",
+                    idPrograma,
+                    e);
+        }
+    }
 
 }
