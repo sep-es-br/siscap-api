@@ -5,6 +5,7 @@ import br.gov.es.siscap.dto.ProjetoCamposComplementacaoDto;
 import br.gov.es.siscap.dto.ProjetoDto;
 import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.enums.edocs.ContextoIntegracaoEdocsEnum;
+import br.gov.es.siscap.enums.edocs.EtapasIntegracaoEdocsEnum;
 import br.gov.es.siscap.models.Pessoa;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -117,7 +118,18 @@ public class AsyncExecutorService {
                                     ctx.getProtocolo(), ctx.getIdProcesso() , idPessoa);
                     integracaoEdocsService.finalizaTodasEtapas(chave);
                 })
-                .subscribe();
+                .doOnError(erro -> {
+                    var fases = integracaoEdocsService.consultarFasesIntegracaoEdocsPrograma(programaDto.id());
+                    if (fases.stream().noneMatch(fase -> fase.isErro())) {
+                        var etapa = fases.stream().anyMatch(fase -> fase.getEtapa() == EtapasIntegracaoEdocsEnum.AUTUAR
+                                && fase.isFinalizada())
+                                ? EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO
+                                : EtapasIntegracaoEdocsEnum.AUTUAR;
+                        integracaoEdocsService.registrarFalhaEtapa(chave, etapa);
+                    }
+                    logger.error("Erro ao autuar programa {} no E-Docs", programaDto.id(), erro);
+                })
+                .subscribe(ctx -> {}, erro -> {});
     }
 
     @Async
