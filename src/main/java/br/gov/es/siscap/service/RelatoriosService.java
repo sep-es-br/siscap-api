@@ -237,6 +237,8 @@ public class RelatoriosService {
 									.toList()))
 					.toList();
 
+			// List<ProjetoOdsRelatorioDto> listaOdsProjeto = projetoDto.acoesProjeto().
+
 			map.put("idProjeto", idProjeto);
 			map.put("pathRelatorios", raizRelatorios);
 			map.put("exibirMarcaDagua", marca);
@@ -245,6 +247,7 @@ public class RelatoriosService {
 			map.put("planejamentoDataSource", new JRBeanCollectionDataSource(listaPlanejamentoAcoesProjeto));
 			map.put("naoPrevistoPpa", projetoDto.naoPrevistoNoPpa());
 			map.put("periodoPlanejamento", "");
+			// map.put("rateioPorAcao", );
 
 			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
 

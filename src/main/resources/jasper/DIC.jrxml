@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
@@ -16,6 +16,9 @@
 	<parameter name="planejamentoDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
 	<parameter name="periodoPlanejamento" class="java.lang.String"/>
 	<parameter name="naoPrevistoPpa" class="java.lang.Boolean"/>
+	<parameter name="rateioPorAcao" class="java.lang.Boolean">
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
 	<query language="sql"><![CDATA[select
 	proj.id as id_projeto,
 	proj.criado_em as data_criacao_projeto,
@@ -366,11 +369,12 @@ group by
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
 		</band>
-		<band height="74" splitType="Stretch">
+		<band height="91" splitType="Stretch">
 			<element kind="staticText" uuid="7d16269f-8022-46c7-a7a1-eada7346c657" x="0" y="0" width="534" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Ações]]></text>
 			</element>
-			<element kind="subreport" uuid="4d5c6129-4c34-4dd1-83e9-db8d83bcb782" stretchType="ElementGroupHeight" x="-1" y="43" width="534" height="20">
+			<element kind="subreport" uuid="4d5c6129-4c34-4dd1-83e9-db8d83bcb782" stretchType="ElementGroupHeight" x="0" y="43" width="535" height="20">
+				<printWhenExpression><![CDATA[!Boolean.TRUE.equals( $P{rateioPorAcao} )]]></printWhenExpression>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<expression><![CDATA[$P{pathRelatorios} + "/acoes.jasper"]]></expression>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -383,23 +387,32 @@ group by
 				</parameter>
 			</element>
 			<element kind="staticText" uuid="f3accc1a-66e2-4038-82d3-6d19dadbdf66" x="0" y="22" width="130" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<printWhenExpression><![CDATA[!Boolean.TRUE.equals( $P{rateioPorAcao} )]]></printWhenExpression>
 				<text><![CDATA[Ação Principal]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
 			<element kind="staticText" uuid="4ac9dde6-1d6b-49bd-a2ac-780dcc77dd4a" x="140" y="22" width="116" height="20" fontName="SansSerif" bold="true" hTextAlign="Right" vTextAlign="Middle">
+				<printWhenExpression><![CDATA[!Boolean.TRUE.equals( $P{rateioPorAcao} )]]></printWhenExpression>
 				<text><![CDATA[Valor Estimado  ]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
 			<element kind="staticText" uuid="ee271e7b-a68a-47f2-953d-528fd6d0083c" x="270" y="22" width="263" height="20" forecolor="#000000" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
+				<printWhenExpression><![CDATA[!Boolean.TRUE.equals( $P{rateioPorAcao} )]]></printWhenExpression>
 				<text><![CDATA[Ações Secundárias]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
 			<element kind="line" uuid="a3e3b3e8-0ae5-4c89-b9a9-8af463d70fe9" x="-1" y="20" width="535" height="1" forecolor="#B2B2B2"/>
+			<element kind="subreport" uuid="06f2779c-2f86-499e-826d-a6184c34c979" stretchType="ElementGroupHeight" x="0" y="68" width="535" height="23">
+				<printWhenExpression><![CDATA[Boolean.TRUE.equals( $P{rateioPorAcao} )]]></printWhenExpression>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<expression><![CDATA[$P{pathRelatorios} + "/rateio_microrregioes_por_acao.jasper"]]></expression>
+			</element>
 		</band>
 		<band height="47" splitType="Stretch">
+			<printWhenExpression><![CDATA[!Boolean.TRUE.equals( $P{rateioPorAcao} )]]></printWhenExpression>
 			<element kind="staticText" uuid="b18ead03-49e6-4c36-9870-064a88fa2abb" x="0" y="0" width="308" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Regiões Geográficas Atendidas]]></text>
 			</element>
