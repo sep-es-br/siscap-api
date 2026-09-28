@@ -128,7 +128,10 @@ public record ProjetoForm(
         @Valid
         List<ProjetoPlanejamentoPpaLoaDto> acoesPlanejamentoProjeto,
 
-        Boolean naoPrevistoNoPpa
+        Boolean naoPrevistoNoPpa,
+
+        @Valid
+        List<ProjetoAcaoDto> acoesRateioProjeto
 
 ) {
 }

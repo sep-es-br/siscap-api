@@ -22,8 +22,11 @@ public class CacheAgentesGovesService {
 
     @PostConstruct
     public void init() {
-        logger.debug("Carregar cache com a lista de todos os agentes publicos de GOVES.");
-        carregarCache();
+        try {
+            carregarCache();
+        } catch (Exception e) {
+            logger.error("Não foi possível carregar o cache de agentes do Acesso Cidadão.", e);
+        }
     }
 
     public void carregarCache(List<ResponsavelProponenteOpcoesDto> dados) {
