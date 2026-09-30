@@ -221,9 +221,24 @@ public class IntegraccaoEdocsService {
 				throw new ValidacaoSiscapException(
 						List.of("Parecer já capturado via E-Docs"));
 			}
+		var chave = new ChaveEtapasIntegracao(idProjeto, ContextoIntegracaoEdocsEnum.DIC);
+
+		this.limparEtapas(chave);
+		this.adicionarEtapa(chave,
+				new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
+
+		try {
+			if (projetoParecerService.verificarCapturaParecer(idParecer)) {
+				logger.info("Parecere {} já capturado no E-Docs..", idParecer);
+				throw new ValidacaoSiscapException(
+						List.of("Parecer já capturado via E-Docs"));
+			}
 
 			ProjetoParecer parecer = projetoParecerService.buscar(idParecer);
+			ProjetoParecer parecer = projetoParecerService.buscar(idParecer);
 
+			Resource resource;
+			String nomeArquivo = "";
 			Resource resource;
 			String nomeArquivo = "";
 
@@ -235,10 +250,21 @@ public class IntegraccaoEdocsService {
 						projetoParecerService.buscarTipoParecer(idParecer), elegível);
 				nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
 			}
+			if (!parecer.getNomeOriginalArquivo().isEmpty()) {
+				resource = projetoParecerService.buscarArquivo(idParecer);
+				nomeArquivo = parecer.getNomeOriginalArquivo();
+			} else {
+				resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
+						projetoParecerService.buscarTipoParecer(idParecer), elegível);
+				nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
+			}
 
 			String subUsuarioLogado = autenticacaoService.getUsuarioLogado();
 			ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
+			String subUsuarioLogado = autenticacaoService.getUsuarioLogado();
+			ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 
+			String subJwt = autenticacaoService.getUsuarioSub();
 			String subJwt = autenticacaoService.getUsuarioSub();
 
 			this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado,
@@ -376,7 +402,7 @@ public class IntegraccaoEdocsService {
 				.map(token -> {
 
 					if (!this.validarMovimentacaoProcessoEdcos(token, projetoDto.idProcessoEdocs())) {
-
+						
 						String msgAlerta = "Não é possível despachar o processo pois o mesmo está em um local de custódia que impede essa movimentação no E-Docs por você.";
 
 						this.registrarFalhaEtapa(
@@ -715,26 +741,6 @@ public class IntegraccaoEdocsService {
 				})
 				.thenReturn(ctx);
 	}
-
-	// private Mono<FluxoContextoIntegracaoDto>
-	// encerrarProcessoEdocs(FluxoContextoIntegracaoDto ctx) {
-	// logger.info("Iniciar processo de encerramento processo E-Docs DIC Id: {}.",
-	// ctx.getProjeto().id());
-	// return FeignReativo.fromFeign(() -> encerrarProcessoEdcosClient(ctx))
-	// .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)))
-	// .switchIfEmpty(
-	// Mono.error(new RuntimeException(
-	// "Falha ao executar chamada ao endpoint para encerrar um processo via
-	// E-Docs.")))
-	// .doOnSuccess(retorno -> ctx.setIdEventoEncerramento(retorno.replace("\"",
-	// "")))
-	// .doOnError(e -> {
-	// logger.error(
-	// "Falha ao executar chamada ao endpoint para encerramento um processo via
-	// E-Docs.", e);
-	// })
-	// .thenReturn(ctx);
-	// }
 
 	private Mono<FluxoContextoIntegracaoDto> encerrarProcessoEdocs(FluxoContextoIntegracaoDto ctx) {
 
@@ -2364,5 +2370,6 @@ public class IntegraccaoEdocsService {
 						false,
 						false));
 	}
+
 
 }

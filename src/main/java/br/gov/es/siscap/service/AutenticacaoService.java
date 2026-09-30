@@ -15,11 +15,13 @@ import jakarta.transaction.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -102,6 +104,8 @@ public class AutenticacaoService {
 		logger.info("Autenticar usuário SisCap.");
 
 		ACUserInfoDto userInfo = acessoCidadaoService.buscarInformacoesUsuario(accessToken);
+		logger.info("AUTH_AC_ROLES_RECEIVED agentepublico={} roles={}",
+				userInfo.agentepublico(), userInfo.role());
 
 		if (Boolean.FALSE.equals(userInfo.agentepublico()) && (userInfo.role() == null || userInfo.role().isEmpty()))
 			throw new UsuarioSemAutorizacaoException();
@@ -117,12 +121,17 @@ public class AutenticacaoService {
 		if (isProponente)
 			userInfo.role().add("PROPONENTE");
 
+		logger.info("AUTH_SISCAP_ROLES_EFFECTIVE generatedRole={} roles={}",
+				isProponente ? "PROPONENTE" : "none", userInfo.role());
+
 		Usuario usuario = buscarOuCriarUsuario(userInfo, accessToken);
 		String token = tokenService.gerarToken(usuario);
 
 		byte[] imagemPerfil = construirImagemPerfilUsuario(usuario.getPessoa().getNomeImagem());
 
 		Set<Permissoes> permissoes = construirPermissoesSet(usuario.getPapeis());
+		logger.info("AUTH_SISCAP_PERMISSIONS_GENERATED roles={} permissions={}",
+				usuario.getPapeis(), permissoes);
 
 		Set<Long> idOrganizacoes = construirIdOrganizacoesSet(usuario.getPessoa(), usuario.getSub());
 
@@ -161,9 +170,13 @@ public class AutenticacaoService {
 
 			atualizarNomeNomeSocialPessoa(usuario.getPessoa(), userInfo);
 
+			Set<String> papeisAnteriores = usuario.getPapeis();
+			Set<String> papeisNovos = validarPapeisUsuario(userInfo);
+			logger.info("AUTH_USER_ROLES_REPLACED previousRoles={} newRoles={}",
+					papeisAnteriores, papeisNovos);
 			logger.info("Usuário já existente, procedendo com atualizações de papeis e token.");
 			usuario.setAccessToken(accessToken);
-			usuario.setPapeis(validarPapeisUsuario(userInfo));
+			usuario.setPapeis(papeisNovos);
 			usuarioRepository.saveAndFlush(usuario);
 
 			logger.info("Usuário atualizado com sucesso.");
@@ -180,7 +193,9 @@ public class AutenticacaoService {
 			pessoa = criarPessoa(userInfo);
 		}
 
-		usuario = new Usuario(null, validarPapeisUsuario(userInfo), pessoa, userInfo.subNovo(), accessToken);
+		Set<String> papeisNovos = validarPapeisUsuario(userInfo);
+		logger.info("AUTH_USER_CREATED roles={}", papeisNovos);
+		usuario = new Usuario(null, papeisNovos, pessoa, userInfo.subNovo(), accessToken);
 
 		usuarioRepository.save(usuario);
 
@@ -245,96 +260,91 @@ public class AutenticacaoService {
 	}
 
 	private Set<Long> construirIdOrganizacoesSet(Pessoa usuarioPessoa, String subNovo) {
+
 		logger.info("Buscando organizações do usuário.");
 
-		// busca todos as organizações da pessoa no banco
-		Set<PessoaOrganizacao> pessoaOrganizacaoSet = pessoaOrganizacaoService.buscarPorPessoa(usuarioPessoa);
+		Set<PessoaOrganizacao> organizacoesBanco = pessoaOrganizacaoService.buscarPorPessoa(usuarioPessoa);
 
-		if (pessoaOrganizacaoSet != null && !pessoaOrganizacaoSet.isEmpty()) {
+		Set<Map<String, Object>> organizacoesAc = getOrganizacoesDaPessoaAC(usuarioPessoa, subNovo);
+
+		Set<Long> idsPrioritarios = organizacoesAc.stream()
+				.filter(map -> "true".equalsIgnoreCase(
+						String.valueOf(map.get("prioritario"))))
+				.map(map -> (Organizacao) map.get("organizacao"))
+				.map(Organizacao::getId)
+				.collect(Collectors.toSet());
+
+		if (organizacoesBanco != null && !organizacoesBanco.isEmpty()) {
 
 			logger.info("Organizações do usuário encontradas com sucesso.");
 
-			// busca as organizações segundo acesso cidadão que estão no banco
-			Set<Map<String, Object>> organizacoesAc = getOrganizacoesDaPessoaAC(usuarioPessoa, subNovo);
-
-			Set<Long> idsPrioritarios = organizacoesAc.stream()
-					.filter(map -> "true".equalsIgnoreCase((String) map.get("prioritario"))) // Boolean.TRUE.equals(map.get("prioritario")))
-																								// // Só os prioritários
-					.map(map -> ((Organizacao) map.get("organizacao")).getId()) // Extrai o ID
+			Set<String> guidsOrganizacoesAc = organizacoesAc.stream()
+					.map(map -> (Organizacao) map.get("organizacao"))
+					.map(Organizacao::getGuid)
+					.filter(Objects::nonNull)
+					.filter(guid -> !guid.isBlank())
 					.collect(Collectors.toSet());
 
-			// busca as organizações segundo o banco atual
-			Set<PessoaOrganizacao> organizacoesBanco = pessoaOrganizacaoService.buscarPorPessoa(usuarioPessoa);
+			Set<String> guidsOrganizacoesBanco = organizacoesBanco.stream()
+					.map(PessoaOrganizacao::getOrganizacao)
+					.map(Organizacao::getGuid)
+					.filter(Objects::nonNull)
+					.filter(guid -> !guid.isBlank())
+					.collect(Collectors.toSet());
 
-			// desvincular as organizacoes que estão sobrando no banco
+			// Organizações que existem no banco, mas não existem mais no AC.
 			Set<PessoaOrganizacao> organizacoesSobrando = organizacoesBanco.stream()
-					.filter(o -> {
-						return o.getOrganizacao().getGuid() != null &&
-								!o.getOrganizacao().getGuid().isBlank() &&
-								!organizacoesAc.stream()
-										.map(map -> (Organizacao) map.get("organizacao"))
-										.map(Organizacao::getGuid)
-										.toList().contains(o.getOrganizacao().getGuid());
-					}).collect(Collectors.toSet());
+					.filter(pessoaOrganizacao -> {
+						String guid = pessoaOrganizacao.getOrganizacao().getGuid();
 
-			pessoaOrganizacaoService
-					.excluirTodosPorId(organizacoesSobrando.stream().map(PessoaOrganizacao::getId).toList());
+						return guid != null
+								&& !guid.isBlank()
+								&& !guidsOrganizacoesAc.contains(guid);
+					})
+					.collect(Collectors.toSet());
 
-			final Set<PessoaOrganizacao> organizacoesBancoFinal = organizacoesBanco;
+			pessoaOrganizacaoService.excluirTodosPorId(
+					organizacoesSobrando.stream()
+							.map(PessoaOrganizacao::getId)
+							.toList());
 
-			// vincular as organizações que estão faltando
+			// Organizações existentes no AC, mas ainda não vinculadas no banco.
 			Set<Organizacao> organizacoesFaltando = organizacoesAc.stream()
 					.map(map -> (Organizacao) map.get("organizacao"))
-					.filter(organizacao -> {
-						return !organizacoesBancoFinal.stream()
-								.map(PessoaOrganizacao::getOrganizacao)
-								.map(Organizacao::getGuid)
-								.toList().contains(organizacao.getGuid());
-					}).collect(Collectors.toSet());
+					.filter(organizacao -> !guidsOrganizacoesBanco.contains(organizacao.getGuid()))
+					.collect(Collectors.toSet());
 
-			HashSet<PessoaOrganizacao> pessoaOrganizacaosFaltando = new HashSet<>();
-			for (Organizacao organizacao : organizacoesFaltando) {
-				PessoaOrganizacao pessoaOrganizacao = new PessoaOrganizacao(usuarioPessoa, organizacao);
-				pessoaOrganizacaosFaltando.add(pessoaOrganizacao);
-			}
+			Set<PessoaOrganizacao> vinculosFaltando = organizacoesFaltando.stream()
+					.map(organizacao -> new PessoaOrganizacao(usuarioPessoa, organizacao))
+					.collect(Collectors.toSet());
 
-			pessoaOrganizacaosFaltando = new HashSet<>(
-					pessoaOrganizacaoService.salvarPessoaOrganizacaoSetAutenticacaoUsuario(pessoaOrganizacaosFaltando));
+			Set<PessoaOrganizacao> novosVinculos = new HashSet<>(
+					pessoaOrganizacaoService
+							.salvarPessoaOrganizacaoSetAutenticacaoUsuario(
+									vinculosFaltando));
 
-			// vinculo do banco menos os que foram removidos
-			organizacoesBanco = new HashSet<>(organizacoesBanco.stream()
-					.filter(oBanco -> !organizacoesSobrando.stream().map(PessoaOrganizacao::getId).toList()
-							.contains(oBanco.getId()))
-					.toList());
+			// Remove da coleção local os vínculos que foram excluídos.
+			Set<Long> idsExcluidos = organizacoesSobrando.stream()
+					.map(PessoaOrganizacao::getId)
+					.collect(Collectors.toSet());
 
-			// mais o que estavam faltando
-			organizacoesBanco.addAll(pessoaOrganizacaosFaltando);
+			organizacoesBanco = organizacoesBanco.stream()
+					.filter(pessoaOrganizacao -> !idsExcluidos.contains(pessoaOrganizacao.getId()))
+					.collect(Collectors.toCollection(HashSet::new));
 
-			return organizacoesBanco.stream()
-					.map(PessoaOrganizacao::getOrganizacao)
-					.sorted((org1, org2) -> {
-						boolean isPrioritario1 = idsPrioritarios.contains(org1.getId());
-						boolean isPrioritario2 = idsPrioritarios.contains(org2.getId());
-						if (isPrioritario1 != isPrioritario2) {
-							return isPrioritario1 ? -1 : 1; // Prioritário vem antes
-						}
-						return org1.getNome().compareToIgnoreCase(org2.getNome());
-					})
-					.map(Organizacao::getId)
-					.collect(Collectors.toCollection(LinkedHashSet::new));
+			// Adiciona os vínculos recém-criados.
+			organizacoesBanco.addAll(novosVinculos);
 
 		} else {
-			logger.info("Usuário não está vinculado a nenhuma organizacao.");
+
+			logger.info("Usuário não está vinculado a nenhuma organização.");
 			logger.info("Iniciando processo de vinculação de usuário a organizações.");
-			Set<PessoaOrganizacao> pessoaOrganizacaoSetNovo = vincularPessoaOrganizacoes(usuarioPessoa, subNovo);
-			logger.info("Vínculo entre pessoa e organizações realizado com sucesso.");
-			return pessoaOrganizacaoSetNovo
-					.stream()
-					.map(PessoaOrganizacao::getOrganizacao)
-					.sorted((a, b) -> a.getNome()
-							.compareToIgnoreCase(b.getNome()))
-					.map(Organizacao::getId).collect(Collectors.toSet());
+			organizacoesBanco = vincularPessoaOrganizacoes(usuarioPessoa, subNovo);
+			logger.info(
+					"Vínculo entre pessoa e organizações realizado com sucesso.");
 		}
+
+		return ordenarOrganizacoes(organizacoesBanco, idsPrioritarios);
 
 	}
 
@@ -490,6 +500,24 @@ public class AutenticacaoService {
 
 	private static String getEmailUserInfo(ACUserInfoDto userInfo) {
 		return userInfo.emailCorporativo() != null ? userInfo.emailCorporativo() : userInfo.email();
+	}
+
+	private Set<Long> ordenarOrganizacoes(
+			Set<PessoaOrganizacao> pessoaOrganizacoes,
+			Set<Long> idsPrioritarios) {
+
+		return pessoaOrganizacoes.stream()
+				.map(PessoaOrganizacao::getOrganizacao)
+				.sorted(
+						Comparator
+								.comparing(
+										(Organizacao organizacao) -> !idsPrioritarios.contains(
+												organizacao.getId()))
+								.thenComparing(
+										Organizacao::getNome,
+										String.CASE_INSENSITIVE_ORDER))
+				.map(Organizacao::getId)
+				.collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
 }

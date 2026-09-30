@@ -1,6 +1,8 @@
 package br.gov.es.siscap.config.security;
 
 import static br.gov.es.siscap.enums.Permissoes.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,12 +14,15 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+	private static final Logger logger = LogManager.getLogger(SecurityConfig.class);
 
 	public static final String PATH_PESSOAS = "/pessoas/**";
 	private static final String PATH_PROJETO = "/projetos/**";
@@ -101,7 +106,15 @@ public class SecurityConfig {
 								.authorizationRequestResolver(new AuthorizationRequestResolver(
 										clientRegistrationRepository, "/oauth2/authorization"))))
 				.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-				.exceptionHandling(exHandler -> exHandler.accessDeniedHandler(customAccessDeniedHandler))
+				.exceptionHandling(exHandler -> exHandler
+						.accessDeniedHandler(customAccessDeniedHandler)
+						.authenticationEntryPoint((request, response, authenticationException) -> {
+							logger.warn("SECURITY_ENTRY_POINT method={} uri={} authenticated=false exception={}",
+									request.getMethod(), request.getRequestURI(),
+									authenticationException.getClass().getSimpleName());
+							new LoginUrlAuthenticationEntryPoint("/oauth2/authorization/acessocidadao")
+									.commence(request, response, authenticationException);
+						}))
 				.build();
 	}
 
