@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import br.gov.es.siscap.models.LocalidadeQuantia;
 import br.gov.es.siscap.models.ProjetoAcao;
+import br.gov.es.siscap.models.ProjetoAcaoLocalidadeQuantia;
 
 @Service
 @RequiredArgsConstructor
@@ -180,13 +181,13 @@ public class ProjetoAcaoService {
 						BigDecimal.ZERO,
 						BigDecimal::add));
 
-		BigDecimal totalValorEstimadoProjeto = projeto.getLocalidadeQuantiaSet()
-				.stream()
-				.map(LocalidadeQuantia::getQuantia)
+		BigDecimal totalValorEstimadoProjeto = projetoAcaoSet.stream()
+				.flatMap(acao -> Optional.ofNullable(acao.getRateios())
+						.orElseGet(Collections::emptySet)
+						.stream())
+				.map(ProjetoAcaoLocalidadeQuantia::getQuantia)
 				.filter(Objects::nonNull)
-				.collect(Collectors.reducing(
-						BigDecimal.ZERO,
-						BigDecimal::add));
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 		return totalValorEstimadoAcoes.compareTo(totalValorEstimadoProjeto) != 0;
 
