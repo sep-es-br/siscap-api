@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import br.gov.es.siscap.models.LocalidadeQuantia;
@@ -23,53 +24,149 @@ import br.gov.es.siscap.models.ProjetoAcao;
 @Transactional(readOnly = true)
 public class ProjetoAcaoService {
 
-	private final ProjetoAcaoRepository projetoAcapRepository;
-	private final Logger logger = LogManager.getLogger(ProjetoAcao.class);
+	private final ProjetoAcaoRepository projetoAcaoRepository;
+	private final ProjetoAcaoLocalidadeQuantiaService projetoAcaoLocalidadeQuantiaService;
+	private final Logger logger = LogManager.getLogger(ProjetoAcaoService.class);
 
 	public Set<ProjetoAcao> buscarPorProjeto(Projeto projeto) {
 		logger.info("Buscando acoes do Projeto com id: {}", projeto.getId());
-		return this.projetoAcapRepository.findAllByProjeto(projeto);
+		return this.projetoAcaoRepository.findAllByProjeto(projeto);
 	}
 
 	@Transactional
-	public Set<ProjetoAcao> cadastrar(Projeto projeto, List<ProjetoAcaoDto> ProjetoAcaoDtoList) {
+	public Set<ProjetoAcao> cadastrar(
+			Projeto projeto,
+			List<ProjetoAcaoDto> projetoAcaoDtoList) {
 
-		logger.info("Cadastrando acoes do Projeto com id: {}", projeto.getId());
+		logger.info(
+				"Cadastrando ações do Projeto com id: {}",
+				projeto.getId());
 
-		Set<ProjetoAcao> ProjetoAcaoSet = new HashSet<>();
+		if (projetoAcaoDtoList == null || projetoAcaoDtoList.isEmpty()) {
+			logger.info(
+					"Nenhuma ação informada para o Projeto com id: {}",
+					projeto.getId());
 
-		ProjetoAcaoDtoList.forEach(acaoDto -> {
-			ProjetoAcao acaoProjeto = new ProjetoAcao(projeto, acaoDto);
-			ProjetoAcaoSet.add(acaoProjeto);
+			return Set.of();
+		}
+
+		Set<ProjetoAcao> projetoAcaoSet = new HashSet<>();
+
+		projetoAcaoDtoList.forEach(acaoDto -> {
+
+			ProjetoAcao projetoAcao = projetoAcaoRepository.save(
+					new ProjetoAcao(projeto, acaoDto));
+
+			projetoAcaoLocalidadeQuantiaService.cadastrar(
+					projetoAcao,
+					acaoDto.rateio());
+
+			projetoAcaoSet.add(projetoAcao);
 		});
 
-		List<ProjetoAcao> ProjetoAcaoList = projetoAcapRepository.saveAll(ProjetoAcaoSet);
+		logger.info(
+				"Ações e rateios do Projeto com id {} cadastrados com sucesso",
+				projeto.getId());
 
-		logger.info("Ações do projeto cadastradas com sucesso");
-
-		return new HashSet<>(ProjetoAcaoList);
-
+		return projetoAcaoSet;
 	}
 
 	@Transactional
-	public Set<ProjetoAcao> atualizar(Projeto projeto, List<ProjetoAcaoDto> ProjetoAcaoDtoList, boolean isSalvar) {
+	public Set<ProjetoAcao> atualizar(
+			Projeto projeto,
+			List<ProjetoAcaoDto> acoesDto,
+			boolean isSalvar) {
 
-		logger.info("Alterando dados de acões do Projeto com id: {}", projeto.getId());
+		logger.info(
+				"Alterando ações do Projeto com id: {}",
+				projeto.getId());
 
-		Set<ProjetoAcao> ProjetoAcaoSet = this.buscarPorProjeto(projeto);
+		List<ProjetoAcaoDto> acoesRecebidas = Optional.ofNullable(acoesDto)
+				.orElseGet(Collections::emptyList);
 
-		Set<ProjetoAcao> acoesProjetoAtualizarSet = this.atualizarAcoesProjeto(projeto, ProjetoAcaoSet,
-				ProjetoAcaoDtoList);
+		Set<ProjetoAcao> acoesAtuais = buscarPorProjeto(projeto);
 
-		if (!isSalvar)
-			if (this.validarValorEstimadoProjetoAcoes(projeto, acoesProjetoAtualizarSet, isSalvar))
-				throw new ValorEstimadoIncompativelAcoesProjetoException();
+		Map<Integer, ProjetoAcao> acoesPorId = acoesAtuais.stream()
+				.filter(acao -> acao.getId() != null)
+				.collect(Collectors.toMap(
+						ProjetoAcao::getId,
+						Function.identity()));
 
-		projetoAcapRepository.saveAllAndFlush(acoesProjetoAtualizarSet);
+		Map<ProjetoAcaoDto, ProjetoAcao> acoesProcessadas = new LinkedHashMap<>();
 
-		logger.info("Ações do projeto alterada com sucesso");
+		acoesRecebidas.forEach(dto -> {
 
-		return this.buscarPorProjeto(projeto);
+			ProjetoAcao acao = Optional.ofNullable(dto.idAcao())
+					.filter(id -> id > 0)
+					.map(acoesPorId::get)
+					.orElseGet(
+							() -> new ProjetoAcao(
+									projeto,
+									dto));
+
+			if (acao.getId() != null) {
+				acao.atualizarAcao(dto);
+			}
+
+			acoesProcessadas.put(dto, acao);
+		});
+
+		Set<ProjetoAcao> acoesAtualizadas = new HashSet<>(
+				acoesProcessadas.values());
+
+		/*
+		 * Ações existentes no banco que não vieram mais
+		 * no payload devem ser removidas.
+		 */
+		Set<Integer> idsRecebidos = acoesRecebidas.stream()
+				.map(ProjetoAcaoDto::idAcao)
+				.filter(Objects::nonNull)
+				.filter(id -> id > 0)
+				.collect(Collectors.toSet());
+
+		Set<ProjetoAcao> acoesRemovidas = acoesAtuais.stream()
+				.filter(acao -> acao.getId() != null &&
+						!idsRecebidos.contains(
+								acao.getId()))
+				.collect(Collectors.toSet());
+
+		if (!isSalvar &&
+				validarValorEstimadoProjetoAcoes(
+						projeto,
+						acoesAtualizadas,
+						false)) {
+
+			throw new ValorEstimadoIncompativelAcoesProjetoException();
+		}
+
+		/*
+		 * Primeiro remove o que deixou de existir.
+		 */
+		if (!acoesRemovidas.isEmpty()) {
+			projetoAcaoRepository.deleteAll(acoesRemovidas);
+		}
+
+		/*
+		 * Depois salva novas ações e atualizações.
+		 */
+		projetoAcaoRepository.saveAllAndFlush(
+				acoesAtualizadas);
+
+		/*
+		 * Neste ponto as ações novas já possuem ID.
+		 * Agora sincronizamos o rateio de cada ação.
+		 */
+		acoesProcessadas.forEach(
+				(dto, acao) -> projetoAcaoLocalidadeQuantiaService
+						.atualizar(
+								acao,
+								dto.rateio()));
+
+		logger.info(
+				"Ações e rateios do Projeto com id {} alterados com sucesso",
+				projeto.getId());
+
+		return buscarPorProjeto(projeto);
 
 	}
 
@@ -102,14 +199,14 @@ public class ProjetoAcaoService {
 
 		Set<ProjetoAcao> projetoAcaoSet = this.buscarPorProjeto(projeto);
 
-		if(projetoAcaoSet.isEmpty()){
+		if (projetoAcaoSet.isEmpty()) {
 			logger.info("Nenhuma ação de projeto encontrada para exclusão.");
 			return;
 		}
 
-		List<ProjetoAcao> projetoAcaoList = projetoAcapRepository.saveAllAndFlush(projetoAcaoSet);
+		List<ProjetoAcao> projetoAcaoList = projetoAcaoRepository.saveAllAndFlush(projetoAcaoSet);
 
-		projetoAcapRepository.deleteAll(projetoAcaoList);
+		projetoAcaoRepository.deleteAll(projetoAcaoList);
 
 		logger.info("Ações do projeto excluida com sucesso");
 
@@ -120,7 +217,7 @@ public class ProjetoAcaoService {
 
 		logger.info("Excluindo fisicamente ações do Projeto com id: {}", projeto.getId());
 
-		projetoAcapRepository.deleteFisicoPorProjeto(projeto.getId());
+		projetoAcaoRepository.deleteFisicoPorProjeto(projeto.getId());
 
 		logger.info("Ações do projeto excluidas fisicamente com sucesso");
 

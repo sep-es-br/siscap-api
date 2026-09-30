@@ -25,22 +25,28 @@ public class AsyncExecutorService {
     private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
     @Async
-    public void executarAutuacaoEdocs(Long idProjeto, Pessoa pessoa, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua, String subUsuario) {
-        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue(), exibirMarcaDagua, service.buscarPorId(idProjeto));
+    public void executarAutuacaoEdocs(Long idProjeto, Pessoa pessoa, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua,
+            String subUsuario) {
+        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue(), exibirMarcaDagua,
+                service.buscarPorId(idProjeto));
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
-        integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP(resource, nomeArquivo, idProjeto.longValue(), pessoa, subUsuario);
+        integracaoEdocsService.assinarAutuarDespacharDicProccessoSUBCAP(resource, nomeArquivo, idProjeto.longValue(),
+                pessoa, subUsuario);
     }
 
     @Async
-    public void executarReentranhamentoDicEdocs(Long idProjeto, Pessoa pessoa, ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) {
-        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue(), exibirMarcaDagua, service.buscarPorId(idProjeto));
+    public void executarReentranhamentoDicEdocs(Long idProjeto, Pessoa pessoa,
+            ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) {
+        Resource resource = relatoriosService.gerarArquivo("DIC", idProjeto.intValue(), exibirMarcaDagua,
+                service.buscarPorId(idProjeto));
         String nomeArquivo = service.gerarNomeArquivo(idProjeto.intValue());
         integracaoEdocsService.reentranharDespacharDicProccessoComplementacaoSUBCAP(resource, nomeArquivo,
                 idProjeto, pessoa);
     }
 
     @Async
-    public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos, Pessoa pessoa) {
+    public void despacharProcessoOrgaoOrigemEdocs(Long idProjeto, List<ProjetoCamposComplementacaoDto> complementos,
+            Pessoa pessoa) {
         integracaoEdocsService.despacharProccessoEdocsOrgaoOrigem(idProjeto, complementos, pessoa);
     }
 
@@ -60,33 +66,69 @@ public class AsyncExecutorService {
     }
 
     @Async
-    public void criarArquivoProgramaFaseAssinaturaEdocsServidor(Long idPrograma, List<String> subAssinantes,
-            String nomeArquivo, Long idPessoa) {
+    public void criarArquivoProgramaFaseAssinaturaEdocsServidor(
+            Long idPrograma,
+            List<String> subAssinantes,
+            String nomeArquivo,
+            Long idPessoa) {
 
-        integracaoEdocsService.enviarArquivoAssinaturasPendentes(idPrograma, subAssinantes, nomeArquivo)
-                .doOnSuccess(idDocumento -> 
-                    programaProcessamentoService
-                            .marcarCriacaoArquivoProgramaEdocs(
-                                    idPrograma,
-                                    subAssinantes,
-                                    idDocumento,
-                                    idPessoa)
-                )
-                .doOnError(e -> 
-                    logger.error("Erro ao integrar com E-Docs para criar arquivo em fase assinatura. Programa {}",
-                            idPrograma, e)
-                )
-                .subscribe();
+        try {
 
+            String idDocumento = integracaoEdocsService
+                    .enviarArquivoAssinaturasPendentes(
+                            idPrograma,
+                            subAssinantes,
+                            nomeArquivo)
+                    .block();
+
+            if (idDocumento == null || idDocumento.isBlank()) {
+                throw new IllegalStateException(
+                        "E-Docs não retornou o identificador do documento.");
+            }
+
+            programaProcessamentoService
+                    .marcarCriacaoArquivoProgramaEdocs(
+                            idPrograma,
+                            subAssinantes,
+                            idDocumento,
+                            idPessoa);
+
+            try {
+
+                programaProcessamentoService
+                        .enviarAvisoSolicitarAssinaturaPrograma(
+                                idPrograma,
+                                subAssinantes);
+
+            } catch (Exception e) {
+
+                logger.error(
+                        "Documento do Programa {} criado no E-Docs "
+                                + "e registrado no SISCAP, porém houve erro "
+                                + "ao enviar o aviso aos assinantes.",
+                        idPrograma,
+                        e);
+            }
+
+        } catch (Exception e) {
+
+            logger.error(
+                    "Erro ao integrar Programa {} com E-Docs "
+                            + "para criação de arquivo em fase de assinatura.",
+                    idPrograma,
+                    e);
+        }
+        
     }
 
     @Async
-    public void assinarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, String idDocumentoCapturadoEdocs, String subAssinante ) {
+    public void assinarArquivoFaseAssinaturaEdocsServidor(Long idPrograma, String idDocumentoCapturadoEdocs,
+            String subAssinante) {
 
-        var chave = new ChaveEtapasIntegracao( idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA );
+        var chave = new ChaveEtapasIntegracao(idPrograma, ContextoIntegracaoEdocsEnum.PROGRAMA);
 
-        integracaoEdocsService.assinarArquivoPendenteReativo( idPrograma, idDocumentoCapturadoEdocs, chave )
-                .doOnSuccess( idDocumentoAutuado -> {
+        integracaoEdocsService.assinarArquivoPendenteReativo(idPrograma, idDocumentoCapturadoEdocs, chave)
+                .doOnSuccess(idDocumentoAutuado -> {
                     if (idDocumentoAutuado != null) {
                         programaProcessamentoService
                                 .atualizarIdDocumentoEdocsNoPrograma(
@@ -99,9 +141,9 @@ public class AsyncExecutorService {
                                     subAssinante);
                     integracaoEdocsService.finalizaTodasEtapas(chave);
                 })
-                .doOnError(e -> 
-                    logger.error("Erro ao integrar com E-Docs para assinar arquivo em fase assinatura. Programa {}",
-                            idPrograma, e))
+                .doOnError(e -> logger.error(
+                        "Erro ao integrar com E-Docs para assinar arquivo em fase assinatura. Programa {}",
+                        idPrograma, e))
                 .subscribe();
     }
 
@@ -113,8 +155,8 @@ public class AsyncExecutorService {
                 programaDto.idDocumentoCapturadoEdocs(), programaDto, chave)
                 .doOnSuccess(ctx -> {
                     programaProcessamentoService
-                            .marcarProgramaAutuadoEdocsEAvisoAutuado( programaDto,
-                                    ctx.getProtocolo(), ctx.getIdProcesso() , idPessoa);
+                            .marcarProgramaAutuadoEdocsEAvisoAutuado(programaDto,
+                                    ctx.getProtocolo(), ctx.getIdProcesso(), idPessoa);
                     integracaoEdocsService.finalizaTodasEtapas(chave);
                 })
                 .subscribe();
