@@ -22,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.math.BigDecimal;
 import java.time.Year;
 import java.time.ZoneId;
@@ -93,7 +95,7 @@ public class IndicadorExternoService {
 		int anoAtual = Year.now(ZoneId.of("America/Sao_Paulo")).getValue();
 
 		return gestoes.stream()
-				.map( gestao -> {
+				.map(gestao -> {
 
 					List<OrganizadorGestaoPentahoBiDto> organizadores = this
 							.listarOrganizadoresGestaoBI(gestao.idGestao());
@@ -125,8 +127,7 @@ public class IndicadorExternoService {
 							deAnoGestao,
 							ateAnoGestao,
 							deAnoMeta,
-							ateAnoMeta
-					);
+							ateAnoMeta);
 				})
 				.toList();
 	}
@@ -310,26 +311,30 @@ public class IndicadorExternoService {
 		String target = targetIndicadores;
 		String dataAccessId = indicadoresDataAccessId;
 
-		return apiUtils.consult(target, dataAccessId, pmoPath, params,
+		return apiUtils.consult(
+				target,
+				dataAccessId,
+				pmoPath,
+				params,
 				rs -> new IndicadorPentahoBiDto(
-						rs.get("ativa").asInt(),
-						rs.get("idGestao").asInt(),
-						rs.get("nomeGestao").asText(),
-						rs.get("modelNameGestao").asText(),
-						rs.get("idDesafio").asInt(),
-						rs.get("nomeDesafio").asText(),
-						rs.get("idOrganizador").asInt(),
-						rs.get("nomeOrganizador").asText(),
-						rs.get("modelNameOrganizador").asText(),
-						rs.get("idIndicador").asInt(),
-						rs.get("nomeIndicador").asText(),
-						rs.get("unidadeMedida").asText(),
-						rs.get("polaridade").asText(),
-						rs.get("medidoPor").asText(),
-						rs.get("anoMeta").asInt(),
-						rs.get("valorMeta").asText(),
-						rs.get("maiorAnoIndicador").asInt(),
-						rs.get("maiorMetaIndicador").asDouble()));
+						getInt(rs, "ativa"),
+						getInt(rs, "idGestao"),
+						getText(rs, "nomeGestao"),
+						getText(rs, "modelNameGestao"),
+						getInt(rs, "idDesafio"),
+						getText(rs, "nomeDesafio"),
+						getInt(rs, "idOrganizador"),
+						getText(rs, "nomeOrganizador"),
+						getText(rs, "modelNameOrganizador"),
+						getInt(rs, "idIndicador"),
+						getText(rs, "nomeIndicador"),
+						getText(rs, "unidadeMedida"),
+						getText(rs, "polaridade"),
+						getText(rs, "medidoPor"),
+						getInt(rs, "anoMeta"),
+						getText(rs, "valorMeta"),
+						getInt(rs, "maiorAnoIndicador"),
+						getDouble(rs, "maiorMetaIndicador")));
 
 	}
 
@@ -508,33 +513,25 @@ public class IndicadorExternoService {
 
 	}
 
-	// public List<IndicadorPentahoBiDto> listarIndicadoresBIPorId(List<Integer>
-	// idsIndicadoresBI) {
-	// Map<String, Object> params = Map.of(
-	// "paramp_idindicadores", idsIndicadoresBI);
-	// String pmoPath = siscapPath;
-	// String target = targetIndicadores;
-	// String dataAccessId = indicadoresDataAccessId;
-	// return apiUtils.consult(target, dataAccessId, pmoPath, params,
-	// rs -> new IndicadorPentahoBiDto(
-	// rs.get("ativa").asInt(),
-	// rs.get("idGestao").asInt(),
-	// rs.get("nomeGestao").asText(),
-	// rs.get("modelNameGestao").asText(),
-	// rs.get("idDesafio").asInt(),
-	// rs.get("nomeDesafio").asText(),
-	// rs.get("idOrganizador").asInt(),
-	// rs.get("nomeOrganizador").asText(),
-	// rs.get("modelNameOrganizador").asText(),
-	// rs.get("idIndicador").asInt(),
-	// rs.get("nomeIndicador").asText(),
-	// rs.get("unidadeMedida").asText(),
-	// rs.get("polaridade").asText(),
-	// rs.get("medidoPor").asText(),
-	// rs.get("anoMeta").asInt(),
-	// rs.get("valorMeta").asText(),
-	// rs.get("maiorAnoIndicador").asInt(),
-	// rs.get("maiorMetaIndicador").asDouble()));
-	// }
+	private String getText(Map<String, JsonNode> rs, String campo) {
+		JsonNode node = rs.get(campo);
+		return node != null && !node.isNull()
+				? node.asText()
+				: null;
+	}
+
+	private Integer getInt(Map<String, JsonNode> rs, String campo) {
+		JsonNode node = rs.get(campo);
+		return node != null && !node.isNull()
+				? node.asInt()
+				: null;
+	}
+
+	private Double getDouble(Map<String, JsonNode> rs, String campo) {
+		JsonNode node = rs.get(campo);
+		return node != null && !node.isNull()
+				? node.asDouble()
+				: null;
+	}
 
 }

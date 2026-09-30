@@ -207,82 +207,100 @@ public class IntegraccaoEdocsService {
 
 	public void assinarCapturaParecerDIC(Long idProjeto, Long idParecer, Boolean elegível) {
 
-		logger.info("Iniciando processo para Assinar e Capturar Pareceres do projeto {} no E-Docs..", idProjeto);
+		logger.info(
+				"Iniciando processo para assinar e capturar parecer {} do projeto {} no E-Docs.",
+				idParecer,
+				idProjeto);
 
-		var chave = new ChaveEtapasIntegracao(idProjeto, ContextoIntegracaoEdocsEnum.DIC);
-
-		this.limparEtapas(chave);
-		this.adicionarEtapa(chave,
-				new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
-
-		try {
-			if (projetoParecerService.verificarCapturaParecer(idParecer)) {
-				logger.info("Parecere {} já capturado no E-Docs..", idParecer);
-				throw new ValidacaoSiscapException(
-						List.of("Parecer já capturado via E-Docs"));
-			}
-		var chave = new ChaveEtapasIntegracao(idProjeto, ContextoIntegracaoEdocsEnum.DIC);
+		var chave = new ChaveEtapasIntegracao(
+				idProjeto,
+				ContextoIntegracaoEdocsEnum.DIC);
 
 		this.limparEtapas(chave);
-		this.adicionarEtapa(chave,
-				new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
+
+		this.adicionarEtapa(
+				chave,
+				new EtapasIntegracaoDto(
+						idProjeto,
+						EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+						true,
+						false,
+						false));
 
 		try {
+
 			if (projetoParecerService.verificarCapturaParecer(idParecer)) {
-				logger.info("Parecere {} já capturado no E-Docs..", idParecer);
-				throw new ValidacaoSiscapException(
-						List.of("Parecer já capturado via E-Docs"));
+				logger.info("Parecer {} já capturado no E-Docs.", idParecer);
+				throw new ValidacaoSiscapException(List.of("Parecer já capturado via E-Docs"));
 			}
 
 			ProjetoParecer parecer = projetoParecerService.buscar(idParecer);
-			ProjetoParecer parecer = projetoParecerService.buscar(idParecer);
+
+			String tipoParecer = projetoParecerService.buscarTipoParecer(idParecer);
 
 			Resource resource;
-			String nomeArquivo = "";
-			Resource resource;
-			String nomeArquivo = "";
+			String nomeArquivo;
 
-			if (!parecer.getNomeOriginalArquivo().isEmpty()) {
+			if (parecer.getNomeOriginalArquivo() != null && !parecer.getNomeOriginalArquivo().isBlank()) {
 				resource = projetoParecerService.buscarArquivo(idParecer);
 				nomeArquivo = parecer.getNomeOriginalArquivo();
 			} else {
-				resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
-						projetoParecerService.buscarTipoParecer(idParecer), elegível);
-				nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
-			}
-			if (!parecer.getNomeOriginalArquivo().isEmpty()) {
-				resource = projetoParecerService.buscarArquivo(idParecer);
-				nomeArquivo = parecer.getNomeOriginalArquivo();
-			} else {
-				resource = relatoriosService.gerarArquivoParecerDIC("PARECER", idProjeto, idParecer,
-						projetoParecerService.buscarTipoParecer(idParecer), elegível);
+
+				resource = relatoriosService.gerarArquivoParecerDIC(
+						"PARECER",
+						idProjeto,
+						idParecer,
+						tipoParecer,
+						elegível);
+
 				nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
 			}
 
 			String subUsuarioLogado = autenticacaoService.getUsuarioLogado();
-			ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
-			String subUsuarioLogado = autenticacaoService.getUsuarioLogado();
+			String subJwt = autenticacaoService.getUsuarioSub();
 			ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 
-			String subJwt = autenticacaoService.getUsuarioSub();
-			String subJwt = autenticacaoService.getUsuarioSub();
-
-			this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado,
+			this.assinarCapturarParecerProjetoReativo(
+					projetoDto,
+					resource,
+					nomeArquivo,
+					idParecer,
+					subUsuarioLogado,
 					elegível)
 					.flatMap(mensagem -> {
-						logger.info("SUCESSO: {}", mensagem);
-						if (projetoParecerService.buscarTipoParecer(idParecer).equals("CAPTAÇÃO")) {
-							return this.entranharParecerProcesso(projetoDto, subJwt, "Entranhamento do parecer referente ao DIC.");
-						} else {
-							return Mono.empty();
+
+						logger.info(
+								"Parecer {} assinado e capturado com sucesso. {}",
+								idParecer,
+								mensagem);
+
+						if ("CAPTAÇÃO".equals(tipoParecer)) {
+
+							return this.entranharParecerProcesso(
+									projetoDto,
+									subJwt,
+									"Entranhamento do parecer referente ao DIC.");
 						}
+
+						return Mono.empty();
 					})
-					.doOnError(erro -> registrarFalhaCapturaParecer(chave, erro))
+					.doOnError(
+							erro -> registrarFalhaCapturaParecer(
+									chave,
+									erro))
 					.subscribe(
-							mensagem -> logger.info("SUCESSO: {}", mensagem),
-							erro -> logger.error("ERRO: {}", erro.getMessage()));
+							mensagem -> logger.info(
+									"Processamento do parecer {} concluído com sucesso. {}",
+									idParecer,
+									mensagem),
+							erro -> logger.error(
+									"Erro ao processar parecer {} do projeto {}.",
+									idParecer,
+									idProjeto,
+									erro));
+
 		} catch (RuntimeException erro) {
-			registrarFalhaCapturaParecer(chave, erro);
+			registrarFalhaCapturaParecer(chave,	erro);
 			throw erro;
 		}
 
@@ -402,7 +420,7 @@ public class IntegraccaoEdocsService {
 				.map(token -> {
 
 					if (!this.validarMovimentacaoProcessoEdcos(token, projetoDto.idProcessoEdocs())) {
-						
+
 						String msgAlerta = "Não é possível despachar o processo pois o mesmo está em um local de custódia que impede essa movimentação no E-Docs por você.";
 
 						this.registrarFalhaEtapa(
@@ -1714,7 +1732,7 @@ public class IntegraccaoEdocsService {
 
 			if (Objects.equals(guidSUBEO, parecer.getGuidUnidadeOrganizacao())) {
 				guidDocumentoSubeo = parecer.getGuidDocumentoEdocs();
-			
+
 			} else if (Objects.equals(guidSUBEPP, parecer.getGuidUnidadeOrganizacao())) {
 				guidDocumentoSubepp = parecer.getGuidDocumentoEdocs();
 			}
@@ -1722,8 +1740,8 @@ public class IntegraccaoEdocsService {
 		}
 
 		// (DIC) %s:
-		// 		Parecer Estratégico %s;
-		// 		Parecer Orçamentário %s.
+		// Parecer Estratégico %s;
+		// Parecer Orçamentário %s.
 		ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 
 		// String justificativaEntramento = "Entranhamento dos pareceres referente ao
@@ -1936,7 +1954,7 @@ public class IntegraccaoEdocsService {
 						nomeArquivo,
 						idPrograma,
 						error));
-						
+
 	}
 
 	private Mono<FluxoContextoIntegracaoDto> enviarArquivoFaseAssinatura(FluxoContextoIntegracaoDto ctx,
@@ -2307,7 +2325,8 @@ public class IntegraccaoEdocsService {
 
 			logger.info("Aviso de elegibilidade enviado para equipe de elaboração. idProjeto={}", idProjeto);
 
-			return entranharParecerProcesso(ctx.getProjeto(), subUsuarioLogado, "Entranhamento do parecer referente ao DIC.")
+			return entranharParecerProcesso(ctx.getProjeto(), subUsuarioLogado,
+					"Entranhamento do parecer referente ao DIC.")
 					.doOnNext(mensagem -> logger.info(
 							"Parecer entranhado no processo E-Docs. idProjeto={}, mensagem={}",
 							idProjeto, mensagem))
@@ -2370,6 +2389,5 @@ public class IntegraccaoEdocsService {
 						false,
 						false));
 	}
-
 
 }
