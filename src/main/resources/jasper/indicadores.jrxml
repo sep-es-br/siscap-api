@@ -1,5 +1,5 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
-<jasperReport name="indicadores" language="java" columnCount="1" pageWidth="536" pageHeight="842" orientation="Landscape" columnWidth="536" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="8baf0ff5-1924-4eb3-b5af-c470ff35e5dd">
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<jasperReport name="indicadores" language="java" columnCount="1" pageWidth="536" pageHeight="842" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="536" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="8baf0ff5-1924-4eb3-b5af-c470ff35e5dd">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="IndicadoresJSON"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
@@ -80,4 +80,10 @@
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
 	</detail>
+	<noData height="16">
+		<element kind="staticText" uuid="89c8a840-a86a-458a-a2c7-6e6a263f7c6c" x="2" y="0" width="100" height="16" forecolor="#0A588F" fontSize="10.0">
+			<text><![CDATA[Não preenchido.]]></text>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</element>
+	</noData>
 </jasperReport>

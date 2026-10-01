@@ -14,7 +14,9 @@ public enum EtapasIntegracaoEdocsEnum {
     AVOCAR(5),
     DESENTRANHAR(6),
     CAPTURAASSINAPENDENTE(7),
-    ASSINADO(8);
+    ASSINADO(8),
+    ENCERRARPROCESSO(9),
+    GERACAOPDFPARECER(10);
     
     private final int value;
 

@@ -68,6 +68,11 @@ public class ProjetoController {
 			return service.listarOpcoesDropdown();
 	}
 
+	@GetMapping("/verificar-sigla")
+	public ResponseEntity<Boolean> verificarSigla(@RequestParam String sigla) {
+		return ResponseEntity.ok(service.existePorSigla(sigla));
+	}
+
 	@GetMapping("/{id}")
 	public ResponseEntity<ProjetoDto> buscarPorId(@PathVariable @NotNull Long id) {
 		return ResponseEntity.ok(service.buscarPorId(id));

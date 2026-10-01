@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/siscap_3
+    url: jdbc:postgresql://10.243.135.48:5432/siscap
     username: postgres
-    password: postgres
+    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
     hikari:
       maximum-pool-size: 1000
       minimum-idle: 5
@@ -14,7 +14,7 @@ spring:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
-      
+
   jpa:
     properties:
       hibernate:
@@ -36,11 +36,10 @@ spring:
 
   flyway:
     clean-disabled: false
-    url: jdbc:postgresql://localhost:5432/siscap_3
+    url: jdbc:postgresql://10.243.135.48:5432/siscap
     user: postgres
-    password: postgres
+    password: kvRfzFXWhUCM5kYTbr5OV7Kk0
     enabled: true
-    outOfOrder: true
 
   security:
     oauth2:
@@ -56,25 +55,25 @@ spring:
             authorization-grant-type: authorization_code
             redirect-uri: http://localhost:8080/siscap/acesso-cidadao-response.html
             scope:
-               - openid
-               - profile
-               - agentepublico
-               - email				
-               - roles				
-               - permissoes	 		
-               - emailCorporativo	
-               - nome	 			
-               - ApiAcessoCidadao	 			
-               - ApiOrganograma	 				
-               - api-acessocidadao-cpf	 		
-               - api-acessocidadao-base	 		
-               - api-acessocidadao-servidores	
-               - api-organograma	 					 			
-               - api-sigades	 					
-               - api-sigades-documento	 		
-               - api-sigades-processo	 		
-               - api-sigades-consultar	 		
-               - api-sigades-encaminhamento
+              - openid
+              - profile
+              - agentepublico
+              - email
+              - roles
+              - permissoes
+              - emailCorporativo
+              - nome
+              - ApiAcessoCidadao
+              - ApiOrganograma
+              - api-acessocidadao-cpf
+              - api-acessocidadao-base
+              - api-acessocidadao-servidores
+              - api-organograma
+              - api-sigades
+              - api-sigades-documento
+              - api-sigades-processo
+              - api-sigades-consultar
+              - api-sigades-encaminhamento
       resourceserver:
         jwt:
           issuer-uri: https://acessocidadao.es.gov.br/is
@@ -107,10 +106,11 @@ api:
     guidSUBEO: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO
     lotacao:
       simulada: 515685f7-2aeb-4cc4-a311-8b793297f8fb # (SUBCAP)
+
     overrides:
-      lotacao-usuario: 
+      lotacao-usuario:
         e0473535-05af-4659-bae6-bfa84fbf50a3: 5821ad81-5f09-4122-a738-844929c7c620 # SUBEO # RAQUEL
-    anexos_pdf: c:/siscap/api/parecer/anexos
+    anexos_pdf: C:/siscap/api/arquivos/pareceres/anexos
 
   programa:
     assinantes:
@@ -133,7 +133,6 @@ authorities:
 
 token:
   secret: eXEuFkMDTTEX24UtGF2UQsCdylQVrjHxqe16DYdiSgo8oclXXqyAroPJjiE0OE95
-  tempo-expiracao: 120 # 480 # tempo de expiração do token em minutos
 
 email:
   remetente:
@@ -142,7 +141,7 @@ email:
     endereco-nao-responda: naoresponda@sep.es.gov.br
   destinatario-parecer:
     orcamentario: gabsubeo@sep.es.gov.br # "Gabinete Subeo" <gabsubeo@sep.es.gov.br>
-    estrategico: gabinete.subepp@sep.es.gov.br # "gabinete.subepp" <gabinete.subepp@sep.es.gov.br>; 
+    estrategico: gabinete.subepp@sep.es.gov.br # "gabinete.subepp" <gabinete.subepp@sep.es.gov.br>;
   destinatario-subcap: subcap@sep.es.gov.br
   gerencia-subcap: gabinetesubcap@sep.es.gov.br
 
@@ -158,50 +157,23 @@ server:
 logging:
   level:
     root: INFO
-            
+
   file:
-    name: api-error.log 
+    name: api-error.log
 
 listarpapeisprioritarios: false
 
 openapi:
   server:
-      url: http://localhost:8080/siscap
+    url: http://localhost:8080/siscap
   external-docs:
-      url: http://localhost:8080/siscap/swagger-ui/index.html
+    url: http://localhost:8080/siscap/swagger-ui/index.html
 
 pentahoBI:
-  
+
   baseURL: https://bi.sep.es.gov.br/pentaho/plugin/cda/api/doQuery?
   userId: anonimo.bi
   password: Da$hb0ard
-
-  sigefes:
-    path: /public/dashboard/siscap/sigefes
-    planejamento:
-      target: /filtro_ppa_siscap.cda
-      dataAccessId: ppa_sigefes
-    anosppa:
-      target: /filtro_ano_siscap.cda
-      dataAccessId: ano_sigefes
-    uosano:
-      target: /filtro_uo_siscap.cda
-      dataAccessId: sigefes_uo
-    funcoes:
-      target: /filtro_funcao_siscap.cda
-      dataAccessId: sigefes_funcao
-    programas:
-      target: /filtro_programas_siscap.cda
-      dataAccessId: sigefes_programas
-    acoes:
-      target: /filtro_acao_siscap.cda
-      dataAccessId: sigefes_acao
-    dadosacoes:
-      target: /dados_ppa.cda
-      dataAccessId: sigefes_ppa
-    dadosloa:
-      target: /dados_loa.cda
-      dataAccessId: sigefes_loa
 
   siscap:
     path: /public/dashboard/siscap
@@ -222,4 +194,4 @@ pentahoBI:
       dataAccessId: organizador_siscap
     odsporindicadores:
       target: /ods_indicadores_siscap.cda
-      dataAccessId: ods_indicador_siscap          
+      dataAccessId: ods_indicador_siscap

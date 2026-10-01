@@ -17,6 +17,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -206,7 +207,7 @@ public class Projeto extends ControleHistorico {
 
 	private void atualizarDadosEditaveis(ProjetoForm form) {
 
-		this.setSigla(form.sigla());
+		this.setSigla(form.sigla() == null ? null : form.sigla().trim().toUpperCase(Locale.ROOT));
 		this.setTitulo(form.titulo());
 
 		this.setObjetivo(form.objetivo());
@@ -230,7 +231,9 @@ public class Projeto extends ControleHistorico {
 				form.pecasPlanejamento());
 
 		this.setProtocoloEdocs(
-				form.protocoloEdocs());
+				form.protocoloEdocs() == null || form.protocoloEdocs().isBlank()
+						? null
+						: form.protocoloEdocs().trim());
 
 		this.setNaoPrevistoNoPpa(
 				form.naoPrevistoNoPpa());

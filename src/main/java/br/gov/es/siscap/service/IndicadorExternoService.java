@@ -315,7 +315,6 @@ public class IndicadorExternoService {
 						rs.get("ativa").asInt(),
 						rs.get("idGestao").asInt(),
 						rs.get("nomeGestao").asText(),
-						rs.get("modelNameGestao").asText(),
 						rs.get("idDesafio").asInt(),
 						rs.get("nomeDesafio").asText(),
 						rs.get("idOrganizador").asInt(),

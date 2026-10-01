@@ -24,7 +24,7 @@
 	org.cnpj as cnpj_organizacao,
 	org.nome as nome_organizacao,
 	pes.nome as pessoa_responsavel_projeto,
-	coalesce( sum(lq.quantia), sum(alq.quantia) ) as valor_estimado_projeto,
+	sum(lq.quantia) as valor_estimado_projeto,
 	proj.sigla as sigla_projeto,
 	proj.titulo as titulo_projeto,
 	proj.objetivo as objetivo_projeto,
@@ -40,9 +40,7 @@ from projeto proj
 	inner join projeto_pessoa proj_pes on proj.id = proj_pes.id_projeto
 	inner join pessoa pes on proj_pes.id_pessoa = pes.id and proj_pes.id_tipo_status = 1
 	left join localidade_quantia lq on proj.id = lq.id_projeto and lq.apagado = false
-	left join pessoa pes_redator on proj.id_pessoa_redator = pes_redator.id and pes_redator.apagado = false
-	left join projeto_acao on proj.id = projeto_acao.id_projeto and projeto_acao.apagado = false
-	left join projeto_acao_localidade_quantia alq on projeto_acao.id = alq.id_projeto_acao and alq.apagado = false
+	left join pessoa pes_redator on proj.id_pessoa_redator = pes_redator.id
 where
 	proj_pes.id_tipo_papel = 2 and
 	proj_pes.apagado  = false and

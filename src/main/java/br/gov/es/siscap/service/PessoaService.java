@@ -299,7 +299,7 @@ public class PessoaService {
 		List<ResponsavelProponenteOpcoesDto> listaAtualizada = listaResponsavelOrganizacao.stream()
 				.map(p -> new ResponsavelProponenteOpcoesDto(
 						idPessoaPorSub.get(p.agentePublicoSub()),
-						p.nome(),
+						p.nome().toUpperCase(),
 						p.papelPrioritario(),
 						p.agentePublicoSub(),
 						subGestorOrganizacao.equals(p.agentePublicoSub()) // seta true se for o gestor
@@ -337,7 +337,7 @@ public class PessoaService {
 
 		return cacheService.getCache().stream()
 				.filter(agente -> agente.nome().toLowerCase().contains(termoLower))
-				.collect(Collectors.toList());
+				.toList();
 
 	}
 

@@ -18,15 +18,12 @@ public class CacheAgentesGovesService {
     private List<ResponsavelProponenteOpcoesDto> cache = new ArrayList<>();
 
     private final PessoaService pessoaService;
-    private final Logger logger = LogManager.getLogger(CacheAgentesGovesService.class);
+	private final Logger logger = LogManager.getLogger(PessoaService.class);
 
     @PostConstruct
     public void init() {
-        try {
-            carregarCache();
-        } catch (Exception e) {
-            logger.error("Não foi possível carregar o cache de agentes do Acesso Cidadão.", e);
-        }
+        logger.debug("Carregar cache com a lista de todos os agentes publicos de GOVES.");
+        carregarCache();
     }
 
     public void carregarCache(List<ResponsavelProponenteOpcoesDto> dados) {

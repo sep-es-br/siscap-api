@@ -1,5 +1,6 @@
 package br.gov.es.siscap.models;
 
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -62,7 +63,7 @@ public class Pessoa extends ControleHistorico {
 	@Column(name = "telefone_pessoal")
 	private String telefonePessoal;
 
-	@OneToOne(cascade = {CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.REMOVE})
+	@OneToOne(cascade = { CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.REMOVE })
 	@SQLJoinTableRestriction("apagado = FALSE")
 	@JoinColumn(name = "id_endereco")
 	private Endereco endereco;
@@ -74,9 +75,8 @@ public class Pessoa extends ControleHistorico {
 	private String sub;
 
 	@ManyToMany()
-	@JoinTable(name = "pessoa_area_atuacao",
-				joinColumns = {@JoinColumn(name = "id_pessoa")},
-				inverseJoinColumns = @JoinColumn(name = "id_area_atuacao", nullable = false))
+	@JoinTable(name = "pessoa_area_atuacao", joinColumns = {
+			@JoinColumn(name = "id_pessoa") }, inverseJoinColumns = @JoinColumn(name = "id_area_atuacao", nullable = false))
 	private Set<AreaAtuacao> areasAtuacao;
 
 	@OneToMany(mappedBy = "pessoa")
@@ -88,26 +88,41 @@ public class Pessoa extends ControleHistorico {
 	@OneToMany(mappedBy = "pessoa")
 	private Set<ProgramaPessoa> programaPessoaSet;
 
+	/*
+	 * so para garantir que o nome da pessoa seja sempre retornado em maiúsculo,
+	 * mesmo que esteja salvo em minúsculo no banco de dados.
+	 * Isso é útil para padronizar a exibição do nome em diferentes partes do
+	 * sistema, evitando inconsistências visuais.
+	 */
+	public String getNome() {
+		return nome == null ? null : nome.toUpperCase(Locale.ROOT);
+	}
+
+	/* so para garantir que o nome da pessoa seja sempre salvo em maiúsculo */
+	public void setNome(String nome) {
+		this.nome = nome == null ? null : nome.toUpperCase(Locale.ROOT);
+	}
+
 	public Pessoa(Long id) {
 		this.setId(id);
 	}
 
 	public Pessoa(PessoaForm form, String nomeImagem) {
+		
 		this.setCpf(null);
 		this.setGenero(null);
 		this.setEndereco(null);
 
 		this.setDadosObrigatorios(form);
 		this.setDadosOpcionais(form);
-//		this.criarEndereco(form.endereco());
 		this.atualizarImagemPerfil(nomeImagem);
 		this.setSub(form.sub());
+
 	}
 
 	public void atualizarPessoa(PessoaForm form) {
 		this.setDadosObrigatorios(form);
 		this.setDadosOpcionais(form);
-//		this.atualizarEndereco(form.endereco());
 		super.atualizarHistorico();
 	}
 
@@ -127,32 +142,15 @@ public class Pessoa extends ControleHistorico {
 		this.setNome(form.nome());
 		this.setEmail(form.email());
 		this.setNacionalidade(form.nacionalidade());
-//		this.setGenero(form.genero());
 	}
 
 	private void setDadosOpcionais(PessoaForm form) {
 		this.setNomeSocial(form.nomeSocial());
-//		this.setCpf(form.cpf());
 		this.setTelefoneComercial(form.telefoneComercial());
 		this.setTelefonePessoal(form.telefonePessoal());
-		this.setAreasAtuacao(form.idAreasAtuacao() != null ?
-					form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet()) : null);
+		this.setAreasAtuacao(form.idAreasAtuacao() != null
+				? form.idAreasAtuacao().stream().map(AreaAtuacao::new).collect(Collectors.toSet())
+				: null);
 	}
 
-//	private void criarEndereco(EnderecoForm enderecoForm) {
-//		this.setEndereco(enderecoForm != null ? new Endereco(enderecoForm) : null);
-//	}
-
-//	private void atualizarEndereco(EnderecoForm enderecoForm) {
-//		if (enderecoForm != null) {
-//			if (this.getEndereco() == null) {
-//				this.setEndereco(new Endereco(enderecoForm));
-//			} else {
-//				this.getEndereco().atualizarEndereco(enderecoForm);
-//			}
-//		} else if (this.getEndereco() != null) {
-//			this.getEndereco().apagarEndereco();
-//			this.setEndereco(null);
-//		}
-//	}
 }
