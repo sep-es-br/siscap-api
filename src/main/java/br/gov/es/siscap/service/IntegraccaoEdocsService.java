@@ -209,10 +209,21 @@ public class IntegraccaoEdocsService {
 		logger.info("Iniciando processo para Assinar e Capturar Pareceres do projeto {} no E-Docs..", idProjeto);
 
 		var chave = new ChaveEtapasIntegracao(idProjeto, ContextoIntegracaoEdocsEnum.DIC);
+		boolean concluirParecerGeoc = elegível != null;
 
 		this.limparEtapas(chave);
 		this.adicionarEtapa(chave,
-				new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false, false));
+				new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
+						!concluirParecerGeoc, false, false));
+
+		if (concluirParecerGeoc) {
+			this.adicionarEtapa(chave,
+					new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.GERACAOPDFPARECER, true, false, false));
+			this.adicionarEtapa(chave,
+					new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO, false, false, false));
+			this.adicionarEtapa(chave,
+					new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.ENCERRARPROCESSO, false, false, false));
+		}
 
 		try {
 			if (projetoParecerService.verificarCapturaParecer(idParecer)) {
@@ -235,27 +246,26 @@ public class IntegraccaoEdocsService {
 				nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
 			}
 
+			if (concluirParecerGeoc) {
+				this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.GERACAOPDFPARECER, true, true);
+				this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false);
+			}
+
 			String subUsuarioLogado = autenticacaoService.getUsuarioLogado();
 			ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
 
-			String subJwt = autenticacaoService.getUsuarioSub();
-
 			this.assinarCapturarParecerProjetoReativo(projetoDto, resource, nomeArquivo, idParecer, subUsuarioLogado,
 					elegível)
-					.flatMap(mensagem -> {
-						logger.info("SUCESSO: {}", mensagem);
-						if (projetoParecerService.buscarTipoParecer(idParecer).equals("CAPTAÇÃO")) {
-							return this.entranharParecerProcesso(projetoDto, subJwt, "Entranhamento do parecer referente ao DIC.");
-						} else {
-							return Mono.empty();
-						}
-					})
-					.doOnError(erro -> registrarFalhaCapturaParecer(chave, erro))
 					.subscribe(
 							mensagem -> logger.info("SUCESSO: {}", mensagem),
 							erro -> logger.error("ERRO: {}", erro.getMessage()));
 		} catch (RuntimeException erro) {
-			registrarFalhaCapturaParecer(chave, erro);
+			if (concluirParecerGeoc) {
+				this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.GERACAOPDFPARECER,
+						erro.getMessage() != null ? erro.getMessage() : "Falha ao gerar o PDF do parecer.");
+			} else {
+				registrarFalhaCapturaParecer(chave, erro);
+			}
 			throw erro;
 		}
 
@@ -478,13 +488,15 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
 				.flatMap(ctx -> capturarAssinar(ctx, nomeArquivo))
 				.flatMap(this::consultarSituacaoCaptura)
-				.doOnSuccess(retorno -> finalizaTodasEtapas(chave))
+				.doOnError(e -> {
+					logger.error("Erro ao assinar ou capturar o parecer {}", idParecer, e);
+					registrarFalhaCapturaParecer(chave, e);
+				})
 				.flatMap(ctx -> atualizarParecer(ctx, idParecer, subUsuarioLogado, elegivel))
 				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idParecer))
 				.doOnSuccess(v -> logger.info("Parecer {} atualizado com sucesso", idParecer))
 				.doOnError(e -> {
 					logger.error("Erro ao atualizar parecer {}", idParecer, e);
-					registrarFalhaCapturaParecer(chave, e);
 				})
 				.thenReturn("Assinatura e Captura do parecer concluída com sucesso.");
 
@@ -741,9 +753,11 @@ public class IntegraccaoEdocsService {
 
 		return FeignReativo.fromFeign(() -> encerrarProcessoEdcosClient(ctx))
 
-				.doOnSubscribe(s -> logger.info(
-						"Iniciando encerramento do processo E-Docs. idProjeto={}",
-						idProjeto))
+				.doOnSubscribe(s -> {
+					this.atualizarEtapa(ctx.getChaveContextoIntegracao(),
+							EtapasIntegracaoEdocsEnum.ENCERRARPROCESSO, true, false);
+					logger.info("Iniciando encerramento do processo E-Docs. idProjeto={}", idProjeto);
+				})
 
 				.retryWhen(
 						Retry.fixedDelay(3, Duration.ofSeconds(2))
@@ -766,10 +780,11 @@ public class IntegraccaoEdocsService {
 							idEventoEncerramento);
 				})
 
-				.doOnError(e -> logger.error(
-						"Falha ao encerrar processo via E-Docs. idProjeto={}",
-						idProjeto,
-						e))
+				.doOnError(e -> {
+					logger.error("Falha ao encerrar processo via E-Docs. idProjeto={}", idProjeto, e);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(),
+							EtapasIntegracaoEdocsEnum.ENCERRARPROCESSO);
+				})
 
 				.thenReturn(ctx);
 	}
@@ -1138,8 +1153,12 @@ public class IntegraccaoEdocsService {
 				.switchIfEmpty(Mono.error(
 						new RuntimeException("Falha ao consultar situacao do evento de ENCERRAMENTO do processo ID "
 								+ ctx.getIdEventoEncerramento() + ".")))
+				.doOnSuccess(dto -> this.atualizarEtapa(ctx.getChaveContextoIntegracao(),
+						EtapasIntegracaoEdocsEnum.ENCERRARPROCESSO, true, true))
 				.doOnError(e -> {
 					logger.error("Falha ao verificar situacao do evento de encerramento do processo no E-Docs.", e);
+					this.registrarFalhaEtapa(ctx.getChaveContextoIntegracao(),
+							EtapasIntegracaoEdocsEnum.ENCERRARPROCESSO);
 				})
 				.thenReturn(ctx);
 	}
@@ -2247,6 +2266,7 @@ public class IntegraccaoEdocsService {
 							"Parecer entranhado no processo E-Docs. idProjeto={}, mensagem={}",
 							idProjeto, mensagem))
 					.then(encerrarProcessoEdocs(ctx))
+					.flatMap(this::consultarSituacaoEncerramento)
 					.doOnSuccess(retorno -> logger.info(
 							"Processo E-Docs encerrado. idProjeto={}, idEventoEncerramento={}",
 							idProjeto, retorno.getIdEventoEncerramento()))
