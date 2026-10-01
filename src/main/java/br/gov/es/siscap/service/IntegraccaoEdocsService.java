@@ -213,18 +213,19 @@ public class IntegraccaoEdocsService {
 
 		this.limparEtapas(chave);
 		this.adicionarEtapa(chave,
+				new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.GERACAOPDFPARECER, true, false, false));
+		this.adicionarEtapa(chave,
 				new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.CAPTURAASSINA,
-						!concluirParecerGeoc, false, false));
+						false, false, false));
 
 		if (concluirParecerGeoc) {
-			this.adicionarEtapa(chave,
-					new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.GERACAOPDFPARECER, true, false, false));
 			this.adicionarEtapa(chave,
 					new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO, false, false, false));
 			this.adicionarEtapa(chave,
 					new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.ENCERRARPROCESSO, false, false, false));
 		}
 
+		boolean pdfPreparado = false;
 		try {
 			if (projetoParecerService.verificarCapturaParecer(idParecer)) {
 				logger.info("Parecere {} já capturado no E-Docs..", idParecer);
@@ -246,10 +247,9 @@ public class IntegraccaoEdocsService {
 				nomeArquivo = projetoParecerService.gerarNomeArquivoParecerDIC(idParecer);
 			}
 
-			if (concluirParecerGeoc) {
-				this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.GERACAOPDFPARECER, true, true);
-				this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false);
-			}
+			this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.GERACAOPDFPARECER, true, true);
+			pdfPreparado = true;
+			this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, false);
 
 			String subUsuarioLogado = autenticacaoService.getUsuarioLogado();
 			ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
@@ -260,7 +260,7 @@ public class IntegraccaoEdocsService {
 							mensagem -> logger.info("SUCESSO: {}", mensagem),
 							erro -> logger.error("ERRO: {}", erro.getMessage()));
 		} catch (RuntimeException erro) {
-			if (concluirParecerGeoc) {
+			if (!pdfPreparado) {
 				this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.GERACAOPDFPARECER,
 						erro.getMessage() != null ? erro.getMessage() : "Falha ao gerar o PDF do parecer.");
 			} else {
