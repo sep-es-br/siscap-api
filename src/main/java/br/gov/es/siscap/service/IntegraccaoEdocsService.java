@@ -494,6 +494,12 @@ public class IntegraccaoEdocsService {
 				.flatMap(this::despacharProcessoDIC)
 				.flatMap(this::consultarSituacaoDespachar)
 				.flatMap(ctx -> this.atualizarProjeto(ctx, pessoa))
+				.doOnError( e -> {
+					logger.error("Falha ao executar chamada ao endpoint para AUTUAR/DESPACHAR o processo via E-Docs.", e);
+					this.registrarFalhaEtapa(chaveContexto, EtapasIntegracaoEdocsEnum.AUTUAR);
+					this.registrarFalhaEtapa(chaveContexto, EtapasIntegracaoEdocsEnum.CAPTURAASSINA);
+					this.registrarFalhaEtapa(chaveContexto, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO);
+				})
 				.doOnSuccess(retorno -> {
 					this.atualizarEtapa(chaveContexto, EtapasIntegracaoEdocsEnum.DESPACHARPROCESSO, true, true);
 					projetoService.enviarEmailGerenciaSubcapDicAutuado(projetoDto.id());

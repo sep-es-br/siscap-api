@@ -30,7 +30,6 @@ public class ProjetoAcaoService {
 	private final Logger logger = LogManager.getLogger(ProjetoAcaoService.class);
 
 	public Set<ProjetoAcao> buscarPorProjeto(Projeto projeto) {
-		logger.info("Buscando acoes do Projeto com id: {}", projeto.getId());
 		return this.projetoAcaoRepository.findAllByProjeto(projeto);
 	}
 
@@ -191,6 +190,25 @@ public class ProjetoAcaoService {
 
 		return totalValorEstimadoAcoes.compareTo(totalValorEstimadoProjeto) != 0;
 
+	}
+
+	private boolean validarValorEstimadoProjetoAcoes(
+			List<ProjetoAcaoDto> acoesDto) {
+
+		BigDecimal totalValorEstimadoAcoes = acoesDto.stream()
+				.map(ProjetoAcaoDto::valorEstimado)
+				.filter(Objects::nonNull)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		BigDecimal totalRateioAcoes = acoesDto.stream()
+				.flatMap(acao -> Optional.ofNullable(acao.rateio())
+						.orElseGet(Collections::emptyList)
+						.stream())
+				.map(ProjetoAcaoLocalidadeQuantiaDto::quantia)
+				.filter(Objects::nonNull)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		return totalValorEstimadoAcoes.compareTo(totalRateioAcoes) != 0;
 	}
 
 	@Transactional

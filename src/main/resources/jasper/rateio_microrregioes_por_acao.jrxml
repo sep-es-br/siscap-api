@@ -70,13 +70,13 @@
 						<bottomPen lineWidth="1.0" lineColor="#B2B2B2"/>
 					</box>
 				</element>
-				<element kind="staticText" uuid="b300323a-ad86-40bf-af21-88256b1a3254" x="0" y="30" width="378" height="18" forecolor="#0A588F" fontSize="9.5" italic="true" bold="true" vTextAlign="Middle">
+				<element kind="staticText" uuid="b300323a-ad86-40bf-af21-88256b1a3254" x="0" y="30" width="378" height="18" forecolor="#0A588F" fontSize="9.5" bold="true" italic="true" vTextAlign="Middle">
 					<text><![CDATA[Título]]></text>
 					<box leftPadding="6" rightPadding="6">
 						<pen lineWidth="0.4" lineColor="#B2B2B2"/>
 					</box>
 				</element>
-				<element kind="staticText" uuid="d5440cfa-1907-4aad-a797-224f04c0c605" x="378" y="30" width="157" height="18" forecolor="#0A588F" fontSize="9.5" italic="true" bold="true" hTextAlign="Right" vTextAlign="Middle">
+				<element kind="staticText" uuid="d5440cfa-1907-4aad-a797-224f04c0c605" x="378" y="30" width="157" height="18" forecolor="#0A588F" fontSize="9.5" bold="true" italic="true" hTextAlign="Right" vTextAlign="Middle">
 					<text><![CDATA[Valor Estimado]]></text>
 					<box leftPadding="6" rightPadding="6">
 						<pen lineWidth="0.4" lineColor="#B2B2B2"/>
@@ -103,7 +103,7 @@
 						<pen lineWidth="0.4" lineColor="#B2B2B2"/>
 					</box>
 				</element>
-				<element kind="staticText" uuid="fbafb6aa-a3ea-4788-9334-7f8a4d240745" x="0" y="72" width="535" height="18" fontSize="9.5" italic="true" bold="true" vTextAlign="Middle">
+				<element kind="staticText" uuid="fbafb6aa-a3ea-4788-9334-7f8a4d240745" x="0" y="72" width="535" height="18" fontSize="9.5" bold="true" italic="true" vTextAlign="Middle">
 					<text><![CDATA[Distribuição]]></text>
 					<box leftPadding="6" rightPadding="6">
 						<pen lineWidth="0.4" lineColor="#B2B2B2"/>
@@ -113,7 +113,7 @@
 		</groupHeader>
 		<groupFooter>
 			<band height="62" splitType="Stretch">
-				<element kind="staticText" uuid="3eed4647-52db-4109-b31b-65c2503176cc" x="0" y="0" width="535" height="20" fontSize="9.5" italic="true" bold="true" vTextAlign="Middle">
+				<element kind="staticText" uuid="3eed4647-52db-4109-b31b-65c2503176cc" x="0" y="0" width="535" height="20" fontSize="9.5" bold="true" italic="true" vTextAlign="Middle">
 					<text><![CDATA[Ações Secundárias]]></text>
 					<box leftPadding="6" rightPadding="6">
 						<pen lineWidth="0.4" lineColor="#B2B2B2"/>
