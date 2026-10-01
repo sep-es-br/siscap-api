@@ -47,8 +47,6 @@ public class FluxoContextoIntegracaoDto {
 
     private String subUsuarioExecutandoFluxo;
 
-    private String justificativaEntranhamento = "";
-
     public FluxoContextoIntegracaoDto( ProjetoDto projeto, String token, ChaveEtapasIntegracao chaveContextoIntegracao ) {
         this.projeto = projeto;
         this.token = token;
@@ -62,12 +60,11 @@ public class FluxoContextoIntegracaoDto {
         this.subUsuarioExecutandoFluxo = subUsuario;
     }
 
-    public FluxoContextoIntegracaoDto(ProjetoDto projeto, String token, String[] idDocumentos, String subUsuario, String justificativaEntranhamento) {
+    public FluxoContextoIntegracaoDto(ProjetoDto projeto, String token, String[] idDocumentos, String subUsuario) {
         this.projeto = projeto;
         this.token = token;
         this.idDocumentos = idDocumentos;
         this.subUsuarioExecutandoFluxo = subUsuario;
-        this.justificativaEntranhamento = justificativaEntranhamento;
     }
 
     public FluxoContextoIntegracaoDto( String token, List<String> assinantes, ChaveEtapasIntegracao chaveContextoIntegracao ) {

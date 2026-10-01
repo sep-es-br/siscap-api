@@ -86,10 +86,11 @@ public class AcessoCidadaoService {
 
     public List<ResponsavelProponenteOpcoesDto> buscarPessoasUnidadePapelPrioritario(String unidadeGuid) {
 
-        return ACWebClient.buscarAgentesPublicosPapeisPorGuidUnidade(
+        List<ResponsavelProponenteOpcoesDto> result = ACWebClient.buscarAgentesPublicosPapeisPorGuidUnidade(
                 ACAuthService.getAuthorizationHeader(), unidadeGuid, true)
                 .stream()
-                .collect(Collectors.groupingBy(a -> a.AgentePublicoNome()))
+                .collect(Collectors.groupingBy(
+                        a -> a.AgentePublicoNome()))
                 .values()
                 .stream()
                 .flatMap(listaPorNome -> listaPorNome.stream().anyMatch(a -> Boolean.TRUE.equals(a.Prioritario()))
@@ -97,12 +98,14 @@ public class AcessoCidadaoService {
                         : listaPorNome.stream().limit(1))
                 .map(dto -> new ResponsavelProponenteOpcoesDto(
                         0L,
-                        dto.AgentePublicoNome().toUpperCase(),
+                        dto.AgentePublicoNome(),
                         dto.Nome().toUpperCase(),
                         dto.AgentePublicoSub(),
                         false))
                 .sorted((a, b) -> a.nome().compareToIgnoreCase(b.nome()))
-                .toList();
+                .collect(Collectors.toList());
+
+        return result;
 
     }
 

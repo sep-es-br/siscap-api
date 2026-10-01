@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import br.gov.es.siscap.service.AutenticacaoService;
 import br.gov.es.siscap.service.CacheAgentesGovesService;
 import br.gov.es.siscap.service.OrganizacaoService;
 
@@ -38,11 +40,12 @@ import br.gov.es.siscap.service.OrganizacaoService;
 @RequiredArgsConstructor
 public class PessoaController {
 
-	private final Logger logger = LogManager.getLogger(PessoaController.class);
+	private final Logger logger = LogManager.getLogger(AutenticacaoService.class);
 	private final PessoaService service;
 	private final OrganizacaoService organizacaoService;
 
-    private final CacheAgentesGovesService cacheService; 
+	@Autowired
+    private CacheAgentesGovesService cacheService; 
 
 	@Value("${guidGOVES}")
 	private String GUID_GOVES;

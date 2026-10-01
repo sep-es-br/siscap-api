@@ -4,6 +4,7 @@ public record IndicadorPentahoBiDto(
     Integer ativa,
     Integer idGestao,
     String nomeGestao,
+    String modelNameGestao,
     Integer idDesafio,
     String nomeDesafio,
     Integer idOrganizador,

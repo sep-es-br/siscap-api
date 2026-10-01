@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -246,18 +245,6 @@ public class ProjetoService {
 					return new ProjetoPropostoOpcoesDto(projeto, valorDto, parecerGEOCEnviado);
 				})
 				.toList();
-	}
-
-	public boolean existePorSigla(String sigla) {
-		if (sigla == null || sigla.isBlank()) {
-			return false;
-		}
-
-		return repository.existsBySigla(normalizarSigla(sigla));
-	}
-
-	private String normalizarSigla(String sigla) {
-		return sigla.trim().toUpperCase(Locale.ROOT);
 	}
 
 	public ProjetoDto buscarPorId(Long id) {
@@ -607,7 +594,7 @@ public class ProjetoService {
 
 				PessoaDto pessoaProponenteDto = pessoaService.buscarPorId(projeto.getPessoa().getId());
 
-				String nomeProponente = pessoaProponenteDto.nome().toUpperCase();
+				String nomeProponente = pessoaProponenteDto.nome();
 
 				this.enviarEmailGestorAvaliarDic(projeto.getId(), subResponsavelProponente, nomeProponente);
 
@@ -1367,6 +1354,14 @@ public class ProjetoService {
 				.orElse("");
 	}
 
+	private Long buscarIdProponente(Set<ProjetoPessoa> projetoPessoaSet) {
+		return projetoPessoaSet.stream()
+				.filter(ProjetoPessoa::isProponente)
+				.findFirst()
+				.map(projetoPessoa -> projetoPessoa.getPessoa().getId())
+				.orElse(null);
+	}
+
 	private List<EquipeDto> buscarEquipeElaboracao(Set<ProjetoPessoa> projetoPessoaSet) {
 		return projetoPessoaSet.stream()
 				.filter(pessoa -> !pessoa.isResponsavelProponente())
@@ -1403,7 +1398,7 @@ public class ProjetoService {
 		}
 
 		boolean checkFormIdOrganizacaoExistePorId = !organizacaoService.existePorId(form.idOrganizacao());
-		boolean checkProjetoExistePorSigla = existePorSigla(form.sigla()) && isSalvar;
+		boolean checkProjetoExistePorSigla = repository.existsBySigla(form.sigla()) && isSalvar;
 
 		if (checkFormIdOrganizacaoExistePorId)
 			erros.add("Erro ao encontrar Organização com id " + form.idOrganizacao());
