@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoAcaoDto;
+import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.exception.ValorEstimadoIncompativelAcoesProjetoException;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProjetoAcaoRepository;
@@ -196,7 +197,7 @@ public class ProjetoAcaoService {
 			List<ProjetoAcaoDto> acoesDto) {
 
 		BigDecimal totalValorEstimadoAcoes = acoesDto.stream()
-				.map(ProjetoAcaoDto::valorEstimado)
+				.map(ProjetoAcaoDto::valorEstimadoAcaoPrincipal)
 				.filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -204,7 +205,7 @@ public class ProjetoAcaoService {
 				.flatMap(acao -> Optional.ofNullable(acao.rateio())
 						.orElseGet(Collections::emptyList)
 						.stream())
-				.map(ProjetoAcaoLocalidadeQuantiaDto::quantia)
+				.map(RateioDto::quantia)
 				.filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
