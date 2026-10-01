@@ -19,6 +19,7 @@ import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoAcao;
+import br.gov.es.siscap.models.ProjetoAcaoLocalidadeQuantia;
 import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
 import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
@@ -36,7 +37,6 @@ import br.gov.es.siscap.validation.groups.ValidacaoRascunho;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.validation.ConstraintViolation;
 
 import java.io.IOException;
@@ -110,6 +110,8 @@ public class ProjetoService {
 	private final PpaLoaBiService ppaLoaBiService;
 
 	private final Validator validator;
+
+	private final ProjetoAcaoLocalidadeQuantiaService projetoAcaoLocalidadeQuantiaService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -202,6 +204,8 @@ public class ProjetoService {
 
 					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 
+					if( !localidadeQuantiaSet.isEmpty()){
+						
 					ValorDto valorDto = localidadeQuantiaService.montarValorDto(
 							localidadeQuantiaSet);
 
@@ -209,6 +213,20 @@ public class ProjetoService {
 							projeto,
 							valorDto.quantia(),
 							lotacaoUsuario.getValue());
+
+					}
+
+					Set<ProjetoAcao> acoesAtuais = projetoAcaoService.buscarPorProjeto(projeto);
+
+					BigDecimal valorEstimado = acoesAtuais.stream()
+							.map(ProjetoAcao::getValorEstimado)
+							.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+					return new ProjetoListaDto(
+							projeto,
+							valorEstimado,
+							lotacaoUsuario.getValue());
+
 				});
 
 	}
@@ -263,6 +281,9 @@ public class ProjetoService {
 		Set<ProjetoIndicadorAvulso> indicadoresAvulsos = projetoIndicadorAvulsoService.buscarPorProjeto(projeto);
 
 		Set<ProjetoAcao> acoes = projetoAcaoService.buscarPorProjeto(projeto);
+
+		// Set<ProjetoAcaoLocalidadeQuantia> acoesRateios =
+		// projetoAcaoLocalidadeQuantiaService.buscarPorProjeto(projeto);
 
 		String subUsuario = autenticacaoService.getUsuarioLogado();
 
@@ -478,9 +499,7 @@ public class ProjetoService {
 			Set<ProjetoCamposComplementacao> projetoCamposComplementacaoSet) {
 		return projetoCamposComplementacaoSet
 				.stream()
-				.map(campo -> {
-					return new ProjetoCamposComplementacaoDto(campo, null);
-				})
+				.map(campo -> new ProjetoCamposComplementacaoDto(campo, null))
 				.toList();
 	}
 
@@ -565,8 +584,12 @@ public class ProjetoService {
 		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjetoParaGravar = form.indicadoresAvulsosProjeto();
 		projetoIndicadorAvulsoService.sincronizar(projeto, indicadoresAvulsosProjetoParaGravar);
 
-		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
+		// List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
+		// projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
+
+		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesRateioProjeto();
 		projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
+		// projetoAcaoService.atualizar(projeto, projetoAcoesDto, rascunho);
 
 		logger.info("ID projeto antes de gravar planejamento: {}", projeto.getId());
 
@@ -674,7 +697,7 @@ public class ProjetoService {
 
 		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
-		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesProjeto();
+		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesRateioProjeto();
 		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar(projetoResult, projetoAcoesDto, rascunho);
 
 		String subResponsavelProponente = this.buscarSubResponsavelProponente(projetoPessoaSet);
