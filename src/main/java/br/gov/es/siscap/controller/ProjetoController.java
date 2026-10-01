@@ -33,12 +33,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @Tag(name = "DIC", description = "")
 @RestController
 @RequestMapping("/projetos")
 @RequiredArgsConstructor
 public class ProjetoController {
+
+	private static final Logger logger = LogManager.getLogger(ProjetoController.class);
 
 	private final ProjetoService service;
 	private final RelatoriosService relatoriosService;
@@ -232,6 +236,7 @@ public class ProjetoController {
 			@RequestPart("projeto") ProjetoForm form,
 			@RequestPart(value = "arquivoParecerAnexo", required = false) MultipartFile arquivoParecerAnexo,
 			@RequestHeader("Authorization") String auth) {
+		logger.info("PARECER_CONTROLLER_ENTERED projectId={} attachmentPresent=notSupportedByMainContract", idProjeto);
 
 		String token = auth.replace("Bearer ", "");
 

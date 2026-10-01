@@ -11,6 +11,7 @@ import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import br.gov.es.siscap.dto.ProjetoIndicadoresRelatorio;
 import br.gov.es.siscap.dto.ProjetoOdsDto;
 import br.gov.es.siscap.dto.ProjetoOdsRelatorioDto;
+import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.dto.indicadoresexternos.FiltroIndicadorDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesIndicadoresDto;
 import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
@@ -237,6 +238,10 @@ public class RelatoriosService {
 									.toList()))
 					.toList();
 
+			boolean rateioPorAcao = projetoDto.acoesProjeto()
+				.stream()
+				.anyMatch(acao -> acao.rateio() != null && !acao.rateio().isEmpty());
+
 			map.put("idProjeto", idProjeto);
 			map.put("pathRelatorios", raizRelatorios);
 			map.put("exibirMarcaDagua", marca);
@@ -245,6 +250,7 @@ public class RelatoriosService {
 			map.put("planejamentoDataSource", new JRBeanCollectionDataSource(listaPlanejamentoAcoesProjeto));
 			map.put("naoPrevistoPpa", projetoDto.naoPrevistoNoPpa());
 			map.put("periodoPlanejamento", "");
+			map.put("rateioPorAcao", rateioPorAcao );
 
 			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
 

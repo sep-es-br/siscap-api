@@ -20,16 +20,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @Component
 @RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
+
+	private static final Logger logger = LogManager.getLogger(SecurityFilter.class);
 
 	private final Roles roles;
 	private final TokenService tokenService;
@@ -41,7 +48,15 @@ public class SecurityFilter extends OncePerRequestFilter {
 			filterChain.doFilter(request, response);
 			return;
 		}
+		String authorizationHeader = request.getHeader("Authorization");
 		var token = recuperarToken(request);
+		boolean authorizationPresent = authorizationHeader != null && !authorizationHeader.isBlank();
+		boolean bearerFormat = authorizationPresent && authorizationHeader.startsWith("Bearer ")
+				&& authorizationHeader.length() > "Bearer ".length();
+
+		logger.info("SECURITY_START method={} uri={} authorizationPresent={} bearerFormat={}",
+				request.getMethod(), request.getRequestURI(), authorizationPresent, bearerFormat);
+
 		if (token != null) {
 			Usuario usuario;
 			try {
@@ -49,11 +64,18 @@ public class SecurityFilter extends OncePerRequestFilter {
 				usuario = (Usuario) usuarioRepository.findBySub(subNovo);
 
 				if (usuario == null) {
+					logger.warn("SECURITY_USER_NOT_FOUND subHash={} method={} uri={}",
+							hashIdentifier(subNovo), request.getMethod(), request.getRequestURI());
 					enviarMensagemErro(
-								List.of("Usuário não encontrado. Faça o login novamente"), response);
+							List.of("Usuário não encontrado. Faça o login novamente"), response);
 					return;
 				}
+
+				logger.info("SECURITY_TOKEN_VALID subHash={} roles={}",
+						hashIdentifier(subNovo), usuario.getPapeis());
 			} catch (JWTVerificationException e) {
+				logger.warn("SECURITY_TOKEN_INVALID reason={} method={} uri={}",
+						e.getClass().getSimpleName(), request.getMethod(), request.getRequestURI());
 				List<String> erros = new ArrayList<>();
 				erros.add(tratarExcecaoToken(e, token));
 				enviarMensagemErro(erros, response);
@@ -63,9 +85,14 @@ public class SecurityFilter extends OncePerRequestFilter {
 
 			Set<SimpleGrantedAuthority> authorities = new HashSet<>();
 			usuario.getPapeis().forEach(papel -> authorities.addAll(roles.getAuthorities(papel)));
+			logger.info("SECURITY_AUTHORITIES roles={} authorities={}",
+					usuario.getPapeis(), authorities.stream()
+							.map(SimpleGrantedAuthority::getAuthority).sorted().toList());
 
 			var autenticacao = new UsernamePasswordAuthenticationToken(usuario, null, authorities);
 			SecurityContextHolder.getContext().setAuthentication(autenticacao);
+		} else {
+			logger.warn("SECURITY_NO_TOKEN method={} uri={}", request.getMethod(), request.getRequestURI());
 		}
 
 		filterChain.doFilter(request, response);
@@ -91,5 +118,15 @@ public class SecurityFilter extends OncePerRequestFilter {
 			case "TokenExpiredException" -> "Token expirado em " + tokenService.buscarDataExpiracaoToken(token);
 			default -> "Por favor, faça o login novamente.";
 		};
+	}
+
+	private String hashIdentifier(String value) {
+		try {
+			byte[] digest = MessageDigest.getInstance("SHA-256")
+					.digest(value.getBytes(StandardCharsets.UTF_8));
+			return java.util.HexFormat.of().formatHex(digest).substring(0, 12);
+		} catch (Exception e) {
+			return "unavailable";
+		}
 	}
 }

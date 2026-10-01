@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoAcaoDto;
+import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.exception.ValorEstimadoIncompativelAcoesProjetoException;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProjetoAcaoRepository;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 import br.gov.es.siscap.models.LocalidadeQuantia;
 import br.gov.es.siscap.models.ProjetoAcao;
+import br.gov.es.siscap.models.ProjetoAcaoLocalidadeQuantia;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +31,6 @@ public class ProjetoAcaoService {
 	private final Logger logger = LogManager.getLogger(ProjetoAcaoService.class);
 
 	public Set<ProjetoAcao> buscarPorProjeto(Projeto projeto) {
-		logger.info("Buscando acoes do Projeto com id: {}", projeto.getId());
 		return this.projetoAcaoRepository.findAllByProjeto(projeto);
 	}
 
@@ -180,16 +181,35 @@ public class ProjetoAcaoService {
 						BigDecimal.ZERO,
 						BigDecimal::add));
 
-		BigDecimal totalValorEstimadoProjeto = projeto.getLocalidadeQuantiaSet()
-				.stream()
-				.map(LocalidadeQuantia::getQuantia)
+		BigDecimal totalValorEstimadoProjeto = projetoAcaoSet.stream()
+				.flatMap(acao -> Optional.ofNullable(acao.getRateios())
+						.orElseGet(Collections::emptySet)
+						.stream())
+				.map(ProjetoAcaoLocalidadeQuantia::getQuantia)
 				.filter(Objects::nonNull)
-				.collect(Collectors.reducing(
-						BigDecimal.ZERO,
-						BigDecimal::add));
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 		return totalValorEstimadoAcoes.compareTo(totalValorEstimadoProjeto) != 0;
 
+	}
+
+	private boolean validarValorEstimadoProjetoAcoes(
+			List<ProjetoAcaoDto> acoesDto) {
+
+		BigDecimal totalValorEstimadoAcoes = acoesDto.stream()
+				.map(ProjetoAcaoDto::valorEstimadoAcaoPrincipal)
+				.filter(Objects::nonNull)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		BigDecimal totalRateioAcoes = acoesDto.stream()
+				.flatMap(acao -> Optional.ofNullable(acao.rateio())
+						.orElseGet(Collections::emptyList)
+						.stream())
+				.map(RateioDto::quantia)
+				.filter(Objects::nonNull)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		return totalValorEstimadoAcoes.compareTo(totalRateioAcoes) != 0;
 	}
 
 	@Transactional
