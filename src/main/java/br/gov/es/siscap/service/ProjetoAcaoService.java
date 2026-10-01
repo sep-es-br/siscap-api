@@ -1,6 +1,7 @@
 package br.gov.es.siscap.service;
 
 import br.gov.es.siscap.dto.ProjetoAcaoDto;
+import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.exception.ValorEstimadoIncompativelAcoesProjetoException;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.repository.ProjetoAcaoRepository;
@@ -132,11 +133,10 @@ public class ProjetoAcaoService {
 
 		if (!isSalvar &&
 				validarValorEstimadoProjetoAcoes(
-						projeto,
-						acoesAtualizadas,
-						false)) {
+						acoesDto)) {
 
 			throw new ValorEstimadoIncompativelAcoesProjetoException();
+			
 		}
 
 		/*
@@ -170,33 +170,29 @@ public class ProjetoAcaoService {
 
 	}
 
-	private boolean validarValorEstimadoProjetoAcoes(Projeto projeto, Set<ProjetoAcao> projetoAcaoSet,
-			boolean isSalvar) {
-
-		BigDecimal totalValorEstimadoAcoes = projetoAcaoSet.stream()
-				.map(ProjetoAcao::getValorEstimado)
-				.filter(Objects::nonNull)
-				.collect(Collectors.reducing(
-						BigDecimal.ZERO,
-						BigDecimal::add));
-
-		BigDecimal totalValorEstimadoProjeto = projetoAcaoSet.stream()
-				.flatMap(acao -> Optional.ofNullable(acao.getRateios())
-						.orElseGet(Collections::emptySet)
-						.stream())
-				.map(ProjetoAcaoLocalidadeQuantia::getQuantia)
-				.filter(Objects::nonNull)
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
-
-		return totalValorEstimadoAcoes.compareTo(totalValorEstimadoProjeto) != 0;
-
-	}
+	// private boolean validarValorEstimadoProjetoAcoes(Projeto projeto, Set<ProjetoAcao> projetoAcaoSet,
+	// 		boolean isSalvar) {
+	// 	BigDecimal totalValorEstimadoAcoes = projetoAcaoSet.stream()
+	// 			.map(ProjetoAcao::getValorEstimado)
+	// 			.filter(Objects::nonNull)
+	// 			.collect(Collectors.reducing(
+	// 					BigDecimal.ZERO,
+	// 					BigDecimal::add));
+	// 	BigDecimal totalValorEstimadoProjeto = projetoAcaoSet.stream()
+	// 			.flatMap(acao -> Optional.ofNullable(acao.getRateios())
+	// 					.orElseGet(Collections::emptySet)
+	// 					.stream())
+	// 			.map(ProjetoAcaoLocalidadeQuantia::getQuantia)
+	// 			.filter(Objects::nonNull)
+	// 			.reduce(BigDecimal.ZERO, BigDecimal::add);
+	// 	return totalValorEstimadoAcoes.compareTo(totalValorEstimadoProjeto) != 0;
+	// }
 
 	private boolean validarValorEstimadoProjetoAcoes(
 			List<ProjetoAcaoDto> acoesDto) {
 
 		BigDecimal totalValorEstimadoAcoes = acoesDto.stream()
-				.map(ProjetoAcaoDto::valorEstimado)
+				.map(ProjetoAcaoDto::valorEstimadoAcaoPrincipal)
 				.filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -204,11 +200,12 @@ public class ProjetoAcaoService {
 				.flatMap(acao -> Optional.ofNullable(acao.rateio())
 						.orElseGet(Collections::emptyList)
 						.stream())
-				.map(ProjetoAcaoLocalidadeQuantiaDto::quantia)
+				.map(RateioDto::quantia)
 				.filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 		return totalValorEstimadoAcoes.compareTo(totalRateioAcoes) != 0;
+
 	}
 
 	@Transactional
@@ -242,31 +239,26 @@ public class ProjetoAcaoService {
 
 	}
 
-	private Set<ProjetoAcao> atualizarAcoesProjeto(Projeto projeto, Set<ProjetoAcao> acoesProjetoExistentes,
-			List<ProjetoAcaoDto> acoesProjetoDtoList) {
-
-		Set<ProjetoAcao> acoesAlterarSet = new HashSet<>();
-
-		Set<ProjetoAcao> acoesAdicionarSet = new HashSet<>();
-
-		acoesProjetoDtoList.forEach(acaoDto -> {
-			acoesProjetoExistentes
-					.stream()
-					.filter(projetoAcao -> projetoAcao.compararIdAcaoComAcaoDto(acaoDto))
-					.findFirst()
-					.ifPresentOrElse(
-							(projetoAcao) -> {
-								projetoAcao.atualizarAcao(acaoDto);
-								acoesAlterarSet.add(projetoAcao);
-							},
-							() -> {
-								acoesAdicionarSet.add(new ProjetoAcao(projeto, acaoDto));
-							});
-		});
-
-		acoesAdicionarSet.addAll(acoesAlterarSet);
-
-		return acoesAdicionarSet;
-	}
+	// private Set<ProjetoAcao> atualizarAcoesProjeto(Projeto projeto, Set<ProjetoAcao> acoesProjetoExistentes,
+	// 		List<ProjetoAcaoDto> acoesProjetoDtoList) {
+	// 	Set<ProjetoAcao> acoesAlterarSet = new HashSet<>();
+	// 	Set<ProjetoAcao> acoesAdicionarSet = new HashSet<>();
+	// 	acoesProjetoDtoList.forEach(acaoDto -> {
+	// 		acoesProjetoExistentes
+	// 				.stream()
+	// 				.filter(projetoAcao -> projetoAcao.compararIdAcaoComAcaoDto(acaoDto))
+	// 				.findFirst()
+	// 				.ifPresentOrElse(
+	// 						(projetoAcao) -> {
+	// 							projetoAcao.atualizarAcao(acaoDto);
+	// 							acoesAlterarSet.add(projetoAcao);
+	// 						},
+	// 						() -> {
+	// 							acoesAdicionarSet.add(new ProjetoAcao(projeto, acaoDto));
+	// 						});
+	// 	});
+	// 	acoesAdicionarSet.addAll(acoesAlterarSet);
+	// 	return acoesAdicionarSet;
+	// }
 
 }
