@@ -270,9 +270,6 @@ public class ProjetoService {
 
 		Set<ProjetoAcao> acoes = projetoAcaoService.buscarPorProjeto(projeto);
 
-		// Set<ProjetoAcaoLocalidadeQuantia> acoesRateios =
-		// projetoAcaoLocalidadeQuantiaService.buscarPorProjeto(projeto);
-
 		String subUsuario = autenticacaoService.getUsuarioLogado();
 
 		Boolean podeEditarEmAnalise = regrasDePermissaoService.podeEditar(subUsuario, projeto);
@@ -323,18 +320,18 @@ public class ProjetoService {
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				this.buscarIndicadoresAvulsos(indicadoresAvulsos),
 				this.buscarOdsProjeto(odsProjeto),
-				this.buscarPlanejamentoPpaLoaProjeto(planejamentoPpaLoaProjeto));
+				this.buscarPlanejamentoPpaLoaProjeto(planejamentoPpaLoaProjeto, projeto.getPeriodoPpaLoa()));
 
 	}
 
 	private List<ProjetoPlanejamentoPpaLoaResponseDto> buscarPlanejamentoPpaLoaProjeto(
-			Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet) {
+			Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet, String periodoPpaPlanejamento ) {
 
 		if (projetoPlanejamentoPpaLoaSet == null || projetoPlanejamentoPpaLoaSet.isEmpty()) {
 			return List.of();
 		}
 
-		String ppaPlanejamento = "2024-2027";
+		String ppaPlanejamento = periodoPpaPlanejamento;
 
 		List<Long> funcoes = new ArrayList<>();
 		List<Long> programas = new ArrayList<>();
@@ -613,7 +610,7 @@ public class ProjetoService {
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				indicadoresAvulsosProjetoParaGravar,
 				indicadoresOdsParaGravar,
-				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet));
+				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet, projeto.getPeriodoPpaLoa()));
 
 	}
 
@@ -742,7 +739,7 @@ public class ProjetoService {
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				this.buscarIndicadoresAvulsos(projetoIndicadoresAvulsoSet),
 				this.buscarOdsProjeto(projetoOdsSet),
-				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet));
+				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet, projeto.getPeriodoPpaLoa()));
 
 	}
 
