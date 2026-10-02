@@ -19,7 +19,6 @@ import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoAcao;
-import br.gov.es.siscap.models.ProjetoAcaoLocalidadeQuantia;
 import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
 import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
@@ -68,15 +67,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-
-import java.math.BigDecimal;
-
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import jakarta.validation.groups.Default;
@@ -110,8 +100,6 @@ public class ProjetoService {
 	private final PpaLoaBiService ppaLoaBiService;
 
 	private final Validator validator;
-
-	private final ProjetoAcaoLocalidadeQuantiaService projetoAcaoLocalidadeQuantiaService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -204,15 +192,15 @@ public class ProjetoService {
 
 					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 
-					if( !localidadeQuantiaSet.isEmpty()){
-						
-					ValorDto valorDto = localidadeQuantiaService.montarValorDto(
-							localidadeQuantiaSet);
+					if (!localidadeQuantiaSet.isEmpty()) {
 
-					return new ProjetoListaDto(
-							projeto,
-							valorDto.quantia(),
-							lotacaoUsuario.getValue());
+						ValorDto valorDto = localidadeQuantiaService.montarValorDto(
+								localidadeQuantiaSet);
+
+						return new ProjetoListaDto(
+								projeto,
+								valorDto.quantia(),
+								lotacaoUsuario.getValue());
 
 					}
 
@@ -545,15 +533,8 @@ public class ProjetoService {
 		tempProjeto.setCountAno(this.buscarCountAnoFormatado());
 		tempProjeto.setRascunho(true);
 		tempProjeto.alterarStatus(StatusProjetoEnum.EM_ELABORACAO.getValue(), pessoa);
-
-		// definir o usuario logado como redator original..
-		String subUsuario = autenticacaoService.getUsuarioLogado();
-
-		Pessoa pessoaRedatorProjeto = pessoaRepository.findBySub(subUsuario)
-				.orElseThrow(() -> new ValidacaoSiscapException(List.of(
-						"Redator do DIC não encontrado para o SUB : %s.".formatted(subUsuario))));
-
-		tempProjeto.setPessoa(pessoaRedatorProjeto);
+		tempProjeto.setPessoa(buscarPessoaUsuarioLogado());
+		tempProjeto.setPeriodoPpaLoa(form.periodoPpaLoa());
 
 		Projeto projeto = repository.save(tempProjeto);
 
@@ -584,14 +565,8 @@ public class ProjetoService {
 		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjetoParaGravar = form.indicadoresAvulsosProjeto();
 		projetoIndicadorAvulsoService.sincronizar(projeto, indicadoresAvulsosProjetoParaGravar);
 
-		// List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
-		// projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
-
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesRateioProjeto();
 		projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
-		// projetoAcaoService.atualizar(projeto, projetoAcoesDto, rascunho);
-
-		logger.info("ID projeto antes de gravar planejamento: {}", projeto.getId());
 
 		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
 		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
@@ -1781,6 +1756,17 @@ public class ProjetoService {
 			throw new ValidacaoSiscapException(List.of(
 					"Erro ao reenviar e-mail de solicitação de parecer estratégico e orçamentário."));
 		}
+	}
+
+	private Pessoa buscarPessoaUsuarioLogado() {
+
+		String subUsuario = autenticacaoService.getUsuarioLogado();
+
+		return pessoaRepository.findBySub(subUsuario)
+				.orElseThrow(() -> new ValidacaoSiscapException(List.of(
+						"Pessoa do usuário logado não encontrada para o SUB: %s."
+								.formatted(subUsuario))));
+
 	}
 
 }

@@ -46,7 +46,8 @@ public record ProjetoDto(
 		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto,
 		List<ProjetoOdsDto> odsProjeto,
 		List<ProjetoPlanejamentoPpaLoaResponseDto> acoesPlanejamentoProjeto,
-		Boolean naoPrevistoNoPpa
+		Boolean naoPrevistoNoPpa,
+		String periodoPpaLoa
 	) {
 
 	public ProjetoDto(Projeto projeto,
@@ -114,7 +115,8 @@ public record ProjetoDto(
 				projetoIndicadorAvulsos,
 				odsProjeto,	
 				acoesPlanejamentoProjeto,
-				projeto.getNaoPrevistoNoPpa());
+				projeto.getNaoPrevistoNoPpa(),
+				projeto.getPeriodoPpaLoa());
 
 	}
 
@@ -158,7 +160,8 @@ public record ProjetoDto(
 				projeto.getProjetoIndicadorAvulsoSet().stream().map(ProjetoIndicadorAvulsoDto::new).toList(),
 				projeto.getOds().stream().map(ProjetoOdsDto::new).toList(),
 				projeto.getPlanejamentoPpaLoa().stream().map(ProjetoPlanejamentoPpaLoaResponseDto::new).toList(),
-				projeto.getNaoPrevistoNoPpa());
+				projeto.getNaoPrevistoNoPpa(),
+				projeto.getPeriodoPpaLoa());
 
 	}
 

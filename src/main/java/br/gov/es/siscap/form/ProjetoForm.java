@@ -131,7 +131,13 @@ public record ProjetoForm(
         Boolean naoPrevistoNoPpa,
 
         @Valid
-        List<ProjetoAcaoDto> acoesRateioProjeto
+        List<ProjetoAcaoDto> acoesRateioProjeto,        
+
+        @NotBlank(
+                message = "Período PPA/LOA é obrigatório",
+                groups = ValidacaoEnvio.class
+        )
+        String periodoPpaLoa
 
 ) {
 }

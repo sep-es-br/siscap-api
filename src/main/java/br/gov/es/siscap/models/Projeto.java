@@ -179,6 +179,9 @@ public class Projeto extends ControleHistorico {
 	@Column(name = "nao_previsto_ppa")
 	private Boolean naoPrevistoNoPpa;
 
+	@Column(name = "periodo_ppa_loa", length = 20)
+	private String periodoPpaLoa;
+
 	public Projeto(Long id) {
 		this.setId(id);
 	}
@@ -203,6 +206,7 @@ public class Projeto extends ControleHistorico {
 		this.setFase("DIC");
 
 		this.setRascunho(true);
+
 	}
 
 	private void atualizarDadosEditaveis(ProjetoForm form) {
@@ -403,16 +407,5 @@ public class Projeto extends ControleHistorico {
 				.findFirst()
 				.orElse(null);
 	}
-
-	// public void addOds(
-	// ProjetoOds ods
-	// ) {
-	// Assert.notNull(
-	// ods,
-	// "ODS não pode ser nulo."
-	// );
-	// ods.setProjeto(this);
-	// this.ods.add(ods);
-	// }
 
 }
