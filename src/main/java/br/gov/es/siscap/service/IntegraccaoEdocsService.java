@@ -22,6 +22,7 @@ import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoParecer;
+import br.gov.es.siscap.repository.ProgramaRepository;
 import feign.FeignException;
 
 import java.io.IOException;
@@ -77,7 +78,8 @@ public class IntegraccaoEdocsService {
 	private final AutenticacaoService autenticacaoService;
 	private final RelatoriosService relatoriosService;
 	private final ProjetoParecerService projetoParecerService;
-	private final ProgramaService programaService;
+	// private final ProgramaService programaService;
+	private final ProgramaRepository programaRepository;
 
 	private final Logger logger = LogManager.getLogger(IntegraccaoEdocsService.class);
 
@@ -1850,7 +1852,9 @@ public class IntegraccaoEdocsService {
 					"Iniciando processo para criar arquivo no E-Docs com pendência de assinaturas. Programa {}",
 					idPrograma);
 
-			Programa programa = programaService.buscar(idPrograma);
+			Programa programa = programaRepository.findById(idPrograma).orElseThrow(() -> {
+				throw new ValidacaoSiscapException(List.of("Programa não encontrado"));
+			});
 
 			Resource resourceArquivo = relatoriosService.gerarArquivoPrograma(
 					"PROGRAMA",

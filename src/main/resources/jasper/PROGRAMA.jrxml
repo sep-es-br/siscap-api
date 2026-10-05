@@ -1,8 +1,8 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
-	<parameter name="idPrograma" class="java.lang.Integer"/>
+	<parameter name="idPrograma" class="java.lang.Long"/>
 	<parameter name="pathRelatorios" class="java.lang.String">
 		<defaultValueExpression><![CDATA["."]]></defaultValueExpression>
 	</parameter>
@@ -15,29 +15,17 @@
 		<defaultValueExpression><![CDATA[Boolean.FALSE]]></defaultValueExpression>
 	</parameter>
 	<query language="sql"><![CDATA[select
-
 	prog.id as id_programa,
-
 	prog.criado_em as data_criacao_programa,
-
 	prog.count_ano as contagem_anual_programa,
-
 	prog.teto_quantia as valor_estimado_programa,
-
 	prog.sigla as sigla_programa,
-
 	prog.titulo as titulo_programa,
-
 	prog.percentual_custo_administrativo as percentual_custo_administrativo,
-
 	prog.valor_calculado_total as valor_total_com_custo
-
 	from programa prog
-
 	where
-
 		prog.apagado = false and
-
 		prog.id = $P{idPrograma}]]></query>
 	<field name="id_programa" class="java.lang.Integer">
 		<property name="com.jaspersoft.studio.field.name" value="id"/>
@@ -80,7 +68,7 @@
 		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
 	</field>
 	<background height="800" splitType="Stretch">
-		<element kind="image" uuid="17f842d4-a62f-4c2e-a432-b7cea4632309" positionType="Float" x="0" y="0" width="535" height="800" scaleImage="FillFrame" printInFirstWholeBand="true" printRepeatedValues="false">
+		<element kind="image" uuid="17f842d4-a62f-4c2e-a432-b7cea4632309" positionType="Float" x="0" y="0" width="535" height="800" scaleImage="FillFrame" printRepeatedValues="false" printInFirstWholeBand="true">
 			<expression><![CDATA[( "S".equalsIgnoreCase($P{exibirMarcaDagua} != null ? $P{exibirMarcaDagua}.trim() : null)
 
     ? $P{pathRelatorios} + "/minuta.png"

@@ -10,7 +10,7 @@
 	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
-	<parameter name="idPrograma" class="java.lang.Integer"/>
+	<parameter name="idPrograma" class="java.lang.Long"/>
 	<query language="sql"><![CDATA[select distinct
 	nome_fantasia || ' - ' || regexp_replace(
          regexp_replace(
@@ -45,7 +45,7 @@ where
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="textField" uuid="b0588d9b-6c32-408e-871b-1ed261c5a505" x="1" y="0" width="99" height="15" forecolor="#0A588F">
+			<element kind="textField" uuid="b0588d9b-6c32-408e-871b-1ed261c5a505" x="1" y="0" width="99" height="15" forecolor="#0A588F"/>
 			<element kind="textField" uuid="b0588d9b-6c32-408e-871b-1ed261c5a505" x="1" y="0" width="99" height="15" forecolor="#0A588F">
 				<expression><![CDATA[ ($F{cnpj} != null && $F{cnpj}.length() >= 14 ? 
  String.valueOf($F{cnpj}).substring(0,2) + "." +
