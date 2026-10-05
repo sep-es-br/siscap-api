@@ -99,8 +99,8 @@ public record ProjetoForm(
         @Valid
         List<ProjetoIndicadorDto> indicadoresProjeto,
 
-        @Valid
-        List<ProjetoAcaoDto> acoesProjeto,
+        // @Valid
+        // List<ProjetoAcaoDto> acoesProjeto,
 
         @NotBlank(
                 message = "Peças de planejamento é obrigatório",

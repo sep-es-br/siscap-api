@@ -262,7 +262,7 @@ public class ProjetoService {
 
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
-		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
+		// List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		Set<ProjetoIndicador> indicadores = projetoIndicadorService.buscarPorProjeto(projeto);
 
@@ -298,7 +298,7 @@ public class ProjetoService {
 		Set<ProjetoPlanejamentoPpaLoa> planejamentoPpaLoaProjeto = projetoPlanejamentoPpaLoaService
 				.buscarPorProjeto(projeto);
 
-		return new ProjetoDto(projeto, valorDto, rateio,
+		return new ProjetoDto(projeto, valorDto, null, //rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
 				this.buscarSubResponsavelProponente(projetoPessoaSet),

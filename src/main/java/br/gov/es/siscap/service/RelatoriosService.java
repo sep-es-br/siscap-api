@@ -11,19 +11,15 @@ import br.gov.es.siscap.dto.ProjetoIndicadorDto;
 import br.gov.es.siscap.dto.ProjetoIndicadoresRelatorio;
 import br.gov.es.siscap.dto.ProjetoOdsDto;
 import br.gov.es.siscap.dto.ProjetoOdsRelatorioDto;
-import br.gov.es.siscap.dto.RateioDto;
 import br.gov.es.siscap.dto.indicadoresexternos.FiltroIndicadorDto;
-import br.gov.es.siscap.dto.indicadoresexternos.OpcoesIndicadoresDto;
 import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
 import br.gov.es.siscap.models.Programa;
-import br.gov.es.siscap.repository.ProjetoRepository;
 import lombok.RequiredArgsConstructor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,7 +29,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
@@ -241,7 +236,7 @@ public class RelatoriosService {
 									.toList()))
 					.toList();
 
-			boolean rateioPorAcao = projetoDto.acoesProjeto()
+			boolean rateioPorAcao = projetoDto.acoesRateioProjeto()
 				.stream()
 				.anyMatch(acao -> acao.rateio() != null && !acao.rateio().isEmpty());
 
