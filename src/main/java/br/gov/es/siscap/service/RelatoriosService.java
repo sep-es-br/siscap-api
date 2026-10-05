@@ -16,6 +16,7 @@ import br.gov.es.siscap.dto.indicadoresexternos.FiltroIndicadorDto;
 import br.gov.es.siscap.dto.indicadoresexternos.OpcoesIndicadoresDto;
 import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.exception.service.SiscapServiceException;
+import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.repository.ProjetoRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -69,6 +70,8 @@ public class RelatoriosService {
 	private final DataSource dataSource;
 
 	private final IndicadorExternoService indicadorBIService;
+
+	// private final ProgramaService programaService;
 
 	private final Logger logger = LogManager.getLogger(RelatoriosService.class);
 
@@ -291,14 +294,14 @@ public class RelatoriosService {
 		}
 	}
 
-	public Resource gerarArquivoPrograma(String nomeArquivo, Integer idPrograma,
+	public Resource gerarArquivoPrograma(String nomeArquivo, Programa programa,
 			ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) {
-		JasperPrint jasperPrint = preencherArquivoPrograma(recuperarArquivo(nomeArquivo), idPrograma, exibirMarcaDagua);
+		JasperPrint jasperPrint = preencherArquivoPrograma( recuperarArquivo(nomeArquivo), programa.getId(), exibirMarcaDagua, programa.isRecusado() );
 		return exportarRelatorio(jasperPrint);
 	}
 
-	private JasperPrint preencherArquivoPrograma(InputStream relatorio, Integer idPrograma,
-			ExibirMarcaDaguaProgramaEnum exibirMarcaDagua) {
+	private JasperPrint preencherArquivoPrograma(InputStream relatorio, Long idPrograma,
+			ExibirMarcaDaguaProgramaEnum exibirMarcaDagua, boolean recusado) {
 
 		String marca = Optional.ofNullable(exibirMarcaDagua)
 				.map(e -> e.getValue())
@@ -314,6 +317,7 @@ public class RelatoriosService {
 			map.put("guidSUBCAP", guidSUBCAP);
 			map.put("edocsBaseUrl", edocsBaseUrl);
 			map.put("exibirMarcaDagua", marca);
+			map.put("recusado", recusado);
 			map.put(JRParameter.REPORT_LOCALE, new Locale("pt", "BR"));
 			return JasperFillManager.fillReport(relatorio, map, dataSource.getConnection());
 		} catch (JRException | SQLException e) {

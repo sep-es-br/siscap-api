@@ -8,6 +8,7 @@ import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.enums.ExibirMarcaDaguaProgramaEnum;
 import br.gov.es.siscap.form.ProgramaForm;
 import br.gov.es.siscap.models.Pessoa;
+import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.service.IntegraccaoEdocsService;
 import br.gov.es.siscap.service.PessoaService;
 import br.gov.es.siscap.service.ProgramaService;
@@ -89,7 +90,7 @@ public class ProgramaController {
 	}
 
 	@PostMapping("/programa/{idPrograma}/edocs/solicitarassinaturas")
-	public ResponseEntity<Resource> solicitarAssinaturasProgramaEdocs(@PathVariable Long idPrograma,
+	public ResponseEntity<Resource> solicitarAssinaturasProgramaEdocs( @PathVariable Long idPrograma,
 			@RequestHeader("Authorization") String auth) {
 
 		String token = auth.replace("Bearer ", "");
@@ -99,18 +100,26 @@ public class ProgramaController {
 		service.criarArquivoProgramaEdocsAssinaturasPendentes(idPrograma, pessoa.getId());
 
 		return ResponseEntity.accepted().build();
+
 	}
 
 	@GetMapping("/programa/{idPrograma}/baixar-pdf")
 	public ResponseEntity<Resource> gerarPDFPrograma(@PathVariable Integer idPrograma) {
-		Resource resource = relatoriosService.gerarArquivoPrograma("PROGRAMA", idPrograma,
+
+		Programa programa = service.buscar(idPrograma.longValue());
+
+		Resource resource = relatoriosService.gerarArquivoPrograma("PROGRAMA", programa,
 				ExibirMarcaDaguaProgramaEnum.EXIBIR);
+
 		String nomeArquivo = service.gerarNomeArquivo(idPrograma.longValue());
+
 		String contentType = "application/pdf";
+
 		return ResponseEntity.ok()
 				.contentType(MediaType.parseMediaType(contentType))
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + ".pdf\"")
 				.body(resource);
+
 	}
 
 	@PostMapping("/programa/{idPrograma}/edocs/assinar")
