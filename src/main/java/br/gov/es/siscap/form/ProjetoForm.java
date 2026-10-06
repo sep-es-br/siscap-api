@@ -48,11 +48,11 @@ public record ProjetoForm(
         @Positive
         Long idOrganizacao,
 
-        @Valid
-        ValorDto valor,
+        // @Valid
+        // ValorDto valor,
 
-        @Valid
-        List<RateioDto> rateio,
+        // @Valid
+        // List<RateioDto> rateio,
 
         @NotBlank(
                 message = "Objetivo é obrigatório",

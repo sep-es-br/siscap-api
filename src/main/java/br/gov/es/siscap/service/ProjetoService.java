@@ -546,12 +546,9 @@ public class ProjetoService {
 
 		projetoPessoaSet = projetoPessoaService.cadastrar(projeto, form.idResponsavelProponente(), equipeParaGravar);
 
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(),
-				form.rateio());
-
-		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
-
-		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
+		// Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(), form.rateio());
+		// ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+		// List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		List<ProjetoIndicadorDto> indicadoresProjetoParaGravar = form.indicadoresProjeto();
 		projetoIndicadorService.cadastrar(projeto, indicadoresProjetoParaGravar);
@@ -593,7 +590,7 @@ public class ProjetoService {
 
 		logger.info("Projeto cadastrado com sucesso");
 
-		return new ProjetoDto(projeto, valorDto, rateio,
+		return new ProjetoDto(projeto, null, null, // valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
 				this.buscarSubResponsavelProponente(projetoPessoaSet),
@@ -663,11 +660,9 @@ public class ProjetoService {
 		Set<ProjetoIndicadorAvulso> projetoIndicadoresAvulsoSet = projetoIndicadorAvulsoService
 				.sincronizar(projetoResult, projetoIndicadoresAvuslsosDto);
 
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(),
-				form.rateio());
-		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
-
-		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
+		// Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
+		// ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+		// List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesRateioProjeto();
 		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar(projetoResult, projetoAcoesDto, rascunho);
@@ -719,7 +714,7 @@ public class ProjetoService {
 
 		logger.info("Projeto atualizado com sucesso");
 
-		return new ProjetoDto(projetoResult, valorDto, rateio,
+		return new ProjetoDto(projetoResult, null, null, // valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
 				subResponsavelProponente,
