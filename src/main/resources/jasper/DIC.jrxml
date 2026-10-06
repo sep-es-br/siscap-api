@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
@@ -356,8 +356,8 @@ group by
 			</element>
 			<element kind="textField" uuid="7b1b8d4a-044b-4a00-bf98-8cabd2df65a9" x="1" y="1" width="532" height="20" bold="true" vTextAlign="Middle">
 				<expression><![CDATA[$F{periodo_ppa_loa_projeto} == null || $F{periodo_ppa_loa_projeto}.isBlank()
-    ? "Planejamento"
-    : "Planejamento (" + $F{periodo_ppa_loa_projeto} + ")"]]></expression>
+    ? "Ações do Planejamento"
+    : "Ações do Planejamento (" + $F{periodo_ppa_loa_projeto} + ")"]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
