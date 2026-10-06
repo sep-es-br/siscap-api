@@ -10,12 +10,15 @@ import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import br.gov.es.siscap.utils.email.builder.EmailBuilder;
 import jakarta.mail.internet.MimeMessage;
 
 @Component
 public class EmailSenderBase {
+    private static final Logger logger = LogManager.getLogger(EmailSenderBase.class);
 
     @Autowired
     protected JavaMailSender sender;
@@ -32,6 +35,7 @@ public class EmailSenderBase {
                 helper.setTo(destino);
                 sender.send(helper.getMimeMessage());
             } catch (Exception e) {
+                logger.error("Falha ao enviar e-mail pelo servidor configurado.", e);
                 return false;
             }
         }
