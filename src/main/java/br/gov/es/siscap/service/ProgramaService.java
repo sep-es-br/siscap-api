@@ -241,7 +241,7 @@ public class ProgramaService {
 		return Integer.parseInt(String.valueOf((repository.count())));
 	}
 
-	private Programa buscar(long id) {
+	public Programa buscar(long id) {
 		return repository.findById(id).orElseThrow(() -> {
 			throw new ValidacaoSiscapException(List.of("Programa não encontrado"));
 		});
