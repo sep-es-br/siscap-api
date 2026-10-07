@@ -257,6 +257,12 @@ public class ProjetoController {
 		return ResponseEntity.ok(fases);
 	}
 
+	@PutMapping("/dic/edocs/parecer/avisos/{idProjeto}")
+	public ResponseEntity<List<String>> reenviarAvisosParecer(@PathVariable Long idProjeto) {
+		return ResponseEntity.ok(integracaoEdocsService.reenviarAvisosParecer(idProjeto));
+	}
+
+
 	@PutMapping("/dic/edocs/reentranharDIC/{idProjeto}")
 	public ResponseEntity<Resource> reentranharDIC(@PathVariable Long idProjeto,
 			@Valid @RequestBody ProjetoForm form,

@@ -122,6 +122,12 @@ public class IntegraccaoEdocsService {
 			""";
 
 	private Map<ChaveEtapasIntegracao, List<EtapasIntegracaoDto>> etapasPorChave = new ConcurrentHashMap<>();
+    private static final String AVISO_EMAIL_CAPTURA_PARECER =
+            "Parecer capturado, mas não foi possível enviar o aviso de captura por e-mail.";
+    private static final String AVISO_EMAIL_ELEGIBILIDADE =
+            "Parecer capturado, mas não foi possível enviar o aviso de elegibilidade por e-mail.";
+    private static final String AVISO_EMAIL_ENTRANHAMENTO =
+            "Parecer entranhado, mas não foi possível enviar o aviso à gerência SUBCAP por e-mail.";
 
 	public void atualizarEtapa(ChaveEtapasIntegracao chave, EtapasIntegracaoEdocsEnum etapaEnum, boolean iniciou,
 			boolean finalizou) {
@@ -231,6 +237,12 @@ public class IntegraccaoEdocsService {
 						false,
 						false));
 
+		this.atualizarProgressoParecer(chave, false, false, false);
+		if (elegível != null) {
+			this.adicionarEtapa(chave,
+					new EtapasIntegracaoDto(idProjeto, EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO, false, false, false));
+			this.atualizarEncerramentoParecer(chave, false, false, false);
+		}
 		try {
 
 			if (projetoParecerService.verificarCapturaParecer(idParecer)) {
@@ -261,8 +273,8 @@ public class IntegraccaoEdocsService {
 			}
 
 			String subUsuarioLogado = autenticacaoService.getUsuarioLogado();
-			String subJwt = autenticacaoService.getUsuarioSub();
 			ProjetoDto projetoDto = projetoService.buscarPorId(idProjeto);
+			this.atualizarProgressoParecer(chave, true, false, false);
 
 			this.assinarCapturarParecerProjetoReativo(
 					projetoDto,
@@ -271,23 +283,6 @@ public class IntegraccaoEdocsService {
 					idParecer,
 					subUsuarioLogado,
 					elegível)
-					.flatMap(mensagem -> {
-
-						logger.info(
-								"Parecer {} assinado e capturado com sucesso. {}",
-								idParecer,
-								mensagem);
-
-						if ("CAPTAÇÃO".equals(tipoParecer)) {
-
-							return this.entranharParecerProcesso(
-									projetoDto,
-									subJwt,
-									"Entranhamento do parecer referente ao DIC.");
-						}
-
-						return Mono.empty();
-					})
 					.doOnError(
 							erro -> registrarFalhaCapturaParecer(
 									chave,
@@ -532,9 +527,13 @@ public class IntegraccaoEdocsService {
 				.flatMap(ctx -> gerarUrlUpload(ctx, tamanho))
 				.flatMap(ctx -> uploadArquivo(ctx, arquivo, nomeArquivo))
 				.flatMap(ctx -> capturarAssinar(ctx, nomeArquivo))
-				.flatMap(this::consultarSituacaoCaptura)
-				.doOnSuccess(retorno -> finalizaTodasEtapas(chave))
+				.flatMap(ctx -> consultarSituacaoCaptura(ctx, false))
+				.doOnNext(ctx -> this.atualizarProgressoParecer(chave, true, true, false))
 				.flatMap(ctx -> atualizarParecer(ctx, idParecer, subUsuarioLogado, elegivel))
+				.doOnSuccess(retorno -> {
+					this.atualizarProgressoParecer(chave, true, true, true);
+					this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true, true);
+				})
 				.doOnSubscribe(sub -> logger.info("Iniciando atualização do parecer {}", idParecer))
 				.doOnSuccess(v -> logger.info("Parecer {} atualizado com sucesso", idParecer))
 				.doOnError(e -> {
@@ -543,6 +542,60 @@ public class IntegraccaoEdocsService {
 				})
 				.thenReturn("Assinatura e Captura do parecer concluída com sucesso.");
 
+	}
+
+	private void enviarAvisoParecerSemInterromper(ChaveEtapasIntegracao chave, String aviso, Runnable enviar) {
+		EtapasIntegracaoDto etapa = etapasPorChave.getOrDefault(chave, List.of()).stream()
+				.filter(item -> item.getEtapa() == EtapasIntegracaoEdocsEnum.CAPTURAASSINA)
+				.findFirst().orElse(null);
+		try {
+			enviar.run();
+			if (etapa != null) etapa.getAvisos().remove(aviso);
+		} catch (RuntimeException erro) {
+			logger.error("Falha na notificação do parecer. A integração será preservada. idProjeto={}", chave.id(), erro);
+			if (etapa != null && !etapa.getAvisos().contains(aviso)) etapa.getAvisos().add(aviso);
+		}
+	}
+
+	public List<String> reenviarAvisosParecer(Long idProjeto) {
+		var chave = new ChaveEtapasIntegracao(idProjeto, ContextoIntegracaoEdocsEnum.DIC);
+		EtapasIntegracaoDto etapa = etapasPorChave.getOrDefault(chave, List.of()).stream()
+				.filter(item -> item.getEtapa() == EtapasIntegracaoEdocsEnum.CAPTURAASSINA)
+				.findFirst().orElseThrow(() -> new ValidacaoSiscapException(List.of("Nenhum aviso pendente para este projeto.")));
+		if (!Boolean.TRUE.equals(etapa.getCapturaConcluida()) || (!etapa.isFinalizada() && !etapa.isErro())) {
+			throw new ValidacaoSiscapException(List.of("Aguarde o término da integração antes de reenviar os avisos."));
+		}
+		for (String aviso : List.copyOf(etapa.getAvisos())) {
+			if (AVISO_EMAIL_CAPTURA_PARECER.equals(aviso)) {
+				enviarAvisoParecerSemInterromper(chave, aviso,
+						() -> projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(idProjeto, projetoService.buscar(idProjeto).getSigla()));
+			} else if (AVISO_EMAIL_ELEGIBILIDADE.equals(aviso)) {
+				enviarAvisoParecerSemInterromper(chave, aviso,
+						() -> projetoService.enviarAvisoEquipeElaboracaoDicElegibilidade(idProjeto));
+			} else if (AVISO_EMAIL_ENTRANHAMENTO.equals(aviso)) {
+				enviarAvisoParecerSemInterromper(chave, aviso,
+						() -> projetoService.enviarEmailSubSecretariaSubcap(idProjeto));
+			}
+		}
+		return List.copyOf(etapa.getAvisos());
+	}
+
+	private void atualizarEncerramentoParecer(ChaveEtapasIntegracao chave, boolean iniciado,
+			boolean concluido, boolean erro) {
+		etapasPorChave.getOrDefault(chave, List.of()).stream()
+				.filter(etapa -> etapa.getEtapa() == EtapasIntegracaoEdocsEnum.CAPTURAASSINA)
+				.findFirst().ifPresent(etapa -> etapa.setProgressoEncerramento(iniciado, concluido, erro));
+	}
+
+	private void atualizarProgressoParecer(ChaveEtapasIntegracao chave, boolean pdf,
+			boolean assinatura, boolean captura) {
+		List<EtapasIntegracaoDto> etapas = etapasPorChave.get(chave);
+		if (etapas != null) {
+			etapas.stream()
+					.filter(etapa -> etapa.getEtapa() == EtapasIntegracaoEdocsEnum.CAPTURAASSINA)
+					.findFirst()
+					.ifPresent(etapa -> etapa.setProgressoParecer(pdf, assinatura, captura));
+		}
 	}
 
 	private void registrarFalhaCapturaParecer(ChaveEtapasIntegracao chave, Throwable erro) {
@@ -693,6 +746,7 @@ public class IntegraccaoEdocsService {
 								idParecer,
 								subUsuarioLogado,
 								codigoRegistroEdocs);
+						this.atualizarProgressoParecer(ctx.getChaveContextoIntegracao(), true, true, true);
 
 						logger.info(
 								"Parecer atualizado com ID do arquivo capturado. idParecer={}, idDocumento={}, codigoRegistroEdocs={}",
@@ -1032,6 +1086,11 @@ public class IntegraccaoEdocsService {
 	}
 
 	private Mono<FluxoContextoIntegracaoDto> consultarSituacaoCaptura(FluxoContextoIntegracaoDto ctx) {
+		return consultarSituacaoCaptura(ctx, true);
+	}
+
+	private Mono<FluxoContextoIntegracaoDto> consultarSituacaoCaptura(FluxoContextoIntegracaoDto ctx,
+			boolean finalizarEtapa) {
 
 		logger.info("Iniciar consulta situacao evento - CAPTURA - id {}.", ctx.getIdEventoCaptura());
 
@@ -1055,8 +1114,10 @@ public class IntegraccaoEdocsService {
 				})
 				.doOnSuccess(resultConsultaEvento -> {
 					ctx.setIdDocumentos(new String[] { resultConsultaEvento.idDocumento() });
-					this.atualizarEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true,
-							true);
+					if (finalizarEtapa) {
+						this.atualizarEtapa(ctx.getChaveContextoIntegracao(), EtapasIntegracaoEdocsEnum.CAPTURAASSINA, true,
+								true);
+					}
 				})
 				.thenReturn(ctx);
 
@@ -1834,10 +1895,14 @@ public class IntegraccaoEdocsService {
 				.flatMap(this::entranharDocumentoEdocs)
 				.flatMap(this::consultarSituacaoEntranhamento)
 				.flatMap(retorno -> Mono.fromCallable(() -> {
-					projetoService.enviarEmailSubSecretariaSubcap(projetoDto.id());
+					enviarAvisoParecerSemInterromper(chave, AVISO_EMAIL_ENTRANHAMENTO,
+							() -> projetoService.enviarEmailSubSecretariaSubcap(projetoDto.id()));
 					return "Entranhamento do parecer referente ao DIC concluído com sucesso.";
 				})
-						.subscribeOn(Schedulers.boundedElastic()));
+						.subscribeOn(Schedulers.boundedElastic()))
+				.doOnSubscribe(sub -> this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO, true, false))
+				.doOnError(erro -> this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO,
+						erro.getMessage()));
 
 	}
 
@@ -2097,6 +2162,8 @@ public class IntegraccaoEdocsService {
 
 		this.adicionarEtapa(chave,
 				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.AUTUAR, false, false, false));
+		this.adicionarEtapa(chave,
+				new EtapasIntegracaoDto(idPrograma, EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO, false, false, false));
 
 		return buscarTokenReativo()
 				.onErrorResume(tratarErroToken(chave, EtapasIntegracaoEdocsEnum.CAPTURAASSINA))
@@ -2244,8 +2311,10 @@ public class IntegraccaoEdocsService {
 				.switchIfEmpty(Mono
 						.error(new RuntimeException("Falha ao consultar situacao do evento de AUTUACAO DO PROCESSO ID "
 								+ ctx.getIdEventoAutuar() + ".")))
-				.doOnRequest(
-						n -> this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.AUTUAR, true, true))
+				.doOnRequest(n -> {
+					this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.AUTUAR, true, false);
+					this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO, true, false);
+				})
 				.doOnError(e -> {
 					logger.error("Falha ao verificar situacao do evento de autuacao do processo no E-Docs.", e);
 					this.registrarFalhaEtapa(chave, EtapasIntegracaoEdocsEnum.AUTUAR);
@@ -2253,6 +2322,8 @@ public class IntegraccaoEdocsService {
 				.doOnSuccess(resultConsultaEvento -> {
 					ctx.setIdProcesso(resultConsultaEvento.idProcesso());
 					this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.AUTUAR, true, true);
+					// O comando de autuação já recebe os documentos a serem entranhados.
+					this.atualizarEtapa(chave, EtapasIntegracaoEdocsEnum.ENTRANHARARQUIVO, true, true);
 				})
 				.thenReturn(ctx);
 
@@ -2303,9 +2374,9 @@ public class IntegraccaoEdocsService {
 
 				logger.info("Todos os pareceres do projeto foram capturados. Enviando aviso. idProjeto={}", idProjeto);
 
-				projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(
-						idProjeto,
-						siglaProjeto);
+				enviarAvisoParecerSemInterromper(ctx.getChaveContextoIntegracao(),
+						AVISO_EMAIL_CAPTURA_PARECER,
+						() -> projetoParecerService.enviarAvisoPareceresProjetoCapturadosEdocs(idProjeto, siglaProjeto));
 			}
 
 			if (!projetoParecerService.verificarEnvioParecereGEOCProjeto(idProjeto)) {
@@ -2335,16 +2406,24 @@ public class IntegraccaoEdocsService {
 
 			logger.info("Status atual do projeto finalizado. idProjeto={}", idProjeto);
 
-			projetoService.enviarAvisoEquipeElaboracaoDicElegibilidade(idProjeto);
-
-			logger.info("Aviso de elegibilidade enviado para equipe de elaboração. idProjeto={}", idProjeto);
+			enviarAvisoParecerSemInterromper(ctx.getChaveContextoIntegracao(),
+					AVISO_EMAIL_ELEGIBILIDADE,
+					() -> projetoService.enviarAvisoEquipeElaboracaoDicElegibilidade(idProjeto));
 
 			return entranharParecerProcesso(ctx.getProjeto(), subUsuarioLogado,
 					"Entranhamento do parecer referente ao DIC.")
 					.doOnNext(mensagem -> logger.info(
 							"Parecer entranhado no processo E-Docs. idProjeto={}, mensagem={}",
 							idProjeto, mensagem))
-					.then(encerrarProcessoEdocs(ctx))
+					.then(Mono.defer(() -> {
+						this.atualizarEncerramentoParecer(ctx.getChaveContextoIntegracao(), true, false, false);
+						return encerrarProcessoEdocs(ctx)
+								.flatMap(this::consultarSituacaoEncerramento)
+								.doOnSuccess(retorno -> this.atualizarEncerramentoParecer(
+										ctx.getChaveContextoIntegracao(), true, true, false))
+								.doOnError(erro -> this.atualizarEncerramentoParecer(
+										ctx.getChaveContextoIntegracao(), true, false, true));
+					}))
 					.doOnSuccess(retorno -> logger.info(
 							"Processo E-Docs encerrado. idProjeto={}, idEventoEncerramento={}",
 							idProjeto, retorno.getIdEventoEncerramento()))
