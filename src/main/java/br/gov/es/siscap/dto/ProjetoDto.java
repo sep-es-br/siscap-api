@@ -26,7 +26,7 @@ public record ProjetoDto(
 		Boolean rascunho,
 		String subResponsavelProponente,
 		List<ProjetoIndicadorDto> indicadoresProjeto,
-		List<ProjetoAcaoDto> acoesProjeto,
+		List<ProjetoAcaoDto> acoesRateioProjeto,
 		String pecasPlanejamento,
 		String protocoloEdocs,
 		String subProponente,
@@ -46,7 +46,8 @@ public record ProjetoDto(
 		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjeto,
 		List<ProjetoOdsDto> odsProjeto,
 		List<ProjetoPlanejamentoPpaLoaResponseDto> acoesPlanejamentoProjeto,
-		Boolean naoPrevistoNoPpa
+		Boolean naoPrevistoNoPpa,
+		String periodoPpaLoa
 	) {
 
 	public ProjetoDto(Projeto projeto,
@@ -56,7 +57,7 @@ public record ProjetoDto(
 			List<EquipeDto> equipeElaboracao,
 			String subResponsavelProponente,
 			List<ProjetoIndicadorDto> indicadoresProjeto,
-			List<ProjetoAcaoDto> acoesProjeto,
+			List<ProjetoAcaoDto> acoesRateioProjeto,
 			String subProponente,
 			String lotacaoProponenteResponsavel, 
 			String nomeProponenteResponsavel, 
@@ -94,7 +95,7 @@ public record ProjetoDto(
 				projeto.isRascunho(),
 				subResponsavelProponente,
 				indicadoresProjeto,
-				acoesProjeto,
+				acoesRateioProjeto,
 				projeto.getPecasPlanejamento(),
 				projeto.getProtocoloEdocs(),
 				subProponente,
@@ -114,7 +115,8 @@ public record ProjetoDto(
 				projetoIndicadorAvulsos,
 				odsProjeto,	
 				acoesPlanejamentoProjeto,
-				projeto.getNaoPrevistoNoPpa());
+				projeto.getNaoPrevistoNoPpa(),
+				projeto.getPeriodoPpaLoa());
 
 	}
 
@@ -158,7 +160,8 @@ public record ProjetoDto(
 				projeto.getProjetoIndicadorAvulsoSet().stream().map(ProjetoIndicadorAvulsoDto::new).toList(),
 				projeto.getOds().stream().map(ProjetoOdsDto::new).toList(),
 				projeto.getPlanejamentoPpaLoa().stream().map(ProjetoPlanejamentoPpaLoaResponseDto::new).toList(),
-				projeto.getNaoPrevistoNoPpa());
+				projeto.getNaoPrevistoNoPpa(),
+				projeto.getPeriodoPpaLoa());
 
 	}
 

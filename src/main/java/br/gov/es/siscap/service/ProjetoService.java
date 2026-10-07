@@ -19,7 +19,6 @@ import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoAcao;
-import br.gov.es.siscap.models.ProjetoAcaoLocalidadeQuantia;
 import br.gov.es.siscap.models.ProjetoCamposComplementacao;
 import br.gov.es.siscap.models.ProjetoIndicador;
 import br.gov.es.siscap.models.ProjetoIndicadorAvulso;
@@ -68,15 +67,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-
-import java.math.BigDecimal;
-
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import jakarta.validation.groups.Default;
@@ -110,8 +100,6 @@ public class ProjetoService {
 	private final PpaLoaBiService ppaLoaBiService;
 
 	private final Validator validator;
-
-	private final ProjetoAcaoLocalidadeQuantiaService projetoAcaoLocalidadeQuantiaService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -204,15 +192,15 @@ public class ProjetoService {
 
 					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
 
-					if( !localidadeQuantiaSet.isEmpty()){
-						
-					ValorDto valorDto = localidadeQuantiaService.montarValorDto(
-							localidadeQuantiaSet);
+					if (!localidadeQuantiaSet.isEmpty()) {
 
-					return new ProjetoListaDto(
-							projeto,
-							valorDto.quantia(),
-							lotacaoUsuario.getValue());
+						ValorDto valorDto = localidadeQuantiaService.montarValorDto(
+								localidadeQuantiaSet);
+
+						return new ProjetoListaDto(
+								projeto,
+								valorDto.quantia(),
+								lotacaoUsuario.getValue());
 
 					}
 
@@ -274,16 +262,14 @@ public class ProjetoService {
 
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
-		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
+		// List<RateioDto> rateio =
+		// localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		Set<ProjetoIndicador> indicadores = projetoIndicadorService.buscarPorProjeto(projeto);
 
 		Set<ProjetoIndicadorAvulso> indicadoresAvulsos = projetoIndicadorAvulsoService.buscarPorProjeto(projeto);
 
 		Set<ProjetoAcao> acoes = projetoAcaoService.buscarPorProjeto(projeto);
-
-		// Set<ProjetoAcaoLocalidadeQuantia> acoesRateios =
-		// projetoAcaoLocalidadeQuantiaService.buscarPorProjeto(projeto);
 
 		String subUsuario = autenticacaoService.getUsuarioLogado();
 
@@ -313,7 +299,7 @@ public class ProjetoService {
 		Set<ProjetoPlanejamentoPpaLoa> planejamentoPpaLoaProjeto = projetoPlanejamentoPpaLoaService
 				.buscarPorProjeto(projeto);
 
-		return new ProjetoDto(projeto, valorDto, rateio,
+		return new ProjetoDto(projeto, valorDto, null, // rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
 				this.buscarSubResponsavelProponente(projetoPessoaSet),
@@ -335,18 +321,18 @@ public class ProjetoService {
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				this.buscarIndicadoresAvulsos(indicadoresAvulsos),
 				this.buscarOdsProjeto(odsProjeto),
-				this.buscarPlanejamentoPpaLoaProjeto(planejamentoPpaLoaProjeto));
+				this.buscarPlanejamentoPpaLoaProjeto(planejamentoPpaLoaProjeto, projeto.getPeriodoPpaLoa()));
 
 	}
 
 	private List<ProjetoPlanejamentoPpaLoaResponseDto> buscarPlanejamentoPpaLoaProjeto(
-			Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet) {
+			Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet, String periodoPpaPlanejamento) {
 
 		if (projetoPlanejamentoPpaLoaSet == null || projetoPlanejamentoPpaLoaSet.isEmpty()) {
 			return List.of();
 		}
 
-		String ppaPlanejamento = "2024-2027";
+		String ppaPlanejamento = periodoPpaPlanejamento;
 
 		List<Long> funcoes = new ArrayList<>();
 		List<Long> programas = new ArrayList<>();
@@ -545,15 +531,8 @@ public class ProjetoService {
 		tempProjeto.setCountAno(this.buscarCountAnoFormatado());
 		tempProjeto.setRascunho(true);
 		tempProjeto.alterarStatus(StatusProjetoEnum.EM_ELABORACAO.getValue(), pessoa);
-
-		// definir o usuario logado como redator original..
-		String subUsuario = autenticacaoService.getUsuarioLogado();
-
-		Pessoa pessoaRedatorProjeto = pessoaRepository.findBySub(subUsuario)
-				.orElseThrow(() -> new ValidacaoSiscapException(List.of(
-						"Redator do DIC não encontrado para o SUB : %s.".formatted(subUsuario))));
-
-		tempProjeto.setPessoa(pessoaRedatorProjeto);
+		tempProjeto.setPessoa(buscarPessoaUsuarioLogado());
+		tempProjeto.setPeriodoPpaLoa(form.periodoPpaLoa());
 
 		Projeto projeto = repository.save(tempProjeto);
 
@@ -568,12 +547,12 @@ public class ProjetoService {
 
 		projetoPessoaSet = projetoPessoaService.cadastrar(projeto, form.idResponsavelProponente(), equipeParaGravar);
 
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(),
-				form.rateio());
-
-		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
-
-		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
+		// Set<LocalidadeQuantia> localidadeQuantiaSet =
+		// localidadeQuantiaService.cadastrar(projeto, form.valor(), form.rateio());
+		// ValorDto valorDto =
+		// localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+		// List<RateioDto> rateio =
+		// localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		List<ProjetoIndicadorDto> indicadoresProjetoParaGravar = form.indicadoresProjeto();
 		projetoIndicadorService.cadastrar(projeto, indicadoresProjetoParaGravar);
@@ -584,14 +563,8 @@ public class ProjetoService {
 		List<ProjetoIndicadorAvulsoDto> indicadoresAvulsosProjetoParaGravar = form.indicadoresAvulsosProjeto();
 		projetoIndicadorAvulsoService.sincronizar(projeto, indicadoresAvulsosProjetoParaGravar);
 
-		// List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesProjeto();
-		// projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
-
 		List<ProjetoAcaoDto> acoesProjetoParaGravar = form.acoesRateioProjeto();
 		projetoAcaoService.cadastrar(projeto, acoesProjetoParaGravar);
-		// projetoAcaoService.atualizar(projeto, projetoAcoesDto, rascunho);
-
-		logger.info("ID projeto antes de gravar planejamento: {}", projeto.getId());
 
 		List<ProjetoPlanejamentoPpaLoaDto> planejamentoPpaLoaParaGravar = form.acoesPlanejamentoProjeto();
 		Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet = projetoPlanejamentoPpaLoaService
@@ -621,7 +594,7 @@ public class ProjetoService {
 
 		logger.info("Projeto cadastrado com sucesso");
 
-		return new ProjetoDto(projeto, valorDto, rateio,
+		return new ProjetoDto(projeto, null, null, // valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
 				this.buscarSubResponsavelProponente(projetoPessoaSet),
@@ -638,7 +611,7 @@ public class ProjetoService {
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				indicadoresAvulsosProjetoParaGravar,
 				indicadoresOdsParaGravar,
-				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet));
+				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet, projeto.getPeriodoPpaLoa()));
 
 	}
 
@@ -691,11 +664,13 @@ public class ProjetoService {
 		Set<ProjetoIndicadorAvulso> projetoIndicadoresAvulsoSet = projetoIndicadorAvulsoService
 				.sincronizar(projetoResult, projetoIndicadoresAvuslsosDto);
 
-		Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(),
-				form.rateio());
-		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
-
-		List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
+		// Set<LocalidadeQuantia> localidadeQuantiaSet =
+		// localidadeQuantiaService.atualizar(projetoResult, form.valor(),
+		// form.rateio());
+		// ValorDto valorDto =
+		// localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+		// List<RateioDto> rateio =
+		// localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesRateioProjeto();
 		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar(projetoResult, projetoAcoesDto, rascunho);
@@ -747,7 +722,7 @@ public class ProjetoService {
 
 		logger.info("Projeto atualizado com sucesso");
 
-		return new ProjetoDto(projetoResult, valorDto, rateio,
+		return new ProjetoDto(projetoResult, null, null, // valorDto, rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
 				subResponsavelProponente,
@@ -767,7 +742,7 @@ public class ProjetoService {
 				projeto.getHistoricoStatus().stream().map(StatusProjetoDto::new).toList(),
 				this.buscarIndicadoresAvulsos(projetoIndicadoresAvulsoSet),
 				this.buscarOdsProjeto(projetoOdsSet),
-				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet));
+				this.buscarPlanejamentoPpaLoaProjeto(projetoPlanejamentoPpaLoaSet, projeto.getPeriodoPpaLoa()));
 
 	}
 
@@ -1610,19 +1585,27 @@ public class ProjetoService {
 	}
 
 	public List<ProjetoPropostoOpcoesDto> listarDicsElegiveisParaPrograma(String incluir) {
+
 		return repository.findAll(Sort.by(Sort.Direction.DESC, "criadoEm"))
 				.stream()
-				.filter((projeto) -> (incluir != null
-						&& Arrays.stream(incluir.split(";")).anyMatch(String.valueOf(projeto.getId())::equals))
+				.filter(projeto -> (incluir != null
+						&& Arrays.stream(incluir.split(";"))
+								.anyMatch(String.valueOf(projeto.getId())::equals))
 						|| projeto.isElegivelParaVinculo())
 				.map(projeto -> {
-					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
-					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+
+					ValorDto valorDto = obterValorEstimadoProjeto(projeto);
+
 					boolean parecerGEOCEnviado = projetoParecerService
 							.verificarEnvioParecereGEOCProjeto(projeto.getId());
-					return new ProjetoPropostoOpcoesDto(projeto, valorDto, parecerGEOCEnviado);
+
+					return new ProjetoPropostoOpcoesDto(
+							projeto,
+							valorDto,
+							parecerGEOCEnviado);
 				})
 				.toList();
+				
 	}
 
 	@Transactional
@@ -1782,5 +1765,58 @@ public class ProjetoService {
 					"Erro ao reenviar e-mail de solicitação de parecer estratégico e orçamentário."));
 		}
 	}
+
+	private Pessoa buscarPessoaUsuarioLogado() {
+
+		String subUsuario = autenticacaoService.getUsuarioLogado();
+
+		return pessoaRepository.findBySub(subUsuario)
+				.orElseThrow(() -> new ValidacaoSiscapException(List.of(
+						"Pessoa do usuário logado não encontrada para o SUB: %s."
+								.formatted(subUsuario))));
+
+	}
+
+	public ValorDto obterValorEstimadoProjeto(Projeto projeto) {
+
+		Set<LocalidadeQuantia> rateioLegado = localidadeQuantiaService.buscarPorProjeto(projeto);
+
+		ValorDto valorLegado = localidadeQuantiaService.montarValorDto(rateioLegado);
+
+		if (valorLegado != null && valorLegado.quantia() != null && valorLegado.quantia().compareTo(BigDecimal.ZERO) > 0) {
+			return valorLegado;
+		}
+
+		BigDecimal valorAcoes = projetoAcaoService.buscarPorProjeto(projeto)
+				.stream()
+				.map(ProjetoAcao::getValorEstimado)
+				.filter(Objects::nonNull)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		return new ValorDto(valorAcoes);
+
+	}
+
+	// public BigDecimal obterValorEstimadoProjeto(Projeto projeto) {
+
+	// 	BigDecimal valorLegado = Optional.ofNullable(projeto.getLocalidadeQuantiaSet())
+	// 			.orElseGet(Collections::emptySet)
+	// 			.stream()
+	// 			.map(LocalidadeQuantia::getQuantia)
+	// 			.filter(Objects::nonNull)
+	// 			.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+	// 	if (valorLegado.compareTo(BigDecimal.ZERO) > 0) {
+	// 		return valorLegado;
+	// 	}
+
+	// 	return Optional.ofNullable(projeto.getProjetoAcoesSet())
+	// 			.orElseGet(Collections::emptySet)
+	// 			.stream()
+	// 			.map(ProjetoAcao::getValorEstimado)
+	// 			.filter(Objects::nonNull)
+	// 			.reduce(BigDecimal.ZERO, BigDecimal::add);
+				
+	// }
 
 }

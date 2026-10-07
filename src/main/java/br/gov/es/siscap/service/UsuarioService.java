@@ -40,7 +40,7 @@ public class UsuarioService implements UserDetailsService {
     private final AcessoCidadaoService acessoCidadaoService;
     private final OverrideProperties overrideProperties;
 
-    private final Logger logger = LogManager.getLogger(AuthorizationRequestResolver.class);
+    private final Logger logger = LogManager.getLogger(UsuarioService.class);
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -67,13 +67,7 @@ public class UsuarioService implements UserDetailsService {
     }
 
     public String lotacaoGuidUsuario(String subUsuario) {
-
-        String overrideLotacao = overrideProperties.getLotacaoUsuario().get(subUsuario);
-        if (overrideLotacao != null) {
-            logger.info("LOTACAO_RESOLVED source=userOverride guid={}", overrideLotacao);
-            return overrideLotacao;
-        }
-
+        
         // ⚙️ Simulação de ambiente de teste
         if (lotacaoSimulada != null && !lotacaoSimulada.isEmpty()) {
             String guidResolvido = switch (lotacaoSimulada.toUpperCase()) {
@@ -83,6 +77,12 @@ public class UsuarioService implements UserDetailsService {
             };
             logger.info("LOTACAO_RESOLVED source=globalSimulation guid={}", guidResolvido);
             return guidResolvido;
+        }
+
+        String overrideLotacao = overrideProperties.getLotacaoUsuario().get(subUsuario);
+        if (overrideLotacao != null) {
+            logger.info("LOTACAO_RESOLVED source=userOverride guid={}", overrideLotacao);
+            return overrideLotacao;
         }
 
         Usuario usuarioBanco = (Usuario) this.repository.findBySub(subUsuario);

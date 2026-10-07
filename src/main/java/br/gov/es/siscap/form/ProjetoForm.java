@@ -48,11 +48,11 @@ public record ProjetoForm(
         @Positive
         Long idOrganizacao,
 
-        @Valid
-        ValorDto valor,
+        // @Valid
+        // ValorDto valor,
 
-        @Valid
-        List<RateioDto> rateio,
+        // @Valid
+        // List<RateioDto> rateio,
 
         @NotBlank(
                 message = "Objetivo é obrigatório",
@@ -99,8 +99,8 @@ public record ProjetoForm(
         @Valid
         List<ProjetoIndicadorDto> indicadoresProjeto,
 
-        @Valid
-        List<ProjetoAcaoDto> acoesProjeto,
+        // @Valid
+        // List<ProjetoAcaoDto> acoesProjeto,
 
         @NotBlank(
                 message = "Peças de planejamento é obrigatório",
@@ -131,7 +131,13 @@ public record ProjetoForm(
         Boolean naoPrevistoNoPpa,
 
         @Valid
-        List<ProjetoAcaoDto> acoesRateioProjeto
+        List<ProjetoAcaoDto> acoesRateioProjeto,        
+
+        @NotBlank(
+                message = "Período PPA/LOA é obrigatório",
+                groups = ValidacaoEnvio.class
+        )
+        String periodoPpaLoa
 
 ) {
 }
