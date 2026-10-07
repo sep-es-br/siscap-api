@@ -262,7 +262,8 @@ public class ProjetoService {
 
 		ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
 
-		// List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
+		// List<RateioDto> rateio =
+		// localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		Set<ProjetoIndicador> indicadores = projetoIndicadorService.buscarPorProjeto(projeto);
 
@@ -298,7 +299,7 @@ public class ProjetoService {
 		Set<ProjetoPlanejamentoPpaLoa> planejamentoPpaLoaProjeto = projetoPlanejamentoPpaLoaService
 				.buscarPorProjeto(projeto);
 
-		return new ProjetoDto(projeto, valorDto, null, //rateio,
+		return new ProjetoDto(projeto, valorDto, null, // rateio,
 				this.buscarIdResponsavelProponente(projetoPessoaSet),
 				this.buscarEquipeElaboracao(projetoPessoaSet),
 				this.buscarSubResponsavelProponente(projetoPessoaSet),
@@ -325,7 +326,7 @@ public class ProjetoService {
 	}
 
 	private List<ProjetoPlanejamentoPpaLoaResponseDto> buscarPlanejamentoPpaLoaProjeto(
-			Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet, String periodoPpaPlanejamento ) {
+			Set<ProjetoPlanejamentoPpaLoa> projetoPlanejamentoPpaLoaSet, String periodoPpaPlanejamento) {
 
 		if (projetoPlanejamentoPpaLoaSet == null || projetoPlanejamentoPpaLoaSet.isEmpty()) {
 			return List.of();
@@ -546,9 +547,12 @@ public class ProjetoService {
 
 		projetoPessoaSet = projetoPessoaService.cadastrar(projeto, form.idResponsavelProponente(), equipeParaGravar);
 
-		// Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.cadastrar(projeto, form.valor(), form.rateio());
-		// ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
-		// List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
+		// Set<LocalidadeQuantia> localidadeQuantiaSet =
+		// localidadeQuantiaService.cadastrar(projeto, form.valor(), form.rateio());
+		// ValorDto valorDto =
+		// localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+		// List<RateioDto> rateio =
+		// localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		List<ProjetoIndicadorDto> indicadoresProjetoParaGravar = form.indicadoresProjeto();
 		projetoIndicadorService.cadastrar(projeto, indicadoresProjetoParaGravar);
@@ -660,9 +664,13 @@ public class ProjetoService {
 		Set<ProjetoIndicadorAvulso> projetoIndicadoresAvulsoSet = projetoIndicadorAvulsoService
 				.sincronizar(projetoResult, projetoIndicadoresAvuslsosDto);
 
-		// Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.atualizar(projetoResult, form.valor(), form.rateio());
-		// ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
-		// List<RateioDto> rateio = localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
+		// Set<LocalidadeQuantia> localidadeQuantiaSet =
+		// localidadeQuantiaService.atualizar(projetoResult, form.valor(),
+		// form.rateio());
+		// ValorDto valorDto =
+		// localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+		// List<RateioDto> rateio =
+		// localidadeQuantiaService.montarListRateioDtoPorProjeto(localidadeQuantiaSet);
 
 		List<ProjetoAcaoDto> projetoAcoesDto = form.acoesRateioProjeto();
 		Set<ProjetoAcao> projetoAcoesSet = projetoAcaoService.atualizar(projetoResult, projetoAcoesDto, rascunho);
@@ -1577,19 +1585,27 @@ public class ProjetoService {
 	}
 
 	public List<ProjetoPropostoOpcoesDto> listarDicsElegiveisParaPrograma(String incluir) {
+
 		return repository.findAll(Sort.by(Sort.Direction.DESC, "criadoEm"))
 				.stream()
-				.filter((projeto) -> (incluir != null
-						&& Arrays.stream(incluir.split(";")).anyMatch(String.valueOf(projeto.getId())::equals))
+				.filter(projeto -> (incluir != null
+						&& Arrays.stream(incluir.split(";"))
+								.anyMatch(String.valueOf(projeto.getId())::equals))
 						|| projeto.isElegivelParaVinculo())
 				.map(projeto -> {
-					Set<LocalidadeQuantia> localidadeQuantiaSet = localidadeQuantiaService.buscarPorProjeto(projeto);
-					ValorDto valorDto = localidadeQuantiaService.montarValorDto(localidadeQuantiaSet);
+
+					ValorDto valorDto = obterValorEstimadoProjeto(projeto);
+
 					boolean parecerGEOCEnviado = projetoParecerService
 							.verificarEnvioParecereGEOCProjeto(projeto.getId());
-					return new ProjetoPropostoOpcoesDto(projeto, valorDto, parecerGEOCEnviado);
+
+					return new ProjetoPropostoOpcoesDto(
+							projeto,
+							valorDto,
+							parecerGEOCEnviado);
 				})
 				.toList();
+				
 	}
 
 	@Transactional
@@ -1760,5 +1776,47 @@ public class ProjetoService {
 								.formatted(subUsuario))));
 
 	}
+
+	public ValorDto obterValorEstimadoProjeto(Projeto projeto) {
+
+		Set<LocalidadeQuantia> rateioLegado = localidadeQuantiaService.buscarPorProjeto(projeto);
+
+		ValorDto valorLegado = localidadeQuantiaService.montarValorDto(rateioLegado);
+
+		if (valorLegado != null && valorLegado.quantia() != null && valorLegado.quantia().compareTo(BigDecimal.ZERO) > 0) {
+			return valorLegado;
+		}
+
+		BigDecimal valorAcoes = projetoAcaoService.buscarPorProjeto(projeto)
+				.stream()
+				.map(ProjetoAcao::getValorEstimado)
+				.filter(Objects::nonNull)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		return new ValorDto(valorAcoes);
+
+	}
+
+	// public BigDecimal obterValorEstimadoProjeto(Projeto projeto) {
+
+	// 	BigDecimal valorLegado = Optional.ofNullable(projeto.getLocalidadeQuantiaSet())
+	// 			.orElseGet(Collections::emptySet)
+	// 			.stream()
+	// 			.map(LocalidadeQuantia::getQuantia)
+	// 			.filter(Objects::nonNull)
+	// 			.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+	// 	if (valorLegado.compareTo(BigDecimal.ZERO) > 0) {
+	// 		return valorLegado;
+	// 	}
+
+	// 	return Optional.ofNullable(projeto.getProjetoAcoesSet())
+	// 			.orElseGet(Collections::emptySet)
+	// 			.stream()
+	// 			.map(ProjetoAcao::getValorEstimado)
+	// 			.filter(Objects::nonNull)
+	// 			.reduce(BigDecimal.ZERO, BigDecimal::add);
+				
+	// }
 
 }

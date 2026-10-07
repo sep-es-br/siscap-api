@@ -24,4 +24,9 @@ public record ValorDto(
 			String moeda
 
 ) {
+
+    public ValorDto(BigDecimal valorAcoes) {
+        this(valorAcoes, 1L, "BRL");
+    }
+	
 }
