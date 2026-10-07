@@ -15,6 +15,13 @@ public class EtapasIntegracaoDto {
     private String msgAlertaExibir;
     private String contextoNegocio;
     private boolean tokenExpirado = false;
+    private Boolean pdfConcluido;
+    private Boolean assinaturaConcluida;
+    private Boolean capturaConcluida;
+    private Boolean encerramentoIniciado;
+    private Boolean encerramentoConcluido;
+    private Boolean erroEncerramento;
+    private final java.util.List<String> avisos = new java.util.concurrent.CopyOnWriteArrayList<>();
 
     public EtapasIntegracaoDto(Long id, EtapasIntegracaoEdocsEnum etapa, boolean iniciada, boolean finalizada, boolean erro ) {
         this.id = id;
@@ -34,6 +41,23 @@ public class EtapasIntegracaoDto {
     }
 
     public EtapasIntegracaoEdocsEnum getEtapa() { return etapa; }
+    public Boolean getPdfConcluido() { return pdfConcluido; }
+    public Boolean getAssinaturaConcluida() { return assinaturaConcluida; }
+    public Boolean getCapturaConcluida() { return capturaConcluida; }
+    public Boolean getEncerramentoIniciado() { return encerramentoIniciado; }
+    public Boolean getEncerramentoConcluido() { return encerramentoConcluido; }
+    public Boolean getErroEncerramento() { return erroEncerramento; }
+    public void setProgressoEncerramento(boolean iniciado, boolean concluido, boolean erro) {
+        this.encerramentoIniciado = iniciado;
+        this.encerramentoConcluido = concluido;
+        this.erroEncerramento = erro;
+    }
+    public java.util.List<String> getAvisos() { return avisos; }
+    public void setProgressoParecer(boolean pdf, boolean assinatura, boolean captura) {
+        this.pdfConcluido = pdf;
+        this.assinaturaConcluida = assinatura;
+        this.capturaConcluida = captura;
+    }
     public boolean isIniciada() { return iniciada; }
     public boolean isFinalizada() { return finalizada; }
     public boolean isErro() { return erro; }
