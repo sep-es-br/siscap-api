@@ -4,6 +4,8 @@ import static br.gov.es.siscap.enums.Permissoes.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,6 +19,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import br.gov.es.siscap.dto.AcessoCidadaoRedirectProperties;
+
+@EnableConfigurationProperties(
+    AcessoCidadaoRedirectProperties.class
+)
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -34,6 +41,8 @@ public class SecurityConfig {
 	private final ClientRegistrationRepository clientRegistrationRepository;
 	private final SecurityFilter securityFilter;
 	private final CustomAccessDeniedHandler customAccessDeniedHandler;
+	
+	private final AcessoCidadaoRedirectProperties redirectProperties;
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -104,7 +113,7 @@ public class SecurityConfig {
 				.oauth2Login(oAuth2LoginConfig -> oAuth2LoginConfig
 						.authorizationEndpoint(authEndpointConfig -> authEndpointConfig
 								.authorizationRequestResolver(new AuthorizationRequestResolver(
-										clientRegistrationRepository, "/oauth2/authorization"))))
+										clientRegistrationRepository, "/oauth2/authorization", redirectProperties))))
 				.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
 				.exceptionHandling(exHandler -> exHandler
 						.accessDeniedHandler(customAccessDeniedHandler)
@@ -116,6 +125,7 @@ public class SecurityConfig {
 									.commence(request, response, authenticationException);
 						}))
 				.build();
+
 	}
 
 }
