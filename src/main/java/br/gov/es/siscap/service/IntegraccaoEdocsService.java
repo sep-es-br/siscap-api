@@ -1802,10 +1802,10 @@ public class IntegraccaoEdocsService {
 			}
 
 			if (Objects.equals(guidSUBEO, parecer.getGuidUnidadeOrganizacao())) {
-				guidDocumentoSubeo = parecer.getGuidDocumentoEdocs();
+				guidDocumentoSubeo = parecer.getRegistroArquivoEdocs();
 
 			} else if (Objects.equals(guidSUBEPP, parecer.getGuidUnidadeOrganizacao())) {
-				guidDocumentoSubepp = parecer.getGuidDocumentoEdocs();
+				guidDocumentoSubepp = parecer.getRegistroArquivoEdocs();
 			}
 
 		}

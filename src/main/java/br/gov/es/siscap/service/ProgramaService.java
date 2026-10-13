@@ -4,6 +4,7 @@ import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
+import br.gov.es.siscap.dto.ValorDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import br.gov.es.siscap.enums.PapelOrgaoProgramaEnum;
@@ -17,14 +18,18 @@ import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
 import br.gov.es.siscap.models.Projeto;
+import br.gov.es.siscap.models.ProjetoAcao;
 import br.gov.es.siscap.repository.PessoaRepository;
 import br.gov.es.siscap.repository.ProgramaRepository;
 import br.gov.es.siscap.utils.FormatadorCountAno;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -264,7 +269,7 @@ public class ProgramaService {
 			Long idPrograma,
 			Long idPessoa) {
 
-		validarParametrosSolicitacaoAssinatura(idPrograma,idPessoa);
+		validarParametrosSolicitacaoAssinatura(idPrograma, idPessoa);
 
 		Programa programa = buscar(idPrograma);
 
@@ -272,7 +277,8 @@ public class ProgramaService {
 
 		if (documentoAssinaturaAindaNaoCriado(programa)) {
 
-			logger.info("Programa {} ainda não possui documento de assinatura no E-Docs. " + "Iniciando integração.", idPrograma);
+			logger.info("Programa {} ainda não possui documento de assinatura no E-Docs. " + "Iniciando integração.",
+					idPrograma);
 
 			String nomeArquivo = gerarNomeArquivo(idPrograma);
 
@@ -296,7 +302,6 @@ public class ProgramaService {
 				.enviarAvisoSolicitarAssinaturaPrograma(
 						idPrograma,
 						assinantes);
-
 
 	}
 
@@ -412,33 +417,40 @@ public class ProgramaService {
 
 	private void validarProgramaForm(ProgramaForm form) {
 
-		if (form.valorCalculadoTotal() == null || form.valorCalculadoTotal().compareTo(BigDecimal.ZERO) == 0) {
-			throw new ValidacaoSiscapException(List.of("Valor total estimado do programa não pode ser zerado."));
+		if (form.valorCalculadoTotal() == null
+				|| form.valorCalculadoTotal().compareTo(BigDecimal.ZERO) == 0) {
+			throw new ValidacaoSiscapException(
+					List.of("Valor total estimado do programa não pode ser zerado."));
 		}
 
 		BigDecimal totalEstimadoDicsPrograma = form.idProjetoPropostoList()
 				.stream()
-				.map(dicId -> {
-					Projeto projeto = projetoService.buscar(dicId);
-					return projeto.getLocalidadeQuantiaSet().stream().map(LocalidadeQuantia::getQuantia)
-							.reduce(BigDecimal.ZERO, BigDecimal::add);
-				})
+				.map(projetoService::buscar)
+				.map(projetoService::obterValorEstimadoProjeto)
+				.map(ValorDto::quantia)
+				.filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 		if (form.percentualCustoAdministrativo() != null
 				&& form.percentualCustoAdministrativo().compareTo(BigDecimal.ZERO) > 0) {
-			totalEstimadoDicsPrograma = totalEstimadoDicsPrograma
-					.multiply(form.percentualCustoAdministrativo()
-							.divide(BigDecimal.valueOf(100)).add(BigDecimal.valueOf(1)));
+
+			BigDecimal fatorCustoAdministrativo = form.percentualCustoAdministrativo()
+					.divide(BigDecimal.valueOf(100))
+					.add(BigDecimal.ONE);
+
+			totalEstimadoDicsPrograma = totalEstimadoDicsPrograma.multiply(fatorCustoAdministrativo);
 		}
 
-		if (totalEstimadoDicsPrograma == null || totalEstimadoDicsPrograma.compareTo(form.valorCalculadoTotal()) != 0) {
+		if (totalEstimadoDicsPrograma.compareTo(form.valorCalculadoTotal()) != 0) {
 			throw new ValidacaoSiscapException(List.of(
 					"Valor total estimado do programa está inválido, ele deve ser o resultado dos valores somados dos DIC´s mais o percentual de custo administrativo se houver."));
 		}
 
-		if (form.orgaosEnvolvidosList().stream()
-				.noneMatch(orgao -> orgao.papel().equals(PapelOrgaoProgramaEnum.GESTOR.getValue()))) {
+		if (form.orgaosEnvolvidosList()
+				.stream()
+				.noneMatch(orgao -> orgao.papel()
+						.equals(PapelOrgaoProgramaEnum.GESTOR.getValue()))) {
+
 			throw new ValidacaoSiscapException(List.of(
 					"Um programa deve conter exatamente um órgão com o papel de Gestor; nenhum ou mais de um não são permitidos."));
 		}
@@ -520,5 +532,7 @@ public class ProgramaService {
 		}
 
 	}
+
+	
 
 }
