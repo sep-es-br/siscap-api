@@ -1,0 +1,266 @@
+2026-09-30T19:44:16.099-03:00  INFO 39396 --- [restartedMain] b.g.e.s.SiscapApplication                : Starting SiscapApplication using Java 17.0.8 with PID 39396 (D:\SEP\Siscap\siscap-api\target\classes started by ersim in D:\SEP\Siscap\siscap-api)
+2026-09-30T19:44:16.176-03:00  INFO 39396 --- [restartedMain] b.g.e.s.SiscapApplication                : No active profile set, falling back to 1 default profile: "default"
+2026-09-30T19:44:26.323-03:00  INFO 39396 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-30T19:44:26.539-03:00  INFO 39396 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 212 ms. Found 42 JPA repository interfaces.
+2026-09-30T19:44:26.720-03:00  INFO 39396 --- [restartedMain] o.s.c.c.s.GenericScope                   : BeanFactory id=9c3d3672-f920-3570-bf57-8f1b9b34aafd
+2026-09-30T19:44:26.880-03:00  INFO 39396 --- [restartedMain] o.s.b.w.e.t.TomcatWebServer              : Tomcat initialized with port 8080 (http)
+2026-09-30T19:44:26.884-03:00  INFO 39396 --- [restartedMain] o.a.c.c.StandardService                  : Starting service [Tomcat]
+2026-09-30T19:44:26.885-03:00  INFO 39396 --- [restartedMain] o.a.c.c.StandardEngine                   : Starting Servlet engine: [Apache Tomcat/10.1.18]
+2026-09-30T19:44:26.935-03:00  INFO 39396 --- [restartedMain] o.a.c.c.C.[.[.[/siscap]                  : Initializing Spring embedded WebApplicationContext
+2026-09-30T19:44:26.935-03:00  INFO 39396 --- [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 10738 ms
+2026-09-30T19:44:26.958-03:00 ERROR 39396 --- [restartedMain] o.s.b.w.e.t.TomcatStarter                : Error starting Tomcat context. Exception: org.springframework.beans.factory.UnsatisfiedDependencyException. Message: Error creating bean with name 'securityFilter' defined in file [D:\SEP\Siscap\siscap-api\target\classes\br\gov\es\siscap\config\security\SecurityFilter.class]: Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'br.gov.es.siscap.service.TokenService' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-09-30T19:44:26.960-03:00  INFO 39396 --- [restartedMain] o.a.c.c.StandardService                  : Stopping service [Tomcat]
+2026-09-30T19:44:26.964-03:00  WARN 39396 --- [restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Unable to start web server
+2026-09-30T19:44:26.977-03:00  INFO 39396 --- [restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-30T19:44:27.035-03:00 ERROR 39396 --- [restartedMain] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 1 of constructor in br.gov.es.siscap.config.security.SecurityFilter required a bean of type 'br.gov.es.siscap.service.TokenService' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'br.gov.es.siscap.service.TokenService' in your configuration.
+
+2026-10-01T13:46:42.875-03:00  INFO 39396 --- [restartedMain] b.g.e.s.SiscapApplication                : Starting SiscapApplication using Java 17.0.8 with PID 39396 (D:\SEP\Siscap\siscap-api\target\classes started by ersim in D:\SEP\Siscap\siscap-api)
+2026-10-01T13:46:42.895-03:00  INFO 39396 --- [restartedMain] b.g.e.s.SiscapApplication                : No active profile set, falling back to 1 default profile: "default"
+2026-10-01T13:46:56.576-03:00  INFO 39396 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-01T13:47:00.399-03:00  INFO 39396 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 3552 ms. Found 42 JPA repository interfaces.
+2026-10-01T13:47:01.030-03:00  WARN 39396 --- [restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: java.lang.NullPointerException: Cannot read field "generatedClass" because "data" is null
+2026-10-01T13:47:01.082-03:00  INFO 39396 --- [restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-10-01T13:47:01.111-03:00 ERROR 39396 --- [restartedMain] o.s.b.SpringApplication                  : Application run failed
+
+java.lang.NullPointerException: Cannot read field "generatedClass" because "data" is null
+	at org.springframework.cglib.proxy.Enhancer.nextInstance(Enhancer.java:783) ~[spring-core-6.1.3.jar:6.1.3]
+	at org.springframework.cglib.core.AbstractClassGenerator.create(AbstractClassGenerator.java:321) ~[spring-core-6.1.3.jar:6.1.3]
+	at org.springframework.cglib.proxy.Enhancer.createHelper(Enhancer.java:562) ~[spring-core-6.1.3.jar:6.1.3]
+	at org.springframework.cglib.proxy.Enhancer.createClass(Enhancer.java:407) ~[spring-core-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer.createClass(ConfigurationClassEnhancer.java:138) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer.enhance(ConfigurationClassEnhancer.java:109) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassPostProcessor.enhanceConfigurationClasses(ConfigurationClassPostProcessor.java:533) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassPostProcessor.postProcessBeanFactory(ConfigurationClassPostProcessor.java:310) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.java:363) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.java:153) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.AbstractApplicationContext.invokeBeanFactoryPostProcessors(AbstractApplicationContext.java:788) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:606) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343) [spring-boot-3.2.2.jar:3.2.2]
+	at br.gov.es.siscap.SiscapApplication.main(SiscapApplication.java:14) [classes/:?]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[?:?]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:50) [spring-boot-devtools-3.2.2.jar:3.2.2]
+
+2026-10-02T14:20:53.633-03:00  INFO 41384 --- [restartedMain] b.g.e.s.SiscapApplication                : Starting SiscapApplication using Java 17.0.8 with PID 41384 (D:\SEP\Siscap\siscap-api\target\classes started by ersim in D:\SEP\Siscap\siscap-api)
+2026-10-02T14:20:53.641-03:00  INFO 41384 --- [restartedMain] b.g.e.s.SiscapApplication                : No active profile set, falling back to 1 default profile: "default"
+2026-10-02T14:21:04.522-03:00  INFO 41384 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-02T14:21:04.954-03:00  INFO 41384 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 414 ms. Found 42 JPA repository interfaces.
+2026-10-02T14:21:06.031-03:00  INFO 41384 --- [restartedMain] o.s.c.c.s.GenericScope                   : BeanFactory id=fa193f88-8c04-3a4c-a18a-3e5e7fcdf6fc
+2026-10-02T14:21:06.957-03:00  INFO 41384 --- [restartedMain] o.s.b.w.e.t.TomcatWebServer              : Tomcat initialized with port 8080 (http)
+2026-10-02T14:21:07.077-03:00  INFO 41384 --- [restartedMain] o.a.c.c.StandardService                  : Starting service [Tomcat]
+2026-10-02T14:21:07.269-03:00  INFO 41384 --- [restartedMain] o.a.c.c.StandardEngine                   : Starting Servlet engine: [Apache Tomcat/10.1.18]
+2026-10-02T14:21:07.632-03:00  INFO 41384 --- [restartedMain] o.a.c.c.C.[.[.[/siscap]                  : Initializing Spring embedded WebApplicationContext
+2026-10-02T14:21:07.633-03:00  INFO 41384 --- [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 13977 ms
+2026-10-02T14:21:07.734-03:00 ERROR 41384 --- [restartedMain] o.s.b.w.e.t.TomcatStarter                : Error starting Tomcat context. Exception: org.springframework.beans.factory.UnsatisfiedDependencyException. Message: Error creating bean with name 'securityFilter' defined in file [D:\SEP\Siscap\siscap-api\target\classes\br\gov\es\siscap\config\security\SecurityFilter.class]: Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'br.gov.es.siscap.service.TokenService' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-10-02T14:21:07.790-03:00  INFO 41384 --- [restartedMain] o.a.c.c.StandardService                  : Stopping service [Tomcat]
+2026-10-02T14:21:07.862-03:00  WARN 41384 --- [restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Unable to start web server
+2026-10-02T14:21:07.891-03:00  INFO 41384 --- [restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-10-02T14:21:08.080-03:00 ERROR 41384 --- [restartedMain] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 1 of constructor in br.gov.es.siscap.config.security.SecurityFilter required a bean of type 'br.gov.es.siscap.service.TokenService' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'br.gov.es.siscap.service.TokenService' in your configuration.
+
+2026-10-02T15:10:20.920-03:00  INFO 41384 --- [restartedMain] b.g.e.s.SiscapApplication                : Starting SiscapApplication using Java 17.0.8 with PID 41384 (D:\SEP\Siscap\siscap-api\target\classes started by ersim in D:\SEP\Siscap\siscap-api)
+2026-10-02T15:10:20.921-03:00  INFO 41384 --- [restartedMain] b.g.e.s.SiscapApplication                : No active profile set, falling back to 1 default profile: "default"
+2026-10-02T15:10:22.576-03:00  INFO 41384 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-02T15:10:22.844-03:00  INFO 41384 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 72 ms. Found 0 JPA repository interfaces.
+2026-10-02T15:10:23.687-03:00  WARN 41384 --- [restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: java.lang.NullPointerException: Cannot read field "generatedClass" because "data" is null
+2026-10-02T15:10:23.748-03:00  INFO 41384 --- [restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-10-02T15:10:23.844-03:00 ERROR 41384 --- [restartedMain] o.s.b.SpringApplication                  : Application run failed
+
+java.lang.NullPointerException: Cannot read field "generatedClass" because "data" is null
+	at org.springframework.cglib.proxy.Enhancer.nextInstance(Enhancer.java:783) ~[spring-core-6.1.3.jar:6.1.3]
+	at org.springframework.cglib.core.AbstractClassGenerator.create(AbstractClassGenerator.java:321) ~[spring-core-6.1.3.jar:6.1.3]
+	at org.springframework.cglib.proxy.Enhancer.createHelper(Enhancer.java:562) ~[spring-core-6.1.3.jar:6.1.3]
+	at org.springframework.cglib.proxy.Enhancer.createClass(Enhancer.java:407) ~[spring-core-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer.createClass(ConfigurationClassEnhancer.java:138) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassEnhancer.enhance(ConfigurationClassEnhancer.java:109) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassPostProcessor.enhanceConfigurationClasses(ConfigurationClassPostProcessor.java:533) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassPostProcessor.postProcessBeanFactory(ConfigurationClassPostProcessor.java:310) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.java:363) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.java:153) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.AbstractApplicationContext.invokeBeanFactoryPostProcessors(AbstractApplicationContext.java:788) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:606) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343) [spring-boot-3.2.2.jar:3.2.2]
+	at br.gov.es.siscap.SiscapApplication.main(SiscapApplication.java:14) [classes/:?]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[?:?]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:50) [spring-boot-devtools-3.2.2.jar:3.2.2]
+
+2026-10-14T15:59:10.599-03:00  INFO 20164 --- [restartedMain] b.g.e.s.SiscapApplication                : Starting SiscapApplication using Java 17.0.8 with PID 20164 (D:\SEP\Siscap\siscap-api\target\classes started by ersim in D:\SEP\Siscap\siscap-api)
+2026-10-14T15:59:10.603-03:00  INFO 20164 --- [restartedMain] b.g.e.s.SiscapApplication                : No active profile set, falling back to 1 default profile: "default"
+2026-10-14T15:59:25.551-03:00  INFO 20164 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-14T15:59:25.590-03:00  WARN 20164 --- [restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: java.lang.ClassFormatError: Invalid method Code length 0 in class file br/gov/es/siscap/models/AreaAtuacao
+2026-10-14T15:59:25.604-03:00  INFO 20164 --- [restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-10-14T15:59:25.617-03:00 ERROR 20164 --- [restartedMain] o.s.b.SpringApplication                  : Application run failed
+
+java.lang.ClassFormatError: Invalid method Code length 0 in class file br/gov/es/siscap/models/AreaAtuacao
+	at java.base/java.lang.ClassLoader.defineClass1(Native Method) ~[?:?]
+	at java.base/java.lang.ClassLoader.defineClass(ClassLoader.java:1012) ~[?:?]
+	at java.base/java.security.SecureClassLoader.defineClass(SecureClassLoader.java:150) ~[?:?]
+	at java.base/java.net.URLClassLoader.defineClass(URLClassLoader.java:524) ~[?:?]
+	at java.base/java.net.URLClassLoader$1.run(URLClassLoader.java:427) ~[?:?]
+	at java.base/java.net.URLClassLoader$1.run(URLClassLoader.java:421) ~[?:?]
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:712) ~[?:?]
+	at java.base/java.net.URLClassLoader.findClass(URLClassLoader.java:420) ~[?:?]
+	at org.springframework.boot.devtools.restart.classloader.RestartClassLoader.findClass(RestartClassLoader.java:136) ~[spring-boot-devtools-3.2.2.jar:3.2.2]
+	at org.springframework.boot.devtools.restart.classloader.RestartClassLoader.loadClass(RestartClassLoader.java:118) ~[spring-boot-devtools-3.2.2.jar:3.2.2]
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:520) ~[?:?]
+	at java.base/java.lang.Class.forName0(Native Method) ~[?:?]
+	at java.base/java.lang.Class.forName(Class.java:467) ~[?:?]
+	at java.base/sun.reflect.generics.factory.CoreReflectionFactory.makeNamedType(CoreReflectionFactory.java:114) ~[?:?]
+	at java.base/sun.reflect.generics.visitor.Reifier.visitClassTypeSignature(Reifier.java:125) ~[?:?]
+	at java.base/sun.reflect.generics.tree.ClassTypeSignature.accept(ClassTypeSignature.java:49) ~[?:?]
+	at java.base/sun.reflect.generics.visitor.Reifier.reifyTypeArguments(Reifier.java:68) ~[?:?]
+	at java.base/sun.reflect.generics.visitor.Reifier.visitClassTypeSignature(Reifier.java:138) ~[?:?]
+	at java.base/sun.reflect.generics.tree.ClassTypeSignature.accept(ClassTypeSignature.java:49) ~[?:?]
+	at java.base/sun.reflect.generics.repository.ClassRepository.computeSuperInterfaces(ClassRepository.java:117) ~[?:?]
+	at java.base/sun.reflect.generics.repository.ClassRepository.getSuperInterfaces(ClassRepository.java:95) ~[?:?]
+	at java.base/java.lang.Class.getGenericInterfaces(Class.java:1211) ~[?:?]
+	at org.springframework.core.ResolvableType.getInterfaces(ResolvableType.java:517) ~[spring-core-6.1.3.jar:6.1.3]
+	at org.springframework.core.ResolvableType.as(ResolvableType.java:465) ~[spring-core-6.1.3.jar:6.1.3]
+	at org.springframework.data.util.TypeDiscoverer.getSuperTypeInformation(TypeDiscoverer.java:254) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.data.util.ClassTypeInformation.getSuperTypeInformation(ClassTypeInformation.java:36) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.data.util.TypeInformation.getRequiredSuperTypeInformation(TypeInformation.java:327) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.data.repository.core.support.DefaultRepositoryMetadata.<init>(DefaultRepositoryMetadata.java:55) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.data.repository.core.support.AbstractRepositoryMetadata.getMetadata(AbstractRepositoryMetadata.java:77) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport.getRepositoryConfigurations(RepositoryConfigurationExtensionSupport.java:91) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.data.repository.config.RepositoryConfigurationDelegate.registerRepositoriesIn(RepositoryConfigurationDelegate.java:164) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.boot.autoconfigure.data.AbstractRepositoryConfigurationSourceSupport.registerBeanDefinitions(AbstractRepositoryConfigurationSourceSupport.java:62) ~[spring-boot-autoconfigure-3.2.2.jar:3.2.2]
+	at org.springframework.context.annotation.ConfigurationClassBeanDefinitionReader.lambda$loadBeanDefinitionsFromRegistrars$1(ConfigurationClassBeanDefinitionReader.java:376) ~[spring-context-6.1.3.jar:6.1.3]
+	at java.base/java.util.LinkedHashMap.forEach(LinkedHashMap.java:721) ~[?:?]
+	at org.springframework.context.annotation.ConfigurationClassBeanDefinitionReader.loadBeanDefinitionsFromRegistrars(ConfigurationClassBeanDefinitionReader.java:375) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassBeanDefinitionReader.loadBeanDefinitionsForConfigurationClass(ConfigurationClassBeanDefinitionReader.java:148) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassBeanDefinitionReader.loadBeanDefinitions(ConfigurationClassBeanDefinitionReader.java:120) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassPostProcessor.processConfigBeanDefinitions(ConfigurationClassPostProcessor.java:428) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassPostProcessor.postProcessBeanDefinitionRegistry(ConfigurationClassPostProcessor.java:289) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanDefinitionRegistryPostProcessors(PostProcessorRegistrationDelegate.java:349) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.java:118) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.AbstractApplicationContext.invokeBeanFactoryPostProcessors(AbstractApplicationContext.java:788) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:606) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343) [spring-boot-3.2.2.jar:3.2.2]
+	at br.gov.es.siscap.SiscapApplication.main(SiscapApplication.java:14) [classes/:?]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[?:?]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:50) [spring-boot-devtools-3.2.2.jar:3.2.2]
+
+2026-10-14T15:59:28.331-03:00  INFO 20164 --- [restartedMain] b.g.e.s.SiscapApplication                : Starting SiscapApplication using Java 17.0.8 with PID 20164 (D:\SEP\Siscap\siscap-api\target\classes started by ersim in D:\SEP\Siscap\siscap-api)
+2026-10-14T15:59:28.334-03:00  INFO 20164 --- [restartedMain] b.g.e.s.SiscapApplication                : No active profile set, falling back to 1 default profile: "default"
+2026-10-14T15:59:30.198-03:00  INFO 20164 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-14T15:59:30.266-03:00  WARN 20164 --- [restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: java.lang.ClassFormatError: Invalid method Code length 0 in class file br/gov/es/siscap/models/AreaAtuacao
+2026-10-14T15:59:30.294-03:00  INFO 20164 --- [restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-10-14T15:59:30.305-03:00 ERROR 20164 --- [restartedMain] o.s.b.SpringApplication                  : Application run failed
+
+java.lang.ClassFormatError: Invalid method Code length 0 in class file br/gov/es/siscap/models/AreaAtuacao
+	at java.base/java.lang.ClassLoader.defineClass1(Native Method) ~[?:?]
+	at java.base/java.lang.ClassLoader.defineClass(ClassLoader.java:1012) ~[?:?]
+	at java.base/java.security.SecureClassLoader.defineClass(SecureClassLoader.java:150) ~[?:?]
+	at java.base/java.net.URLClassLoader.defineClass(URLClassLoader.java:524) ~[?:?]
+	at java.base/java.net.URLClassLoader$1.run(URLClassLoader.java:427) ~[?:?]
+	at java.base/java.net.URLClassLoader$1.run(URLClassLoader.java:421) ~[?:?]
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:712) ~[?:?]
+	at java.base/java.net.URLClassLoader.findClass(URLClassLoader.java:420) ~[?:?]
+	at org.springframework.boot.devtools.restart.classloader.RestartClassLoader.findClass(RestartClassLoader.java:136) ~[spring-boot-devtools-3.2.2.jar:3.2.2]
+	at org.springframework.boot.devtools.restart.classloader.RestartClassLoader.loadClass(RestartClassLoader.java:118) ~[spring-boot-devtools-3.2.2.jar:3.2.2]
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:520) ~[?:?]
+	at java.base/java.lang.Class.forName0(Native Method) ~[?:?]
+	at java.base/java.lang.Class.forName(Class.java:467) ~[?:?]
+	at java.base/sun.reflect.generics.factory.CoreReflectionFactory.makeNamedType(CoreReflectionFactory.java:114) ~[?:?]
+	at java.base/sun.reflect.generics.visitor.Reifier.visitClassTypeSignature(Reifier.java:125) ~[?:?]
+	at java.base/sun.reflect.generics.tree.ClassTypeSignature.accept(ClassTypeSignature.java:49) ~[?:?]
+	at java.base/sun.reflect.generics.visitor.Reifier.reifyTypeArguments(Reifier.java:68) ~[?:?]
+	at java.base/sun.reflect.generics.visitor.Reifier.visitClassTypeSignature(Reifier.java:138) ~[?:?]
+	at java.base/sun.reflect.generics.tree.ClassTypeSignature.accept(ClassTypeSignature.java:49) ~[?:?]
+	at java.base/sun.reflect.generics.repository.ClassRepository.computeSuperInterfaces(ClassRepository.java:117) ~[?:?]
+	at java.base/sun.reflect.generics.repository.ClassRepository.getSuperInterfaces(ClassRepository.java:95) ~[?:?]
+	at java.base/java.lang.Class.getGenericInterfaces(Class.java:1211) ~[?:?]
+	at org.springframework.core.ResolvableType.getInterfaces(ResolvableType.java:517) ~[spring-core-6.1.3.jar:6.1.3]
+	at org.springframework.core.ResolvableType.as(ResolvableType.java:465) ~[spring-core-6.1.3.jar:6.1.3]
+	at org.springframework.data.util.TypeDiscoverer.getSuperTypeInformation(TypeDiscoverer.java:254) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.data.util.ClassTypeInformation.getSuperTypeInformation(ClassTypeInformation.java:36) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.data.util.TypeInformation.getRequiredSuperTypeInformation(TypeInformation.java:327) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.data.repository.core.support.DefaultRepositoryMetadata.<init>(DefaultRepositoryMetadata.java:55) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.data.repository.core.support.AbstractRepositoryMetadata.getMetadata(AbstractRepositoryMetadata.java:77) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport.getRepositoryConfigurations(RepositoryConfigurationExtensionSupport.java:91) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.data.repository.config.RepositoryConfigurationDelegate.registerRepositoriesIn(RepositoryConfigurationDelegate.java:164) ~[spring-data-commons-3.2.2.jar:3.2.2]
+	at org.springframework.boot.autoconfigure.data.AbstractRepositoryConfigurationSourceSupport.registerBeanDefinitions(AbstractRepositoryConfigurationSourceSupport.java:62) ~[spring-boot-autoconfigure-3.2.2.jar:3.2.2]
+	at org.springframework.context.annotation.ConfigurationClassBeanDefinitionReader.lambda$loadBeanDefinitionsFromRegistrars$1(ConfigurationClassBeanDefinitionReader.java:376) ~[spring-context-6.1.3.jar:6.1.3]
+	at java.base/java.util.LinkedHashMap.forEach(LinkedHashMap.java:721) ~[?:?]
+	at org.springframework.context.annotation.ConfigurationClassBeanDefinitionReader.loadBeanDefinitionsFromRegistrars(ConfigurationClassBeanDefinitionReader.java:375) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassBeanDefinitionReader.loadBeanDefinitionsForConfigurationClass(ConfigurationClassBeanDefinitionReader.java:148) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassBeanDefinitionReader.loadBeanDefinitions(ConfigurationClassBeanDefinitionReader.java:120) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassPostProcessor.processConfigBeanDefinitions(ConfigurationClassPostProcessor.java:428) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.annotation.ConfigurationClassPostProcessor.postProcessBeanDefinitionRegistry(ConfigurationClassPostProcessor.java:289) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanDefinitionRegistryPostProcessors(PostProcessorRegistrationDelegate.java:349) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.java:118) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.AbstractApplicationContext.invokeBeanFactoryPostProcessors(AbstractApplicationContext.java:788) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:606) ~[spring-context-6.1.3.jar:6.1.3]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) [spring-boot-3.2.2.jar:3.2.2]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343) [spring-boot-3.2.2.jar:3.2.2]
+	at br.gov.es.siscap.SiscapApplication.main(SiscapApplication.java:14) [classes/:?]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[?:?]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:50) [spring-boot-devtools-3.2.2.jar:3.2.2]
+
