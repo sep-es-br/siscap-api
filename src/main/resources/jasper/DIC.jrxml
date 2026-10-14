@@ -20,51 +20,97 @@
 		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
 	</parameter>
 	<query language="sql"><![CDATA[select
+
 	proj.id as id_projeto,
+
 	proj.criado_em as data_criacao_projeto,
+
 	proj.count_ano as contagem_anual_projeto,
+
 	org.nome_fantasia as abreviatura_organizacao,
+
 	org.cnpj as cnpj_organizacao,
+
 	org.nome as nome_organizacao,
+
 	pes.nome as pessoa_responsavel_projeto,
+
 	sum(lq.quantia) as valor_estimado_projeto,
+
 	proj.sigla as sigla_projeto,
+
 	proj.titulo as titulo_projeto,
+
 	proj.objetivo as objetivo_projeto,
+
 	proj.objetivo_especifico as objetivo_especifico_projeto,
+
 	proj.situacao_problema as situacao_problema_projeto,
+
 	proj.solucoes_propostas as solucoes_propostas_projeto,
+
 	proj.impactos as impactos_projeto,
+
 	proj.arranjos_institucionais as arranjos_institucionais_projeto,
+
 	proj.pecas_planejamento as pecas_planejamento,
+
 	pes_redator.nome as redator_original_dic,
+
 	proj.periodo_ppa_loa as periodo_ppa_loa_projeto
+
 from projeto proj
+
 	inner join organizacao org on proj.id_organizacao = org.id
+
 	inner join projeto_pessoa proj_pes on proj.id = proj_pes.id_projeto
+
 	inner join pessoa pes on proj_pes.id_pessoa = pes.id and proj_pes.id_tipo_status = 1
+
 	left join localidade_quantia lq on proj.id = lq.id_projeto and lq.apagado = false
+
 	left join pessoa pes_redator on proj.id_pessoa_redator = pes_redator.id
+
 where
+
 	proj_pes.id_tipo_papel = 2 and
+
 	proj_pes.apagado  = false and
+
 	proj.id = $P{idProjeto}
+
 group by
+
 	proj.id,
+
 	proj.criado_em,
+
 	org.nome_fantasia,
+
 	org.cnpj,
+
 	org.nome,
+
 	pes.nome,
+
 	proj.sigla,
+
 	proj.titulo,
+
 	proj.objetivo,
+
 	proj.objetivo_especifico,
+
 	proj.situacao_problema,
+
 	proj.solucoes_propostas,
+
 	proj.impactos,
+
 	proj.arranjos_institucionais,
+
 	pes_redator.nome,
+
 	proj.periodo_ppa_loa]]></query>
 	<field name="id_projeto" class="java.lang.Integer">
 		<property name="com.jaspersoft.studio.field.name" value="id"/>
@@ -151,7 +197,9 @@ group by
 	<background height="800" splitType="Stretch">
 		<element kind="image" uuid="1929a37c-7152-4d32-a6bf-1086e3038f96" positionType="Float" x="0" y="0" width="535" height="800" scaleImage="FillFrame" printInFirstWholeBand="true">
 			<expression><![CDATA[( "S".equalsIgnoreCase($P{exibirMarcaDagua} != null ? $P{exibirMarcaDagua}.trim() : null)
+
     ? $P{pathRelatorios} + "/minuta.png"
+
     : null )]]></expression>
 			<property name="net.sf.jasperreports.style.scaleImage" value="FillFrame"/>
 			<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
@@ -162,12 +210,19 @@ group by
 	<pageHeader height="86" splitType="Stretch">
 		<element kind="textField" uuid="2d626a4e-c647-42a2-b888-682538d04d1f" x="0" y="40" width="310" height="20" forecolor="#0A588F" fontName="SansSerif" fontSize="10.0" bold="true">
 			<expression><![CDATA["DIC n. " + $F{contagem_anual_projeto} + "-" + $F{abreviatura_organizacao} + "-" +
+
 ($F{cnpj_organizacao} != null && $F{cnpj_organizacao}.length() >= 14 ?
+
  String.valueOf($F{cnpj_organizacao}).substring(0,2) + "." +
+
  String.valueOf($F{cnpj_organizacao}).substring(2,5) + "." +
+
  String.valueOf($F{cnpj_organizacao}).substring(5,8) + "/" +
+
  String.valueOf($F{cnpj_organizacao}).substring(8,12) + "-" +
+
  String.valueOf($F{cnpj_organizacao}).substring(12)
+
  : "CNPJ INVÁLIDO" )]]></expression>
 		</element>
 		<element kind="textField" uuid="3f9938f6-ce89-450b-81f5-42ecd3b4bdda" x="-10" y="0" width="50" height="30" forecolor="#838383" fontName="SansSerif" hTextAlign="Right">
@@ -199,8 +254,11 @@ group by
 			</element>
 			<element kind="textField" uuid="5bb00598-fe07-411e-9713-4f54cf97aa44" x="100" y="40" width="134" height="20" fontName="SansSerif" pattern="¤ #,##0.00;¤ -#,##0.00">
 				<expression><![CDATA[$F{valor_estimado_projeto} != null
+
     && $F{valor_estimado_projeto}.compareTo(java.math.BigDecimal.ZERO) > 0
+
         ? "R$ " + new java.text.DecimalFormat("#,##0.00").format($F{valor_estimado_projeto})
+
         : "Não preenchido."]]></expression>
 			</element>
 			<element kind="staticText" uuid="eede5ff3-528e-4cd9-9689-e4e90b8a8f3d" x="400" y="0" width="45" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
@@ -261,8 +319,11 @@ group by
 			<element kind="line" uuid="2e248bdc-7c77-4ec2-8006-d8080a5183ff" x="1" y="20" width="535" height="1" forecolor="#B2B2B2"/>
 			<element kind="textField" uuid="e4f9de77-9f40-4b3c-a647-e2858c0d3de4" stretchType="ElementGroupHeight" x="1" y="24" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
 				<expression><![CDATA[$F{situacao_problema_projeto} != null
+
     && !$F{situacao_problema_projeto}.trim().isEmpty()
+
         ? $F{situacao_problema_projeto}
+
         : "Não preenchido."]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
@@ -274,8 +335,11 @@ group by
 			<element kind="line" uuid="2b8ae95c-2df0-4574-8c98-43230807a828" x="0" y="20" width="534" height="1" forecolor="#B2B2B2"/>
 			<element kind="textField" uuid="3e6833bf-280c-4e77-9181-7bb454b44334" stretchType="ElementGroupBottom" mode="Transparent" x="0" y="25" width="534" height="10" forecolor="#0A588F" backcolor="rgba(232, 34, 30, 0.88235295)" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified" vTextAlign="Top">
 				<expression><![CDATA[$F{objetivo_projeto} != null
+
     && !$F{objetivo_projeto}.trim().isEmpty()
+
         ? $F{objetivo_projeto}
+
         : "Não preenchido."]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
@@ -286,8 +350,11 @@ group by
 			</element>
 			<element kind="textField" uuid="7b5c18ad-3e4e-491a-b705-d44555a85a84" stretchType="ElementGroupHeight" x="0" y="22" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
 				<expression><![CDATA[$F{objetivo_especifico_projeto} != null
+
     && !$F{objetivo_especifico_projeto}.trim().isEmpty()
+
         ? $F{objetivo_especifico_projeto}
+
         : "Não preenchido."]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
@@ -295,10 +362,15 @@ group by
 		</band>
 		<band height="50">
 			<printWhenExpression><![CDATA[
+
 			    (
+
 			        $P{odsProjetoDataSource} != null
+
 			        && $P{odsProjetoDataSource}.getRecordCount() > 0
+
 			    )
+
 			]]></printWhenExpression>
 			<element kind="staticText" uuid="d512b9e1-74df-419c-87a2-419fd4e94403" x="1" y="0" width="270" height="20" forecolor="#000000" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Objetivos de Desenvolvimento Sustentável]]></text>
@@ -321,8 +393,11 @@ group by
 			<element kind="line" uuid="bea32ebb-6c74-4257-af63-ff688216a761" x="1" y="20" width="535" height="1" forecolor="#B2B2B2"/>
 			<element kind="textField" uuid="3bbe0998-6581-4d93-8ce5-2aa92f74f74a" stretchType="ElementGroupHeight" x="1" y="24" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
 				<expression><![CDATA[$F{solucoes_propostas_projeto} != null
+
     && !$F{solucoes_propostas_projeto}.trim().isEmpty()
+
         ? $F{solucoes_propostas_projeto}
+
         : "Não preenchido."]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
@@ -334,8 +409,11 @@ group by
 			<element kind="line" uuid="4f886272-dbcd-4b31-b2b8-1261bff6c392" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
 			<element kind="textField" uuid="9dbd3a78-2f21-4ba7-9c6d-389d9261a740" stretchType="ElementGroupHeight" x="0" y="25" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
 				<expression><![CDATA[$F{impactos_projeto} != null
+
     && !$F{impactos_projeto}.trim().isEmpty()
+
         ? $F{impactos_projeto}
+
         : "Não preenchido."]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
@@ -421,12 +499,19 @@ group by
 		</band>
 		<band height="60">
 			<printWhenExpression><![CDATA[
+
 			    Boolean.TRUE.equals($P{naoPrevistoPpa})
+
 			    ||
+
 			    (
+
 			        $P{planejamentoDataSource} != null
+
 			        && $P{planejamentoDataSource}.getRecordCount() > 0
+
 			    )
+
 			]]></printWhenExpression>
 			<element kind="line" uuid="3f775d3f-de5b-41cd-b6bc-c4e86e855ee7" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
 			<element kind="subreport" uuid="9fceaf18-a9d3-4b8c-b225-cd36c1bf0d3d" x="1" y="22" width="533" height="26">
@@ -440,13 +525,16 @@ group by
 					<expression><![CDATA[$P{naoPrevistoPpa}]]></expression>
 				</parameter>
 				<parameter name="periodoPlanejamento">
-					<expression><![CDATA[$P{periodoPlanejamento}]]></expression>
+					<expression><![CDATA[
+                    $P{periodoPlanejamento} != null
+                    && !$P{periodoPlanejamento}.trim().isEmpty()
+                        ? $P{periodoPlanejamento}
+                        : $F{periodo_ppa_loa_projeto}
+                ]]></expression>
 				</parameter>
 			</element>
 			<element kind="textField" uuid="7b1b8d4a-044b-4a00-bf98-8cabd2df65a9" x="1" y="1" width="532" height="20" bold="true" vTextAlign="Middle">
-				<expression><![CDATA[$F{periodo_ppa_loa_projeto} == null || $F{periodo_ppa_loa_projeto}.isBlank()
-    ? "Ações do Planejamento"
-    : "Ações do Planejamento (" + $F{periodo_ppa_loa_projeto} + ")"]]></expression>
+				<expression><![CDATA["Ações do Planejamento"]]></expression>
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			</element>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -458,8 +546,11 @@ group by
 			<element kind="line" uuid="4f886272-dbcd-4b31-b2b8-1261bff6c392" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
 			<element kind="textField" uuid="4c160f08-6a7a-4850-bd7d-127d97f6d6c4" stretchType="ElementGroupHeight" x="0" y="26" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
 				<expression><![CDATA[$F{pecas_planejamento} != null
+
     && !$F{pecas_planejamento}.trim().isEmpty()
+
         ? $F{pecas_planejamento}
+
         : "Não preenchido."]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
@@ -471,8 +562,11 @@ group by
 			<element kind="line" uuid="665360a7-da66-41cb-839a-90c8d5d208ba" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
 			<element kind="textField" uuid="9a16452a-7a65-4ec6-857b-e9425c8c8c22" stretchType="ElementGroupHeight" x="-1" y="27" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
 				<expression><![CDATA[$F{arranjos_institucionais_projeto} != null
+
     && !$F{arranjos_institucionais_projeto}.trim().isEmpty()
+
         ? $F{arranjos_institucionais_projeto}
+
         : "Não preenchido."]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
@@ -485,18 +579,26 @@ group by
 		</element>
 		<element kind="textField" uuid="7619d86a-cad4-412f-bce2-1bb290b5e50b" x="0" y="14" width="535" height="11" forecolor="#838383" fontSize="8.0" hTextAlign="Center">
 			<expression><![CDATA["DIC criado por " + $F{redator_original_dic}
+
 + " em " + ($F{data_criacao_projeto} != null
+
     ? new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+
         .format($F{data_criacao_projeto})
+
     : "")]]></expression>
 			<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</element>
 		<element kind="textField" uuid="f3e42f63-088e-4322-b49a-86ed836f7fdb" x="0" y="14" width="535" height="11" forecolor="#838383" fontSize="8.0" hTextAlign="Center">
 			<expression><![CDATA["DIC criado por " + $F{redator_original_dic}
+
 + " em " + ($F{data_criacao_projeto} != null
+
     ? new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+
         .format($F{data_criacao_projeto})
+
     : "")]]></expression>
 			<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>

@@ -331,7 +331,7 @@
 		<element kind="textField" uuid="0b156213-835d-4859-af5d-a85492224ee4" x="3" y="3" width="522" height="18" forecolor="#0A588F" fontName="SansSerif" fontSize="9.0" bold="true" vTextAlign="Middle">
 			<expression><![CDATA[
 
-                "A ação do planejamento não está prevista no Plano Plurianual (PPA)"
+                "Não previsto no PPA"
                 + ($P{periodoPlanejamento} == null || $P{periodoPlanejamento}.trim().isEmpty()
                     ? "" : " " + $P{periodoPlanejamento}.trim())
                 + "."
