@@ -10,6 +10,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ProgramaRepository extends JpaRepository<Programa, Long> {
+    @Query(value = "SELECT COUNT(*) > 0 FROM programa WHERE UPPER(TRIM(sigla)) = UPPER(TRIM(:sigla))", nativeQuery = true)
+    boolean existePorSiglaNormalizada(@Param("sigla") String sigla);
+
 
 	@Query(
                 """

@@ -104,8 +104,17 @@ public class ProgramaService {
 
 	}
 
-	@Transactional
-	public ProgramaDto cadastrar(ProgramaForm form, String subPessoa) {
+	public boolean verificarSigla(String sigla) {
+        return sigla != null && !sigla.isBlank()
+                && repository.existePorSiglaNormalizada(sigla.trim());
+    }
+
+    @Transactional
+    public ProgramaDto cadastrar(ProgramaForm form, String subPessoa) {
+        if (verificarSigla(form.sigla())) {
+            throw new ValidacaoSiscapException(List.of("Já existe um programa cadastrado com essa sigla."));
+        }
+
 
 		logger.info("Cadastrando novo programa");
 		logger.info("Dados: {}", form);
@@ -115,6 +124,7 @@ public class ProgramaService {
 		this.validarProgramaForm(form);
 
 		Programa tempPrograma = new Programa(form);
+		tempPrograma.setSigla(form.sigla() == null ? null : form.sigla().trim().toUpperCase(java.util.Locale.ROOT));
 
 		tempPrograma.alterarStatus(StatusProgramaEnum.EDICAO, pessoa);
 
