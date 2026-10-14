@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
 <jasperReport name="indicadores" language="java" columnCount="1" pageWidth="536" pageHeight="842" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="536" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="8baf0ff5-1924-4eb3-b5af-c470ff35e5dd">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="IndicadoresJSON"/>
@@ -27,7 +27,7 @@
 	<field name="metasIndicador" class="java.util.Collection"/>
 	<background splitType="Stretch"/>
 	<detail>
-		<band height="182" splitType="Stretch">
+		<band height="182" splitType="Immediate">
 			<element kind="textField" uuid="9ec8789a-faf4-47ab-9e38-fd4d5dd7d9e1" x="2" y="3" width="532" height="20" forecolor="#0A588F" fontName="SansSerif" fontSize="8.0" textAdjust="StretchHeight" vTextAlign="Middle">
 				<expression><![CDATA[
 					$F{nomeIndicador} == null
