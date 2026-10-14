@@ -53,7 +53,12 @@ public class ProgramaController {
 		return pageList;
 	}
 
-	@GetMapping("/opcoes")
+	@GetMapping("/verificar-sigla")
+    public ResponseEntity<Boolean> verificarSigla(@RequestParam String sigla) {
+        return ResponseEntity.ok(service.verificarSigla(sigla));
+    }
+
+    @GetMapping("/opcoes")
 	public List<OpcoesDto> listarOpcoesDropdown() {
 		return service.listarOpcoesDropdown();
 	}
