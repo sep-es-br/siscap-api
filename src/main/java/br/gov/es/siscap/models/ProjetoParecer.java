@@ -45,7 +45,7 @@ public class ProjetoParecer extends ControleHistorico {
 	@Column(name = "guid_unidade_organizacao", nullable = false)
 	private String guidUnidadeOrganizacao;
 
-	@Column(name = "texto_parecer", nullable = true, length = 20000)
+	@Column(name = "texto_parecer", columnDefinition = "TEXT")
 	private String textoParecer;
 
 	@Column(name = "status_parecer", nullable = false)
@@ -97,7 +97,8 @@ public class ProjetoParecer extends ControleHistorico {
 		return Objects.equals(this.getId(), parecerDto.id());
 	}
 
-	public void atualizarParecer(ProjetoParecerDto parecerDto, Projeto projeto, MultipartFile arquivoParecerAnexo, String uploadPathStr) throws Exception {
+	public void atualizarParecer(ProjetoParecerDto parecerDto, Projeto projeto, MultipartFile arquivoParecerAnexo,
+			String uploadPathStr) throws Exception {
 		this.setProjeto(projeto);
 		handleFileUpload(arquivoParecerAnexo, this, uploadPathStr);
 		this.setDataEnvio(parecerDto.dataEnvio());
@@ -125,7 +126,8 @@ public class ProjetoParecer extends ControleHistorico {
 		return result;
 	}
 
-	public void handleFileUpload(MultipartFile file, ProjetoParecer projetoParecer, String uploadPathStr) throws Exception {
+	public void handleFileUpload(MultipartFile file, ProjetoParecer projetoParecer, String uploadPathStr)
+			throws Exception {
 
 		if (file == null || file.isEmpty())
 			return;
@@ -142,10 +144,10 @@ public class ProjetoParecer extends ControleHistorico {
 
 		String fileName = hash + "_" + originalFileName;
 
-		Files.write( uploadPath.resolve(fileName), file.getBytes() );
+		Files.write(uploadPath.resolve(fileName), file.getBytes());
 
 		projetoParecer.setNomeOriginalArquivo(originalFileName);
-		projetoParecer.setNomeArquivo(fileName); 
+		projetoParecer.setNomeArquivo(fileName);
 
 	}
 
