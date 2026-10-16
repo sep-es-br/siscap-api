@@ -27,7 +27,7 @@
 	<field name="metasIndicador" class="java.util.Collection"/>
 	<background splitType="Stretch"/>
 	<detail>
-		<band height="182" splitType="Immediate">
+		<band height="182" splitType="Prevent">
 			<element kind="textField" uuid="9ec8789a-faf4-47ab-9e38-fd4d5dd7d9e1" x="2" y="3" width="532" height="20" forecolor="#0A588F" fontName="SansSerif" fontSize="8.0" textAdjust="StretchHeight" vTextAlign="Middle">
 				<expression><![CDATA[
 					$F{nomeIndicador} == null

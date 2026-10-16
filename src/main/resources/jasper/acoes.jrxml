@@ -36,7 +36,7 @@ proj.id = $P{IdProjeto}]]></query>
 		<property name="com.jaspersoft.studio.field.label" value="descricaoacoessecundarias"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="projeto_acao"/>
 	</field>
-	<background splitType="Stretch"/>
+	<background splitType="Prevent"/>
 	<detail>
 		<band height="20">
 			<element kind="textField" uuid="379dffb6-2a1b-47f5-b6a4-abda6af7b4f2" x="0" y="0" width="130" height="20" forecolor="#0A588F" textAdjust="StretchHeight" bold="false" hTextAlign="Left" vTextAlign="Middle">
