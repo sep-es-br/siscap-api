@@ -2,13 +2,16 @@ package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.config.security.OAuth2RedirectStateService;
 import br.gov.es.siscap.config.security.OAuth2RedirectUriService;
+import br.gov.es.siscap.config.security.SecurityFilter;
 import br.gov.es.siscap.dto.UsuarioDto;
 import br.gov.es.siscap.service.AcessoCidadaoAutorizacaoService;
 import br.gov.es.siscap.service.AutenticacaoService;
 import io.swagger.v3.oas.annotations.Hidden;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,9 +31,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.util.UriComponentsBuilder;
 import java.nio.charset.StandardCharsets;
 
 @Hidden
@@ -46,8 +46,8 @@ public class AutenticacaoController {
 	private final AcessoCidadaoAutorizacaoService autorizacaoACService;
 
 	private final OAuth2RedirectStateService redirectStateService;
-
 	private final OAuth2RedirectUriService redirectUriService;
+	private static final Logger logger = LogManager.getLogger(AutenticacaoController.class);
 
 	/**
 	 * Endpoint necessário para fazer o redirecionamento do token de acesso para o
@@ -137,6 +137,8 @@ public class AutenticacaoController {
 				.recuperarRota(request, state)
 				.orElse(null);
 
+		logger.info("[OAUTH2] ReturnUrl recuperada: {}", returnUrl);
+
 		// Callback Angular exige correlação válida.
 		if (returnUrl == null) {
 			redirectStateService.limparCookie(request, response);
@@ -183,7 +185,12 @@ public class AutenticacaoController {
 				.encode()
 				.toUriString();
 
+		logger.info(
+				"[OAUTH2] Redirect para frontend com returnUrl: {}",
+				returnUrl);
+
 		return new RedirectView(destino);
+		
 	}
 
 }
