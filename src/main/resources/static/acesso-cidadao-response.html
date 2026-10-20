@@ -11,12 +11,40 @@
 
 <body>
 </body>
+
 <script type="text/javascript">
 
+  const parametros = new URLSearchParams(
+    window.location.hash.substring(1)
+  );
+
+  const accessToken = parametros.get('access_token');
+  const state = parametros.get('state');
+
+  if (!accessToken) {
+    document.body.textContent =
+      'Não foi possível concluir a autenticação.';
+  } else {
+    const url = new URL(
+      '/siscap/signin/acesso-cidadao-response',
+      window.location.origin
+    );
+
+    url.searchParams.set('accessToken', accessToken);
+
+    if (state) {
+      url.searchParams.set('state', state);
+    }
+
+    window.location.replace(url.toString());
+  }
+
+</script>
+
+<!-- <script type="text/javascript">
   const protocol = window.location.protocol;
   const host = window.location.host;
   const hash = window.location.hash;
-
   let access_token = '';
   if (hash) {
     const hashItems = hash.split('&');
@@ -26,9 +54,8 @@
       access_token = hashAccessToken.split('=')[1];
     }
   }
-
   const url = protocol + '//' + host + '/siscap/signin/acesso-cidadao-response?accessToken=' + access_token;
   window.location.href = url;
-</script>
+</script> -->
 
 </html>
