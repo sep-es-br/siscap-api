@@ -14,6 +14,18 @@ public class OAuth2RedirectUriService {
     @Value("${oauth2.redirect.frontend.programas}")
     private String uriProgramas;
 
+    @Value("${oauth2.redirect.frontend.pessoas}")
+    private String uriPessoas;
+
+    @Value("${oauth2.redirect.frontend.pesquisa-fontes-financiamento}")
+    private String uriPesquisaFontesFinanciamento;
+
+    @Value("${oauth2.redirect.frontend.prospccoes}")
+    private String uriProspeccoes;
+
+    @Value("${oauth2.redirect.frontend.organizacoes}")
+    private String uriOrganizacoes;
+
     public String resolverRedirectUri(
             String returnUrl,
             String redirectUriPadrao) {
@@ -53,6 +65,35 @@ public class OAuth2RedirectUriService {
             return uriProgramas;
         }
 
+        if (path.equals("/main/pessoas/editar")
+                || path.matches(
+                    "^/main/pessoas/editar/[0-9]+$")) {
+
+            return uriPessoas;
+        }
+
+        if (path.equals("/main/pesquisa-fontes-financiamento/editar")
+                || path.matches(
+                    "^/main/pesquisa-fontes-financiamento/editar/[0-9]+$")) {
+
+            return uriPesquisaFontesFinanciamento;
+        }
+
+        if (path.equals("/main/prospeccoes/editar")
+                || path.matches(
+                    "^/main/prospeccoes/editar/[0-9]+$")) {
+
+            return uriProspeccoes;
+        }
+
+        if (path.equals("/main/organizacoes/editar")
+                || path.matches(
+                    "^/main/organizacoes/editar/[0-9]+$")) {
+
+            return uriOrganizacoes;
+        }
+
         return redirectUriPadrao;
+
     }
 }
