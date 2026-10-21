@@ -64,13 +64,20 @@
 					<text><![CDATA[]]></text>
 				</element>
 				<element kind="frame" uuid="17f9b24d-bcf6-4978-a0d3-098ed3a64fd2" x="0" y="8" width="535" height="24">
-					<element kind="textField" uuid="4654383e-dd5e-4dbd-a230-91c82cd93161" x="0" y="0" width="378" height="24" forecolor="#0A588F" fontSize="10.5" textAdjust="StretchHeight" bold="true" vTextAlign="Middle">
+					<element kind="textField" uuid="4654383e-dd5e-4dbd-a230-91c82cd93161" x="0" y="0" width="378" height="24" forecolor="#0A588F" markup="styled" fontSize="10.5" textAdjust="StretchHeight" bold="true" vTextAlign="Middle">
 						<expression><![CDATA[
-                            "Ação " + $F{numero_acao} + ": "
-                            + ($F{acao_principal} == null
-                                ? ""
-                                : $F{acao_principal})
-                        ]]></expression>
+						    "<style forecolor='#0A588F' isBold='true'>Ação "
+						    + $F{numero_acao}
+						    + ":</style> "
+						    + "<style forecolor='#000000' isBold='false'>"
+						    + ($F{acao_principal} == null
+						        ? ""
+						        : $F{acao_principal}
+						            .replace("&", "&amp;")
+						            .replace("<", "&lt;")
+						            .replace(">", "&gt;"))
+						    + "</style>"
+						]]></expression>
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<box topPadding="3" leftPadding="6" bottomPadding="3" rightPadding="6">
 							<pen lineWidth="0.4" lineColor="#B2B2B2"/>
@@ -92,7 +99,7 @@
 						</box>
 					</element>
 				</element>
-				<element kind="staticText" uuid="3eed4647-52db-4109-b31b-65c2503176cc" positionType="Float" x="0" y="32" width="535" height="20" fontSize="9.5" italic="true" bold="true" vTextAlign="Middle">
+				<element kind="staticText" uuid="3eed4647-52db-4109-b31b-65c2503176cc" positionType="Float" x="0" y="32" width="535" height="20" fontSize="9.5" bold="true" italic="true" vTextAlign="Middle">
 					<text><![CDATA[Ações Secundárias]]></text>
 					<box leftPadding="6" rightPadding="6">
 						<pen lineWidth="0.4" lineColor="#B2B2B2"/>
@@ -111,7 +118,7 @@
 						<pen lineWidth="0.4" lineColor="#B2B2B2"/>
 					</box>
 				</element>
-				<element kind="staticText" uuid="fbafb6aa-a3ea-4788-9334-7f8a4d240745" positionType="Float" x="0" y="82" width="535" height="18" fontSize="9.5" italic="true" bold="true" vTextAlign="Middle">
+				<element kind="staticText" uuid="fbafb6aa-a3ea-4788-9334-7f8a4d240745" positionType="Float" x="0" y="82" width="535" height="18" fontSize="9.5" bold="true" italic="true" vTextAlign="Middle">
 					<text><![CDATA[Distribuição]]></text>
 					<box leftPadding="6" rightPadding="6">
 						<pen lineWidth="0.4" lineColor="#B2B2B2"/>
