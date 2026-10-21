@@ -20,7 +20,7 @@ public class OAuth2RedirectUriService {
     @Value("${oauth2.redirect.frontend.pesquisa-fontes-financiamento}")
     private String uriPesquisaFontesFinanciamento;
 
-    @Value("${oauth2.redirect.frontend.prospccoes}")
+    @Value("${oauth2.redirect.frontend.prospeccoes}")
     private String uriProspeccoes;
 
     @Value("${oauth2.redirect.frontend.organizacoes}")
