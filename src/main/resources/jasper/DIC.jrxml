@@ -1,4 +1,4 @@
-<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0-b478feaa9aab4375eba71de77b4ca138ad2f62aa  -->
+<!-- Created with Jaspersoft Studio version 7.0.0.final using JasperReports Library version 7.0.0  -->
 <jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="11459c24-92a3-43e9-873f-47b22155ba2c">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="siscap-hml"/>
@@ -153,7 +153,9 @@ group by
 	<background height="800" splitType="Stretch">
 		<element kind="image" uuid="1929a37c-7152-4d32-a6bf-1086e3038f96" positionType="Float" x="0" y="0" width="535" height="800" scaleImage="FillFrame" printInFirstWholeBand="true">
 			<expression><![CDATA[( "S".equalsIgnoreCase($P{exibirMarcaDagua} != null ? $P{exibirMarcaDagua}.trim() : null)
+
     ? $P{pathRelatorios} + "/minuta.png"
+
     : null )]]></expression>
 			<property name="net.sf.jasperreports.style.scaleImage" value="FillFrame"/>
 			<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
@@ -163,13 +165,20 @@ group by
 	</background>
 	<pageHeader height="86" splitType="Stretch">
 		<element kind="textField" uuid="2d626a4e-c647-42a2-b888-682538d04d1f" x="0" y="40" width="310" height="20" forecolor="#0A588F" fontName="SansSerif" fontSize="10.0" bold="true">
-			<expression><![CDATA["DIC n. " + $F{contagem_anual_projeto} + "-" + $F{abreviatura_organizacao} + "-" + 
-($F{cnpj_organizacao} != null && $F{cnpj_organizacao}.length() >= 14 ? 
+			<expression><![CDATA["DIC n. " + $F{contagem_anual_projeto} + "-" + $F{abreviatura_organizacao} + "-" +
+
+($F{cnpj_organizacao} != null && $F{cnpj_organizacao}.length() >= 14 ?
+
  String.valueOf($F{cnpj_organizacao}).substring(0,2) + "." +
+
  String.valueOf($F{cnpj_organizacao}).substring(2,5) + "." +
+
  String.valueOf($F{cnpj_organizacao}).substring(5,8) + "/" +
+
  String.valueOf($F{cnpj_organizacao}).substring(8,12) + "-" +
- String.valueOf($F{cnpj_organizacao}).substring(12) 
+
+ String.valueOf($F{cnpj_organizacao}).substring(12)
+
  : "CNPJ INVÁLIDO" )]]></expression>
 		</element>
 		<element kind="textField" uuid="3f9938f6-ce89-450b-81f5-42ecd3b4bdda" x="-10" y="0" width="50" height="30" forecolor="#838383" fontName="SansSerif" hTextAlign="Right">
@@ -183,7 +192,7 @@ group by
 		</element>
 	</pageHeader>
 	<detail>
-		<band height="91">
+		<band height="65">
 			<element kind="staticText" uuid="3a32ca85-421c-48f9-8fc2-b6ed11deb489" x="0" y="0" width="100" height="20" forecolor="#000000" fontName="SansSerif" removeLineWhenBlank="true" bold="true" hTextAlign="Left">
 				<text><![CDATA[Proponente:]]></text>
 			</element>
@@ -201,8 +210,11 @@ group by
 			</element>
 			<element kind="textField" uuid="5bb00598-fe07-411e-9713-4f54cf97aa44" x="100" y="40" width="134" height="20" fontName="SansSerif" pattern="¤ #,##0.00;¤ -#,##0.00">
 				<expression><![CDATA[$F{valor_estimado_projeto} != null
+
     && $F{valor_estimado_projeto}.compareTo(java.math.BigDecimal.ZERO) > 0
+
         ? "R$ " + new java.text.DecimalFormat("#,##0.00").format($F{valor_estimado_projeto})
+
         : "Não preenchido."]]></expression>
 			</element>
 			<element kind="staticText" uuid="eede5ff3-528e-4cd9-9689-e4e90b8a8f3d" x="400" y="0" width="45" height="20" fontName="SansSerif" bold="true" hTextAlign="Left">
@@ -212,22 +224,19 @@ group by
 				<expression><![CDATA[DATE(YEAR($F{data_criacao_projeto}),MONTH($F{data_criacao_projeto}),DAY($F{data_criacao_projeto}))]]></expression>
 			</element>
 		</band>
-		<band height="60">
-			<element kind="staticText" uuid="f6390d6f-aede-4a1c-b780-49eaa1246ed1" x="0" y="0" width="535" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+		<band height="40" splitType="Stretch">
+			<element kind="staticText" uuid="f6390d6f-aede-4a1c-b780-49eaa1246ed1" x="0" y="0" width="267" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Sigla / Abreviação]]></text>
 			</element>
+			<element kind="staticText" uuid="3c64836f-3b88-4d8e-99c9-cca9fada82a7" x="267" y="0" width="268" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
+				<text><![CDATA[Título]]></text>
+			</element>
 			<element kind="line" uuid="1ae896c0-fc07-4262-8fbf-0b71c9cbb747" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
-			<element kind="textField" uuid="bb344443-487f-4a1d-8f54-94f344ce1e0f" stretchType="ElementGroupBottom" mode="Transparent" x="0" y="24" width="534" height="10" forecolor="#0A588F" backcolor="#ED4A47" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified" vTextAlign="Top">
+			<element kind="textField" uuid="bb344443-487f-4a1d-8f54-94f344ce1e0f" mode="Transparent" x="0" y="24" width="267" height="10" forecolor="#0A588F" backcolor="#ED4A47" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified" vTextAlign="Top">
 				<expression><![CDATA[$F{sigla_projeto}]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
-		</band>
-		<band height="60" splitType="Stretch">
-			<element kind="staticText" uuid="3c64836f-3b88-4d8e-99c9-cca9fada82a7" x="0" y="0" width="534" height="20" forecolor="#030303" backcolor="#FFFFFF" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[Título]]></text>
-			</element>
-			<element kind="line" uuid="350e8f0e-b155-402d-8c3d-bf3963ed94a6" x="0" y="20" width="536" height="1" forecolor="#B2B2B2"/>
-			<element kind="textField" uuid="19a8a542-a75b-4cbb-a7e0-97e69a41c626" stretchType="ContainerHeight" mode="Transparent" x="0" y="25" width="534" height="10" forecolor="#0A588F" backcolor="rgba(237, 86, 83, 0.9019608)" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified" vTextAlign="Top">
+			<element kind="textField" uuid="19a8a542-a75b-4cbb-a7e0-97e69a41c626" mode="Transparent" x="267" y="24" width="268" height="10" forecolor="#0A588F" backcolor="rgba(237, 86, 83, 0.9019608)" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified" vTextAlign="Top">
 				<expression><![CDATA[$F{titulo_projeto}]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
@@ -259,40 +268,49 @@ group by
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<property name="com.jaspersoft.studio.layout"/>
 		</band>
-		<band height="60" splitType="Stretch">
+		<band height="40" splitType="Stretch">
 			<element kind="staticText" uuid="06b48b56-2043-46af-b9f7-c71686419679" x="1" y="0" width="268" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Situação Problema]]></text>
 			</element>
 			<element kind="line" uuid="2e248bdc-7c77-4ec2-8006-d8080a5183ff" x="1" y="20" width="535" height="1" forecolor="#B2B2B2"/>
 			<element kind="textField" uuid="e4f9de77-9f40-4b3c-a647-e2858c0d3de4" stretchType="ElementGroupHeight" x="1" y="24" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
 				<expression><![CDATA[$F{situacao_problema_projeto} != null
+
     && !$F{situacao_problema_projeto}.trim().isEmpty()
+
         ? $F{situacao_problema_projeto}
+
         : "Não preenchido."]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
 		</band>
-		<band height="60" splitType="Stretch">
+		<band height="40" splitType="Stretch">
 			<element kind="staticText" uuid="7bc4f2d7-4870-4a6c-a9b3-e9fde69bf66f" x="0" y="0" width="268" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Objetivo]]></text>
 			</element>
 			<element kind="line" uuid="2b8ae95c-2df0-4574-8c98-43230807a828" x="0" y="20" width="534" height="1" forecolor="#B2B2B2"/>
 			<element kind="textField" uuid="3e6833bf-280c-4e77-9181-7bb454b44334" stretchType="ElementGroupBottom" mode="Transparent" x="0" y="25" width="534" height="10" forecolor="#0A588F" backcolor="rgba(232, 34, 30, 0.88235295)" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified" vTextAlign="Top">
 				<expression><![CDATA[$F{objetivo_projeto} != null
+
     && !$F{objetivo_projeto}.trim().isEmpty()
+
         ? $F{objetivo_projeto}
+
         : "Não preenchido."]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
 		</band>
-		<band height="60">
+		<band height="40">
 			<element kind="staticText" uuid="14419ec7-1eec-4b94-a9e0-1ee8ec7e6387" x="0" y="0" width="270" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Objetivo Específico]]></text>
 			</element>
 			<element kind="textField" uuid="7b5c18ad-3e4e-491a-b705-d44555a85a84" stretchType="ElementGroupHeight" x="0" y="22" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
 				<expression><![CDATA[$F{objetivo_especifico_projeto} != null
+
     && !$F{objetivo_especifico_projeto}.trim().isEmpty()
+
         ? $F{objetivo_especifico_projeto}
+
         : "Não preenchido."]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
@@ -369,77 +387,11 @@ group by
 			</element>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</band>
-		<band height="50">
-			<printWhenExpression><![CDATA[
-			    (
-			        $P{odsProjetoDataSource} != null
-			        && $P{odsProjetoDataSource}.getRecordCount() > 0
-			    )
-			]]></printWhenExpression>
-			<element kind="staticText" uuid="d512b9e1-74df-419c-87a2-419fd4e94403" x="1" y="0" width="270" height="20" forecolor="#000000" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[ODS ]]></text>
-			</element>
-			<element kind="subreport" uuid="74f04743-ff61-42e4-aff2-f0fe7db08905" key="" stretchType="ElementGroupHeight" x="-1" y="20" width="536" height="20">
-				<dataSourceExpression><![CDATA[$P{odsProjetoDataSource}]]></dataSourceExpression>
-				<expression><![CDATA[$P{pathRelatorios} + "/ods-dic.jasper"]]></expression>
-				<property name="com.jaspersoft.studio.unit.height" value="px"/>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-			</element>
-			<element kind="line" uuid="38972e7c-96d5-4d97-b2c6-e9276bfd8694" x="0" y="20" width="534" height="1" forecolor="#B2B2B2">
-				<property name="com.jaspersoft.studio.unit.x" value="px"/>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-			</element>
-		</band>
-		<band height="60">
-			<printWhenExpression><![CDATA[
-			    Boolean.TRUE.equals($P{naoPrevistoPpa})
-			    ||
-			    (
-			        $P{planejamentoDataSource} != null
-			        && $P{planejamentoDataSource}.getRecordCount() > 0
-			    )
-			]]></printWhenExpression>
-			<element kind="line" uuid="3f775d3f-de5b-41cd-b6bc-c4e86e855ee7" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
-			<element kind="subreport" uuid="9fceaf18-a9d3-4b8c-b225-cd36c1bf0d3d" x="1" y="22" width="533" height="26">
-				<dataSourceExpression><![CDATA[$P{planejamentoDataSource}]]></dataSourceExpression>
-				<expression><![CDATA[$P{pathRelatorios} + "/planejamento_ppa_loa_dic.jasper"]]></expression>
-				<property name="com.jaspersoft.studio.unit.y" value="px"/>
-				<property name="com.jaspersoft.studio.unit.x" value="px"/>
-				<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				<property name="com.jaspersoft.studio.unit.height" value="px"/>
-				<parameter name="naoPrevistoPpa">
-					<expression><![CDATA[$P{naoPrevistoPpa}]]></expression>
-				</parameter>
-				<parameter name="periodoPlanejamento">
-					<expression><![CDATA[$P{periodoPlanejamento}]]></expression>
-				</parameter>
-			</element>
-			<element kind="textField" uuid="7b1b8d4a-044b-4a00-bf98-8cabd2df65a9" x="1" y="1" width="532" height="20" bold="true" vTextAlign="Middle">
-				<expression><![CDATA[$F{periodo_ppa_loa_projeto} == null || $F{periodo_ppa_loa_projeto}.isBlank()
-    ? "Ações do Planejamento"
-    : "Ações do Planejamento (" + $F{periodo_ppa_loa_projeto} + ")"]]></expression>
-				<property name="com.jaspersoft.studio.unit.height" value="px"/>
-			</element>
-			<property name="com.jaspersoft.studio.unit.height" value="px"/>
-		</band>
-		<band height="60" splitType="Stretch">
-			<element kind="staticText" uuid="72032e68-a709-44df-93c5-2815c2b50ebe" x="1" y="0" width="218" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[Soluções Propostas / Resultados Esperados]]></text>
-			</element>
-			<element kind="line" uuid="bea32ebb-6c74-4257-af63-ff688216a761" x="1" y="20" width="535" height="1" forecolor="#B2B2B2"/>
-			<element kind="textField" uuid="3bbe0998-6581-4d93-8ce5-2aa92f74f74a" stretchType="ElementGroupHeight" x="1" y="24" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
-				<expression><![CDATA[$F{solucoes_propostas_projeto} != null
-    && !$F{solucoes_propostas_projeto}.trim().isEmpty()
-        ? $F{solucoes_propostas_projeto}
-        : "Não preenchido."]]></expression>
-				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
-			</element>
-		</band>
-		<band height="66" splitType="Stretch">
-			<element kind="staticText" uuid="7d16269f-8022-46c7-a7a1-eada7346c657" x="0" y="0" width="534" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+		<band height="68" splitType="Stretch">
+			<element kind="staticText" uuid="7d16269f-8022-46c7-a7a1-eada7346c657" x="0" y="2" width="534" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<text><![CDATA[Ações]]></text>
 			</element>
-			<element kind="subreport" uuid="4d5c6129-4c34-4dd1-83e9-db8d83bcb782" stretchType="ElementGroupHeight" x="0" y="43" width="535" height="20">
+			<element kind="subreport" uuid="4d5c6129-4c34-4dd1-83e9-db8d83bcb782" stretchType="ElementGroupHeight" x="0" y="45" width="535" height="20">
 				<printWhenExpression><![CDATA[!Boolean.TRUE.equals( $P{rateioPorAcao} )]]></printWhenExpression>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<expression><![CDATA[$P{pathRelatorios} + "/acoes.jasper"]]></expression>
@@ -452,25 +404,25 @@ group by
 					<expression><![CDATA[$P{pathRelatorios}]]></expression>
 				</parameter>
 			</element>
-			<element kind="staticText" uuid="f3accc1a-66e2-4038-82d3-6d19dadbdf66" x="0" y="22" width="130" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
+			<element kind="staticText" uuid="f3accc1a-66e2-4038-82d3-6d19dadbdf66" x="0" y="24" width="130" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
 				<printWhenExpression><![CDATA[!Boolean.TRUE.equals( $P{rateioPorAcao} )]]></printWhenExpression>
 				<text><![CDATA[Ação Principal]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="staticText" uuid="4ac9dde6-1d6b-49bd-a2ac-780dcc77dd4a" x="140" y="22" width="116" height="20" fontName="SansSerif" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<element kind="staticText" uuid="4ac9dde6-1d6b-49bd-a2ac-780dcc77dd4a" x="140" y="24" width="116" height="20" fontName="SansSerif" bold="true" hTextAlign="Right" vTextAlign="Middle">
 				<printWhenExpression><![CDATA[!Boolean.TRUE.equals( $P{rateioPorAcao} )]]></printWhenExpression>
 				<text><![CDATA[Valor Estimado  ]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="staticText" uuid="ee271e7b-a68a-47f2-953d-528fd6d0083c" x="270" y="22" width="263" height="20" forecolor="#000000" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
+			<element kind="staticText" uuid="ee271e7b-a68a-47f2-953d-528fd6d0083c" x="270" y="24" width="263" height="20" forecolor="#000000" fontName="SansSerif" bold="true" hTextAlign="Justified" vTextAlign="Middle">
 				<printWhenExpression><![CDATA[!Boolean.TRUE.equals( $P{rateioPorAcao} )]]></printWhenExpression>
 				<text><![CDATA[Ações Secundárias]]></text>
 				<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				<property name="com.jaspersoft.studio.unit.x" value="px"/>
 			</element>
-			<element kind="subreport" uuid="06f2779c-2f86-499e-826d-a6184c34c979" stretchType="ElementGroupHeight" x="0" y="22" width="535" height="23">
+			<element kind="subreport" uuid="06f2779c-2f86-499e-826d-a6184c34c979" stretchType="ElementGroupHeight" x="0" y="24" width="535" height="23">
 				<printWhenExpression><![CDATA[Boolean.TRUE.equals( $P{rateioPorAcao} )]]></printWhenExpression>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<expression><![CDATA[$P{pathRelatorios} + "/rateio_microrregioes_por_acao.jasper"]]></expression>
@@ -482,7 +434,7 @@ group by
 					<expression><![CDATA[$P{pathRelatorios}]]></expression>
 				</parameter>
 			</element>
-			<element kind="line" uuid="a3e3b3e8-0ae5-4c89-b9a9-8af463d70fe9" x="-1" y="20" width="535" height="1" forecolor="#B2B2B2"/>
+			<element kind="line" uuid="a3e3b3e8-0ae5-4c89-b9a9-8af463d70fe9" x="-1" y="22" width="535" height="1" forecolor="#B2B2B2"/>
 		</band>
 		<band height="47" splitType="Stretch">
 			<printWhenExpression><![CDATA[!Boolean.TRUE.equals( $P{rateioPorAcao} )]]></printWhenExpression>
@@ -566,34 +518,11 @@ group by
 			<element kind="line" uuid="665360a7-da66-41cb-839a-90c8d5d208ba" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
 			<element kind="textField" uuid="9a16452a-7a65-4ec6-857b-e9425c8c8c22" stretchType="ElementGroupHeight" x="-1" y="27" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
 				<expression><![CDATA[$F{arranjos_institucionais_projeto} != null
+
     && !$F{arranjos_institucionais_projeto}.trim().isEmpty()
+
         ? $F{arranjos_institucionais_projeto}
-        : "Não preenchido."]]></expression>
-				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
-			</element>
-		</band>
-		<band height="60" splitType="Stretch">
-			<element kind="staticText" uuid="946a9826-fb87-40bf-a455-2f0e6ff83a66" x="0" y="0" width="535" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[Impactos no Âmbito Ambiental, Social e Governança (ESG)]]></text>
-			</element>
-			<element kind="line" uuid="4f886272-dbcd-4b31-b2b8-1261bff6c392" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
-			<element kind="textField" uuid="9dbd3a78-2f21-4ba7-9c6d-389d9261a740" stretchType="ElementGroupHeight" x="0" y="25" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
-				<expression><![CDATA[$F{impactos_projeto} != null
-    && !$F{impactos_projeto}.trim().isEmpty()
-        ? $F{impactos_projeto}
-        : "Não preenchido."]]></expression>
-				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
-			</element>
-		</band>
-		<band height="60" splitType="Stretch">
-			<element kind="staticText" uuid="946a9826-fb87-40bf-a455-2f0e6ff83a66" x="0" y="0" width="535" height="20" fontName="SansSerif" bold="true" vTextAlign="Middle">
-				<text><![CDATA[Peças do Planejamento]]></text>
-			</element>
-			<element kind="line" uuid="4f886272-dbcd-4b31-b2b8-1261bff6c392" x="0" y="20" width="535" height="1" forecolor="#B2B2B2"/>
-			<element kind="textField" uuid="4c160f08-6a7a-4850-bd7d-127d97f6d6c4" stretchType="ElementGroupHeight" x="0" y="26" width="535" height="10" forecolor="#0A588F" fontName="SansSerif" textAdjust="StretchHeight" hTextAlign="Justified">
-				<expression><![CDATA[$F{pecas_planejamento} != null
-    && !$F{pecas_planejamento}.trim().isEmpty()
-        ? $F{pecas_planejamento}
+
         : "Não preenchido."]]></expression>
 				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="41a9f369-cdf9-4867-babc-565e90e08064"/>
 			</element>
@@ -605,19 +534,27 @@ group by
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</element>
 		<element kind="textField" uuid="7619d86a-cad4-412f-bce2-1bb290b5e50b" x="0" y="14" width="535" height="11" forecolor="#838383" fontSize="8.0" hTextAlign="Center">
-			<expression><![CDATA["DIC criado por " + $F{redator_original_dic} 
-+ " em " + ($F{data_criacao_projeto} != null 
+			<expression><![CDATA["DIC criado por " + $F{redator_original_dic}
+
++ " em " + ($F{data_criacao_projeto} != null
+
     ? new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+
         .format($F{data_criacao_projeto})
+
     : "")]]></expression>
 			<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 		</element>
 		<element kind="textField" uuid="f3e42f63-088e-4322-b49a-86ed836f7fdb" x="0" y="14" width="535" height="11" forecolor="#838383" fontSize="8.0" hTextAlign="Center">
-			<expression><![CDATA["DIC criado por " + $F{redator_original_dic} 
-+ " em " + ($F{data_criacao_projeto} != null 
+			<expression><![CDATA["DIC criado por " + $F{redator_original_dic}
+
++ " em " + ($F{data_criacao_projeto} != null
+
     ? new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+
         .format($F{data_criacao_projeto})
+
     : "")]]></expression>
 			<property name="com.jaspersoft.studio.unit.width" value="px"/>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
