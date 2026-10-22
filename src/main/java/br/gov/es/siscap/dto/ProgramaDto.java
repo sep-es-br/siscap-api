@@ -1,6 +1,7 @@
 package br.gov.es.siscap.dto;
 
 import br.gov.es.siscap.models.Programa;
+import br.gov.es.siscap.dto.opcoes.OpcoesDto;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,6 +10,8 @@ public record ProgramaDto(
 		Long id,
 		String sigla,
 		String titulo,
+		String objetivo,
+		List<OpcoesDto> regioesAtendidas,
 		List<ProgramaOrganizacaoDto> orgaosEnvolvidosList, 
 		List<EquipeDto> equipeCaptacao,
 		List<Long> idProjetoPropostoList,
@@ -26,6 +29,9 @@ public record ProgramaDto(
                     programa.getId(),
                     programa.getSigla(),
                     programa.getTitulo(),
+                    programa.getObjetivo(),
+                    programa.getRegioesAtendidas().stream()
+                            .map(regiao -> new OpcoesDto(regiao.getId(), regiao.getNome())).toList(),
                     programa.getOrgaoExecutorSet()
                     .stream()
                     .map(programaOrganizacao -> new
@@ -60,6 +66,9 @@ public record ProgramaDto(
                     programa.getId(),
                     programa.getSigla(),
                     programa.getTitulo(),
+                    programa.getObjetivo(),
+                    programa.getRegioesAtendidas().stream()
+                            .map(regiao -> new OpcoesDto(regiao.getId(), regiao.getNome())).toList(),
                     organizacoesPrograma,
                     equipeCaptacao,
                     idProjetoPropostoList,

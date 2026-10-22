@@ -9,7 +9,9 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -42,6 +44,14 @@ public class Programa extends ControleHistorico {
     @NotNull
     @Column(name = "titulo", nullable = false, length = 150)
     private String titulo;
+
+    @Column(name = "objetivo", columnDefinition = "text")
+    private String objetivo;
+
+    @ElementCollection
+    @CollectionTable(name = "programa_regiao_atendida", joinColumns = @JoinColumn(name = "id_programa"))
+    @OrderBy("nome ASC")
+    private List<ProgramaRegiaoAtendida> regioesAtendidas = new ArrayList<>();
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -120,6 +130,9 @@ public class Programa extends ControleHistorico {
     }
 
     private void setDadosPrograma(ProgramaForm form) {
+            if (form.objetivo() != null) {
+                this.setObjetivo(form.objetivo());
+            }
             this.setSigla(form.sigla());
             this.setTitulo(form.titulo());
             this.setTetoQuantia(form.valor().quantia());

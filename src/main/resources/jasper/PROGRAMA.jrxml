@@ -14,6 +14,9 @@
 	<parameter name="recusado" class="java.lang.Boolean">
 		<defaultValueExpression><![CDATA[Boolean.FALSE]]></defaultValueExpression>
 	</parameter>
+	<dataset name="regioesAtendidasDataset" uuid="e2a78c8c-8566-4873-a732-f04559a96e8a">
+		<field name="nome_regiao" class="java.lang.String"/>
+	</dataset>
 	<query language="sql"><![CDATA[select
 
 	prog.id as id_programa,
@@ -27,6 +30,11 @@
 	prog.sigla as sigla_programa,
 
 	prog.titulo as titulo_programa,
+
+	prog.objetivo as objetivo,
+
+	(select string_agg(regiao.nome, ', ' order by regiao.nome, regiao.id_localidade)
+	 from programa_regiao_atendida regiao where regiao.id_programa = prog.id) as regioes_atendidas,
 
 	prog.percentual_custo_administrativo as percentual_custo_administrativo,
 
@@ -79,6 +87,8 @@
 		<property name="com.jaspersoft.studio.field.label" value="valor_estimado"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="projeto"/>
 	</field>
+	<field name="objetivo" class="java.lang.String"/>
+	<field name="regioes_atendidas" class="java.lang.String"/>
 	<background height="800" splitType="Stretch">
 		<element kind="image" uuid="17f842d4-a62f-4c2e-a432-b7cea4632309" positionType="Float" x="0" y="0" width="535" height="800" scaleImage="FillFrame" printInFirstWholeBand="true" printRepeatedValues="false">
 			<expression><![CDATA[( "S".equalsIgnoreCase($P{exibirMarcaDagua} != null ? $P{exibirMarcaDagua}.trim() : null)
@@ -140,10 +150,52 @@
 				<text><![CDATA[Data:]]></text>
 			</element>
 			<element kind="textField" uuid="52f27d78-17c9-4479-b08a-f8debc024c5f" x="446" y="0" width="90" height="20" fontName="SansSerif" pattern="dd/MM/yyyy">
-				<expression><![CDATA[DATE(YEAR($F{data_criacao_programa}),MONTH($F{data_criacao_programa}),DAY($F{data_criacao_programa}))]]></expression>
+				<expression><![CDATA[$F{data_criacao_programa}]]></expression>
 			</element>
 			<element kind="textField" uuid="143f43f9-075d-4f3c-a92d-2aedefa14bf1" x="130" y="0" width="240" height="22" hTextAlign="Left">
 				<expression><![CDATA[$F{titulo_programa}]]></expression>
+			</element>
+		</band>
+		<band height="65" splitType="Stretch">
+			<element kind="staticText" uuid="a1967a1a-5320-4b25-91ed-5e3e4be87de1" x="0" y="8" width="535" height="18" fontName="SansSerif" bold="true">
+				<text><![CDATA[Objetivo]]></text>
+			</element>
+			<element kind="line" uuid="a1967a1a-5320-4b25-91ed-5e3e4be87de2" x="0" y="26" width="535" height="1" forecolor="#B2B2B2"/>
+			<element kind="textField" uuid="a1967a1a-5320-4b25-91ed-5e3e4be87de3" x="0" y="32" width="535" height="28" fontName="SansSerif" textAdjust="StretchHeight">
+				<expression><![CDATA[$F{objetivo} == null || $F{objetivo}.trim().isEmpty() ? "Não informado." : $F{objetivo}]]></expression>
+			</element>
+		</band>
+		<band height="65" splitType="Stretch">
+			<element kind="staticText" uuid="a1967a1a-5320-4b25-91ed-5e3e4be87de4" x="0" y="8" width="535" height="18" fontName="SansSerif" bold="true">
+				<text><![CDATA[Regiões Atendidas]]></text>
+			</element>
+			<element kind="line" uuid="a1967a1a-5320-4b25-91ed-5e3e4be87de5" x="0" y="26" width="535" height="1" forecolor="#B2B2B2"/>
+			<element kind="component" uuid="a1967a1a-5320-4b25-91ed-5e3e4be87de6" positionType="Float" x="0" y="32" width="535" height="18">
+				<printWhenExpression><![CDATA[$F{regioes_atendidas} != null && !$F{regioes_atendidas}.trim().isEmpty()]]></printWhenExpression>
+				<component kind="list" printOrder="Horizontal">
+					<datasetRun uuid="72a68d42-84a3-4b09-8ff7-15a8c00411c2" subDataset="regioesAtendidasDataset">
+						<dataSourceExpression><![CDATA[
+							new net.sf.jasperreports.engine.data.JRMapCollectionDataSource(
+								java.util.Arrays.stream($F{regioes_atendidas}.split(","))
+									.map(String::trim)
+									.map(nome -> java.util.Collections.singletonMap("nome_regiao", nome))
+									.collect(java.util.stream.Collectors.toList())
+							)
+						]]></dataSourceExpression>
+					</datasetRun>
+					<contents height="18" width="178">
+						<element kind="textField" uuid="bd78e423-dcf4-4dae-9a2c-1e92a0a44a0c" x="0" y="0" width="178" height="18" fontName="SansSerif" fontSize="9.0" vTextAlign="Middle">
+							<expression><![CDATA[$F{nome_regiao}]]></expression>
+							<box leftPadding="6" rightPadding="6">
+								<bottomPen lineWidth="0.25" lineColor="#D9E2E8"/>
+							</box>
+						</element>
+					</contents>
+				</component>
+			</element>
+			<element kind="textField" uuid="0c0c14d5-45eb-4217-84f8-97633c659817" x="0" y="34" width="535" height="18" fontName="SansSerif" fontSize="9.0">
+				<printWhenExpression><![CDATA[$F{regioes_atendidas} == null || $F{regioes_atendidas}.trim().isEmpty()]]></printWhenExpression>
+				<expression><![CDATA[$F{regioes_atendidas} == null || $F{regioes_atendidas}.trim().isEmpty() ? "Não informadas." : $F{regioes_atendidas}]]></expression>
 			</element>
 		</band>
 		<band height="54">
