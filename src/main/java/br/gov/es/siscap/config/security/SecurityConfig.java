@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -34,6 +35,9 @@ public class SecurityConfig {
 	private final ClientRegistrationRepository clientRegistrationRepository;
 	private final SecurityFilter securityFilter;
 	private final CustomAccessDeniedHandler customAccessDeniedHandler;
+
+	private final OAuth2RedirectStateService redirectStateService;
+	private final OAuth2RedirectUriService redirectUriService;
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -99,13 +103,35 @@ public class SecurityConfig {
 							"/v3/api-docs/*",
 							"/signin/*",
 							"/acesso-cidadao-response.html").permitAll();
+
+					authConfig.requestMatchers(
+							POST,
+							"/signin/acesso-cidadao-response").permitAll();
+
 					authConfig.anyRequest().authenticated();
+
 				})
+
+				// .oauth2Login(oAuth2LoginConfig -> oAuth2LoginConfig
+				// .authorizationEndpoint(authEndpointConfig -> authEndpointConfig
+				// .authorizationRequestResolver(new AuthorizationRequestResolver(
+				// clientRegistrationRepository, "/oauth2/authorization"))))
+
 				.oauth2Login(oAuth2LoginConfig -> oAuth2LoginConfig
 						.authorizationEndpoint(authEndpointConfig -> authEndpointConfig
-								.authorizationRequestResolver(new AuthorizationRequestResolver(
-										clientRegistrationRepository, "/oauth2/authorization"))))
+								.authorizationRequestResolver(
+										new AuthorizationRequestResolver(
+												clientRegistrationRepository,
+												"/oauth2/authorization",
+												redirectStateService,
+												redirectUriService))))
+
+				.addFilterBefore(
+						new OAuth2RedirectCookieFilter(),
+						OAuth2AuthorizationRequestRedirectFilter.class)
+
 				.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+
 				.exceptionHandling(exHandler -> exHandler
 						.accessDeniedHandler(customAccessDeniedHandler)
 						.authenticationEntryPoint((request, response, authenticationException) -> {
@@ -115,6 +141,7 @@ public class SecurityConfig {
 							new LoginUrlAuthenticationEntryPoint("/oauth2/authorization/acessocidadao")
 									.commence(request, response, authenticationException);
 						}))
+
 				.build();
 	}
 

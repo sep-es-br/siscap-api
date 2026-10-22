@@ -1,30 +1,61 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
-          name="viewport">
-    <meta content="ie=edge" http-equiv="X-UA-Compatible">
-    <title>Acesso Cidadao</title>
-  </head>
-  <body>
-  </body>
-  <script type="text/javascript">
-    const protocol = window.location.protocol;
-    const host = window.location.host;
-    const hash = window.location.hash;
 
-    let access_token = '';
-    if (hash) {
-      const hashItems = hash.split('&');
-      const hashAccessToken = hashItems.find(hashItem => hashItem.startsWith('access_token'));
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    name="viewport">
+  <meta content="ie=edge" http-equiv="X-UA-Compatible">
+  <title>Acesso Cidadao</title>
+</head>
 
-      if (hashAccessToken) {
-        access_token = hashAccessToken.split('=')[1];
-      }
+<body>
+</body>
+
+<script type="text/javascript">
+
+  const parametros = new URLSearchParams(
+    window.location.hash.substring(1)
+  );
+
+  const accessToken = parametros.get('access_token');
+  const state = parametros.get('state');
+
+  if (!accessToken) {
+    document.body.textContent =
+      'Não foi possível concluir a autenticação.';
+  } else {
+    const url = new URL(
+      '/siscap/signin/acesso-cidadao-response',
+      window.location.origin
+    );
+
+    url.searchParams.set('accessToken', accessToken);
+
+    if (state) {
+      url.searchParams.set('state', state);
     }
 
-    const url = protocol + '//' + host + '/siscap/signin/acesso-cidadao-response?accessToken=' + access_token;
-    window.location.href = url;
-  </script>
+    window.location.replace(url.toString());
+  }
+
+</script>
+
+<!-- <script type="text/javascript">
+  const protocol = window.location.protocol;
+  const host = window.location.host;
+  const hash = window.location.hash;
+  let access_token = '';
+  if (hash) {
+    const hashItems = hash.split('&');
+    const hashAccessToken = hashItems.find(hashItem => hashItem.startsWith('access_token'));
+
+    if (hashAccessToken) {
+      access_token = hashAccessToken.split('=')[1];
+    }
+  }
+  const url = protocol + '//' + host + '/siscap/signin/acesso-cidadao-response?accessToken=' + access_token;
+  window.location.href = url;
+</script> -->
+
 </html>
