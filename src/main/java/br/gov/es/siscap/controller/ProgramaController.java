@@ -2,6 +2,7 @@ package br.gov.es.siscap.controller;
 
 import br.gov.es.siscap.dto.AssinanteRequestDto;
 import br.gov.es.siscap.dto.ProgramaDto;
+import br.gov.es.siscap.dto.ProgramaInformacoesDicsDto;
 import br.gov.es.siscap.dto.edocswebapi.EtapasIntegracaoDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
 import br.gov.es.siscap.dto.opcoes.OpcoesDto;
@@ -12,6 +13,7 @@ import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.service.IntegraccaoEdocsService;
 import br.gov.es.siscap.service.PessoaService;
 import br.gov.es.siscap.service.ProgramaService;
+import br.gov.es.siscap.service.ProgramaInformacoesDicsService;
 import br.gov.es.siscap.service.RelatoriosService;
 import br.gov.es.siscap.service.TokenService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +40,7 @@ import org.springframework.web.bind.annotation.*;
 public class ProgramaController {
 
 	private final ProgramaService service;
+	private final ProgramaInformacoesDicsService informacoesDicsService;
 	private final RelatoriosService relatoriosService;
 	private final IntegraccaoEdocsService integracaoEdocsService;
 
@@ -66,6 +69,12 @@ public class ProgramaController {
 	@GetMapping("/{id}")
 	public ProgramaDto buscarPorId(@NotNull @Positive @PathVariable Long id) {
 		return service.buscarPorId(id);
+	}
+
+	@GetMapping("/informacoes-dics")
+	public ProgramaInformacoesDicsDto buscarInformacoesDics(
+			@RequestParam List<Long> idsProjetos) {
+		return informacoesDicsService.buscar(idsProjetos);
 	}
 
 	@PostMapping

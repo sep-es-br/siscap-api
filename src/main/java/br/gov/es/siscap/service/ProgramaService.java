@@ -3,6 +3,7 @@ package br.gov.es.siscap.service;
 import br.gov.es.siscap.dto.EquipeDto;
 import br.gov.es.siscap.dto.ProgramaAssinaturaEdocsDto;
 import br.gov.es.siscap.dto.ProgramaDto;
+import br.gov.es.siscap.dto.ProgramaDicDto;
 import br.gov.es.siscap.dto.ProgramaOrganizacaoDto;
 import br.gov.es.siscap.dto.ValorDto;
 import br.gov.es.siscap.dto.listagem.ProgramaListaDto;
@@ -16,6 +17,7 @@ import br.gov.es.siscap.models.Organizacao;
 import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.PessoaOrganizacao;
 import br.gov.es.siscap.models.Programa;
+import br.gov.es.siscap.models.ProgramaRegiaoAtendida;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
 import br.gov.es.siscap.models.Projeto;
 import br.gov.es.siscap.models.ProjetoAcao;
@@ -31,6 +33,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -59,6 +62,7 @@ public class ProgramaService {
 	private final ProgramaOrganizacaoService programaOrganizacaoService;
 	private final ProgramaProcessamentoService programaProcessamentoService;
 	private final AutenticacaoService autenticacaoService;
+	private final ProgramaInformacoesDicsService informacoesDicsService;
 
 	private final Logger logger = LogManager.getLogger(ProgramaService.class);
 
@@ -124,6 +128,7 @@ public class ProgramaService {
 		this.validarProgramaForm(form);
 
 		Programa tempPrograma = new Programa(form);
+		atualizarInformacoesDics(tempPrograma, form);
 		tempPrograma.setSigla(form.sigla() == null ? null : form.sigla().trim().toUpperCase(java.util.Locale.ROOT));
 
 		tempPrograma.alterarStatus(StatusProgramaEnum.EDICAO, pessoa);
@@ -204,6 +209,7 @@ public class ProgramaService {
 		Programa programa = this.buscar(id);
 
 		programa.atualizar(form);
+		atualizarInformacoesDics(programa, form);
 
 		Programa programaResult = repository.save(programa);
 
@@ -228,6 +234,19 @@ public class ProgramaService {
 
 		return new ProgramaDto(programaResult, equipeCaptacao, idProjetoPropostoList, null, organizacoesProgramaList);
 
+	}
+
+	private void atualizarInformacoesDics(Programa programa, ProgramaForm form) {
+		var informacoes = informacoesDicsService.buscar(form.idProjetoPropostoList());
+		programa.setRegioesAtendidas(informacoes.regioesAtendidas().stream()
+				.map(regiao -> new ProgramaRegiaoAtendida(regiao.id(), regiao.nome()))
+				.collect(Collectors.toCollection(ArrayList::new)));
+		if (form.objetivo() == null && programa.getObjetivo() == null) {
+			programa.setObjetivo(informacoes.dics().stream()
+					.map(ProgramaDicDto::objetivo)
+					.filter(Objects::nonNull).map(String::trim).filter(objetivo -> !objetivo.isEmpty())
+					.distinct().collect(Collectors.joining("\n\n")));
+		}
 	}
 
 	@Transactional

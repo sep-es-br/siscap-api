@@ -37,7 +37,9 @@ public record ProgramaForm(
 			BigDecimal percentualCustoAdministrativo,
 
 			@Valid
-			BigDecimal valorCalculadoTotal
+			BigDecimal valorCalculadoTotal,
+
+			String objetivo
 
 ) {
 }
