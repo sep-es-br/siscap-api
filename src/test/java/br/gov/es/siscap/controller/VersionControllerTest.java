@@ -22,4 +22,11 @@ class VersionControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.version").value("Desenvolvimento"));
     }
+    @Test
+    void usesDevelopmentUntilReleaseMarkerIsReplaced() throws Exception {
+        MockMvcBuilders.standaloneSetup(new VersionController("@release#@")).build()
+            .perform(get("/versions"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.version").value("Desenvolvimento"));
+    }
 }

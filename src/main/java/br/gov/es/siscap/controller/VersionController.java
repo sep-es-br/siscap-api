@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class VersionController {
     private final String version;
 
-    public VersionController(@Value("${app.version:${APP_VERSION:Desenvolvimento}}") String version) {
-        this.version = version == null || version.isBlank() ? "Desenvolvimento" : version.trim();
+    public VersionController(@Value("${app.version:Desenvolvimento}") String version) {
+        this.version = version == null || version.isBlank() || version.contains("@release#@") ? "Desenvolvimento" : version.trim();
     }
 
     @GetMapping(produces = "application/json")
