@@ -97,6 +97,7 @@ public class SecurityConfig {
 							PROSPECCAO_APAGAR.name());
 
 					authConfig.requestMatchers(HttpMethod.GET,
+							"/versions",
 							"/swagger-ui.html",
 							"/swagger-ui/*",
 							"/v3/*",
