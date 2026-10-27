@@ -52,12 +52,18 @@ public class ProgramaAssinaturaEdocsService {
 
 		Map<String, String> papelPorSub = new HashMap<>();
 		Map<String, String> mensagemRecusaAssinaturaPorSub = new HashMap<>();
+		Map<String, String> orientacaoAssinaturaPorSub = new HashMap<>();
 
 		programaAssinaturaEdocsList.stream()
 				.forEach(assinante -> {
 
 					List<ACAgentePublicoPapelDto> papeisAgentePublico = acessoCidadaoService
 							.listarPapeisAgentePublicoPorSub(assinante.getPessoa().getSub());
+
+					logger.info(
+							"Dados assinante -> {} :: {}",
+							assinante.getPessoa().getNome(),
+							papeisAgentePublico);
 
 					String nomePapelAssinante = papeisAgentePublico.stream()
 							.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))

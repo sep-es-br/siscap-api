@@ -17,7 +17,7 @@ VALUES
 -- 1. SUBCAP - Encaminhamento
 -- ============================================================
 (
-    'GUID_LOTACAO_SUBCAP',
+    '515685f7-2aeb-4cc4-a311-8b793297f8fb',
     'Encaminhamento — Subsecretaria de Captação de Recursos',
     1,
     $texto$
@@ -40,7 +40,7 @@ $texto$,
 -- 2. SEP - Endosso
 -- ============================================================
 (
-    'GUID_LOTACAO_SEP',
+    '07a0462f-6b02-4b98-b86d-18d7e4fa543a',
     'Endosso — Secretaria de Economia e Planejamento',
     1,
     $texto$
@@ -59,7 +59,7 @@ $texto$,
 -- 3. GOVERNADOR - Decisão
 -- ============================================================
 (
-    'GUID_LOTACAO_GOVERNADOR',
+    '74f2a63f-c5cf-4a81-91d9-5643c37367ec',
     'Decisão — Governador do Estado',
     1,
     $texto$
