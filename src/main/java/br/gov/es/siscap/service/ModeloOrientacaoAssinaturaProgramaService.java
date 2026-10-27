@@ -12,16 +12,14 @@ import br.gov.es.siscap.repository.ModeloOrientacaoAssinaturaProgramaRepository;
 @Transactional(readOnly = true)
 public class ModeloOrientacaoAssinaturaProgramaService {
 
-    private final ModeloOrientacaoAssinaturaProgramaRepository repository;
+        private final ModeloOrientacaoAssinaturaProgramaRepository repository;
 
-    @Transactional(readOnly = true)
-    public ModeloOrientacaoAssinaturaPrograma buscarModeloAtivoPorGuidLotacao(
-            String guidLotacao) {
+        @Transactional(readOnly = true)
+        public ModeloOrientacaoAssinaturaPrograma buscarModeloAtivoPorGuidLotacao(
+                        String guidLotacao) {
 
-        return repository.findByGuidLotacaoAndAtivoTrue(guidLotacao)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Nenhum modelo de orientação ativo encontrado para a lotação: "
-                                + guidLotacao));
-    }
+                return repository.findByGuidLotacaoAndAtivoTrue(guidLotacao)
+                                .orElseGet(ModeloOrientacaoAssinaturaPrograma::new);
+        }
 
 }

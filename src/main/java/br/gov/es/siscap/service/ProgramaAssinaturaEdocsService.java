@@ -6,7 +6,6 @@ import br.gov.es.siscap.models.Pessoa;
 import br.gov.es.siscap.models.Programa;
 import br.gov.es.siscap.models.ProgramaAssinaturaEdocs;
 import br.gov.es.siscap.repository.ProgramaAssinaturaEdocsRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,6 +37,7 @@ public class ProgramaAssinaturaEdocsService {
 	private final ProgramaAssinaturaEdocsRepository repository;
 	private final PessoaService pessoaService;
 	private final AcessoCidadaoService acessoCidadaoService;
+	private final ModeloOrientacaoAssinaturaProgramaService modeloDespachoLotacaoAssinanteService;
 
 	private final Logger logger = LogManager.getLogger(ProgramaAssinaturaEdocsService.class);
 
@@ -52,7 +52,7 @@ public class ProgramaAssinaturaEdocsService {
 
 		Map<String, String> papelPorSub = new HashMap<>();
 		Map<String, String> mensagemRecusaAssinaturaPorSub = new HashMap<>();
-		Map<String, String> orientacaoAssinaturaPorSub = new HashMap<>();
+		Map<String, String> mensagemDespachoAssinaturaPorSub = new HashMap<>();
 
 		programaAssinaturaEdocsList.stream()
 				.forEach(assinante -> {
@@ -65,14 +65,22 @@ public class ProgramaAssinaturaEdocsService {
 							assinante.getPessoa().getNome(),
 							papeisAgentePublico);
 
-					String nomePapelAssinante = papeisAgentePublico.stream()
+					ACAgentePublicoPapelDto papelAssinante = papeisAgentePublico.stream()
 							.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
 							.findFirst()
-							.map(ACAgentePublicoPapelDto::Nome)
 							.orElseGet(() -> papeisAgentePublico.stream()
 									.findFirst()
-									.map(ACAgentePublicoPapelDto::Nome)
-									.orElse(""));
+									.orElse(null));
+
+					String nomePapelAssinante = papelAssinante != null
+							? papelAssinante.Nome()
+							: "";
+
+					String lotacaoGuidAssinante = papelAssinante != null
+							? papelAssinante.LotacaoGuid()
+							: "";
+
+					logger.info("Lotacao assinante {} - {} ", nomePapelAssinante , lotacaoGuidAssinante );
 
 					papelPorSub.put(assinante.getPessoa().getSub(), nomePapelAssinante);
 
@@ -82,9 +90,16 @@ public class ProgramaAssinaturaEdocsService {
 					mensagemRecusaAssinaturaPorSub.put(assinante.getPessoa().getSub(),
 							mensagemRecusaAssinaturaAssinante);
 
+					String mensagemDespachoAssinatura = resolverMensagemDespachoAssinante(
+						lotacaoGuidAssinante);
+
+					mensagemDespachoAssinaturaPorSub.put(assinante.getPessoa().getSub(),
+							mensagemDespachoAssinatura);
+
 				});
 
-		return this.montarListaDto(programaAssinaturaEdocsList, papelPorSub, mensagemRecusaAssinaturaPorSub);
+		return this.montarListaDto(programaAssinaturaEdocsList, papelPorSub, mensagemRecusaAssinaturaPorSub,
+				mensagemDespachoAssinaturaPorSub);
 
 	}
 
@@ -131,7 +146,9 @@ public class ProgramaAssinaturaEdocsService {
 
 	private List<ProgramaAssinaturaEdocsDto> montarListaDto(
 			List<ProgramaAssinaturaEdocs> programaPessoaAssinanteEdocsList,
-			Map<String, String> papelPorSub, Map<String, String> textoRecusaPorSub) {
+			Map<String, String> papelPorSub,
+			Map<String, String> textoRecusaPorSub,
+			Map<String, String> textoDespachoAssinante) {
 
 		return programaPessoaAssinanteEdocsList.stream()
 				.map(assinante -> new ProgramaAssinaturaEdocsDto(
@@ -142,7 +159,8 @@ public class ProgramaAssinaturaEdocsService {
 						assinante.getDataAssinatura(),
 						assinante.getPessoa().getNome(),
 						papelPorSub.getOrDefault(assinante.getPessoa().getSub(), ""),
-						textoRecusaPorSub.getOrDefault(assinante.getPessoa().getSub(), "")))
+						textoRecusaPorSub.getOrDefault(assinante.getPessoa().getSub(), ""),
+						textoDespachoAssinante.getOrDefault(assinante.getPessoa().getSub(), "")))
 				.toList();
 
 	}
@@ -156,6 +174,7 @@ public class ProgramaAssinaturaEdocsService {
 		Map<String, String> nomePorSub = new HashMap<>();
 		Map<String, String> papelPorSub = new HashMap<>();
 		Map<String, String> mensagemRecusaAssinaturaPorSub = new HashMap<>();
+		Map<String, String> textoDespachoAssinaturaPorSub = new HashMap<>();
 
 		List<String> subAssinantesEdocsPrograma = List.of(assinanteEdocsProgramaGestorSUBCAP,
 				assinanteEdocsProgramaGestorSEP, assinanteEdocsProgramaGestorGOVES);
@@ -169,12 +188,14 @@ public class ProgramaAssinaturaEdocsService {
 							sub,
 							nomePorSub,
 							papelPorSub,
-							mensagemRecusaAssinaturaPorSub);
+							mensagemRecusaAssinaturaPorSub,
+							textoDespachoAssinaturaPorSub);
 
 					return new ProgramaAssinaturaEdocsDto(
 							nomePorSub.get(sub),
 							papelPorSub.get(sub),
-							mensagemRecusaAssinaturaPorSub.get(sub));
+							mensagemRecusaAssinaturaPorSub.get(sub),
+							textoDespachoAssinaturaPorSub.get(sub));
 				})
 				.toList();
 	}
@@ -183,18 +204,25 @@ public class ProgramaAssinaturaEdocsService {
 			String sub,
 			Map<String, String> nomePorSub,
 			Map<String, String> papelPorSub,
-			Map<String, String> mensagemRecusaAssinaturaPorSub) {
+			Map<String, String> mensagemRecusaAssinaturaPorSub,
+			Map<String, String> textoDespachoAssinaturaPorSub) {
 
 		List<ACAgentePublicoPapelDto> papeisAgentePublico = acessoCidadaoService.listarPapeisAgentePublicoPorSub(sub);
 
-		String nomePapelAssinante = papeisAgentePublico.stream()
+		ACAgentePublicoPapelDto papelAssinante = papeisAgentePublico.stream()
 				.filter(agente -> Boolean.TRUE.equals(agente.Prioritario()))
 				.findFirst()
-				.map(ACAgentePublicoPapelDto::Nome)
 				.orElseGet(() -> papeisAgentePublico.stream()
 						.findFirst()
-						.map(ACAgentePublicoPapelDto::Nome)
-						.orElse(""));
+						.orElse(null));
+
+		String nomePapelAssinante = papelAssinante != null
+				? papelAssinante.Nome()
+				: "";
+
+		String lotacaoGuidAssinante = papelAssinante != null
+				? papelAssinante.LotacaoGuid()
+				: "";
 
 		String nomeAssinante = Optional.ofNullable(pessoaService.buscarPorSub(sub))
 				.map(Pessoa::getNome)
@@ -207,6 +235,16 @@ public class ProgramaAssinaturaEdocsService {
 		mensagemRecusaAssinaturaPorSub.put(
 				sub,
 				resolverMensagemRecusaAssinanteGestor(sub));
+
+		textoDespachoAssinaturaPorSub.put(
+				sub, lotacaoGuidAssinante);
+
+	}
+
+	public String resolverMensagemDespachoAssinante(String lotacaoAssinante) {
+
+		return this.modeloDespachoLotacaoAssinanteService.buscarModeloAtivoPorGuidLotacao(lotacaoAssinante)
+				.getConteudo();
 
 	}
 
