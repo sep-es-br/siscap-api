@@ -9,6 +9,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ModeloOrientacaoAssinaturaProgramaRepository
         extends JpaRepository<ModeloOrientacaoAssinaturaPrograma, Long> {
 
-    Optional<ModeloOrientacaoAssinaturaPrograma> findByGuidLotacaoAndAtivoTrue(String guidLotacao);
+    Optional<ModeloOrientacaoAssinaturaPrograma>
+        findByGuidLotacaoIgnoreCaseAndAtivoTrueAndApagadoFalse(
+            String guidLotacao
+        );
 
 }

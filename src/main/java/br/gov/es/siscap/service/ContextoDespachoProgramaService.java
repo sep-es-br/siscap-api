@@ -39,13 +39,6 @@ public class ContextoDespachoProgramaService {
                 programa,
                 "Programa não pode ser nulo.");
 
-        // Recupera os projetos vinculados ao Programa.
-        // Este método deverá ser confirmado no repository.
-        // List<Projeto> projetosVinculados =
-        // projetoRepository.findProjetosVinculadosAoPrograma(
-        // programa.getId()
-        // );
-
         List<Projeto> projetosVinculados = projetoRepository.findAllByPrograma(programa).stream().toList();
 
         Map<String, String> variaveis = new HashMap<>();
@@ -75,9 +68,10 @@ public class ContextoDespachoProgramaService {
         // Identificar de onde vem o número do Parecer
         // de Elegibilidade.
         //
-        // Por enquanto, não adicionamos essa variável.
-        // O processador deverá preservar o marcador
-        // {{numeroParecerElegibilidade}} quando ausente.
+        // Por enquanto, vamos devolver como vazio.
+        variaveis.put(
+                "numeroParecerElegibilidade",
+                "");
 
         return variaveis;
 

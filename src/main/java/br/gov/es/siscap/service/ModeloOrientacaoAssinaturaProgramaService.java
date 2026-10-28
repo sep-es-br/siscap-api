@@ -18,7 +18,7 @@ public class ModeloOrientacaoAssinaturaProgramaService {
         public ModeloOrientacaoAssinaturaPrograma buscarModeloAtivoPorGuidLotacao(
                         String guidLotacao) {
 
-                return repository.findByGuidLotacaoAndAtivoTrue(guidLotacao)
+                return repository.findByGuidLotacaoIgnoreCaseAndAtivoTrueAndApagadoFalse(guidLotacao)
                                 .orElseGet(ModeloOrientacaoAssinaturaPrograma::new);
         }
 
