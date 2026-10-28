@@ -38,10 +38,14 @@ public class ProgramaAssinaturaEdocsService {
 	private final PessoaService pessoaService;
 	private final AcessoCidadaoService acessoCidadaoService;
 	private final ModeloOrientacaoAssinaturaProgramaService modeloDespachoLotacaoAssinanteService;
+	private final ContextoDespachoProgramaService contextoDespachoProgramaService;
+	private final DespachoAssinanteTemplateService despachoAssinanteTemplateService;
 
 	private final Logger logger = LogManager.getLogger(ProgramaAssinaturaEdocsService.class);
 
 	public List<ProgramaAssinaturaEdocsDto> buscarPorPrograma(Programa programa) {
+
+		Map<String, String> variaveis = contextoDespachoProgramaService.montar(programa);
 
 		List<ProgramaAssinaturaEdocs> programaAssinaturaEdocsList = this
 				.buscarProgramaAssinaturasSetPorPrograma(programa).stream().toList();
@@ -80,7 +84,7 @@ public class ProgramaAssinaturaEdocsService {
 							? papelAssinante.LotacaoGuid()
 							: "";
 
-					logger.info("Lotacao assinante {} - {} ", nomePapelAssinante , lotacaoGuidAssinante );
+					logger.info("Lotacao assinante {} - {} ", nomePapelAssinante, lotacaoGuidAssinante);
 
 					papelPorSub.put(assinante.getPessoa().getSub(), nomePapelAssinante);
 
@@ -91,7 +95,8 @@ public class ProgramaAssinaturaEdocsService {
 							mensagemRecusaAssinaturaAssinante);
 
 					String mensagemDespachoAssinatura = resolverMensagemDespachoAssinante(
-						lotacaoGuidAssinante);
+							lotacaoGuidAssinante, 
+							variaveis);
 
 					mensagemDespachoAssinaturaPorSub.put(assinante.getPessoa().getSub(),
 							mensagemDespachoAssinatura);
@@ -241,11 +246,20 @@ public class ProgramaAssinaturaEdocsService {
 
 	}
 
-	public String resolverMensagemDespachoAssinante(String lotacaoAssinante) {
+	public String resolverMensagemDespachoAssinante(
+			String lotacaoAssinante,
+			Map<String, String> variaveis) {
 
-		return this.modeloDespachoLotacaoAssinanteService.buscarModeloAtivoPorGuidLotacao(lotacaoAssinante)
-				.getConteudo();
+		var modelo = modeloDespachoLotacaoAssinanteService
+				.buscarModeloAtivoPorGuidLotacao(lotacaoAssinante);
 
+		if (modelo == null || modelo.getConteudo() == null) {
+			return "";
+		}
+
+		return despachoAssinanteTemplateService.processar(
+				modelo.getConteudo(),
+				variaveis);
 	}
 
 }

@@ -27,11 +27,6 @@ Encaminho a proposta de Programa {{programa}}, consolidada a partir do(s) projet
 
 Proponho a Vossa Excelência o endosso da proposta institucionalmente consolidada e sua submissão ao Governador do Estado, com vistas à autorização para a continuidade dos procedimentos de prospecção de fontes de financiamento, nos termos dos itens 6.6 e 6.7 da Norma de Procedimento SCR nº 001.
 
-{{local}}, {{dataAssinatura}}.
-
-{{nomeAssinante}}
-
-Subsecretária de Captação de Recursos – SUBCAP/SEP
 $texto$,
     TRUE
 ),
@@ -46,11 +41,6 @@ $texto$,
     $texto$
 Em atendimento ao item 6.6, alínea "c", da Norma de Procedimento SCR nº 001, tomo ciência da declaração de Elegibilidade nº {{numeroDeclaracaoElegibilidade}}, anexo e endosso a Proposta de Programa {{programa}}, consolidada a partir do(s) projeto(s) {{siglasProjetos}}, de iniciativa do(a) {{orgaoProponente}}, com valor estimado de {{valorEstimado}}, institucionalmente consolidada, para fins de continuidade dos procedimentos de captação.
 
-{{local}}, {{dataAssinatura}}.
-
-{{nomeAssinante}}
-
-Secretário de Estado de Economia e Planejamento – SEP
 $texto$,
     TRUE
 ),
@@ -65,11 +55,6 @@ $texto$,
     $texto$
 Em atendimento ao item 6.7 da Norma de Procedimento SCR nº 001, autorizo a continuidade dos procedimentos com vistas à prospecção de fontes de financiamento para o Programa {{programa}}, consolidada a partir do(s) projeto(s) {{siglasProjetos}}, de iniciativa do(a) {{orgaoProponente}}, com valor estimado de {{valorEstimado}}, declarada elegível para pleito de financiamento pela Gerência de Captação de Recursos e ratificada por esta Subsecretaria, conforme Parecer de Elegibilidade nº {{numeroParecerElegibilidade}}, anexo.
 
-{{local}}, {{dataAssinatura}}.
-
-{{nomeAssinante}}
-
-Governador do Estado do Espírito Santo
 $texto$,
     TRUE
 );

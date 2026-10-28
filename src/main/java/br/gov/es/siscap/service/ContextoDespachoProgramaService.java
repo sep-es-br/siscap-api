@@ -36,45 +36,40 @@ public class ContextoDespachoProgramaService {
     public Map<String, String> montar(Programa programa) {
 
         Objects.requireNonNull(
-            programa,
-            "Programa não pode ser nulo."
-        );
+                programa,
+                "Programa não pode ser nulo.");
 
         // Recupera os projetos vinculados ao Programa.
         // Este método deverá ser confirmado no repository.
         // List<Projeto> projetosVinculados =
-        //     projetoRepository.findProjetosVinculadosAoPrograma(
-        //         programa.getId()
-        //     );
+        // projetoRepository.findProjetosVinculadosAoPrograma(
+        // programa.getId()
+        // );
 
-        List<Projeto> projetosVinculados = projetoRepository.findAllByPrograma(programa).stream().collect(null);
+        List<Projeto> projetosVinculados = projetoRepository.findAllByPrograma(programa).stream().toList();
 
         Map<String, String> variaveis = new HashMap<>();
 
         // Título do Programa
         variaveis.put(
-            "programa",
-            textoOuVazio(programa.getTitulo())
-        );
+                "programa",
+                textoOuVazio(programa.getTitulo()));
 
         // Siglas dos projetos vinculados
         variaveis.put(
-            "siglasProjetos",
-            obterSiglasProjetos(projetosVinculados)
-        );
+                "siglasProjetos",
+                obterSiglasProjetos(projetosVinculados));
 
         // Organizações proponentes dos projetos
         variaveis.put(
-            "orgaoProponente",
-            obterOrgaosProponentes(projetosVinculados)
-        );
+                "orgaoProponente",
+                obterOrgaosProponentes(projetosVinculados));
 
         // Valor consolidado do Programa, incluindo
         // o percentual de despesas administrativas
         variaveis.put(
-            "valorEstimado",
-            obterValorEstimado(programa)
-        );
+                "valorEstimado",
+                obterValorEstimado(programa));
 
         // TODO:
         // Identificar de onde vem o número do Parecer
@@ -85,6 +80,7 @@ public class ContextoDespachoProgramaService {
         // {{numeroParecerElegibilidade}} quando ausente.
 
         return variaveis;
+
     }
 
     /**
@@ -99,13 +95,13 @@ public class ContextoDespachoProgramaService {
         }
 
         return projetos.stream()
-            .map(Projeto::getSigla)
-            .filter(Objects::nonNull)
-            .map(String::trim)
-            .filter(sigla -> !sigla.isBlank())
-            .distinct()
-            .sorted()
-            .collect(Collectors.joining(", "));
+                .map(Projeto::getSigla)
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(sigla -> !sigla.isBlank())
+                .distinct()
+                .sorted()
+                .collect(Collectors.joining(", "));
     }
 
     /**
@@ -123,15 +119,15 @@ public class ContextoDespachoProgramaService {
         }
 
         return projetos.stream()
-            .map(Projeto::getOrganizacao)
-            .filter(Objects::nonNull)
-            .map(Organizacao::getNome)
-            .filter(Objects::nonNull)
-            .map(String::trim)
-            .filter(nome -> !nome.isBlank())
-            .distinct()
-            .sorted()
-            .collect(Collectors.joining(", "));
+                .map(Projeto::getOrganizacao)
+                .filter(Objects::nonNull)
+                .map(Organizacao::getNome)
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(nome -> !nome.isBlank())
+                .distinct()
+                .sorted()
+                .collect(Collectors.joining(", "));
     }
 
     /**
@@ -150,10 +146,8 @@ public class ContextoDespachoProgramaService {
             return "";
         }
 
-        NumberFormat formatoMoeda =
-            NumberFormat.getCurrencyInstance(
-                Locale.forLanguageTag("pt-BR")
-            );
+        NumberFormat formatoMoeda = NumberFormat.getCurrencyInstance(
+                Locale.forLanguageTag("pt-BR"));
 
         return formatoMoeda.format(valor);
     }
@@ -165,5 +159,5 @@ public class ContextoDespachoProgramaService {
     private String textoOuVazio(String valor) {
         return valor == null ? "" : valor.trim();
     }
-}
 
+}
