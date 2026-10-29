@@ -4,6 +4,23 @@ O SisCap apoia a organização e o acompanhamento de propostas para captação d
 
 Este repositório contém a **API do SisCap**, utilizada pelo frontend para consultar e registrar os dados e executar os fluxos do sistema.
 
+## Tecnologias
+
+<p>
+  <img src="https://img.shields.io/badge/Java-17-ED8B00?style=flat" alt="Java 17" height="20" align="middle" />
+  &nbsp;
+  <img src="https://img.shields.io/badge/Spring_Boot-3.2.2-6DB33F?style=flat&amp;logo=springboot&amp;logoColor=white" alt="Spring Boot 3.2.2" height="20" align="middle" />
+  &nbsp;
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&amp;logo=postgresql&amp;logoColor=white" alt="PostgreSQL" height="20" align="middle" />
+  &nbsp;
+  <img src="https://img.shields.io/badge/Maven-3.9.5-C71A36?style=flat&amp;logo=apachemaven&amp;logoColor=white" alt="Maven 3.9.5" height="20" align="middle" />
+</p>
+
+- **Flyway:** versionamento e aplicação das migrações do banco de dados.
+- **Spring Security e OAuth2:** autenticação e controle de acesso.
+- **OpenFeign:** comunicação com APIs externas.
+- **JasperReports:** geração de relatórios e documentos PDF.
+
 ## O que o sistema reúne
 
 - **Projetos e DIC:** elaboração e acompanhamento do Documento Inicial de Captação, com responsáveis, equipe, objetivos e informações da proposta.
@@ -24,7 +41,3 @@ Para preparar o ambiente, configurar o banco e executar o backend, consulte:
 **[Guia para rodar a API](doc/configuracao-api.md)**
 
 O guia inclui os pré-requisitos, as configurações locais, os comandos para Windows e Linux/macOS, a execução de testes, o acesso ao Swagger e a solução de problemas frequentes.
-
-## Tecnologias
-
-Java 17, Spring Boot, Maven, PostgreSQL e Flyway. A API também utiliza Spring Security/OAuth2, OpenFeign e JasperReports.
